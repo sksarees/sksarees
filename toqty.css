@@ -38,7 +38,7 @@
 .simpleCart_items .item-remove a.simpleCart_remove,
 .errorWrap a,
 .post-thumb,
-.PopularPosts .post-thumb,
+.PopularPosts2 .post-thumb,
 blockquote,
 .note,
 .comment-form p,
@@ -49,7 +49,7 @@ blockquote,
 #header .label-dropdown .Label ul li,
 img,
 .index-post,
-.PopularPosts .post,
+.PopularPosts2 .post,
 .recent-section .recent-label li.hot-item,
 .index-post .post-image-wrap .post-image-link,
 a.slide-img,
@@ -61,9 +61,9 @@ a.slide-img,
 #header .menu-dropdown .LinkList ul,
 #header .menu-dropdown .LinkList ul li,
 #header .menu-dropdown .LinkList ul li a,
-.recent-section .PopularPosts .harga,
+.recent-section .PopularPosts2 .harga,
 .hot-item-inner .harga,
-.recent-section .PopularPosts .post-image-link,
+.recent-section .PopularPosts2 .post-image-link,
 .list-label li,
 .list-label li a,
 .cloud-label li a,
@@ -173,14 +173,14 @@ a.text-takantup,
 #header .icon .c-otsutsuki-indra a.simpleCart_empty,
 .link-kananku,
 .index-post .product-info>h2>a,
-.PopularPosts .product-info h2.post-title a,
+.PopularPosts2 .product-info h2.post-title a,
 .recent-label h2.post-title a,
 .product-buy-buttons,
 .share-title,
 .quantity small,
 .about-author,
 #slideHome .owl-carousel .slide img,
-.PopularPosts .title,
+.PopularPosts2 .title,
 .recent-section .title,
 .recent-blog .title {
 display: inline-block
@@ -224,7 +224,7 @@ ul.related-posts,
 .related-posts .post-image-link,
 #header .header-search form .text,
 #header .header-search,
-.recent-section .PopularPosts .post-image-link,
+.recent-section .PopularPosts2 .post-image-link,
 .list-label li,
 .list-label .label-count,
 .cloud-label li,
@@ -233,7 +233,7 @@ ul.related-posts,
 .buka,
 .c-wadah-otsutsuki,
 .post-thumb,
-.PopularPosts .post-thumb,
+.PopularPosts2 .post-thumb,
 #newbar,
 .product-header,
 blockquote,
@@ -268,14 +268,14 @@ font-size: 12px;
 text-decoration: line-through
 }
 .grid-posts,
-.PopularPosts .widget-content2,
+.PopularPosts2 .widget-content2,
 .recent-section ul.recent-label {
 display: flex;
 flex-wrap: wrap;
 margin: 0 -27px 0 0
 }
 .index-post,
-.PopularPosts .post,
+.PopularPosts2 .post,
 .recent-section .recent-label li.hot-item {
 width: 14.77777%;
 box-sizing: border-box;
@@ -285,7 +285,7 @@ border: 1px solid #e2dfde;
 border-radius: 2px
 }
 .post-thumb.l,
-.PopularPosts .post-thumb.lazyloaded {
+.PopularPosts2 .post-thumb.lazyloaded {
 opacity: 1
 }
 .index-post .post-image-wrap {
@@ -303,7 +303,7 @@ z-index: 1;
 overflow: hidden
 }
 .post-thumb,
-.PopularPosts .post-thumb {
+.PopularPosts2 .post-thumb {
 background-color: #f5f6f7;
 width: 100%;
 height: 100%;
@@ -325,7 +325,7 @@ min-height: 40px;
 padding: 12px 10px 8px
 }
 .index-post .item_price,
-.recent-section .PopularPosts .harga {
+.recent-section .PopularPosts2 .harga {
 font-size: 14px;
 margin: 0 0 10px;
 color: #45b44d
@@ -768,17 +768,17 @@ color: #45b44d
 #header .menu-dropdown .LinkList ul li:last-of-type {
 border-bottom: 0
 }
-.PopularPosts .post {
+.PopularPosts2 .post {
 overflow: hidden;
 word-wrap: break-word;
 position: relative
 }
-.recent-section .PopularPosts .harga,
+.recent-section .PopularPosts2 .harga,
 .hot-item .harga {
 color: #45b44d;
 font-weight: 600
 }
-.recent-section .PopularPosts .post-image-link {
+.recent-section .PopularPosts2 .post-image-link {
 width: 100%;
 height: 194px;
 float: left;
@@ -786,7 +786,7 @@ overflow: hidden;
 margin: 0;
 border-radius: 2px 2px 0 0
 }
-.PopularPosts .post-title {
+.PopularPosts2 .post-title {
 font-size: 13px;
 font-weight: 500;
 text-transform: none;
@@ -958,7 +958,7 @@ margin: 0 0 25px;
 text-align: center
 }
 .title-home,
-.PopularPosts .title,
+.PopularPosts2 .title,
 .recent-section .title,
 .recent-blog .title {
 height: 40px;
@@ -1743,13 +1743,13 @@ text-decoration: none;
 margin: 0 0 8px
 }
 .index-post .product-info>h2>a,
-.PopularPosts .product-info h2.post-title a,
+.PopularPosts2 .product-info h2.post-title a,
 .recent-label h2.post-title a {
 color: #252525;
 transition: color .17s
 }
 .index-post:hover .product-info>h2>a,
-.PopularPosts .product-info:hover h2.post-title a,
+.PopularPosts2 .product-info:hover h2.post-title a,
 .recent-label h2.post-title a:hover {
 color: #111
 }
@@ -2276,7 +2276,7 @@ font-size: 13px
 }
 #label-flash .grid-posts .widget:hover a.btn,
 .index-post .product-info h2 a:hover,
-.PopularPosts .product-info h2.post-title a:hover,
+.PopularPosts2 .product-info h2.post-title a:hover,
 .recent-label h2.post-title a:hover {
 text-decoration: underline
 }
@@ -2799,7 +2799,7 @@ font-weight: 500
 }
 @media(max-width:1440px){.wrapper{width:1050px}#header .header-search {width:52%}.header-wrapper, .Penjelasan, #newbar-menu-full, .wrapper, .post-wrapper,#footer-wrapper,.Penjelasan {width:100%}}
 #header .header-label{position:relative}
-@media(max-width:1023px){.u-bg--flash-deal .grid-posts{margin:0;padding:0;max-width:100%}#header .search-form ul{max-height:100%;overflow-y:auto}#header .header-search form .text{padding:0 55px}.header-wrapper,.footerWidget .grid,.bukaDukungan,#newbar-menu-full,#slideHome .owl-carousel{width:100%!important}.grid{grid-column-gap:0}.PopularPosts .post-image-link,.index-post .post-image-wrap{height:150px}}#header .search-form ul,#header .search-form ul *{display:block}#header .search-form .widget-title h3{padding:5px 15px;font-size:60%;opacity:.5;text-transform:uppercase}#header .search-form ul a{padding:5px 15px;font-size:13px}#header .search-form ul a:hover{background:#fafafa}#header .header-search form{display:block;position:relative;background:#fff;border-radius:2px;width:55%}#header .header-search form svg.back{fill:currentColor;display:none;line-height:40px;width:24px;text-align:center;font-size:150%;color:#adadad;position:absolute;z-index:2;top:5px;left:10px}#header .icon>a i{vertical-align:middle;font-size:24px;margin-right:10px;font-weight:400}#header .icon>a svg.siput{height:24px;width:24px;vertical-align:-7px;fill:currentColor}#header .header-search form .omSearch{position:absolute;top:0;right:48px;z-index:3;width:40px;height:40px;cursor:pointer}#header .header-search form svg.delete-icon{display:none;width:16px;height:16px;position:absolute;right:13px;top:10px;vertical-align:middle;fill:#bbb;text-align:center;z-index:3;cursor:pointer}#header .header-search form .text::placeholder{opacity:.8}#header .header-right{float:right;position:relative;display:inline-block}#header .buka .imgNotif a{margin:0;display:block;padding:0;height:auto;line-height:0}
+@media(max-width:1023px){.u-bg--flash-deal .grid-posts{margin:0;padding:0;max-width:100%}#header .search-form ul{max-height:100%;overflow-y:auto}#header .header-search form .text{padding:0 55px}.header-wrapper,.footerWidget .grid,.bukaDukungan,#newbar-menu-full,#slideHome .owl-carousel{width:100%!important}.grid{grid-column-gap:0}.PopularPosts2 .post-image-link,.index-post .post-image-wrap{height:150px}}#header .search-form ul,#header .search-form ul *{display:block}#header .search-form .widget-title h3{padding:5px 15px;font-size:60%;opacity:.5;text-transform:uppercase}#header .search-form ul a{padding:5px 15px;font-size:13px}#header .search-form ul a:hover{background:#fafafa}#header .header-search form{display:block;position:relative;background:#fff;border-radius:2px;width:55%}#header .header-search form svg.back{fill:currentColor;display:none;line-height:40px;width:24px;text-align:center;font-size:150%;color:#adadad;position:absolute;z-index:2;top:5px;left:10px}#header .icon>a i{vertical-align:middle;font-size:24px;margin-right:10px;font-weight:400}#header .icon>a svg.siput{height:24px;width:24px;vertical-align:-7px;fill:currentColor}#header .header-search form .omSearch{position:absolute;top:0;right:48px;z-index:3;width:40px;height:40px;cursor:pointer}#header .header-search form svg.delete-icon{display:none;width:16px;height:16px;position:absolute;right:13px;top:10px;vertical-align:middle;fill:#bbb;text-align:center;z-index:3;cursor:pointer}#header .header-search form .text::placeholder{opacity:.8}#header .header-right{float:right;position:relative;display:inline-block}#header .buka .imgNotif a{margin:0;display:block;padding:0;height:auto;line-height:0}
 @media(max-width:1023px){#newbar,#header .label-dropdown .Label .closeLabel{display:none}#header .header-layout{display:inline}#header,.header-wrapper,#header .header-layout{height:56px;width:100%}#header .icon .c-line{margin:0 5px}#header .desktop{display:none!important}#header .header-layout .header-icon{position:absolute;left:48px;right:auto;float:none;top:0;padding:0}#header .header-menu.icon.menu-mobile,#header .header-menu .menu-mobile{display:inline-block!important}svg.menu-mobile{left:15px;top:16px;position:absolute;vertical-align:middle;fill:currentColor}svg.menu-mobile-close,svg.menu-mobile{width:26px}svg.back-menu{width:20px;height:20px;vertical-align:-4px;fill:currentColor}#header .icon a:hover.menu-link{background:transparent;color:#fff}#header .icon a.menu-link{height:48px;line-height:48px;width:48px;border:0;font-size:18px}#header .icon a{height:36px;line-height:36px;margin:0;padding:0}#header .menu-dropdown .menu-mobile{display:block!important}#header .menu-dropdown .LinkList>ul>li.label-button{display:block!important}#header .label-dropdown .menu-mobile{display:block!important}#header .header-icon .widget a{padding:15.5px 0}#header .header-search{display:none;position:fixed;z-index:+400;top:0;left:0;width:100%;background:#fff}#header .header-search form{background:transparent}#header .header-search .ion-ios-search{display:none!important}#header .header-search .back{display:block!important}#header .search-form{display:block!important;width:100%;position:fixed;top:48px;left:0;width:100%;height:calc(100% - 48px);overflow-y:auto;padding-top:0;background:#fff;border-radius:0;box-shadow:none}#header .menu-dropdown .LinkList{display:none;background:#fff;box-shadow:0 100px 0 0 #fff;border-radius:0 0 2px 2px;position:fixed!important;position:relative;z-index:+200;top:0;left:0;right:auto;height:100%}#header .menu-dropdown .LinkList ul{padding:0 0 0 12px;margin:0;display:block;position:absolute;top:0;left:0;width:100%;background:#fff;height:100%!important;max-height:100%;overflow:hidden;overflow-y:auto}#header .header-label{position:fixed;z-index:+300}#header .label-dropdown .Label{overflow-y:scroll;padding:.85714rem;display:none;background:#fff;border-radius:0;position:fixed!important;position:relative;top:0;left:0;width:calc(100% - 107px);height:100%}#header .label-dropdown .Label ul{margin:0;display:block;max-height:calc(100% - 144px);overflow:hidden;overflow-y:auto}#header .label-dropdown .Label ul li a{padding:15px}#header .close-menu{display:none;position:fixed;z-index:1;top:60px;left:0;width:100%;height:100%;background:#000;opacity:.4}}#header .menu-notif{position:relative}#header .menu-notif span{position:absolute;z-index:1;font-weight:400;transform:translate(-60%,-20%);margin-right:6px;margin-top:3px;top:6px;display:none;text-align:center;vertical-align:middle;border-radius:50%;color:#252525;background:#ffc53e;font-size:10px;height:18px;width:18px;line-height:18px}
 @media(max-width:800px) {
 #header .label-dropdown .Label:before,
@@ -2944,7 +2944,7 @@ margin: 0
 height: 195px !important
 }
 .index-post .post-image-wrap,
-.PopularPosts .post-image-link {
+.PopularPosts2 .post-image-link {
 height: 100px
 }
 .index-post {
@@ -2997,7 +2997,7 @@ padding: 15px
 text-align: center
 }
 }
-@media(max-width:640px){.owl-prev,.owl-next,hr,.product-cart-botton a.buka-cart-payment,.headerBuka .jualBata .item,#header .label-dropdown .Label .allProduct,.simpleCart_ongkir .about-author,.simpleCart_ongkir .jalan_boshjn,small.pluto,.bukaAlasan,.menu-cart .item-remove{display:none!important}body.hancur{overflow-y:hidden}.grid-posts{margin:0 -15px}.index-post{width:calc(100%/2);padding:0 15px;margin:0 0 30px;border:0}.index-post .product-info,#PopularPosts2 .product-info{height:auto;padding:12px 0 0 0}.related-ready{width:100%;margin-left:auto;margin-right:auto;position:relatmenuive;overflow:hidden;list-style:none;padding:0}ul.related-posts{position:relative;width:100%;height:100%;overflow-x:scroll;z-index:1;display:flex;margin:0;transition-property:transform;box-sizing:content-box}.related-posts .related-item{flex-shrink:0;width:136px;height:100%;padding:0;margin-right:8px;position:relative;transition-property:transform}#header #menu-dropdown .LinkList.LinkRianseo{transform:translateX(0px);-webkit-transform:translateX(0px);-ms-transform:translateX(0px);overflow-y:auto;overflow-x:hidden;transition:all .4s ease-in-out;width:300px}#header #menu-dropdown .LinkList{-ms-touch-action:none;touch-action:none;width:0;display:block!important;-webkit-transform:translateX(-320px);-ms-transform:translateX(-320px);transform:translateX(-320px)}#header .label-dropdown .Label{width:300px;max-width:100%}.headerBuka .grid{max-width:calc(100% - 90px)}.wrapper,.c-wadah-otsutsuki{padding:0;margin:0;-webkit-box-shadow:0 0!important;box-shadow:0 0!important;border:0!important}.c-otsutsuki-kaguya,.c-otsutsuki-asura .itemRow{z-index:999;max-width:100%;display:block;margin:0;height:100%;background:#fff;width:100%}.c-otsutsuki-asura .item-thumb{float:right;width:48px;width:48px}.c-otsutsuki-asura .itemRow .item-name,#header .header-right .cart .itemRow .item-quantity,.c-otsutsuki-asura .itemRow .item-price{padding-left:1.5rem;width:75%;font-size:100%}#bukaPembayaran h3,#bukaPengiriman h3{text-align:center}#bukaPembayaran ul li,#bukaPengiriman ul li,#bukaPembayaran,.product-header{float:none}.product-header,.simpleCart_ongkir .simpleCart_boshjn,.simpleCart_ongkir .kembali_kejalan_benar{padding:0;margin:0}.index-post .post-image-wrap,.PopularPosts .post-image-link,.recent-section .PopularPosts .post-image-link,.hot-item .post-image-link{height:134px}.coli-kanan,.blog-post-comments #comments,#header a.search-button,#header .icon a.link{padding:0}.body-mobile,.note-toko,.post-share,.post-body,.post-content2 .title-wrap,.post-labels,.c-otsutsuki-asura .itemRow{padding:16px;margin:0}.coli-kanan h1{margin:8px 0;font-size:16px;font-weight:600}.single-qty-item,.post-content2 .title-wrap{align-items:center;display:flex;justify-content:space-between}.single-qty-item span{align-content:flex-start}.single-qty-item .quantity{display:flex;flex-direction:row;width:-webkit-max-content;width:-moz-max-content;width:max-content}.coli-kanan .c-max{max-width:100%}.quantity input{width:50px}.c-min{display:flex;width:32px;max-width:32px;height:32px;max-height:32px;flex-direction:row;flex:auto}.c-max .min,.c-min .plus,.quantity input{height:32px;line-height:1;background:#eff1f4}.item_price{display:flex;flex:1 1 auto;flex-wrap:nowrap;min-width:0;margin:10px 0;font-size:18px;color:#ea5164}.listMobile{align-items:center;color:inherit;display:flex!important;font-size:14px;font-weight:400;height:48px;background-color:#f9fafb;margin:0;padding:0 16px;position:relative;text-decoration:none;transition:.3s ease-out}.iconMobile:before{content:'';width:24px;height:24px;display:inline-block;vertical-align:-4px;transition:all .3s ease;background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M.75 7.5H10.5L11.25 9H1.5L.75 7.5M1.75 10.5H11.5L12.25 12H2.5L1.75 10.5M18 18.5C18.83 18.5 19.5 17.83 19.5 17C19.5 16.17 18.83 15.5 18 15.5C17.17 15.5 16.5 16.17 16.5 17C16.5 17.83 17.17 18.5 18 18.5M19.5 9.5H17V12H21.46L19.5 9.5M8 18.5C8.83 18.5 9.5 17.83 9.5 17C9.5 16.17 8.83 15.5 8 15.5C7.17 15.5 6.5 16.17 6.5 17C6.5 17.83 7.17 18.5 8 18.5M20 8L23 12V17H21C21 18.66 19.66 20 18 20C16.34 20 15 18.66 15 17H11C11 18.66 9.65 20 8 20C6.34 20 5 18.66 5 17H3V13.5 13.5H5V15H5.76C6.31 14.39 7.11 14 8 14C8.89 14 9.69 14.39 10.24 15H15V6H3V6C3 4.89 3.89 4 5 4H17V8H20Z' fill='%2342454d'></path></svg>") no-repeat}a.bom{font-size:13px;color:#81868f;transition:color .4s cubic-bezier(.4,0,.2,1)}.iconMobile{justify-content:flex-start;min-width:36px;color:#42454d;align-items:center}.centerMobile{text-align:left;flex:1 1 auto;overflow:hidden;align-items:flex-start;justify-content:center;flex-direction:column}.simpleCart_ongkir .jalan_buntu,.post-share{border-bottom:13px solid #eff1f4}.simpleCart_ongkir .jalan_air,.post-body,.post-content2 .title-wrap{-webkit-box-shadow:0;box-shadow:0;border-radius:0;border-right:0;border-left:0;border-top:0;border-bottom:1px solid #e8eaef}.simpleCart_ongkir.biadap .jalan-mars{align-items:center;display:flex;height:48px;margin:0;padding:0;position:relative;text-decoration:none;transition:.3s ease-out}.simpleCart_ongkir.biadap .jalan_buntu,.simpleCart_ongkir .jalan_list{display:flex;padding:15px;align-items:baseline;justify-content:space-between}.simpleCart_ongkir.biadap .jalan_list{border:0;height:100%}.simpleCart_ongkir.biadap{visibility:visible;opacity:1;transition:top .3s}.simpleCart_ongkir{display:flex;height:100%;left:0;z-index:999;background:#fff;margin:0;padding:0;border:0;position:fixed;top:0;-ms-flex-flow:row wrap;flex-flow:column;transition:.2s cubic-bezier(.25,.8,.25,1);width:100%;opacity:0;visibility:hidden;outline:0}.biadap .iconMobileClose{display:block!important;height:55px;line-height:55px;width:100%;padding:0;border-bottom:1px solid #e8eaef}.post-content2 .title-wrap h3,#related-wrap .title-wrap h3{line-height:1;border:0;font-size:14px;padding:0}.post-content2 .title-wrap a h3{padding:4px 13px;font-size:12px;border-radius:13px;color:#fff;font-weight:500;display:inline-flex;line-height:19px;align-items:center;justify-content:center;background-color:#ea5164}.individual img{width:90px;height:90px}svg.menu-mobile{width:24px}#bukaPembayaran,#bukaPengiriman{-webkit-box-flex:1;-ms-flex:1 1 100%;flex:1 1 100%;max-width:100%}.headerBuka{text-align:center;border-bottom:0}#socialMedia{float:none}.related-posts .post-title{font-size:12px}.product-cart-botton{align-items:center;display:flex;justify-content:space-between;background:#fff;border:0;-webkit-box-shadow:0 2px 6px 0 rgba(0,0,0,.5);box-shadow:0 2px 6px 0 rgba(0,0,0,.5);position:fixed;left:0;padding:16px;margin:0;z-index:99;bottom:0;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%}span.add_product,span.js-add-product{font-size:0}.product-cart-botton a.item_add,.product-cart-botton a.add-chat{padding:10px 16px!important;flex:1 1;border-radius:4px;white-space:unset;font-size:14px!important}.product-cart-botton a.item_add{margin-right:16px!important;max-width:20%!important;background:#eff1f4;border-color:#eff1f4;display:flex;white-space:nowrap;justify-content:center}.product-cart-botton a.add-chat{max-width:100%!important;background:#ea5164!important;border-color:#ea5164!important}a.slide-img{border-radius:0}.about-author{text-align:center}.avatar-container{display:inline-block;float:none}.box{top:0;left:0;right:0;bottom:0;border-radius:0;min-width:100%;z-index:9999}.c-chat{padding:5px;width:150px}.wwc-chat.js-chat{right:0}.blog-post-comments{padding:0 15px;border-top:1px solid #eff1f4}.blog-post-comments .comments>h3{padding:16px 0;margin:0;font-weight:700}.comment-content iframe{height:150px!important}}
+@media(max-width:640px){.owl-prev,.owl-next,hr,.product-cart-botton a.buka-cart-payment,.headerBuka .jualBata .item,#header .label-dropdown .Label .allProduct,.simpleCart_ongkir .about-author,.simpleCart_ongkir .jalan_boshjn,small.pluto,.bukaAlasan,.menu-cart .item-remove{display:none!important}body.hancur{overflow-y:hidden}.grid-posts{margin:0 -15px}.index-post{width:calc(100%/2);padding:0 15px;margin:0 0 30px;border:0}.index-post .product-info,#PopularPosts2 .product-info{height:auto;padding:12px 0 0 0}.related-ready{width:100%;margin-left:auto;margin-right:auto;position:relatmenuive;overflow:hidden;list-style:none;padding:0}ul.related-posts{position:relative;width:100%;height:100%;overflow-x:scroll;z-index:1;display:flex;margin:0;transition-property:transform;box-sizing:content-box}.related-posts .related-item{flex-shrink:0;width:136px;height:100%;padding:0;margin-right:8px;position:relative;transition-property:transform}#header #menu-dropdown .LinkList.LinkRianseo{transform:translateX(0px);-webkit-transform:translateX(0px);-ms-transform:translateX(0px);overflow-y:auto;overflow-x:hidden;transition:all .4s ease-in-out;width:300px}#header #menu-dropdown .LinkList{-ms-touch-action:none;touch-action:none;width:0;display:block!important;-webkit-transform:translateX(-320px);-ms-transform:translateX(-320px);transform:translateX(-320px)}#header .label-dropdown .Label{width:300px;max-width:100%}.headerBuka .grid{max-width:calc(100% - 90px)}.wrapper,.c-wadah-otsutsuki{padding:0;margin:0;-webkit-box-shadow:0 0!important;box-shadow:0 0!important;border:0!important}.c-otsutsuki-kaguya,.c-otsutsuki-asura .itemRow{z-index:999;max-width:100%;display:block;margin:0;height:100%;background:#fff;width:100%}.c-otsutsuki-asura .item-thumb{float:right;width:48px;width:48px}.c-otsutsuki-asura .itemRow .item-name,#header .header-right .cart .itemRow .item-quantity,.c-otsutsuki-asura .itemRow .item-price{padding-left:1.5rem;width:75%;font-size:100%}#bukaPembayaran h3,#bukaPengiriman h3{text-align:center}#bukaPembayaran ul li,#bukaPengiriman ul li,#bukaPembayaran,.product-header{float:none}.product-header,.simpleCart_ongkir .simpleCart_boshjn,.simpleCart_ongkir .kembali_kejalan_benar{padding:0;margin:0}.index-post .post-image-wrap,.PopularPosts2 .post-image-link,.recent-section .PopularPosts2 .post-image-link,.hot-item .post-image-link{height:134px}.coli-kanan,.blog-post-comments #comments,#header a.search-button,#header .icon a.link{padding:0}.body-mobile,.note-toko,.post-share,.post-body,.post-content2 .title-wrap,.post-labels,.c-otsutsuki-asura .itemRow{padding:16px;margin:0}.coli-kanan h1{margin:8px 0;font-size:16px;font-weight:600}.single-qty-item,.post-content2 .title-wrap{align-items:center;display:flex;justify-content:space-between}.single-qty-item span{align-content:flex-start}.single-qty-item .quantity{display:flex;flex-direction:row;width:-webkit-max-content;width:-moz-max-content;width:max-content}.coli-kanan .c-max{max-width:100%}.quantity input{width:50px}.c-min{display:flex;width:32px;max-width:32px;height:32px;max-height:32px;flex-direction:row;flex:auto}.c-max .min,.c-min .plus,.quantity input{height:32px;line-height:1;background:#eff1f4}.item_price{display:flex;flex:1 1 auto;flex-wrap:nowrap;min-width:0;margin:10px 0;font-size:18px;color:#ea5164}.listMobile{align-items:center;color:inherit;display:flex!important;font-size:14px;font-weight:400;height:48px;background-color:#f9fafb;margin:0;padding:0 16px;position:relative;text-decoration:none;transition:.3s ease-out}.iconMobile:before{content:'';width:24px;height:24px;display:inline-block;vertical-align:-4px;transition:all .3s ease;background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M.75 7.5H10.5L11.25 9H1.5L.75 7.5M1.75 10.5H11.5L12.25 12H2.5L1.75 10.5M18 18.5C18.83 18.5 19.5 17.83 19.5 17C19.5 16.17 18.83 15.5 18 15.5C17.17 15.5 16.5 16.17 16.5 17C16.5 17.83 17.17 18.5 18 18.5M19.5 9.5H17V12H21.46L19.5 9.5M8 18.5C8.83 18.5 9.5 17.83 9.5 17C9.5 16.17 8.83 15.5 8 15.5C7.17 15.5 6.5 16.17 6.5 17C6.5 17.83 7.17 18.5 8 18.5M20 8L23 12V17H21C21 18.66 19.66 20 18 20C16.34 20 15 18.66 15 17H11C11 18.66 9.65 20 8 20C6.34 20 5 18.66 5 17H3V13.5 13.5H5V15H5.76C6.31 14.39 7.11 14 8 14C8.89 14 9.69 14.39 10.24 15H15V6H3V6C3 4.89 3.89 4 5 4H17V8H20Z' fill='%2342454d'></path></svg>") no-repeat}a.bom{font-size:13px;color:#81868f;transition:color .4s cubic-bezier(.4,0,.2,1)}.iconMobile{justify-content:flex-start;min-width:36px;color:#42454d;align-items:center}.centerMobile{text-align:left;flex:1 1 auto;overflow:hidden;align-items:flex-start;justify-content:center;flex-direction:column}.simpleCart_ongkir .jalan_buntu,.post-share{border-bottom:13px solid #eff1f4}.simpleCart_ongkir .jalan_air,.post-body,.post-content2 .title-wrap{-webkit-box-shadow:0;box-shadow:0;border-radius:0;border-right:0;border-left:0;border-top:0;border-bottom:1px solid #e8eaef}.simpleCart_ongkir.biadap .jalan-mars{align-items:center;display:flex;height:48px;margin:0;padding:0;position:relative;text-decoration:none;transition:.3s ease-out}.simpleCart_ongkir.biadap .jalan_buntu,.simpleCart_ongkir .jalan_list{display:flex;padding:15px;align-items:baseline;justify-content:space-between}.simpleCart_ongkir.biadap .jalan_list{border:0;height:100%}.simpleCart_ongkir.biadap{visibility:visible;opacity:1;transition:top .3s}.simpleCart_ongkir{display:flex;height:100%;left:0;z-index:999;background:#fff;margin:0;padding:0;border:0;position:fixed;top:0;-ms-flex-flow:row wrap;flex-flow:column;transition:.2s cubic-bezier(.25,.8,.25,1);width:100%;opacity:0;visibility:hidden;outline:0}.biadap .iconMobileClose{display:block!important;height:55px;line-height:55px;width:100%;padding:0;border-bottom:1px solid #e8eaef}.post-content2 .title-wrap h3,#related-wrap .title-wrap h3{line-height:1;border:0;font-size:14px;padding:0}.post-content2 .title-wrap a h3{padding:4px 13px;font-size:12px;border-radius:13px;color:#fff;font-weight:500;display:inline-flex;line-height:19px;align-items:center;justify-content:center;background-color:#ea5164}.individual img{width:90px;height:90px}svg.menu-mobile{width:24px}#bukaPembayaran,#bukaPengiriman{-webkit-box-flex:1;-ms-flex:1 1 100%;flex:1 1 100%;max-width:100%}.headerBuka{text-align:center;border-bottom:0}#socialMedia{float:none}.related-posts .post-title{font-size:12px}.product-cart-botton{align-items:center;display:flex;justify-content:space-between;background:#fff;border:0;-webkit-box-shadow:0 2px 6px 0 rgba(0,0,0,.5);box-shadow:0 2px 6px 0 rgba(0,0,0,.5);position:fixed;left:0;padding:16px;margin:0;z-index:99;bottom:0;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%}span.add_product,span.js-add-product{font-size:0}.product-cart-botton a.item_add,.product-cart-botton a.add-chat{padding:10px 16px!important;flex:1 1;border-radius:4px;white-space:unset;font-size:14px!important}.product-cart-botton a.item_add{margin-right:16px!important;max-width:20%!important;background:#eff1f4;border-color:#eff1f4;display:flex;white-space:nowrap;justify-content:center}.product-cart-botton a.add-chat{max-width:100%!important;background:#ea5164!important;border-color:#ea5164!important}a.slide-img{border-radius:0}.about-author{text-align:center}.avatar-container{display:inline-block;float:none}.box{top:0;left:0;right:0;bottom:0;border-radius:0;min-width:100%;z-index:9999}.c-chat{padding:5px;width:150px}.wwc-chat.js-chat{right:0}.blog-post-comments{padding:0 15px;border-top:1px solid #eff1f4}.blog-post-comments .comments>h3{padding:16px 0;margin:0;font-weight:700}.comment-content iframe{height:150px!important}}
 @media only screen and (max-width: 480px){.barner-section{width:100%;margin-top:16px;margin-bottom:16px;padding:0}.barner-section #HTML24{display:none}.barner-section #HTML26{display:block!important}#label-flash .grid-posts .widget a.btn{margin-top:.57143rem;font-size:12px;line-height:1.4}#slideHome .Penjelasan .owl-dots{text-align:left;background:#fff;padding:10px 0;width:100%;display:block;border-bottom:1px solid #e5e5e5}#header .menu-dropdown .LinkList ul{padding:0 0 .85714rem .85714rem;overflow-y:scroll}#header .menu-dropdown .LinkList ul li a,#header .label-dropdown .Label ul li a{padding-top:15px;height:auto;line-height:1.4}
 /* ICON SVG MENU MOBILE */
 .owl-theme .owl-dots .owl-dot span:before{content:'';width:20px;height:20px;display:inline-block;vertical-align:-4px;transition:all .3s ease;background:url("data:image/svg+xml,<svg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'><path d='M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z' fill='%23ddd'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li.label-button a:before{content:'';width:20px;height:20px;display:inline-block;margin-left:-32px;margin-right:10px;vertical-align:-4px;transition:all .3s ease;background:url("data:image/svg+xml,<svg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'><path d='M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li,#header .label-dropdown .Label .utama{line-height:1.4;padding-bottom:15px;margin-left:32px}#header .menu-dropdown .LinkList ul li:before{content:'';width:20px;height:20px;display:inline-block;margin-left:-32px;position:absolute;top:15px;vertical-align:-4px;transition:all .3s ease}.c-otsutsuki-asura .itemRow .item-name:before{content:"";width:20px;height:20px;display:inline-block;position:absolute;left:10px;background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M3,21V3H21V21H3M5,5V19H19V5H5Z' fill='%23ccc'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(1)::before{content:''}#header .menu-dropdown .LinkList ul li:nth-child(2)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M17.25,18H6.75V4H17.25M14,21H10V20H14M16,1H8A3,3 0 0,0 5,4V20A3,3 0 0,0 8,23H16A3,3 0 0,0 19,20V4A3,3 0 0,0 16,1Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(3)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M4,3C2.89,3 2,3.89 2,5V15A2,2 0 0,0 4,17H12V22L15,19L18,22V17H20A2,2 0 0,0 22,15V8L22,6V5A2,2 0 0,0 20,3H16V3H4M12,5L15,7L18,5V8.5L21,10L18,11.5V15L15,13L12,15V11.5L9,10L12,8.5V5M4,5H9V7H4V5M4,9H7V11H4V9M4,13H9V15H4V13Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(4)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M12.5 10H10C9.45 10 9 9.55 9 9C9 8.45 9.45 8 10 8H12.5C13.05 8 13.5 8.45 13.5 9C13.5 9.55 13.05 10 12.5 10M15 14C15 13.45 14.55 13 14 13H10C9.45 13 9 13.45 9 14C9 14.55 9.45 15 10 15H14C14.55 15 15 14.55 15 14M22 4V20C22 21.11 21.11 22 20 22H4C2.89 22 2 21.11 2 20V4C2 2.89 2.89 2 4 2H20C21.11 2 22 2.89 22 4M18 12C18 12 18 11 17 11C16.05 11.03 16 10 16 10L16 8C16 6.34 14.66 5 13 5H9C7.34 5 6 6.34 6 8V15C6 16.66 7.34 18 9 18H15C16.66 18 18 16.66 18 15L18 12Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(5)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M15.5,12C18,12 20,14 20,16.5C20,17.38 19.75,18.21 19.31,18.9L22.39,22L21,23.39L17.88,20.32C17.19,20.75 16.37,21 15.5,21C13,21 11,19 11,16.5C11,14 13,12 15.5,12M15.5,14A2.5,2.5 0 0,0 13,16.5A2.5,2.5 0 0,0 15.5,19A2.5,2.5 0 0,0 18,16.5A2.5,2.5 0 0,0 15.5,14M6,22A2,2 0 0,1 4,20V4C4,2.89 4.9,2 6,2H7V9L9.5,7.5L12,9V2H18A2,2 0 0,1 20,4V11.81C18.83,10.69 17.25,10 15.5,10A6.5,6.5 0 0,0 9,16.5C9,18.81 10.21,20.85 12.03,22H6Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(6)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M4,6H2V20A2,2 0 0,0 4,22H18V20H4V6M20,2A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H8A2,2 0 0,1 6,16V4A2,2 0 0,1 8,2H20M17,7A3,3 0 0,0 14,4A3,3 0 0,0 11,7A3,3 0 0,0 14,10A3,3 0 0,0 17,7M8,15V16H20V15C20,13 16,11.9 14,11.9C12,11.9 8,13 8,15Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(7)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M11.5 18.5C11.5 17.4 11.8 16.4 12.2 15.5H12C10.1 15.5 8.5 13.9 8.5 12S10.1 8.5 12 8.5 15.5 10.1 15.5 12C15.5 12.2 15.5 12.4 15.4 12.5C16.2 12.2 17 12 18 12C18.5 12 19 12.1 19.5 12.2V12C19.5 11.7 19.5 11.3 19.4 11L21.5 9.4C21.7 9.2 21.7 9 21.6 8.8L19.6 5.3C19.5 5 19.3 5 19 5L16.5 6C16 5.6 15.4 5.3 14.8 5L14.4 2.3C14.5 2.2 14.2 2 14 2H10C9.8 2 9.5 2.2 9.5 2.4L9.1 5.1C8.5 5.3 8 5.7 7.4 6L5 5C4.7 5 4.5 5 4.3 5.3L2.3 8.8C2.2 9 2.3 9.2 2.5 9.4L4.6 11C4.6 11.3 4.5 11.7 4.5 12S4.5 12.7 4.6 13L2.5 14.7C2.3 14.9 2.3 15.1 2.4 15.3L4.4 18.8C4.5 19 4.7 19 5 19L7.5 18C8 18.4 8.6 18.7 9.2 19L9.6 21.7C9.6 21.9 9.8 22.1 10.1 22.1H12.6C11.9 21 11.5 19.8 11.5 18.5M18 14.5V13L15.8 15.2L18 17.4V16C19.4 16 20.5 17.1 20.5 18.5C20.5 18.9 20.4 19.3 20.2 19.6L21.3 20.7C22.5 18.9 22 16.4 20.2 15.2C19.6 14.7 18.8 14.5 18 14.5M18 21C16.6 21 15.5 19.9 15.5 18.5C15.5 18.1 15.6 17.7 15.8 17.4L14.7 16.3C13.5 18.1 14 20.6 15.8 21.8C16.5 22.2 17.2 22.5 18 22.5V24L20.2 21.8L18 19.5V21Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(8)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M12,10.8A3.2,3.2 0 0,1 15.2,14A3.2,3.2 0 0,1 12,17.2A3.2,3.2 0 0,1 8.8,14A3.2,3.2 0 0,1 12,10.8M16,3.33V2A6,6 0 0,1 22,8H20.67C20.67,5.42 18.58,3.33 16,3.33M16,6V4.67C17.84,4.67 19.33,6.16 19.33,8H18C18,6.89 17.11,6 16,6M17,9H22V20A2,2 0 0,1 20,22H4A2,2 0 0,1 2,20V8A2,2 0 0,1 4,6H7.17L9,4H15V7C16.11,7 17,7.89 17,9M12,19A5,5 0 0,0 17,14A5,5 0 0,0 12,9A5,5 0 0,0 7,14A5,5 0 0,0 12,19Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(9)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M9,2C5.14,2 2,5.14 2,9C2,14.25 9,22 9,22C9,22 16,14.25 16,9A7,7 0 0,0 9,2M9,6.5A2.5,2.5 0 0,1 11.5,9A2.5,2.5 0 0,1 9,11.5A2.5,2.5 0 0,1 6.5,9A2.5,2.5 0 0,1 9,6.5M16.58,14.16L15.17,15.58L17.58,18L15.17,20.41L16.58,21.82L19,19.41L21.41,21.82L22.83,20.41L20.41,18L22.83,15.58L21.41,14.16L19,16.58' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li:nth-child(10)::before{background:url("data:image/svg+xml,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M18,8H6V6H18V8M18,11H6V9H18V11M18,14H6V12H18V14M22,4A2,2 0 0,0 20,2H4A2,2 0 0,0 2,4V16A2,2 0 0,0 4,18H18L22,22V4Z' fill='%23777'></path></svg>") no-repeat}#header .menu-dropdown .LinkList ul li,#header .label-dropdown .Label ul li{line-height:1.4;padding-bottom:15px;margin-left:32px;position:relative}.menu-user .buka .wrap .title,.menu-user .buka .wrap .title span,.menu-user .buka .wrap .tutup,.menu-user .buka .wrap .title .tutup:hover,.c-otsutsuki-kaguya .isshiki,.c-otsutsuki-kaguya span.hagoromo,#header .header-right .cart .c-otsutsuki-kaguya .isshiki a.hamura{background:#45b44d;color:#ffffff!important;border:0;border-radius:0}#header .menu-dropdown .LinkList ul li.label-button a:after{margin:1rem;font-size:1.28571rem;padding:0;right:0;width:20px;height:20px;top:0;position:absolute}.owl-theme .owl-dots .owl-dot{display:inline-block}.owl-theme .owl-dots .owl-dot span{margin:0 2px;font-size:0;line-height:0;background:transparent;width:10px;display:block;-webkit-backface-visibility:visible;transition:opacity .2s ease;border-radius:100%}.owl-theme .owl-dots .owl-dot.active span:before{content:'';width:20px;height:20px;opacity:.7;display:inline-block;vertical-align:-4px;transition:all .3s ease;background:url("data:image/svg+xml,<svg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'><path d='M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z' fill='%23d71149'></path></svg>") no-repeat}.kamu-lihat .recent-blog ul.recent-label{position:relative;overflow-x:scroll;display:flex;margin:0;transition-property:transform;box-sizing:content-box}.recent-blog .recent-label li.hot-item{flex-shrink:0;width:140px;height:100%;margin-right:10px;transition-property:transform;padding:0}.post-footer #related-wrap{border-top:1px solid #eff1f4}.comment-form p{line-height:1.4;margin:0 -15px;background-color:#fff;padding:16px;border-right:0;border-left:0;border-top:15px solid #f0f0f0;border-bottom:15px solid #f0f0f0;color:#14151a}}
