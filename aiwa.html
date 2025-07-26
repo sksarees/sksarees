@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sksaree.com - WhatsApp இ-காமர்ஸ்</title>
+    <style>
+        /* பேஸிக் ஸ்டைலிங் */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* ஹெடர் ஸ்டைலிங் */
+        header {
+            background: linear-gradient(135deg, #d23c67, #8e44ad);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 20px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+        
+        /* ஹீரோ செக்ஷன் */
+        .hero {
+            background: url('https://via.placeholder.com/1200x400') no-repeat center center/cover;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: 0 20px;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #25D366;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #128C7E;
+        }
+        
+        /* தயாரிப்பு கார்டுகள் */
+        .products {
+            padding: 50px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2rem;
+            color: #d23c67;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .product-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .product-info {
+            padding: 20px;
+        }
+        
+        .product-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .product-price {
+            color: #d23c67;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        /* WhatsApp ஃப்ளோட்டிங் பொத்தான் */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 99;
+            text-decoration: none;
+            font-size: 24px;
+        }
+        
+        /* ஆர்டர் மாடல் */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* ஃபூட்டர் */
+        footer {
+            background: #333;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        
+        /* ரெஸ்பான்சிவ் ஸ்டைலிங் */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 20px;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 0 10px;
+            }
+            
+            .hero {
+                height: 300px;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ஹெடர் -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">sksaree.com</div>
+            <nav>
+                <ul>
+                    <li><a href="#home">முகப்பு</a></li>
+                    <li><a href="#products">தயாரிப்புகள்</a></li>
+                    <li><a href="#about">எங்களைப் பற்றி</a></li>
+                    <li><a href="#contact">தொடர்பு</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ஹீரோ செக்ஷன் -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>தரமான சேலைகள் WhatsApp-ல் ஆர்டர் செய்ய</h1>
+            <p>எங்கள் பிரத்தியேக வடிவமைப்புகளுடன் உங்கள் அழகை மேம்படுத்தவும்</p>
+            <a href="#products" class="btn">தயாரிப்புகளைப் பார்க்க</a>
+        </div>
+    </section>
+
+    <!-- தயாரிப்பு செக்ஷன் -->
+    <section class="products" id="products">
+        <div class="container">
+            <h2 class="section-title">எங்கள் தயாரிப்புகள்</h2>
+            <div class="products-grid">
+                <!-- தயாரிப்பு 1 -->
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('https://via.placeholder.com/300x300');"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">பட்டு சேலை</h3>
+                        <div class="product-price">₹1,200</div>
+                        <button class="btn" onclick="openOrderModal('பட்டு சேலை', 1200)">ஆர்டர் செய்க</button>
+                    </div>
+                </div>
+                
+                <!-- தயாரிப்பு 2 -->
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('https://via.placeholder.com/300x300');"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">கோட்டை சேலை</h3>
+                        <div class="product-price">₹900</div>
+                        <button class="btn" onclick="openOrderModal('கோட்டை சேலை', 900)">ஆர்டர் செய்க</button>
+                    </div>
+                </div>
+                
+                <!-- தயாரிப்பு 3 -->
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('https://via.placeholder.com/300x300');"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">சித்தார் சேலை</h3>
+                        <div class="product-price">₹1,500</div>
+                        <button class="btn" onclick="openOrderModal('சித்தார் சேலை', 1500)">ஆர்டர் செய்க</button>
+                    </div>
+                </div>
+                
+                <!-- தயாரிப்பு 4 -->
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('https://via.placeholder.com/300x300');"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">காஷ்மீர் சேலை</h3>
+                        <div class="product-price">₹2,000</div>
+                        <button class="btn" onclick="openOrderModal('காஷ்மீர் சேலை', 2000)">ஆர்டர் செய்க</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- எங்களைப் பற்றி செக்ஷன் -->
+    <section class="about" id="about" style="padding: 50px 0; background: white;">
+        <div class="container">
+            <h2 class="section-title">எங்களைப் பற்றி</h2>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 30px;">
+                sksaree.com 2010 முதல் தரமான சேலைகள் மற்றும் பாரம்பரிய ஆடைகளை வழங்கி வருகிறது. எங்கள் தயாரிப்புகள் 100% உயர்தர பட்டு மற்றும் பருத்தி துணிகளால் செய்யப்பட்டவை.
+            </p>
+            <div style="text-align: center;">
+                <a href="#contact" class="btn">எங்களைத் தொடர்பு கொள்ள</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- தொடர்பு செக்ஷன் -->
+    <section class="contact" id="contact" style="padding: 50px 0;">
+        <div class="container">
+            <h2 class="section-title">தொடர்பு கொள்ள</h2>
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                <form id="contactForm">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">உங்கள் பெயர்</label>
+                        <input type="text" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">உங்கள் WhatsApp எண்</label>
+                        <input type="tel" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">செய்தி</label>
+                        <textarea style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; height: 150px;" required></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">செய்தியை அனுப்பு</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- WhatsApp ஃப்ளோட்டிங் பொத்தான் -->
+    <a href="https://wa.me/91YOUR_PHONE_NUMBER" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- ஆர்டர் மாடல் -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 style="color: #d23c67; margin-bottom: 20px;">ஆர்டர் செய்யவும்</h2>
+            <form id="orderForm">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">தயாரிப்பு</label>
+                    <input type="text" id="modalProductName" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f5;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">விலை</label>
+                    <input type="text" id="modalProductPrice" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f5;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">நிறம்</label>
+                        <select id="productColor" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="சிவப்பு">சிவப்பு</option>
+                            <option value="பச்சை">பச்சை</option>
+                            <option value="நீலம்">நீலம்</option>
+                            <option value="கருப்பு">கருப்பு</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">அளவு</label>
+                        <select id="productSize" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">எண்ணிக்கை</label>
+                    <input type="number" id="productQuantity" min="1" value="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">உங்கள் பெயர்</label>
+                    <input type="text" id="customerName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">WhatsApp எண்</label>
+                    <input type="tel" id="customerPhone" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">முகவரி (விருப்பம்)</label>
+                    <textarea id="customerAddress" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+                </div>
+                <button type="button" onclick="placeOrder()" class="btn" style="width: 100%;">
+                    <i class="fab fa-whatsapp"></i> WhatsApp-ல் ஆர்டர் அனுப்பு
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ஃபூட்டர் -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#home">முகப்பு</a>
+                <a href="#products">தயாரிப்புகள்</a>
+                <a href="#about">எங்களைப் பற்றி</a>
+                <a href="#contact">தொடர்பு</a>
+                <a href="/privacy">தனியுரிமைக் கொள்கை</a>
+            </div>
+            <p>&copy; 2023 sksaree.com. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // ஆர்டர் மாடல் திறக்க
+        function openOrderModal(productName, productPrice) {
+            document.getElementById('modalProductName').value = productName;
+            document.getElementById('modalProductPrice').value = '₹' + productPrice;
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+        
+        // ஆர்டர் மாடல் மூட
+        function closeModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+        
+        // ஆர்டர் செய்ய
+        function placeOrder() {
+            const productName = document.getElementById('modalProductName').value;
+            const productPrice = document.getElementById('modalProductPrice').value.replace('₹', '');
+            const color = document.getElementById('productColor').value;
+            const size = document.getElementById('productSize').value;
+            const quantity = document.getElementById('productQuantity').value || 1;
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const address = document.getElementById('customerAddress').value;
+            
+            if(!name || !phone) {
+                alert("தயவு செய்து உங்கள் பெயர் மற்றும் WhatsApp எண்ணை நிரப்பவும்");
+                return;
+            }
+            
+            const totalPrice = productPrice * quantity;
+            
+            let message = `*புதிய ஆர்டர் - sksaree.com*%0A%0A`;
+            message += `*தயாரிப்பு:* ${productName}%0A`;
+            message += `*விலை:* ₹${productPrice}%0A`;
+            message += `*நிறம்:* ${color}%0A`;
+            message += `*அளவு:* ${size}%0A`;
+            message += `*எண்ணிக்கை:* ${quantity}%0A`;
+            message += `*மொத்தம்:* ₹${totalPrice}%0A%0A`;
+            message += `*வாடிக்கையாளர் விவரங்கள்*%0A`;
+            message += `பெயர்: ${name}%0A`;
+            message += `WhatsApp எண்: ${phone}%0A`;
+            if(address) message += `முகவரி: ${address}%0A`;
+            message += `%0Aஇந்த ஆர்டர் sksaree.com இலிருந்து அனுப்பப்பட்டது`;
+            
+            window.open(`https://wa.me/91YOUR_PHONE_NUMBER?text=${encodeURIComponent(message)}`, '_blank');
+            closeModal();
+            
+            // படிவத்தை ரிசெட் செய்தல்
+            document.getElementById('orderForm').reset();
+        }
+        
+        // தொடர்பு படிவம் சமர்ப்பிக்க
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = this.querySelector('input[type="text"]').value;
+            const phone = this.querySelector('input[type="tel"]').value;
+            const message = this.querySelector('textarea').value;
+            
+            const whatsappMessage = `*தொடர்பு செய்தி - sksaree.com*%0A%0A` +
+                                   `பெயர்: ${name}%0A` +
+                                   `WhatsApp எண்: ${phone}%0A` +
+                                   `செய்தி: ${message}`;
+            
+            window.open(`https://wa.me/91YOUR_PHONE_NUMBER?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+            this.reset();
+            alert('உங்கள் செய்தி வெற்றிகரமாக அனுப்பப்பட்டது! WhatsApp-ல் தொடர்பு கொள்ளவும்.');
+        });
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</body>
+</html>
