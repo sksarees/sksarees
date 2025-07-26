@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyShop - WhatsApp Ordering</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo h1 {
+            color: #25D366;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .cart {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cart i {
+            font-size: 24px;
+            color: #333;
+        }
+
+        #cart-count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #25D366;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 5%;
+        }
+
+        .product {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .product:hover {
+            transform: translateY(-5px);
+        }
+
+        .product img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product h3 {
+            padding: 10px 15px;
+            font-size: 18px;
+        }
+
+        .product .price {
+            padding: 0 15px 10px;
+            font-weight: bold;
+            color: #25D366;
+            font-size: 20px;
+        }
+
+        .product button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .product button:hover {
+            background-color: #128C7E;
+        }
+
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cart-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #25D366;
+        }
+
+        .cart-items {
+            margin: 20px 0;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-item-controls button {
+            background-color: #f5f5f5;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .cart-item-controls span {
+            width: 30px;
+            text-align: center;
+        }
+
+        .remove-item {
+            color: red;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            text-align: right;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .whatsapp-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+
+        .whatsapp-btn i {
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .products {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>MyShop</h1>
+            <p>Order via WhatsApp</p>
+        </div>
+        <div class="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-count">0</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="products">
+            <div class="product">
+                <img src="https://via.placeholder.com/150" alt="Product 1">
+                <h3>Product 1</h3>
+                <p class="price">$19.99</p>
+                <button class="add-to-cart" data-id="1" data-name="Product 1" data-price="19.99">Add to Cart</button>
+            </div>
+            <div class="product">
+                <img src="https://via.placeholder.com/150" alt="Product 2">
+                <h3>Product 2</h3>
+                <p class="price">$24.99</p>
+                <button class="add-to-cart" data-id="2" data-name="Product 2" data-price="24.99">Add to Cart</button>
+            </div>
+            <div class="product">
+                <img src="https://via.placeholder.com/150" alt="Product 3">
+                <h3>Product 3</h3>
+                <p class="price">$14.99</p>
+                <button class="add-to-cart" data-id="3" data-name="Product 3" data-price="14.99">Add to Cart</button>
+            </div>
+            <div class="product">
+                <img src="https://via.placeholder.com/150" alt="Product 4">
+                <h3>Product 4</h3>
+                <p class="price">$29.99</p>
+                <button class="add-to-cart" data-id="4" data-name="Product 4" data-price="29.99">Add to Cart</button>
+            </div>
+        </section>
+    </main>
+
+    <div class="cart-modal">
+        <div class="cart-content">
+            <span class="close">&times;</span>
+            <h2>Your Order</h2>
+            <div class="cart-items">
+                <!-- Cart items will be added here dynamically -->
+            </div>
+            <div class="cart-total">
+                <strong>Total: $<span id="total-amount">0.00</span></strong>
+            </div>
+            <button id="checkout-whatsapp" class="whatsapp-btn">
+                <i class="fab fa-whatsapp"></i> Order via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cart functionality
+            const cart = [];
+            const cartModal = document.querySelector('.cart-modal');
+            const cartItemsContainer = document.querySelector('.cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const totalAmount = document.getElementById('total-amount');
+            const checkoutBtn = document.getElementById('checkout-whatsapp');
+            const closeBtn = document.querySelector('.close');
+            
+            // Open cart when cart icon is clicked
+            document.querySelector('.cart').addEventListener('click', function() {
+                updateCartModal();
+                cartModal.style.display = 'flex';
+            });
+            
+            // Close cart modal
+            closeBtn.addEventListener('click', function() {
+                cartModal.style.display = 'none';
+            });
+            
+            // Close when clicking outside modal
+            window.addEventListener('click', function(event) {
+                if (event.target === cartModal) {
+                    cartModal.style.display = 'none';
+                }
+            });
+            
+            // Add to cart buttons
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-id');
+                    const productName = this.getAttribute('data-name');
+                    const productPrice = parseFloat(this.getAttribute('data-price'));
+                    
+                    // Check if product already in cart
+                    const existingItem = cart.find(item => item.id === productId);
+                    
+                    if (existingItem) {
+                        existingItem.quantity += 1;
+                    } else {
+                        cart.push({
+                            id: productId,
+                            name: productName,
+                            price: productPrice,
+                            quantity: 1
+                        });
+                    }
+                    
+                    updateCartCount();
+                });
+            });
+            
+            // Update cart count
+            function updateCartCount() {
+                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+                cartCount.textContent = totalItems;
+            }
+            
+            // Update cart modal
+            function updateCartModal() {
+                cartItemsContainer.innerHTML = '';
+                
+                if (cart.length === 0) {
+                    cartItemsContainer.innerHTML = '<p>Your cart is empty</p>';
+                    totalAmount.textContent = '0.00';
+                    return;
+                }
+                
+                let total = 0;
+                
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    
+                    const cartItemElement = document.createElement('div');
+                    cartItemElement.className = 'cart-item';
+                    cartItemElement.innerHTML = `
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <p>$${item.price.toFixed(2)} each</p>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button class="decrease">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="increase">+</button>
+                            <span class="remove-item" data-id="${item.id}">&times;</span>
+                        </div>
+                        <div class="cart-item-total">
+                            $${itemTotal.toFixed(2)}
+                        </div>
+                    `;
+                    
+                    cartItemsContainer.appendChild(cartItemElement);
+                    
+                    // Add event listeners for the buttons we just created
+                    cartItemElement.querySelector('.decrease').addEventListener('click', () => {
+                        if (item.quantity > 1) {
+                            item.quantity -= 1;
+                            updateCartModal();
+                        }
+                        updateCartCount();
+                    });
+                    
+                    cartItemElement.querySelector('.increase').addEventListener('click', () => {
+                        item.quantity += 1;
+                        updateCartModal();
+                        updateCartCount();
+                    });
+                    
+                    cartItemElement.querySelector('.remove-item').addEventListener('click', () => {
+                        const index = cart.findIndex(cartItem => cartItem.id === item.id);
+                        if (index !== -1) {
+                            cart.splice(index, 1);
+                            updateCartModal();
+                            updateCartCount();
+                        }
+                    });
+                });
+                
+                totalAmount.textContent = total.toFixed(2);
+            }
+            
+            // WhatsApp checkout
+            checkoutBtn.addEventListener('click', function() {
+                if (cart.length === 0) {
+                    alert('Your cart is empty!');
+                    return;
+                }
+                
+                // Replace with your WhatsApp number (include country code, remove +)
+                const whatsappNumber = '1234567890'; 
+                
+                // Create order message
+                let message = 'Hello! I would like to place an order:\n\n';
+                
+                cart.forEach(item => {
+                    message += `${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}\n`;
+                });
+                
+                message += `\nTotal: $${totalAmount.textContent}\n\n`;
+                message += 'Please confirm my order. Thank you!';
+                
+                // Encode message for URL
+                const encodedMessage = encodeURIComponent(message);
+                
+                // Open WhatsApp with the message
+                window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
