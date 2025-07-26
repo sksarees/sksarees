@@ -1,236 +1,479 @@
 <!DOCTYPE html>
-<html lang="ta">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>எங்கள் கடை - WhatsApp மூலம் ஆர்டர் செய்யவும்</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>QuickShop - WhatsApp Order Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --secondary: #075E54;
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #777;
+            --white: #fff;
+            --shadow: 0 5px 15px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: var(--light);
+            color: var(--dark);
+            padding-bottom: 80px; /* Space for bottom navbar */
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 5%;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo h1 {
-            color: #25D366;
-            font-size: 24px;
-        }
-
-        .logo p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        /* புராடக்ட் ஸ்டைலிங் */
-        .product-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 5%;
-            min-height: 80vh;
-        }
-
-        .product {
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
+        /* Header */
+        .header {
+            background-color: var(--white);
+            padding: 15px;
             text-align: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Product Gallery */
+        .product-gallery {
+            padding: 15px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .product-image-container {
+            position: relative;
         }
 
         .product-image {
             width: 100%;
-            height: 300px;
+            height: 250px;
             object-fit: cover;
+            display: block;
         }
 
-        .product-details {
-            padding: 20px;
-        }
-
-        .product h2 {
-            font-size: 22px;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .product p {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #25D366;
-            margin: 15px 0;
-        }
-
-        .old-price {
-            text-decoration: line-through;
-            color: #999;
-            font-size: 18px;
-            margin-left: 10px;
-        }
-
-        /* WhatsApp பட்டன் ஸ்டைலிங் */
-        .whatsapp-btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #25D366;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 10px 5px;
-            text-decoration: none;
-        }
-
-        .whatsapp-btn:hover {
-            background-color: #128C7E;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(18, 140, 126, 0.4);
-        }
-
-        .whatsapp-btn i {
-            margin-right: 10px;
-        }
-
-        /* நேவிகேஷன் பட்டன்கள் */
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-        }
-
-        .nav-btn {
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* ஸ்பெஷல் ஆஃபர் */
-        .special-offer {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-
-        /* புராடக்ட் லேபிள்கள் */
-        .product-label {
+        .zoom-icon {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #ff4757;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
         }
 
-        @media (max-width: 768px) {
-            .product-image {
-                height: 250px;
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .product-old-price {
+            text-decoration: line-through;
+            color: var(--gray);
+            font-size: 16px;
+            margin-left: 8px;
+        }
+
+        .product-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-whatsapp {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-whatsapp:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+        }
+
+        .btn-cart {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid var(--gray);
+        }
+
+        .btn-cart:hover {
+            background: #e0e0e0;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 12px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Image Preview Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--white);
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        /* WhatsApp Float Button */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--primary);
+            color: var(--white);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4);
+            z-index: 99;
+            text-decoration: none;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 768px) {
+            .product-gallery {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                padding: 15px;
             }
             
-            .product h2 {
-                font-size: 20px;
-            }
-            
-            .whatsapp-btn {
-                padding: 10px 20px;
-                font-size: 16px;
+            .product-card {
+                margin-bottom: 0;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <h1>எங்கள் கடை</h1>
-            <p>WhatsApp மூலம் எளிதாக ஆர்டர் செய்யவும்</p>
-        </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">QuickShop</div>
     </header>
 
-    <main>
-        <!-- ஸ்பெஷல் ஆஃபர் -->
-        <div class="special-offer">
-            🎉 இன்று மட்டும்! ₹500க்கு மேல் ஆர்டர் செய்தால் இலவச டெலிவரி 🎉
-        </div>
-
-        <!-- புராடக்ட் டிஸ்ப்ளே -->
-        <div class="product-container">
-            <div class="product">
-                <div class="product-label">பிரபலமானது</div>
-                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="ஸ்மார்ட் வாட்ச்" class="product-image">
-                <div class="product-details">
-                    <h2>ஸ்மார்ட் வாட்ச் ப்ரோ</h2>
-                    <p>முழு டச் ஸ்கிரீன், ஹார்ட் ரேட் மானிட்டர், 7 நாட்கள் பேட்டரி லைஃப்</p>
-                    <div class="price">₹2,999 <span class="old-price">₹3,999</span></div>
-                    <a href="https://wa.me/919876543210?text=ஸ்மார்ட்%20வாட்ச்%20ப்ரோ%20ஆர்டர்%20செய்ய%20விரும்புகிறேன்" class="whatsapp-btn">
-                        <i class="fab fa-whatsapp"></i> WhatsAppல் ஆர்டர் செய்க
-                    </a>
+    <!-- Product Gallery -->
+    <main class="product-gallery">
+        <!-- Product 1 -->
+        <div class="product-card">
+            <div class="product-image-container">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                     alt="Smart Watch" 
+                     class="product-image">
+                <div class="zoom-icon" onclick="openModal('https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80')">
+                    <i class="fas fa-search-plus"></i>
                 </div>
             </div>
+            <div class="product-info">
+                <h3 class="product-title">Smart Watch Pro</h3>
+                <div class="product-price">₹2,999 <span class="product-old-price">₹3,999</span></div>
+                <div class="product-buttons">
+                    <button class="btn btn-cart" onclick="addToCart('Smart Watch Pro', 2999)">
+                        <i class="fas fa-cart-plus"></i> Cart
+                    </button>
+                    <button class="btn btn-whatsapp" onclick="orderOnWhatsApp('Smart Watch Pro', 2999)">
+                        <i class="fab fa-whatsapp"></i> Order
+                    </button>
+                </div>
+            </div>
+        </div>
 
-            <div class="nav-buttons">
-                <button class="nav-btn" onclick="window.location.href='product2.html'">அடுத்த பொருள் &rarr;</button>
+        <!-- Product 2 -->
+        <div class="product-card">
+            <div class="product-image-container">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                     alt="Wireless Headphones" 
+                     class="product-image">
+                <div class="zoom-icon" onclick="openModal('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80')">
+                    <i class="fas fa-search-plus"></i>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Wireless Headphones</h3>
+                <div class="product-price">₹1,599</div>
+                <div class="product-buttons">
+                    <button class="btn btn-cart" onclick="addToCart('Wireless Headphones', 1599)">
+                        <i class="fas fa-cart-plus"></i> Cart
+                    </button>
+                    <button class="btn btn-whatsapp" onclick="orderOnWhatsApp('Wireless Headphones', 1599)">
+                        <i class="fab fa-whatsapp"></i> Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product 3 -->
+        <div class="product-card">
+            <div class="product-image-container">
+                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                     alt="Portable Speaker" 
+                     class="product-image">
+                <div class="zoom-icon" onclick="openModal('https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80')">
+                    <i class="fas fa-search-plus"></i>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Portable Speaker</h3>
+                <div class="product-price">₹999 <span class="product-old-price">₹1,299</span></div>
+                <div class="product-buttons">
+                    <button class="btn btn-cart" onclick="addToCart('Portable Speaker', 999)">
+                        <i class="fas fa-cart-plus"></i> Cart
+                    </button>
+                    <button class="btn btn-whatsapp" onclick="orderOnWhatsApp('Portable Speaker', 999)">
+                        <i class="fab fa-whatsapp"></i> Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product 4 -->
+        <div class="product-card">
+            <div class="product-image-container">
+                <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                     alt="Laptop" 
+                     class="product-image">
+                <div class="zoom-icon" onclick="openModal('https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80')">
+                    <i class="fas fa-search-plus"></i>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Ultra Slim Laptop</h3>
+                <div class="product-price">₹49,999 <span class="product-old-price">₹54,999</span></div>
+                <div class="product-buttons">
+                    <button class="btn btn-cart" onclick="addToCart('Ultra Slim Laptop', 49999)">
+                        <i class="fas fa-cart-plus"></i> Cart
+                    </button>
+                    <button class="btn btn-whatsapp" onclick="orderOnWhatsApp('Ultra Slim Laptop', 49999)">
+                        <i class="fab fa-whatsapp"></i> Order
+                    </button>
+                </div>
             </div>
         </div>
     </main>
 
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <i class="fas fa-home nav-icon"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-search nav-icon"></i>
+            <span>Search</span>
+        </a>
+        <a href="#" class="nav-item">
+            <div style="position: relative;">
+                <i class="fas fa-shopping-cart nav-icon"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </div>
+            <span>Cart</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-user nav-icon"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/919876543210" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="">
+        </div>
+    </div>
+
     <script>
-        // WhatsApp ஆர்டர் செய்யும் செயல்பாடு
+        // WhatsApp Order Function
         function orderOnWhatsApp(productName, price) {
-            // உங்கள் WhatsApp எண்ணை இங்கே மாற்றவும் (country code உடன் ஆனால் + இல்லாமல்)
-            const whatsappNumber = '919876543210';
+            // Replace with your WhatsApp number (include country code without +)
+            const whatsappNumber = '917867915699';
             
-            // ஆர்டர் செய்தியை உருவாக்குதல்
-            let message = `வணக்கம்! நான் ${productName} பொருளை ஆர்டர் செய்ய விரும்புகிறேன்.\n\n`;
+            // Create order message
+            let message = `வணக்கம்! நான் ஆர்டர் செய்ய விரும்புகிறேன்:\n\n`;
             message += `பொருள்: ${productName}\n`;
             message += `விலை: ₹${price}\n\n`;
             message += `எனது முகவரி:\n[உங்கள் முழு முகவரியை இங்கே எழுதவும்]\n\n`;
             message += `தயவு செய்து உறுதிப்படுத்தவும். நன்றி!`;
             
-            // URLக்கு செய்தியை குறியாக்கம் செய்தல்
+            // Encode message for URL
             const encodedMessage = encodeURIComponent(message);
             
-            // WhatsApp திறத்தல்
+            // Open WhatsApp with the message
             window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
         }
+
+        // Cart Functionality
+        let cartCount = 0;
+        function addToCart(productName, price) {
+            cartCount++;
+            document.getElementById('cartBadge').textContent = cartCount;
+            
+            // Animation
+            const badge = document.getElementById('cartBadge');
+            badge.style.transform = 'scale(1.5)';
+            setTimeout(() => {
+                badge.style.transform = 'scale(1)';
+            }, 300);
+            
+            // Optional: Show confirmation
+            alert(`${productName} added to cart!`);
+        }
+
+        // Image Modal Functions
+        function openModal(imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            
+            modal.style.display = 'flex';
+            modalImg.src = imageUrl;
+            
+            // Disable body scrolling when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside image
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('imageModal')) {
+                closeModal();
+            }
+        });
     </script>
 </body>
 </html>
