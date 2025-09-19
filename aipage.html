@@ -1,688 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyShop - WhatsApp Ordering</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SK Saree Collections</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fff; color: #333; }
 
-        body {
-            background-color: #f5f5f5;
-            color: #333;
-        }
+    /* Header */
+    header {
+      background: linear-gradient(90deg, #d81b60, #ff4081);
+      color: white; text-align: center; padding: 15px;
+    }
+    header h1 { font-size: 28px; }
+    header p { font-size: 14px; }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5%;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
+    /* Hero */
+    .hero {
+      position: relative;
+      background: url('https://i.ibb.co/6t1n5rq/saree-banner.jpg') no-repeat center/cover;
+      height: 350px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; color: white;
+    }
+    .hero::after {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+    }
+    .hero-content { position: relative; z-index: 2; padding: 0 15px; }
+    .hero h2 { font-size: 28px; margin-bottom: 10px; }
+    .hero p { font-size: 16px; margin-bottom: 15px; }
+    .btn {
+      background: #ff4081; color: white; padding: 12px 22px;
+      border-radius: 30px; text-decoration: none; font-weight: bold;
+      display: inline-block; font-size: 14px;
+    }
 
-        .logo h1 {
-            color: #25D366;
-            font-size: 28px;
-        }
+    /* Sections */
+    .section { padding: 40px 15px; text-align: center; }
+    .section h2 { font-size: 24px; margin-bottom: 20px; color: #d81b60; }
 
-        .logo p {
-            color: #666;
-            font-size: 14px;
-        }
+    /* Offer */
+    .offer {
+      background: linear-gradient(90deg, #ff4081, #f48fb1);
+      color: white; padding: 25px; border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    .offer h3 { font-size: 20px; margin-bottom: 8px; }
+    .offer p { font-size: 14px; margin-bottom: 12px; }
 
-        .cart {
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
+    /* Products */
+    .products {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: white; border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden; transition: 0.3s;
+    }
+    .card:hover { transform: scale(1.03); }
+    .card img { width: 100%; height: 220px; object-fit: cover; }
+    .card h3 { font-size: 16px; margin: 10px 0 5px; }
+    .price { color: #d81b60; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
 
-        .cart:hover {
-            transform: scale(1.1);
-        }
+    /* Testimonials */
+    .testimonials { display: flex; flex-direction: column; gap: 15px; }
+    .testimonial {
+      background: #fff0f6; padding: 15px;
+      border-radius: 10px; font-size: 14px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
 
-        .cart i {
-            font-size: 24px;
-            color: #333;
-        }
+    /* Footer */
+    footer {
+      background: linear-gradient(90deg, #d81b60, #ff4081);
+      color: white; text-align: center; padding: 20px;
+      font-size: 14px;
+    }
+    footer a { color: yellow; text-decoration: none; font-weight: bold; }
 
-        #cart-count {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: #25D366;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 12px;
-        }
-
-        .products {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 30px;
-            padding: 30px 5%;
-        }
-
-        .product {
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .product:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .product-image:hover {
-            transform: scale(1.05);
-        }
-
-        .product h3 {
-            padding: 15px;
-            font-size: 18px;
-        }
-
-        .product .price {
-            padding: 0 15px 15px;
-            font-weight: bold;
-            color: #25D366;
-            font-size: 22px;
-        }
-
-        .product button {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #25D366;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .product button:hover {
-            background-color: #128C7E;
-        }
-
-        /* Image Preview Modal */
-        .image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .image-modal-content {
-            max-width: 90%;
-            max-height: 90%;
-        }
-
-        .image-modal-content img {
-            width: 100%;
-            height: auto;
-            max-height: 80vh;
-            object-fit: contain;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .close-image {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            color: white;
-            font-size: 40px;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .close-image:hover {
-            color: #25D366;
-        }
-
-        .image-modal-nav {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            transform: translateY(-50%);
-        }
-
-        .nav-arrow {
-            color: white;
-            font-size: 40px;
-            cursor: pointer;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s;
-        }
-
-        .nav-arrow:hover {
-            background-color: #25D366;
-            transform: scale(1.1);
-        }
-
-        /* Cart Modal */
-        .cart-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .cart-content {
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .close {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .close:hover {
-            color: #25D366;
-        }
-
-        .cart-items {
-            margin: 20px 0;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .cart-item-info {
-            flex: 1;
-        }
-
-        .cart-item-controls {
-            display: flex;
-            align-items: center;
-        }
-
-        .cart-item-controls button {
-            background-color: #f5f5f5;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin: 0 5px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .cart-item-controls button:hover {
-            background-color: #25D366;
-            color: white;
-        }
-
-        .cart-item-controls span {
-            width: 30px;
-            text-align: center;
-        }
-
-        .remove-item {
-            color: red;
-            margin-left: 15px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: transform 0.3s;
-        }
-
-        .remove-item:hover {
-            transform: scale(1.2);
-        }
-
-        .cart-total {
-            text-align: right;
-            margin: 25px 0;
-            font-size: 20px;
-            padding-top: 15px;
-            border-top: 2px solid #eee;
-        }
-
-        .whatsapp-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background-color: #25D366;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-
-        .whatsapp-btn:hover {
-            background-color: #128C7E;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(18, 140, 126, 0.4);
-        }
-
-        .whatsapp-btn i {
-            margin-right: 10px;
-        }
-
-        /* Special Offer Banner */
-        .offer-banner {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            text-align: center;
-            padding: 15px;
-            font-weight: bold;
-            font-size: 18px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        /* Product Badges */
-        .product-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #ff4757;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 10;
-        }
-
-        @media (max-width: 768px) {
-            .products {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 20px;
-            }
-            
-            .nav-arrow {
-                width: 40px;
-                height: 40px;
-                font-size: 30px;
-            }
-            
-            .close-image {
-                top: 15px;
-                right: 15px;
-                font-size: 30px;
-            }
-        }
-    </style>
+    /* WhatsApp Floating */
+    .whatsapp-float {
+      position: fixed; width: 55px; height: 55px;
+      bottom: 20px; right: 20px;
+      background: #25D366; color: white;
+      border-radius: 50%; text-align: center;
+      font-size: 28px; box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+      z-index: 100; display: flex; align-items: center; justify-content: center;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Special Offer Banner -->
-    <div class="offer-banner">
-        🎉 Today Only! Free Delivery on Orders Over $50 🎉
+
+<header>
+  <h1>🌸 SK Saree Collections 🌸</h1>
+  <p>Luxury Sarees | Festival Offers | COD Available</p>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h2>Grand Saree Collection 2025</h2>
+    <p>Elegance Redefined for Every Occasion</p>
+    <a href="https://wa.me/917867915699" class="btn">Shop on WhatsApp</a>
+  </div>
+</section>
+
+<section class="section">
+  <h2>🔥 Festival Special Offer 🔥</h2>
+  <div class="offer">
+    <h3>Buy 2 Get 1 Free + Free Shipping</h3>
+    <p>Limited Time Deal – Order before stocks run out!</p>
+    <a href="https://wa.me/917867915699" class="btn">Grab Offer</a>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Our Featured Sarees</h2>
+  <div class="products">
+    <div class="card">
+      <img src="https://i.ibb.co/DzW8yWR/saree1.jpg" alt="Bridal Saree">
+      <h3>Bridal Silk Saree</h3>
+      <p class="price">₹2,499</p>
+      <a href="https://wa.me/917867915699?text=I%20want%20Bridal%20Silk%20Saree" class="btn">Order</a>
     </div>
-
-    <header>
-        <div class="logo">
-            <h1>MyShop</h1>
-            <p>Order via WhatsApp - Fast Delivery</p>
-        </div>
-        <div class="cart">
-            <i class="fas fa-shopping-cart"></i>
-            <span id="cart-count">0</span>
-        </div>
-    </header>
-
-    <main>
-        <section class="products">
-            <div class="product">
-                <div class="product-badge">Popular</div>
-                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Smart Watch" class="product-image" data-full="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80">
-                <h3>Smart Watch Pro</h3>
-                <p class="price">$89.99 <span class="old-price">$129.99</span></p>
-                <button class="add-to-cart" data-id="1" data-name="Smart Watch Pro" data-price="89.99">Add to Cart</button>
-            </div>
-            <div class="product">
-                <div class="product-badge">New</div>
-                <img src="https://img.cdnx.in/64704/1705039158724_SKU-0334_0.jpg?width=600&format=webp" alt="Wireless Headphones" class="product-image" data-full="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80">
-                <h3>Wireless Headphones</h3>
-                <p class="price">$59.99</p>
-                <button class="add-to-cart" data-id="2" data-name="Wireless Headphones" data-price="59.99">Add to Cart</button>
-            </div>
-            <div class="product">
-                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Portable Speaker" class="product-image" data-full="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80">
-                <h3>Portable Speaker</h3>
-                <p class="price">$39.99 <span class="old-price">$49.99</span></p>
-                <button class="add-to-cart" data-id="3" data-name="Portable Speaker" data-price="39.99">Add to Cart</button>
-            </div>
-            <div class="product">
-                <div class="product-badge">Sale</div>
-                <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Laptop" class="product-image" data-full="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80">
-                <h3>Ultra Slim Laptop</h3>
-                <p class="price">$899.99 <span class="old-price">$999.99</span></p>
-                <button class="add-to-cart" data-id="4" data-name="Ultra Slim Laptop" data-price="899.99">Add to Cart</button>
-            </div>
-        </section>
-    </main>
-
-    <!-- Image Preview Modal -->
-    <div class="image-modal">
-        <span class="close-image">&times;</span>
-        <div class="image-modal-nav">
-            <div class="nav-arrow prev-image">&lt;</div>
-            <div class="nav-arrow next-image">&gt;</div>
-        </div>
-        <div class="image-modal-content">
-            <img id="expanded-image" src="" alt="Expanded Product View">
-        </div>
+    <div class="card">
+      <img src="https://i.ibb.co/W2jcN9t/saree2.jpg" alt="Designer Saree">
+      <h3>Designer Saree</h3>
+      <p class="price">₹1,899</p>
+      <a href="https://wa.me/917867915699?text=I%20want%20Designer%20Saree" class="btn">Order</a>
     </div>
-
-    <!-- Cart Modal -->
-    <div class="cart-modal">
-        <div class="cart-content">
-            <span class="close">&times;</span>
-            <h2>Your Shopping Cart</h2>
-            <div class="cart-items">
-                <!-- Cart items will be added here dynamically -->
-            </div>
-            <div class="cart-total">
-                <strong>Total: $<span id="total-amount">0.00</span></strong>
-            </div>
-            <button id="checkout-whatsapp" class="whatsapp-btn">
-                <i class="fab fa-whatsapp"></i> Complete Order via WhatsApp
-            </button>
-        </div>
+    <div class="card">
+      <img src="https://i.ibb.co/PGpfs0Q/saree3.jpg" alt="Cotton Saree">
+      <h3>Soft Cotton Saree</h3>
+      <p class="price">₹1,299</p>
+      <a href="https://wa.me/917867915699?text=I%20want%20Cotton%20Saree" class="btn">Order</a>
     </div>
+  </div>
+</section>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cart functionality
-            const cart = [];
-            const cartModal = document.querySelector('.cart-modal');
-            const cartItemsContainer = document.querySelector('.cart-items');
-            const cartCount = document.getElementById('cart-count');
-            const totalAmount = document.getElementById('total-amount');
-            const checkoutBtn = document.getElementById('checkout-whatsapp');
-            const closeBtn = document.querySelector('.close');
-            
-            // Image Preview functionality
-            const imageModal = document.querySelector('.image-modal');
-            const expandedImage = document.getElementById('expanded-image');
-            const closeImageBtn = document.querySelector('.close-image');
-            const productImages = document.querySelectorAll('.product-image');
-            const prevImageBtn = document.querySelector('.prev-image');
-            const nextImageBtn = document.querySelector('.next-image');
-            let currentImageIndex = 0;
-            const allProductImages = Array.from(productImages);
-            
-            // Open cart when cart icon is clicked
-            document.querySelector('.cart').addEventListener('click', function() {
-                updateCartModal();
-                cartModal.style.display = 'flex';
-            });
-            
-            // Close cart modal
-            closeBtn.addEventListener('click', function() {
-                cartModal.style.display = 'none';
-            });
-            
-            // Close when clicking outside modal
-            window.addEventListener('click', function(event) {
-                if (event.target === cartModal) {
-                    cartModal.style.display = 'none';
-                }
-                if (event.target === imageModal) {
-                    imageModal.style.display = 'none';
-                }
-            });
-            
-            // Add to cart buttons
-            document.querySelectorAll('.add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-id');
-                    const productName = this.getAttribute('data-name');
-                    const productPrice = parseFloat(this.getAttribute('data-price'));
-                    
-                    // Check if product already in cart
-                    const existingItem = cart.find(item => item.id === productId);
-                    
-                    if (existingItem) {
-                        existingItem.quantity += 1;
-                    } else {
-                        cart.push({
-                            id: productId,
-                            name: productName,
-                            price: productPrice,
-                            quantity: 1
-                        });
-                    }
-                    
-                    updateCartCount();
-                    
-                    // Show visual feedback
-                    this.textContent = 'Added!';
-                    this.style.backgroundColor = '#128C7E';
-                    setTimeout(() => {
-                        this.textContent = 'Add to Cart';
-                        this.style.backgroundColor = '#25D366';
-                    }, 1000);
-                });
-            });
-            
-            // Update cart count
-            function updateCartCount() {
-                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-                cartCount.textContent = totalItems;
-                
-                // Add animation when item is added
-                if (totalItems > 0) {
-                    cartCount.style.transform = 'scale(1.5)';
-                    setTimeout(() => {
-                        cartCount.style.transform = 'scale(1)';
-                    }, 300);
-                }
-            }
-            
-            // Update cart modal
-            function updateCartModal() {
-                cartItemsContainer.innerHTML = '';
-                
-                if (cart.length === 0) {
-                    cartItemsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Your cart is empty</p>';
-                    totalAmount.textContent = '0.00';
-                    return;
-                }
-                
-                let total = 0;
-                
-                cart.forEach(item => {
-                    const itemTotal = item.price * item.quantity;
-                    total += itemTotal;
-                    
-                    const cartItemElement = document.createElement('div');
-                    cartItemElement.className = 'cart-item';
-                    cartItemElement.innerHTML = `
-                        <div class="cart-item-info">
-                            <h4>${item.name}</h4>
-                            <p>$${item.price.toFixed(2)} each</p>
-                        </div>
-                        <div class="cart-item-controls">
-                            <button class="decrease">-</button>
-                            <span>${item.quantity}</span>
-                            <button class="increase">+</button>
-                            <span class="remove-item" data-id="${item.id}">&times;</span>
-                        </div>
-                        <div class="cart-item-total">
-                            $${itemTotal.toFixed(2)}
-                        </div>
-                    `;
-                    
-                    cartItemsContainer.appendChild(cartItemElement);
-                    
-                    // Add event listeners for the buttons we just created
-                    cartItemElement.querySelector('.decrease').addEventListener('click', () => {
-                        if (item.quantity > 1) {
-                            item.quantity -= 1;
-                            updateCartModal();
-                        }
-                        updateCartCount();
-                    });
-                    
-                    cartItemElement.querySelector('.increase').addEventListener('click', () => {
-                        item.quantity += 1;
-                        updateCartModal();
-                        updateCartCount();
-                    });
-                    
-                    cartItemElement.querySelector('.remove-item').addEventListener('click', () => {
-                        const index = cart.findIndex(cartItem => cartItem.id === item.id);
-                        if (index !== -1) {
-                            cart.splice(index, 1);
-                            updateCartModal();
-                            updateCartCount();
-                        }
-                    });
-                });
-                
-                totalAmount.textContent = total.toFixed(2);
-            }
-            
-            // WhatsApp checkout
-            checkoutBtn.addEventListener('click', function() {
-                if (cart.length === 0) {
-                    alert('Your cart is empty!');
-                    return;
-                }
-                
-                // Replace with your WhatsApp number (include country code, remove +)
-                const whatsappNumber = '1234567890'; 
-                
-                // Create order message
-                let message = 'Hello! I would like to place an order:\n\n';
-                
-                cart.forEach(item => {
-                    message += `✔ ${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}\n`;
-                });
-                
-                message += `\n💰 Total: $${totalAmount.textContent}\n\n`;
-                message += 'Please confirm my order. Thank you! 🚀\n\n';
-                message += 'My delivery address is: [Please provide your full address here]';
-                
-                // Encode message for URL
-                const encodedMessage = encodeURIComponent(message);
-                
-                // Open WhatsApp with the message
-                window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
-                
-                // Optional: Clear cart after order
-                cart.length = 0;
-                updateCartCount();
-                updateCartModal();
-                cartModal.style.display = 'none';
-            });
-            
-            // Image Preview functionality
-            productImages.forEach((img, index) => {
-                img.addEventListener('click', function() {
-                    currentImageIndex = index;
-                    expandedImage.src = this.getAttribute('data-full');
-                    expandedImage.alt = this.alt;
-                    imageModal.style.display = 'flex';
-                });
-            });
-            
-            closeImageBtn.addEventListener('click', function() {
-                imageModal.style.display = 'none';
-            });
-            
-            prevImageBtn.addEventListener('click', function() {
-                currentImageIndex = (currentImageIndex - 1 + allProductImages.length) % allProductImages.length;
-                expandedImage.src = allProductImages[currentImageIndex].getAttribute('data-full');
-                expandedImage.alt = allProductImages[currentImageIndex].alt;
-            });
-            
-            nextImageBtn.addEventListener('click', function() {
-                currentImageIndex = (currentImageIndex + 1) % allProductImages.length;
-                expandedImage.src = allProductImages[currentImageIndex].getAttribute('data-full');
-                expandedImage.alt = allProductImages[currentImageIndex].alt;
-            });
-            
-            // Keyboard navigation for image modal
-            document.addEventListener('keydown', function(e) {
-                if (imageModal.style.display === 'flex') {
-                    if (e.key === 'ArrowLeft') {
-                        prevImageBtn.click();
-                    } else if (e.key === 'ArrowRight') {
-                        nextImageBtn.click();
-                    } else if (e.key === 'Escape') {
-                        closeImageBtn.click();
-                    }
-                }
-            });
-        });
-    </script>
+<section class="section">
+  <h2>Happy Customers 💖</h2>
+  <div class="testimonials">
+    <div class="testimonial">“Bridal saree quality was stunning. Delivery on time!” – ⭐⭐⭐⭐⭐ Priya, Chennai</div>
+    <div class="testimonial">“Affordable & authentic collection. Loved it!” – ⭐⭐⭐⭐⭐ Kavitha, Madurai</div>
+    <div class="testimonial">“Soft cotton saree is very comfortable. Mom happy!” – ⭐⭐⭐⭐⭐ Meena, Coimbatore</div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 SK Saree Collections | <a href="https://wa.me/917867915699">WhatsApp Us</a></p>
+  <p>Follow: <i class="fab fa-facebook"></i> | <i class="fab fa-instagram"></i> | <i class="fab fa-youtube"></i></p>
+</footer>
+
+<!-- Floating WhatsApp -->
+<a href="https://wa.me/917867915699" class="whatsapp-float" target="_blank">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
 </body>
 </html>
