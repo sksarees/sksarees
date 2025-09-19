@@ -3,162 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SK Saree Collections</title>
+  <title>SK Saree Collections | Cash on Delivery & Online Payment</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: #fff; color: #333; }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Poppins',sans-serif;background:#fff;color:#333;line-height:1.6;}
 
-    /* Header */
-    header {
-      background: linear-gradient(90deg, #d81b60, #ff4081);
-      color: white; text-align: center; padding: 15px;
+    :root{
+      --header:#9c27b0;  /* New Header Color - Royal Purple */
+      --pink:#e91e63;
+      --gold:#ff9800;
+      --green:#25D366;
+      --bg:#fff7fa;
     }
-    header h1 { font-size: 28px; }
-    header p { font-size: 14px; }
+
+    header{
+      background:var(--header);color:#fff;text-align:center;padding:15px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
+    header h1{font-size:22px;font-weight:700;}
+    header p{font-size:13px;}
 
     /* Hero */
-    .hero {
-      position: relative;
-      background: url('https://i.ibb.co/6t1n5rq/saree-banner.jpg') no-repeat center/cover;
-      height: 350px;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center; color: white;
+    .hero{text-align:center;position:relative;}
+    .hero img{width:100%;max-height:420px;object-fit:cover;}
+    .hero .cta{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);}
+    .btn{
+      background:var(--green);color:#fff;padding:12px 24px;
+      font-size:15px;font-weight:600;text-decoration:none;
+      border-radius:30px;box-shadow:0 4px 12px rgba(0,0,0,0.2);
     }
-    .hero::after {
-      content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-    }
-    .hero-content { position: relative; z-index: 2; padding: 0 15px; }
-    .hero h2 { font-size: 28px; margin-bottom: 10px; }
-    .hero p { font-size: 16px; margin-bottom: 15px; }
-    .btn {
-      background: #ff4081; color: white; padding: 12px 22px;
-      border-radius: 30px; text-decoration: none; font-weight: bold;
-      display: inline-block; font-size: 14px;
-    }
+    .btn:hover{background:#1ebd5a;}
 
-    /* Sections */
-    .section { padding: 40px 15px; text-align: center; }
-    .section h2 { font-size: 24px; margin-bottom: 20px; color: #d81b60; }
+    /* Payment Info */
+    .payment-info{background:var(--bg);padding:20px;margin:20px;border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+    .payment-info h2{color:var(--pink);text-align:center;margin-bottom:10px;}
+    .payment-info ul{list-style:none;padding:0;}
+    .payment-info li{margin:10px 0;font-size:15px;}
 
-    /* Offer */
-    .offer {
-      background: linear-gradient(90deg, #ff4081, #f48fb1);
-      color: white; padding: 25px; border-radius: 12px;
-      margin-bottom: 30px;
-    }
-    .offer h3 { font-size: 20px; margin-bottom: 8px; }
-    .offer p { font-size: 14px; margin-bottom: 12px; }
+    .pay-btn{text-align:center;margin-top:15px;}
+    .pay-btn a{background:var(--gold);color:#fff;padding:12px 20px;
+      font-weight:bold;border-radius:30px;text-decoration:none;}
 
     /* Products */
-    .products {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 15px;
-    }
-    .card {
-      background: white; border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      overflow: hidden; transition: 0.3s;
-    }
-    .card:hover { transform: scale(1.03); }
-    .card img { width: 100%; height: 220px; object-fit: cover; }
-    .card h3 { font-size: 16px; margin: 10px 0 5px; }
-    .price { color: #d81b60; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+    .products{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:15px;padding:20px;}
+    .card{background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);
+      overflow:hidden;text-align:center;}
+    .card img{width:100%;height:220px;object-fit:cover;}
+    .card h3{font-size:16px;margin:10px 0 5px;}
+    .price{color:var(--pink);font-weight:bold;margin-bottom:10px;}
+    .order-btn{display:block;background:var(--green);color:#fff;padding:10px;
+      text-decoration:none;font-weight:bold;border-radius:0 0 12px 12px;}
 
-    /* Testimonials */
-    .testimonials { display: flex; flex-direction: column; gap: 15px; }
-    .testimonial {
-      background: #fff0f6; padding: 15px;
-      border-radius: 10px; font-size: 14px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+    /* Language Tabs */
+    .lang-switch{text-align:center;margin:15px;}
+    .lang-switch button{padding:8px 14px;border:none;border-radius:20px;
+      margin:5px;font-weight:bold;cursor:pointer;}
+    .active{background:var(--pink);color:#fff;}
+    .inactive{background:#eee;color:#333;}
 
     /* Footer */
-    footer {
-      background: linear-gradient(90deg, #d81b60, #ff4081);
-      color: white; text-align: center; padding: 20px;
-      font-size: 14px;
-    }
-    footer a { color: yellow; text-decoration: none; font-weight: bold; }
+    footer{text-align:center;padding:20px;background:var(--header);color:#fff;font-size:14px;}
+    footer a{color:yellow;text-decoration:none;}
 
-    /* WhatsApp Floating */
-    .whatsapp-float {
-      position: fixed; width: 55px; height: 55px;
-      bottom: 20px; right: 20px;
-      background: #25D366; color: white;
-      border-radius: 50%; text-align: center;
-      font-size: 28px; box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-      z-index: 100; display: flex; align-items: center; justify-content: center;
-    }
+    /* Floating WhatsApp */
+    .whatsapp-float{position:fixed;bottom:20px;right:20px;width:55px;height:55px;
+      background:var(--green);color:#fff;border-radius:50%;display:flex;
+      align-items:center;justify-content:center;font-size:28px;z-index:999;}
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header>
   <h1>🌸 SK Saree Collections 🌸</h1>
-  <p>Luxury Sarees | Festival Offers | COD Available</p>
+  <p>Premium Sarees | Cash on Delivery & Online Payment</p>
 </header>
 
+<!-- Language Switch -->
+<div class="lang-switch">
+  <button class="active" onclick="setLang('en')">English</button>
+  <button class="inactive" onclick="setLang('ta')">தமிழ்</button>
+</div>
+
+<!-- Hero Section -->
 <section class="hero">
-  <div class="hero-content">
-    <h2>Grand Saree Collection 2025</h2>
-    <p>Elegance Redefined for Every Occasion</p>
-    <a href="https://wa.me/917867915699" class="btn">Shop on WhatsApp</a>
+  <img src="https://i.ibb.co/DzW8yWR/saree1.jpg" alt="Saree Banner">
+  <div class="cta">
+    <a href="https://wa.me/917867915699" class="btn"><i class="fab fa-whatsapp"></i> Order on WhatsApp</a>
   </div>
 </section>
 
-<section class="section">
-  <h2>🔥 Festival Special Offer 🔥</h2>
-  <div class="offer">
-    <h3>Buy 2 Get 1 Free + Free Shipping</h3>
-    <p>Limited Time Deal – Order before stocks run out!</p>
-    <a href="https://wa.me/917867915699" class="btn">Grab Offer</a>
+<!-- Payment Info -->
+<div class="payment-info" id="payment-info">
+  <h2>💳 Payment & Delivery Options</h2>
+  <ul id="pay-details">
+    <li>Cash on Delivery (COD): Courier charge ₹99 → Delivery in 5-7 Days</li>
+    <li>Online Payment: Shipping ₹35 → Delivery in 2-3 Days (Fast Delivery)</li>
+    <li>COD requires ₹99 advance for booking confirmation</li>
+  </ul>
+  <div class="pay-btn">
+    <a href="https://razorpay.me/@sksarees" target="_blank">Pay Online Securely</a>
   </div>
-</section>
+</div>
 
-<section class="section">
-  <h2>Our Featured Sarees</h2>
-  <div class="products">
-    <div class="card">
-      <img src="https://i.ibb.co/DzW8yWR/saree1.jpg" alt="Bridal Saree">
-      <h3>Bridal Silk Saree</h3>
-      <p class="price">₹2,499</p>
-      <a href="https://wa.me/917867915699?text=I%20want%20Bridal%20Silk%20Saree" class="btn">Order</a>
-    </div>
-    <div class="card">
-      <img src="https://i.ibb.co/W2jcN9t/saree2.jpg" alt="Designer Saree">
-      <h3>Designer Saree</h3>
-      <p class="price">₹1,899</p>
-      <a href="https://wa.me/917867915699?text=I%20want%20Designer%20Saree" class="btn">Order</a>
-    </div>
-    <div class="card">
-      <img src="https://i.ibb.co/PGpfs0Q/saree3.jpg" alt="Cotton Saree">
-      <h3>Soft Cotton Saree</h3>
-      <p class="price">₹1,299</p>
-      <a href="https://wa.me/917867915699?text=I%20want%20Cotton%20Saree" class="btn">Order</a>
-    </div>
+<!-- Products -->
+<section class="products">
+  <div class="card">
+    <img src="https://i.ibb.co/W2jcN9t/saree2.jpg" alt="Designer Saree">
+    <h3>Designer Silk Saree</h3>
+    <p class="price">₹2,499</p>
+    <a href="https://wa.me/917867915699?text=I%20want%20Designer%20Silk%20Saree" class="order-btn">Order on WhatsApp</a>
   </div>
-</section>
-
-<section class="section">
-  <h2>Happy Customers 💖</h2>
-  <div class="testimonials">
-    <div class="testimonial">“Bridal saree quality was stunning. Delivery on time!” – ⭐⭐⭐⭐⭐ Priya, Chennai</div>
-    <div class="testimonial">“Affordable & authentic collection. Loved it!” – ⭐⭐⭐⭐⭐ Kavitha, Madurai</div>
-    <div class="testimonial">“Soft cotton saree is very comfortable. Mom happy!” – ⭐⭐⭐⭐⭐ Meena, Coimbatore</div>
+  <div class="card">
+    <img src="https://i.ibb.co/PGpfs0Q/saree3.jpg" alt="Cotton Saree">
+    <h3>Soft Cotton Saree</h3>
+    <p class="price">₹1,299</p>
+    <a href="https://wa.me/917867915699?text=I%20want%20Cotton%20Saree" class="order-btn">Order on WhatsApp</a>
   </div>
 </section>
 
 <footer>
   <p>© 2025 SK Saree Collections | <a href="https://wa.me/917867915699">WhatsApp Us</a></p>
-  <p>Follow: <i class="fab fa-facebook"></i> | <i class="fab fa-instagram"></i> | <i class="fab fa-youtube"></i></p>
 </footer>
 
-<!-- Floating WhatsApp -->
-<a href="https://wa.me/917867915699" class="whatsapp-float" target="_blank">
-  <i class="fab fa-whatsapp"></i>
-</a>
+<a href="https://wa.me/917867915699" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+
+<script>
+  function setLang(lang){
+    let enText = [
+      "Cash on Delivery (COD): Courier charge ₹99 → Delivery in 5-7 Days",
+      "Online Payment: Shipping ₹35 → Delivery in 2-3 Days (Fast Delivery)",
+      "COD requires ₹99 advance for booking confirmation"
+    ];
+    let taText = [
+      "கேஷ் ஆன் டெலிவரி (COD): கூரியர் கட்டணம் ₹99 → 5-7 நாட்களில் டெலிவரி",
+      "ஆன்லைன் பேமென்ட்: ஷிப்பிங் ₹35 → 2-3 நாட்களில் விரைவான டெலிவரி",
+      "CODக்கு முன்பதிவுக்கு ₹99 கட்டணம் அவசியம்"
+    ];
+
+    let payList = document.getElementById("pay-details");
+    payList.innerHTML = "";
+    let arr = (lang==="ta") ? taText : enText;
+    arr.forEach(item=>{
+      let li = document.createElement("li");
+      li.innerText = item;
+      payList.appendChild(li);
+    });
+
+    document.querySelectorAll(".lang-switch button").forEach(btn=>{
+      btn.classList.remove("active");btn.classList.add("inactive");
+    });
+    document.querySelector(`.lang-switch button[onclick="setLang('${lang}')"]`)
+      .classList.add("active");
+  }
+</script>
 
 </body>
 </html>
