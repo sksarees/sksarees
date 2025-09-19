@@ -3,67 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout | SK Sarees</title>
+  <title>SK Saree Collections | Sarees Online</title>
   <style>
-    body{font-family:'Poppins',sans-serif;background:#fff;padding:20px;}
-    h2{color:#9c27b0;text-align:center;}
-    .box{background:#fff7fa;padding:15px;margin:15px 0;border-radius:10px;
-         box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+    body{font-family:'Poppins',sans-serif;margin:0;padding:0;background:#fff;}
+    header{background:#9c27b0;color:#fff;text-align:center;padding:15px;}
+    header h1{margin:0;font-size:22px;}
+    header p{font-size:13px;}
+
+    .products{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:15px;padding:20px;}
+    .card{background:#fff;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);
+      text-align:center;overflow:hidden;}
+    .card img{width:100%;height:220px;object-fit:cover;}
+    .card h3{margin:10px 0 5px;}
+    .price{color:#e91e63;font-weight:bold;margin-bottom:10px;}
+    .order-btn{display:block;background:#25D366;color:#fff;padding:10px;text-decoration:none;
+      font-weight:bold;border:none;border-radius:0 0 12px 12px;cursor:pointer;width:100%;}
+
+    /* Modal Popup */
+    .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;
+      overflow:auto;background:rgba(0,0,0,0.6);padding-top:50px;}
+    .modal-content{background:#fff;margin:auto;padding:20px;border-radius:12px;
+      width:90%;max-width:400px;box-shadow:0 5px 15px rgba(0,0,0,0.3);}
+    .close{color:#aaa;float:right;font-size:28px;font-weight:bold;cursor:pointer;}
+    .modal-content h2{text-align:center;color:#9c27b0;}
     label{display:block;margin:8px 0 5px;font-weight:600;}
     input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;}
     .btn{display:block;margin:15px auto;background:#25D366;color:#fff;
-         padding:12px 20px;font-size:16px;font-weight:bold;text-align:center;
-         border-radius:30px;text-decoration:none;width:80%;}
+      padding:12px 20px;font-size:16px;font-weight:bold;text-align:center;
+      border-radius:30px;text-decoration:none;width:80%;cursor:pointer;}
     .pay-btn{background:#ff9800;}
+
+    footer{text-align:center;padding:15px;background:#9c27b0;color:#fff;}
+    .whatsapp-float{position:fixed;bottom:20px;right:20px;width:55px;height:55px;
+      background:#25D366;color:#fff;border-radius:50%;display:flex;
+      align-items:center;justify-content:center;font-size:28px;z-index:999;}
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<h2>🛒 Saree Checkout</h2>
+<header>
+  <h1>🌸 SK Saree Collections 🌸</h1>
+  <p>Premium Sarees • Cash on Delivery & Online Payment</p>
+</header>
 
-<div class="box">
-  <h3 id="productName">Product: </h3>
-  <p id="productPrice"></p>
+<!-- Products Section -->
+<section class="products">
+  <div class="card">
+    <img src="https://i.ibb.co/W2jcN9t/saree2.jpg" alt="Designer Saree">
+    <h3>Designer Silk Saree</h3>
+    <p class="price">₹2,499</p>
+    <button class="order-btn" onclick="openCheckout('Designer Silk Saree','2499')">Buy Now</button>
+  </div>
+  <div class="card">
+    <img src="https://i.ibb.co/PGpfs0Q/saree3.jpg" alt="Cotton Saree">
+    <h3>Soft Cotton Saree</h3>
+    <p class="price">₹1,299</p>
+    <button class="order-btn" onclick="openCheckout('Soft Cotton Saree','1299')">Buy Now</button>
+  </div>
+</section>
+
+<!-- Checkout Modal -->
+<div id="checkoutModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeCheckout()">&times;</span>
+    <h2>🛒 Checkout</h2>
+    <div id="selectedProduct" style="margin-bottom:15px;font-weight:bold;color:#e91e63;">
+      Selected: 
+    </div>
+    <form id="checkoutForm">
+      <label>Your Name</label>
+      <input type="text" id="name" required>
+      
+      <label>Address</label>
+      <input type="text" id="address" required>
+      
+      <label>Payment Option</label>
+      <select id="payment">
+        <option value="COD">Cash on Delivery (₹99 extra, 5-7 Days)</option>
+        <option value="Online">Online Payment (₹35 shipping, 2-3 Days)</option>
+      </select>
+      
+      <button type="button" class="btn" onclick="sendWhatsApp()">Confirm on WhatsApp</button>
+    </form>
+    <div style="text-align:center;margin-top:20px;">
+      <a href="https://razorpay.me/@sksarees" target="_blank" class="btn pay-btn">💳 Pay Now (Razorpay)</a>
+    </div>
+  </div>
 </div>
 
-<div class="box">
-  <form id="checkoutForm">
-    <label>Your Name</label>
-    <input type="text" id="name" required>
-    
-    <label>Address</label>
-    <input type="text" id="address" required>
-    
-    <label>Payment Option</label>
-    <select id="payment">
-      <option value="COD">Cash on Delivery (₹99 extra, 5-7 Days)</option>
-      <option value="Online">Online Payment (₹35 shipping, 2-3 Days)</option>
-    </select>
-    
-    <button type="button" class="btn" onclick="sendWhatsApp()">Confirm on WhatsApp</button>
-  </form>
-</div>
+<footer>
+  © 2025 SK Saree Collections | WhatsApp: +91 7867915699
+</footer>
 
-
+<a href="https://wa.me/917867915699" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
 
 <script>
-  // Get product from URL
-  const params = new URLSearchParams(window.location.search);
-  let product = params.get("product");
-  let price = params.get("price");
+  let selectedProduct = "";
+  let selectedPrice = "";
 
-  document.getElementById("productName").innerText = "Product: " + (product || "Not selected");
-  document.getElementById("productPrice").innerText = "Price: ₹" + (price || "0");
+  function openCheckout(product, price){
+    selectedProduct = product;
+    selectedPrice = price;
+    document.getElementById("selectedProduct").innerText = 
+      "Selected: " + product + " | Price: ₹" + price;
+    document.getElementById("checkoutModal").style.display = "block";
+  }
+
+  function closeCheckout(){
+    document.getElementById("checkoutModal").style.display = "none";
+  }
 
   function sendWhatsApp(){
     let name = document.getElementById("name").value;
     let address = document.getElementById("address").value;
     let payment = document.getElementById("payment").value;
 
-    let msg = `New Order!\n\nProduct: ${product}\nPrice: ₹${price}\nName: ${name}\nAddress: ${address}\nPayment: ${payment}`;
-    let url = "https://wa.me/917867915699?text=" + encodeURIComponent(msg);
+    if(selectedProduct === ""){
+      alert("Please select a product first!");
+      return;
+    }
 
+    let msg = `New Saree Order!\n\nProduct: ${selectedProduct}\nPrice: ₹${selectedPrice}\nName: ${name}\nAddress: ${address}\nPayment: ${payment}`;
+    let url = "https://wa.me/917867915699?text=" + encodeURIComponent(msg);
     window.open(url,"_blank");
+  }
+
+  // Close modal if clicked outside
+  window.onclick = function(event){
+    let modal = document.getElementById("checkoutModal");
+    if(event.target == modal){ modal.style.display = "none"; }
   }
 </script>
 
