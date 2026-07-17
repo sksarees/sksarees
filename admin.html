@@ -1,323 +1,669 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SK Sarees – Seller Orders Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK Sarees | Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f7f3ee;color:#1a1a1a;line-height:1.5}
-a{text-decoration:none;color:inherit}
-button,input,select{font-family:inherit}
-.container{max-width:1200px;margin:0 auto;padding:0 20px}
-.header{background:linear-gradient(135deg,#7B1C1C,#5a1313);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 18px rgba(0,0,0,.25)}
-.head-main{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;max-width:1200px;margin:0 auto;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#F0CF72);display:flex;align-items:center;justify-content:center;color:#7B1C1C;font-family:'Playfair Display',serif;font-weight:800}
-.title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:800;color:#F0CF72}
-.sub{font-size:.7rem;color:rgba(255,255,255,.7)}
-.btn{padding:10px 16px;border:none;border-radius:10px;font-weight:700;cursor:pointer}
-.btn-gold{background:#F0CF72;color:#5a1313}
-.btn-dark{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.16)}
-.main{padding:26px 0 48px}
-.card{background:#fff;border-radius:16px;border:1px solid #e8e0d5;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:18px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.stat{background:#fff;border-radius:14px;border:1px solid #e8e0d5;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:16px}
-.stat .lbl{font-size:.72rem;color:#777;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.stat .val{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;color:#7B1C1C;margin-top:4px}
-.tools{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-.tools input,.tools select{padding:10px 12px;border:1.5px solid #ddd;border-radius:10px;font-size:.86rem;min-width:180px}
-.tools input:focus,.tools select:focus{border-color:#7B1C1C;outline:none}
-.order{background:#fff;border-radius:16px;border:1px solid #e8e0d5;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:14px;overflow:hidden}
-.o-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;cursor:pointer}
-.o-num{font-weight:800;color:#7B1C1C;font-size:1rem}
-.o-meta{font-size:.78rem;color:#777;margin-top:4px}
-.o-amt{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:#7B1C1C;text-align:right}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:800;margin-top:6px}
-.b-conf{background:#e3f2fd;color:#1565c0}.b-ship{background:#e8eaf6;color:#283593}.b-del{background:#e8f5e9;color:#2e7d32}.b-pend{background:#f5f5f5;color:#757575}.b-cancel{background:#fce4ec;color:#c62828}
-.o-body{display:none;border-top:1px solid #f0ebe4;padding:14px 16px}
-.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-.item{display:flex;gap:10px;align-items:center;background:#faf7f2;border:1px solid #efe6dd;border-radius:12px;padding:10px}
-.item img{width:52px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0}
-.item .nm{font-size:.84rem;font-weight:700}.item .sk{font-size:.68rem;color:#888}.item .qt{font-size:.72rem;color:#666}
-.addr{background:#f9f6f2;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin-top:12px;font-size:.8rem;color:#555;line-height:1.7}
-.topline{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-.notice{background:#FFF8E1;border:1px solid #F0CF72;border-radius:14px;padding:14px 16px;margin-top:16px;color:#5a1313}
-.notice strong{display:block;margin-bottom:4px}
-.login-wrap{max-width:540px;margin:30px auto;background:#fff;border:1px solid #e8e0d5;border-radius:18px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:24px}
-.login-wrap h2{font-family:'Playfair Display',serif;color:#7B1C1C;font-size:1.35rem;margin-bottom:8px;text-align:center}
-.login-wrap p{font-size:.85rem;color:#666;text-align:center;margin-bottom:16px}
-.login-wrap input{width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:.9rem;margin-bottom:10px}
-.login-wrap input:focus{border-color:#7B1C1C;outline:none}
-.hidden{display:none}
-.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.tools input,.tools select{min-width:0;flex:1}.head-main{justify-content:center}.o-head{flex-direction:column;align-items:flex-start}.o-amt{text-align:left}}
-@media(max-width:520px){.grid{grid-template-columns:1fr}.title{font-size:1rem}.sub{display:none}.container{padding:0 14px}}
+:root{
+  --maroon-deep:#5c0e1f; --maroon:#7a1128; --gold:#c9a227; --gold-light:#e8cf7a;
+  --ivory:#fff8ef; --ink:#2b1210; --muted:#8a6b63; --success:#2e7d4f; --radius:12px;
+  --shadow:0 6px 18px rgba(92,14,31,.10);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Poppins',sans-serif; background:#f7f1e6; color:var(--ink); display:flex; min-height:100vh;}
+a{text-decoration:none; color:inherit;}
+button{font-family:inherit; cursor:pointer; border:none;}
+ul{list-style:none;}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width:240px; background:linear-gradient(180deg,var(--maroon-deep),var(--maroon)); color:#fff;
+  display:flex; flex-direction:column; position:fixed; top:0; bottom:0; left:0; z-index:200;
+}
+.sidebar .brand{display:flex; align-items:center; gap:10px; padding:22px 20px; border-bottom:1px solid rgba(255,255,255,.12);}
+.brand-badge{width:40px; height:40px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold) 70%); color:var(--maroon-deep); font-family:'Playfair Display',serif; font-weight:700; display:flex; align-items:center; justify-content:center;}
+.sidebar .brand div b{display:block; font-family:'Playfair Display',serif; font-size:16px;}
+.sidebar .brand div span{font-size:10px; color:var(--gold-light);}
+.side-nav{flex:1; padding:16px 10px;}
+.side-nav li{padding:12px 14px; border-radius:8px; margin-bottom:4px; font-size:13.5px; display:flex; align-items:center; gap:12px; cursor:pointer; color:#e9d3d3;}
+.side-nav li i{width:18px; text-align:center;}
+.side-nav li:hover{background:rgba(255,255,255,.08); color:#fff;}
+.side-nav li.active{background:var(--gold); color:var(--maroon-deep); font-weight:600;}
+.sidebar-foot{padding:16px 20px; border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:#e0bcbc;}
+.sidebar-foot a{color:var(--gold-light); text-decoration:underline;}
+
+/* ---------- Main content ---------- */
+.main{margin-left:240px; flex:1; padding:26px 34px; max-width:1200px;}
+.topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;}
+.topbar h1{font-family:'Playfair Display',serif; color:var(--maroon-deep); font-size:24px;}
+.topbar .sub{font-size:12.5px; color:var(--muted);}
+.admin-profile{display:flex; align-items:center; gap:10px; background:#fff; padding:8px 16px; border-radius:30px; box-shadow:var(--shadow); font-size:13px;}
+.admin-profile .av{width:32px; height:32px; border-radius:50%; background:var(--gold); color:var(--maroon-deep); display:flex; align-items:center; justify-content:center; font-weight:700;}
+
+.panel{display:none;}
+.panel.active{display:block; animation:fade .3s;}
+@keyframes fade{from{opacity:0;} to{opacity:1;}}
+
+/* ---------- Stat cards ---------- */
+.stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:28px;}
+.stat-card{background:#fff; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border-left:4px solid var(--gold);}
+.stat-card i{font-size:20px; color:var(--maroon); margin-bottom:10px;}
+.stat-card b{display:block; font-size:24px; color:var(--maroon-deep); font-family:'Playfair Display',serif;}
+.stat-card span{font-size:12px; color:var(--muted);}
+
+.card{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:20px;}
+.card h3{font-family:'Playfair Display',serif; color:var(--maroon-deep); margin-bottom:14px; font-size:17px;}
+
+/* ---------- Tables ---------- */
+table{width:100%; border-collapse:collapse; font-size:12.8px;}
+th{text-align:left; padding:12px 10px; background:#fbf3e2; color:var(--maroon-deep); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.4px;}
+td{padding:12px 10px; border-bottom:1px solid #f1e9d8; vertical-align:middle;}
+tr:hover td{background:#fffaf0;}
+.prod-cell{display:flex; align-items:center; gap:10px;}
+.prod-cell img{width:38px; height:48px; object-fit:cover; border-radius:6px;}
+.tbl-controls{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;}
+.tbl-controls input, .tbl-controls select{padding:9px 12px; border:1px solid #eadfc3; border-radius:8px; font-size:12.5px;}
+.btn-gold{background:var(--gold); color:var(--maroon-deep); padding:9px 18px; border-radius:8px; font-weight:700; font-size:12.5px;}
+.btn-outline-sm{border:1px solid var(--maroon); color:var(--maroon); padding:6px 10px; border-radius:6px; font-size:11.5px; background:#fff;}
+.btn-del{color:#a12626; font-size:11.5px; border:1px solid #f0c4c4; padding:6px 10px; border-radius:6px; background:#fff;}
+
+/* Status select styling */
+.status-select{
+  padding:6px 10px; border-radius:20px; font-size:11.5px; font-weight:700; border:none; cursor:pointer; outline:none;
+}
+.st-Placed{background:#fff3cd; color:#8a6d00;}
+.st-Confirmed{background:#e2e3ff; color:#3f3fae;}
+.st-Shipped{background:#d9ecff; color:#1266b3;}
+.st-Out{background:#ffe3d0; color:#b3540f;}
+.st-Delivered{background:#d9f2e3; color:var(--success);}
+.st-Cancelled{background:#fadbdb; color:#a12626;}
+
+.pill{display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;}
+.pill.in{background:#d9f2e3; color:var(--success);}
+.pill.low{background:#fff3cd; color:#8a6d00;}
+
+.empty-row td{text-align:center; color:var(--muted); padding:40px 0;}
+
+/* ---------- Firestore setup code blocks ---------- */
+.code-block{
+  background:#241014; color:#f3e6c8; font-family:'Courier New',monospace; font-size:11.8px; line-height:1.6;
+  padding:16px 18px; border-radius:10px; overflow-x:auto; white-space:pre;
+}
+.code-block b{color:var(--gold-light);}
+code{background:#f1e4c8; color:var(--maroon-deep); padding:1px 6px; border-radius:4px; font-size:11.8px;}
+
+/* ---------- Buyers link / small link buttons ---------- */
+.link-btn{color:var(--maroon); font-size:11.8px; font-weight:600; text-decoration:underline; cursor:pointer; background:none;}
+.buyer-count{font-size:12px; color:var(--muted);}
+
+/* ---------- Modal ---------- */
+.modal-overlay{position:fixed; inset:0; background:rgba(43,18,16,.55); z-index:1000; display:none; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff; border-radius:14px; width:100%; max-width:520px; box-shadow:0 20px 50px rgba(0,0,0,.3); overflow:hidden;}
+.modal-head{background:linear-gradient(90deg,var(--maroon-deep),var(--maroon)); color:#fff; padding:16px 22px; display:flex; justify-content:space-between; align-items:center;}
+.modal-head h3{font-family:'Playfair Display',serif; font-size:17px;}
+.modal-head i{cursor:pointer; font-size:16px;}
+.modal-body{padding:22px; max-height:70vh; overflow-y:auto;}
+.form-field{margin-bottom:14px;}
+.form-field label{display:block; font-size:11.8px; font-weight:600; color:var(--ink); margin-bottom:5px;}
+.form-field input, .form-field select{width:100%; padding:10px 12px; border:1px solid #e5d7ba; border-radius:8px; font-size:13px; font-family:inherit;}
+.form-row-2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.modal-foot{padding:16px 22px; border-top:1px solid #f1e9d8; display:flex; justify-content:flex-end; gap:10px;}
+.modal-order-row{display:flex; gap:12px; align-items:center; border:1px solid #f1e4c8; border-radius:10px; padding:12px; margin-bottom:10px;}
+.modal-order-row img{width:44px; height:56px; object-fit:cover; border-radius:6px;}
+.modal-order-row .grow{flex:1;}
+.buyer-row{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3ede0; padding:10px 0; font-size:12.8px;}
+.buyer-row:last-child{border-bottom:none;}
+
+@media(max-width:900px){
+  .sidebar{width:70px;}
+  .sidebar .brand div, .side-nav li span, .sidebar-foot{display:none;}
+  .side-nav li{justify-content:center;}
+  .main{margin-left:70px; padding:20px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+}
 </style>
 </head>
 <body>
-<header class="header">
-  <div class="head-main">
-    <div class="brand">
-      <div class="logo">SK</div>
-      <div>
-        <div class="title">SK Sarees Seller Dashboard</div>
-        <div class="sub">View customer orders from Firebase Firestore</div>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-badge">SK</div>
+    <div><b>SK Sarees</b><span>Admin Panel</span></div>
+  </div>
+  <ul class="side-nav">
+    <li class="active" onclick="showPanel('dashboard', this)"><i class="fa-solid fa-gauge"></i><span>Dashboard</span></li>
+    <li onclick="showPanel('products', this)"><i class="fa-solid fa-shirt"></i><span>Products</span></li>
+    <li onclick="showPanel('orders', this)"><i class="fa-solid fa-box"></i><span>Orders</span></li>
+    <li onclick="showPanel('customers', this)"><i class="fa-solid fa-users"></i><span>Customers</span></li>
+    <li onclick="showPanel('firestore', this)"><i class="fa-solid fa-fire"></i><span>Firestore Setup</span></li>
+  </ul>
+  <div class="sidebar-foot">Storefront: <a href="index.html">index.html</a></div>
+</aside>
+
+<main class="main">
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="panel active" id="panel-dashboard">
+    <div class="topbar">
+      <div><h1>Dashboard</h1><div class="sub">Overview of your saree store performance</div></div>
+      <div class="admin-profile"><div class="av">A</div> Admin</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><i class="fa-solid fa-box"></i><b id="statOrders">0</b><span>Total Orders</span></div>
+      <div class="stat-card"><i class="fa-solid fa-indian-rupee-sign"></i><b id="statRevenue">₹0</b><span>Total Revenue</span></div>
+      <div class="stat-card"><i class="fa-solid fa-triangle-exclamation"></i><b id="statPending">0</b><span>Pending Orders</span></div>
+      <div class="stat-card"><i class="fa-solid fa-shirt"></i><b id="statProducts">0</b><span>Products Listed</span></div>
+    </div>
+    <div class="card">
+      <h3>Recent Orders</h3>
+      <table>
+        <thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody id="recentOrdersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PRODUCTS ============ -->
+  <section class="panel" id="panel-products">
+    <div class="topbar">
+      <div><h1>Products</h1><div class="sub">Manage your saree catalog</div></div>
+      <button class="btn-gold" onclick="openEditProduct(null)"><i class="fa-solid fa-plus"></i> Add Product</button>
+    </div>
+    <div class="card">
+      <div class="tbl-controls">
+        <input type="text" id="prodSearch" placeholder="Search products..." oninput="renderProductsTable()">
+        <select id="prodCatFilter" onchange="renderProductsTable()">
+          <option value="">All Categories</option>
+        </select>
       </div>
+      <table>
+        <thead><tr><th>Product</th><th>Category</th><th>Fabric</th><th>Price</th><th>MRP</th><th>Discount</th><th>Stock</th><th>Buyers</th><th>Actions</th></tr></thead>
+        <tbody id="productsBody"></tbody>
+      </table>
     </div>
-    <div class="topline">
-      <a class="btn btn-dark" href="/">← Back to Store</a>
-      <button class="btn btn-gold" onclick="refreshOrders()">🔄 Refresh</button>
-      <button class="btn btn-dark" onclick="logout()" id="logoutBtn" style="display:none;">Sign Out</button>
+  </section>
+
+  <!-- ============ ORDERS ============ -->
+  <section class="panel" id="panel-orders">
+    <div class="topbar">
+      <div><h1>Orders</h1><div class="sub">View orders and update delivery status</div></div>
+      <button class="btn-outline-sm" onclick="loadOrders(); renderOrdersTable();"><i class="fa-solid fa-rotate"></i> Refresh</button>
     </div>
-  </div>
-</header>
-
-<div class="container main">
-  <div id="setupNotice" class="notice hidden">
-    <strong>Firebase is not configured yet</strong>
-    Open <code>public/index.html</code> and fill in <code>FIREBASE_CONFIG</code> with your Firebase project values.
-    This dashboard reads from Firestore collection <code>orders</code>.
-  </div>
-
-  <div id="loginWrap" class="login-wrap hidden">
-    <h2>Seller Access</h2>
-    <p>Enter the seller passcode to unlock the dashboard.</p>
-    <input type="password" id="passcode" placeholder="Enter seller passcode" onkeydown="if(event.key==='Enter')unlock()" />
-    <button class="btn btn-gold" style="width:100%;padding:12px 16px;" onclick="unlock()">Unlock Dashboard</button>
-    <div style="font-size:.72rem;color:#999;text-align:center;margin-top:10px;line-height:1.6;">
-      Tip: Replace <code>ADMIN_PASSCODE</code> in <code>admin.html</code> with your own secret code.
+    <div class="card">
+      <div class="tbl-controls">
+        <input type="text" id="orderSearch" placeholder="Search by order ID / phone..." oninput="renderOrdersTable()">
+        <select id="orderStatusFilter" onchange="renderOrdersTable()">
+          <option value="">All Statuses</option>
+          <option value="Placed">Placed</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Out">Out for Delivery</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <table>
+        <thead><tr><th>Order ID</th><th>Date</th><th>Customer / Address</th><th>Items</th><th>Amount</th><th>Payment</th><th>Status</th><th>Update</th></tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
     </div>
-  </div>
+  </section>
 
-  <div id="dashboard" class="hidden">
-    <div class="grid" id="statsGrid">
-      <div class="stat"><div class="lbl">Total Orders</div><div class="val" id="stTotal">0</div></div>
-      <div class="stat"><div class="lbl">Pending</div><div class="val" id="stPending">0</div></div>
-      <div class="stat"><div class="lbl">Paid</div><div class="val" id="stPaid">0</div></div>
-      <div class="stat"><div class="lbl">Revenue</div><div class="val" id="stRevenue">₹0</div></div>
+  <!-- ============ CUSTOMERS ============ -->
+  <section class="panel" id="panel-customers">
+    <div class="topbar">
+      <div><h1>Customers</h1><div class="sub">Everyone who has placed an order with SK Sarees</div></div>
     </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Phone Number</th><th>Address</th><th>Orders Placed</th><th>Total Spend</th><th>Actions</th></tr></thead>
+        <tbody id="customersBody"></tbody>
+      </table>
+    </div>
+  </section>
 
-    <div class="tools">
-      <input type="text" id="search" placeholder="Search order #, name, phone..." oninput="renderList()" />
-      <select id="statusFilter" onchange="renderList()">
-        <option value="all">All Status</option>
-        <option value="pending">Pending</option>
-        <option value="confirmed">Confirmed</option>
-        <option value="processing">Processing</option>
-        <option value="shipped">Shipped</option>
-        <option value="delivered">Delivered</option>
-        <option value="cancelled">Cancelled</option>
-      </select>
-      <select id="paymentFilter" onchange="renderList()">
-        <option value="all">All Payments</option>
-        <option value="cod">COD</option>
-        <option value="upi">UPI</option>
-        <option value="card">Card</option>
-        <option value="netbanking">Net Banking</option>
-      </select>
-      <button class="btn btn-gold" onclick="exportCSV()">⬇️ Export CSV</button>
+  <!-- ============ FIRESTORE SETUP ============ -->
+  <section class="panel" id="panel-firestore">
+    <div class="topbar">
+      <div><h1>Firestore Setup</h1><div class="sub">Connect this admin panel and the storefront to a real Firebase backend</div></div>
     </div>
 
-    <div id="ordersList"></div>
-    <div id="emptyState" class="login-wrap hidden" style="max-width:none;text-align:center;">
-      <h2>No Orders Yet</h2>
-      <p>Once customers place orders, they’ll appear here in real time.</p>
+    <div class="card">
+      <h3>1. Create the Firebase project</h3>
+      <p style="font-size:12.8px; color:var(--muted); line-height:1.7;">
+        Go to the <a href="https://console.firebase.google.com" target="_blank" style="color:var(--maroon); text-decoration:underline;">Firebase Console</a> →
+        Add project → name it <b>sk-sarees</b> → enable Google Analytics (optional).
+        Then add a Web App from Project Settings and copy the config object it gives you.
+      </p>
+      <pre class="code-block">const firebaseConfig = {
+ apiKey:"AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY", authDomain:"sksareesapp.firebaseapp.com",
+  projectId:"sksareesapp", storageBucket:"sksareesapp.firebasestorage.app",
+  messagingSenderId:"774983284365", appId:"1:774983284365:web:e03c9b2337d041986fd4c4"
+};
+
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);</pre>
     </div>
-  </div>
+
+    <div class="card">
+      <h3>2. Enable the services this app needs</h3>
+      <ul style="font-size:12.8px; color:var(--muted); line-height:2; padding-left:18px; list-style:disc;">
+        <li><b>Authentication</b> → Sign-in method → enable <b>Phone</b> (for OTP login on the storefront).</li>
+        <li><b>Firestore Database</b> → Create database → start in production mode → pick a region close to India (e.g. asia-south1).</li>
+        <li><b>Storage</b> → enable, for uploading real product photos instead of the demo SVG swatches.</li>
+        <li><b>Cloud Messaging (FCM)</b> → for order-status and offer push notifications.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>3. Collection structure</h3>
+      <p style="font-size:12.8px; color:var(--muted); margin-bottom:10px;">Recommended top-level collections — this mirrors the data already used by index.html and admin.html:</p>
+      <pre class="code-block">products/{productId}
+  name, category, fabric, price, mrp, discount,
+  stock, color, occasion, images[], careInstructions, createdAt
+
+orders/{orderId}
+  customerPhone, customerName, address, items[ {productId, qty, price} ],
+  total, payment, status, createdAt, statusHistory[ {status, at} ]
+
+customers/{phone}
+  name, phone, addresses[], defaultAddressIndex, createdAt
+
+categories/{categoryId}
+  name, imageUrl, sortOrder</pre>
+    </div>
+
+    <div class="card">
+      <h3>4. Suggested security rules (starting point)</h3>
+      <pre class="code-block">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /products/{id} { allow read: if true; allow write: if request.auth.token.admin == true; }
+    match /categories/{id} { allow read: if true; allow write: if request.auth.token.admin == true; }
+    match /orders/{id} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null &&
+        (request.auth.token.admin == true || resource.data.customerPhone == request.auth.token.phone_number);
+    }
+    match /customers/{phone} {
+      allow read, write: if request.auth != null &&
+        (request.auth.token.admin == true || request.auth.token.phone_number == phone);
+    }
+  }
+}</pre>
+      <p style="font-size:11.8px; color:var(--muted); margin-top:8px;">Set a custom claim <code>admin: true</code> on your own staff accounts via a Cloud Function so only admins can change order status and edit the catalog.</p>
+    </div>
+
+    <div class="card">
+      <h3>5. Swap localStorage calls for Firestore calls</h3>
+      <p style="font-size:12.8px; color:var(--muted); margin-bottom:10px;">
+        Right now both index.html and admin.html read/write orders with <code>localStorage</code> (key <code>sk_orders</code>) purely so this demo works
+        without a server. To go live, replace those calls with the snippets below — the on-screen tables/forms don't need to change, only where the data comes from.
+      </p>
+      <pre class="code-block">// Load orders for admin panel (realtime)
+import { collection, onSnapshot, doc, updateDoc, orderBy, query } from "firebase/firestore";
+
+const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+onSnapshot(q, (snap) => {
+  orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderOrdersTable();
+});
+
+// Update order status (replaces changeStatus's localStorage write)
+async function changeStatus(orderId, newStatus) {
+  await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+}
+
+// Save a product edit (replaces the product-overrides write)
+import { doc, setDoc } from "firebase/firestore";
+await setDoc(doc(db, "products", productId), productData, { merge: true });</pre>
+    </div>
+
+    <div class="card">
+      <h3>6. Build &amp; deploy</h3>
+      <p style="font-size:12.8px; color:var(--muted); line-height:1.7;">
+        For a static hosting deploy: <code>npm i -g firebase-tools</code> → <code>firebase login</code> → <code>firebase init hosting</code> (point it at the folder
+        containing index.html and admin.html) → <code>firebase deploy</code>. Keep admin.html on a separate path (e.g. <code>/admin</code>) protected by
+        Firebase Auth + the admin custom claim above, so customers can't reach it.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div class="modal-box" id="modalBox"></div>
 </div>
 
 <script>
-const FIREBASE_CONFIG = {
- apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
-  authDomain: "sksareesapp.firebaseapp.com",
-  projectId: "sksareesapp",
-  storageBucket: "sksareesapp.firebasestorage.app",
-  messagingSenderId: "774983284365",
-  appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
+/* ---------- Navigation ---------- */
+function showPanel(name, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.side-nav li').forEach(li=>li.classList.remove('active'));
+  el.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='products') renderProductsTable();
+  if(name==='orders') renderOrdersTable();
+  if(name==='customers') renderCustomersTable();
+}
+
+/* ---------- Mirror the same demo product generator used on the storefront ---------- */
+function sareeSwatch(seed, c1, c2, accent){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+    <defs><linearGradient id="g${seed}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs>
+    <rect width="120" height="160" fill="url(#g${seed})"/>
+    <circle cx="60" cy="70" r="26" fill="none" stroke="${accent}" stroke-width="3" opacity=".7"/>
+    <path d="M0 150 Q60 130 120 150 L120 160 L0 160 Z" fill="${accent}" opacity=".55"/>
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+const PALETTES = {
+  Cotton:['#e9d9b3','#f3e6c8','#7a1128'], Silk:['#7a1128','#c9a227','#3a0812'],
+  Bridal:['#5c0e1f','#c9a227','#e8cf7a'], ArtSilk:['#1e5b52','#3f8f7c','#c9a227'],
+  Georgette:['#f3d4d4','#e8b4bc','#7a1128'], Printed:['#e8b4bc','#e9d9b3','#5c0e1f']
 };
-const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
-const ADMIN_PASSCODE = "SKSELLER2025"; // Change this passcode for your store
-let db = null;
+const CATEGORY_LIST = [
+  {name:'Cotton Sarees', key:'Cotton Sarees', pal:'Cotton'}, {name:'Silk Sarees', key:'Silk Sarees', pal:'Silk'},
+  {name:'Bridal Sarees', key:'Bridal Sarees', pal:'Bridal'}, {name:'Art Silk', key:'Art Silk', pal:'ArtSilk'},
+  {name:'Georgette', key:'Georgette', pal:'Georgette'}, {name:'Printed Sarees', key:'Printed Sarees', pal:'Printed'},
+  {name:'Dhoti & Shirts', key:'Dhoti Shirts', pal:'Cotton'}, {name:'Fancy Sarees', key:'Fancy Sarees', pal:'Bridal'}
+];
+function buildProducts(){
+  const names = ['Gayathri Sarees','Meenakshi Silks','Kanjivaram Classic','Radha Fashion','Shree Weaves','Amman Textiles','Lakshmi Collections','Padma Sarees'];
+  const fabricsByCat = {'Cotton Sarees':'Cotton','Silk Sarees':'Silk','Bridal Sarees':'Silk','Art Silk':'Art Silk','Georgette':'Georgette','Printed Sarees':'Printed','Dhoti Shirts':'Cotton','Fancy Sarees':'Printed'};
+  let list = []; let id=1; let seed=12345;
+  function rand(){ seed = (seed*9301+49297) % 233280; return seed/233280; }
+  CATEGORY_LIST.forEach(cat=>{
+    for(let i=0;i<8;i++){
+      const mrp = 800 + Math.floor(rand()*9200);
+      const discount = 15 + Math.floor(rand()*45);
+      const price = Math.round(mrp * (1-discount/100)/10)*10;
+      const stock = Math.floor(rand()*40);
+      list.push({id, name:names[id % names.length]+' - SK'+(300+id), category:cat.key, fabric:fabricsByCat[cat.key],
+        price, mrp, discount, stock, pal:cat.pal, img:sareeSwatch(id, PALETTES[cat.pal][0], PALETTES[cat.pal][1], PALETTES[cat.pal][2])});
+      id++;
+    }
+  });
+  return list;
+}
+let PRODUCTS = buildProducts();
+
+/* ---------- Product edits/additions/deletions (persisted, layered on top of the demo catalog) ---------- */
+function loadProductOverrides(){
+  const overrides = JSON.parse(localStorage.getItem('sk_product_overrides')||'{}');
+  const deleted = new Set(JSON.parse(localStorage.getItem('sk_deleted_products')||'[]'));
+  const added = JSON.parse(localStorage.getItem('sk_added_products')||'[]');
+  PRODUCTS = buildProducts()
+    .map(p => overrides[p.id] ? Object.assign({}, p, overrides[p.id]) : p)
+    .filter(p => !deleted.has(p.id));
+  added.forEach(p=>{ if(!deleted.has(p.id)) PRODUCTS.push(p); });
+}
+loadProductOverrides();
+function nextProductId(){ return Math.max(0, ...PRODUCTS.map(p=>p.id)) + 1; }
+function saveProductOverride(id, data){
+  const overrides = JSON.parse(localStorage.getItem('sk_product_overrides')||'{}');
+  overrides[id] = data;
+  localStorage.setItem('sk_product_overrides', JSON.stringify(overrides));
+}
+function saveNewProduct(p){
+  const added = JSON.parse(localStorage.getItem('sk_added_products')||'[]');
+  added.push(p);
+  localStorage.setItem('sk_added_products', JSON.stringify(added));
+}
+function markProductDeleted(id){
+  const deleted = new Set(JSON.parse(localStorage.getItem('sk_deleted_products')||'[]'));
+  deleted.add(id);
+  localStorage.setItem('sk_deleted_products', JSON.stringify([...deleted]));
+}
+
+/* ---------- Orders (shared with storefront via localStorage key sk_orders) ---------- */
 let orders = [];
-let unlocked = false;
-let unsub = null;
+function loadOrders(){ orders = JSON.parse(localStorage.getItem('sk_orders')||'[]'); }
+function saveOrders(){ localStorage.setItem('sk_orders', JSON.stringify(orders)); }
+loadOrders();
 
-if (FB_ON) {
-  firebase.initializeApp(FIREBASE_CONFIG);
-  db = firebase.firestore();
-} else {
-  document.getElementById('setupNotice').classList.remove('hidden');
-}
+const STEP_LABEL = {Placed:'Placed', Confirmed:'Confirmed', Shipped:'Shipped', Out:'Out for Delivery', Delivered:'Delivered', Cancelled:'Cancelled'};
 
-function unlock() {
-  const val = document.getElementById('passcode').value.trim();
-  if (val !== ADMIN_PASSCODE) {
-    alert('Wrong passcode');
-    return;
-  }
-  unlocked = true;
-  document.getElementById('loginWrap').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  document.getElementById('logoutBtn').style.display = 'inline-flex';
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
   loadOrders();
+  document.getElementById('statOrders').innerText = orders.length;
+  document.getElementById('statRevenue').innerText = '₹' + orders.reduce((s,o)=>s+o.total,0).toLocaleString('en-IN');
+  document.getElementById('statPending').innerText = orders.filter(o=>['Placed','Confirmed','Shipped','Out'].includes(o.status)).length;
+  document.getElementById('statProducts').innerText = PRODUCTS.length;
+  document.getElementById('recentOrdersBody').innerHTML = orders.slice(0,6).map(o=>`
+    <tr><td>#${o.id}</td><td>${o.phone||'-'}</td><td>₹${o.total}</td><td><span class="status-select st-${o.status}" style="cursor:default;">${STEP_LABEL[o.status]||o.status}</span></td></tr>
+  `).join('') || `<tr class="empty-row"><td colspan="4">No orders placed yet. Orders from the storefront checkout will appear here.</td></tr>`;
 }
+renderDashboard();
 
-function logout() {
-  unlocked = false;
-  if (unsub) unsub();
-  document.getElementById('dashboard').classList.add('hidden');
-  document.getElementById('loginWrap').classList.remove('hidden');
-  document.getElementById('logoutBtn').style.display = 'none';
-}
-
-function badgeClass(status) {
-  if (status === 'confirmed') return 'b-conf';
-  if (status === 'processing') return 'b-conf';
-  if (status === 'shipped') return 'b-ship';
-  if (status === 'delivered') return 'b-del';
-  if (status === 'cancelled') return 'b-cancel';
-  return 'b-pend';
-}
-
-function loadOrders() {
-  if (!FB_ON) return;
-  const q = db.collection('orders').orderBy('date', 'desc');
-  unsub = q.onSnapshot((snap) => {
-    orders = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    renderStats();
-    renderList();
-  }, (err) => {
-    console.error(err);
-    alert('Failed to load orders from Firestore. Check Firebase config and Firestore rules.');
-  });
-}
-
-function refreshOrders() {
-  if (!FB_ON) return alert('Firebase not configured');
-  if (!unlocked) return alert('Unlock the dashboard first');
+/* ---------- Products table ---------- */
+const catSelect = document.getElementById('prodCatFilter');
+CATEGORY_LIST.forEach(c=>{ const o=document.createElement('option'); o.value=c.key; o.innerText=c.name; catSelect.appendChild(o); });
+function buyersOfProduct(productId){
   loadOrders();
+  return orders.filter(o => (o.items||[]).some(i=>i.id===productId));
 }
-
-function renderStats() {
-  const pending = orders.filter(o => (o.status || '') !== 'delivered' && (o.status || '') !== 'cancelled').length;
-  const paid = orders.filter(o => o.ps === 'paid').length;
-  const revenue = orders.reduce((s, o) => s + Number(o.tot || 0), 0);
-  document.getElementById('stTotal').textContent = orders.length;
-  document.getElementById('stPending').textContent = pending;
-  document.getElementById('stPaid').textContent = paid;
-  document.getElementById('stRevenue').textContent = '₹' + revenue.toLocaleString('en-IN');
+function renderProductsTable(){
+  const q = document.getElementById('prodSearch').value.toLowerCase();
+  const cat = document.getElementById('prodCatFilter').value;
+  const list = PRODUCTS.filter(p => (!cat || p.category===cat) && p.name.toLowerCase().includes(q));
+  document.getElementById('productsBody').innerHTML = list.length ? list.map(p=>{
+    const buyerOrders = buyersOfProduct(p.id);
+    return `<tr>
+      <td><div class="prod-cell"><img src="${p.img}"><span>${p.name}</span></div></td>
+      <td>${p.category}</td>
+      <td>${p.fabric}</td>
+      <td>₹${p.price}</td>
+      <td style="text-decoration:line-through; color:#999;">₹${p.mrp}</td>
+      <td>${p.discount}%</td>
+      <td><span class="pill ${p.stock<8?'low':'in'}">${p.stock} in stock</span></td>
+      <td>${buyerOrders.length ? `<span class="link-btn" onclick="openProductBuyers(${p.id})">${buyerOrders.length} customer${buyerOrders.length>1?'s':''}</span>` : `<span class="buyer-count">—</span>`}</td>
+      <td>
+        <button class="btn-outline-sm" onclick="openEditProduct(${p.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-del" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g,"\\'")}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('') : `<tr class="empty-row"><td colspan="9">No products match your search.</td></tr>`;
 }
+renderProductsTable();
 
-function renderList() {
-  const list = document.getElementById('ordersList');
-  const empty = document.getElementById('emptyState');
-  if (!orders.length) {
-    list.innerHTML = '';
-    empty.classList.remove('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
+/* ---------- Generic modal helpers ---------- */
+function openModal(html){
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
 
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  const sf = document.getElementById('statusFilter').value;
-  const pf = document.getElementById('paymentFilter').value;
-
-  const filtered = orders.filter(o => {
-    const text = [o.num, o.customerName, o.customerPhone, o.pm, o.status].join(' ').toLowerCase();
-    if (q && !text.includes(q)) return false;
-    if (sf !== 'all' && (o.status || 'pending') !== sf) return false;
-    if (pf !== 'all' && (o.pm || '') !== pf) return false;
-    return true;
-  });
-
-  list.innerHTML = filtered.map(o => {
-    const addr = o.addr || {};
-    const dt = o.date ? new Date(o.date).toLocaleString('en-IN') : '';
-    const badge = badgeClass(o.status);
-    const items = (o.items || []).map(it => `
-      <div class="item">
-        <img src="${it.img || ''}" alt="" />
-        <div style="min-width:0;">
-          <div class="nm clamp1">${it.name || 'Item'}</div>
-          <div class="sk">${it.sku || ''}</div>
-          <div class="qt">Qty: ${it.qty || 1} · ₹${Number(it.total || 0).toLocaleString('en-IN')}</div>
+/* ---------- Add / Edit product ---------- */
+function openEditProduct(id){
+  const p = id ? PRODUCTS.find(p=>p.id===id) : null;
+  const isNew = !p;
+  openModal(`
+    <div class="modal-head"><h3>${isNew?'Add New Product':'Edit Product'}</h3><i class="fa-solid fa-xmark" onclick="closeModal()"></i></div>
+    <div class="modal-body">
+      <div class="form-field"><label>Product Name</label><input id="f-name" value="${p?p.name:''}" placeholder="e.g. Gayathri Sarees - SK410"></div>
+      <div class="form-row-2">
+        <div class="form-field"><label>Category</label>
+          <select id="f-category">${CATEGORY_LIST.map(c=>`<option value="${c.key}" ${p&&p.category===c.key?'selected':''}>${c.name}</option>`).join('')}</select>
+        </div>
+        <div class="form-field"><label>Fabric</label>
+          <select id="f-fabric">${['Cotton','Silk','Art Silk','Georgette','Printed'].map(f=>`<option ${p&&p.fabric===f?'selected':''}>${f}</option>`).join('')}</select>
         </div>
       </div>
-    `).join('');
-    return `
-      <div class="order">
-        <div class="o-head" onclick="toggleOrder(${o.id})">
-          <div>
-            <div class="o-num">Order #${o.num || o.id}</div>
-            <div class="o-meta">${dt} · ${o.customerName || 'Guest'} · ${o.customerPhone || ''}</div>
-            <span class="badge ${badge}">${(o.status || 'pending').toUpperCase()}</span>
-          </div>
-          <div class="o-amt">₹${Number(o.tot || 0).toLocaleString('en-IN')}</div>
-        </div>
-        <div class="o-body" id="ob-${o.id}">
-          <div class="items">${items}</div>
-          <div class="addr">
-            <strong>Address</strong><br>
-            ${addr.name || ''}, ${addr.phone || ''}<br>
-            ${addr.line1 || ''}${addr.line2 ? ', ' + addr.line2 : ''}<br>
-            ${addr.city || ''}, ${addr.state || ''} – ${addr.pincode || ''}
-            <br><br>
-            <strong>Payment</strong>: ${String(o.pm || '').toUpperCase()} · <strong>Status</strong>: ${(o.ps || '').toUpperCase()}
-          </div>
-        </div>
-      </div>`;
-  }).join('');
+      <div class="form-row-2">
+        <div class="form-field"><label>Selling Price (₹)</label><input id="f-price" type="number" value="${p?p.price:''}"></div>
+        <div class="form-field"><label>MRP (₹)</label><input id="f-mrp" type="number" value="${p?p.mrp:''}"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-field"><label>Discount (%)</label><input id="f-discount" type="number" value="${p?p.discount:''}"></div>
+        <div class="form-field"><label>Stock Quantity</label><input id="f-stock" type="number" value="${p?p.stock:''}"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-outline-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn-gold" onclick="saveProductEdit(${isNew?'null':id})">${isNew?'Add Product':'Save Changes'}</button>
+    </div>
+  `);
+}
+function saveProductEdit(id){
+  const name = document.getElementById('f-name').value.trim();
+  const category = document.getElementById('f-category').value;
+  const fabric = document.getElementById('f-fabric').value;
+  const price = +document.getElementById('f-price').value;
+  const mrp = +document.getElementById('f-mrp').value;
+  const discount = +document.getElementById('f-discount').value;
+  const stock = +document.getElementById('f-stock').value;
+  if(!name || !price || !mrp){ alert('Please fill in at least name, price and MRP.'); return; }
+  const cat = CATEGORY_LIST.find(c=>c.key===category);
+  const data = {name, category, fabric, price, mrp, discount, stock};
+  if(id){
+    saveProductOverride(id, data);
+  } else {
+    const newId = nextProductId();
+    const newProduct = Object.assign({id:newId, pal:cat.pal, img:sareeSwatch(newId, PALETTES[cat.pal][0], PALETTES[cat.pal][1], PALETTES[cat.pal][2])}, data);
+    saveNewProduct(newProduct);
+  }
+  loadProductOverrides();
+  closeModal();
+  renderProductsTable();
+  renderDashboard();
+}
+function deleteProduct(id, name){
+  if(!confirm(`Remove "${name}" from the catalog?`)) return;
+  markProductDeleted(id);
+  loadProductOverrides();
+  renderProductsTable();
+  renderDashboard();
 }
 
-function toggleOrder(id) {
-  const el = document.getElementById('ob-' + id);
-  if (!el) return;
-  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+/* ---------- View buyers of a product ---------- */
+function openProductBuyers(productId){
+  const p = PRODUCTS.find(p=>p.id===productId);
+  const buyerOrders = buyersOfProduct(productId);
+  openModal(`
+    <div class="modal-head"><h3>Buyers of ${p?p.name:'this product'}</h3><i class="fa-solid fa-xmark" onclick="closeModal()"></i></div>
+    <div class="modal-body">
+      ${buyerOrders.length ? buyerOrders.map(o=>{
+        const item = (o.items||[]).find(i=>i.id===productId);
+        return `<div class="buyer-row">
+          <div><b>${o.phone||'Unknown'}</b><div style="color:var(--muted); font-size:11.5px;">Order #${o.id} · Qty ${item?item.qty:1}</div></div>
+          <span class="link-btn" onclick="closeModal(); openCustomerOrders('${o.phone}')">View customer</span>
+        </div>`;
+      }).join('') : '<p style="font-size:12.8px; color:var(--muted);">No one has purchased this product yet.</p>'}
+    </div>
+  `);
 }
 
-function exportCSV() {
-  const rows = [["Order No","Customer","Phone","Status","Payment","Total","Date"]];
-  orders.forEach(o => rows.push([
-    o.num || '', o.customerName || '', o.customerPhone || '', o.status || '', o.pm || '', o.tot || '', o.date || ''
-  ]));
-  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'sk-sarees-orders.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-// Start in locked state; if browser has a saved unlock, auto-open
-if (localStorage.getItem('sk_admin_unlocked') === '1') {
-  unlocked = true;
-  document.getElementById('loginWrap').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  document.getElementById('logoutBtn').style.display = 'inline-flex';
+/* ---------- View / manage a customer's orders ---------- */
+function openCustomerOrders(phone){
   loadOrders();
+  const custOrders = orders.filter(o => (o.phone||'unknown')===phone);
+  openModal(`
+    <div class="modal-head"><h3>Orders for ${phone}</h3><i class="fa-solid fa-xmark" onclick="closeModal()"></i></div>
+    <div class="modal-body" id="customerOrdersBody">
+      ${renderCustomerOrderRows(custOrders)}
+    </div>
+  `);
+}
+function renderCustomerOrderRows(custOrders){
+  if(!custOrders.length) return '<p style="font-size:12.8px; color:var(--muted);">No orders found for this customer.</p>';
+  return custOrders.map(o=>`
+    <div class="modal-order-row">
+      ${(o.items||[]).slice(0,1).map(it=>{ const p=PRODUCTS.find(p=>p.id===it.id); return p?`<img src="${p.img}">`:''; }).join('')}
+      <div class="grow">
+        <b>Order #${o.id}</b>
+        <div style="font-size:11.5px; color:var(--muted);">${o.date} · ₹${o.total} · ${o.items?o.items.reduce((s,i)=>s+i.qty,0):0} item(s)</div>
+      </div>
+      <select class="status-select st-${o.status}" onchange="changeStatusInModal('${o.id}', this.value, '${(o.phone||'').replace(/'/g,"\\'")}')">
+        <option value="Placed" ${o.status==='Placed'?'selected':''}>Placed</option>
+        <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
+        <option value="Shipped" ${o.status==='Shipped'?'selected':''}>Shipped</option>
+        <option value="Out" ${o.status==='Out'?'selected':''}>Out for Delivery</option>
+        <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+        <option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+      </select>
+    </div>`).join('');
+}
+function changeStatusInModal(orderId, newStatus, phone){
+  changeStatus(orderId, newStatus, null);
+  loadOrders();
+  const custOrders = orders.filter(o => (o.phone||'unknown')===phone);
+  document.getElementById('customerOrdersBody').innerHTML = renderCustomerOrderRows(custOrders);
+  renderOrdersTable();
+  renderCustomersTable();
 }
 
-document.getElementById('passcode').addEventListener('input', () => {
-  localStorage.removeItem('sk_admin_unlocked');
-});
+/* ---------- Orders table with status change ---------- */
+function renderOrdersTable(){
+  loadOrders();
+  const q = (document.getElementById('orderSearch').value||'').toLowerCase();
+  const statusFilter = document.getElementById('orderStatusFilter').value;
+  let list = orders.filter(o =>
+    (!statusFilter || o.status===statusFilter) &&
+    (o.id.toLowerCase().includes(q) || (o.phone||'').toLowerCase().includes(q))
+  );
+  document.getElementById('ordersBody').innerHTML = list.length ? list.map(o=>`
+    <tr>
+      <td><b>#${o.id}</b></td>
+      <td>${o.date}</td>
+      <td style="max-width:200px;">${o.address||'-'}<br><span style="color:var(--muted)">${o.phone||''}</span></td>
+      <td>${o.items ? o.items.reduce((s,i)=>s+i.qty,0) : 0} pcs</td>
+      <td>₹${o.total}</td>
+      <td>${o.payment||'-'}</td>
+      <td><span class="status-select st-${o.status}" id="badge-${o.id}">${STEP_LABEL[o.status]||o.status}</span></td>
+      <td>
+        <select class="status-select st-${o.status}" onchange="changeStatus('${o.id}', this.value, this)">
+          <option value="Placed" ${o.status==='Placed'?'selected':''}>Placed</option>
+          <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
+          <option value="Shipped" ${o.status==='Shipped'?'selected':''}>Shipped</option>
+          <option value="Out" ${o.status==='Out'?'selected':''}>Out for Delivery</option>
+          <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+          <option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+        </select>
+      </td>
+    </tr>`).join('') : `<tr class="empty-row"><td colspan="8">No orders found. Place a test order from the storefront (index.html) to see it here.</td></tr>`;
+}
+function changeStatus(orderId, newStatus, selectEl){
+  const o = orders.find(o=>o.id===orderId);
+  if(!o) return;
+  o.status = newStatus;
+  saveOrders();
+  // update badge + select classes to reflect new status color
+  if(selectEl) selectEl.className = 'status-select st-'+newStatus;
+  const badge = document.getElementById('badge-'+orderId);
+  if(badge){ badge.className = 'status-select st-'+newStatus; badge.innerText = STEP_LABEL[newStatus]; }
+  renderDashboard();
+}
+renderOrdersTable();
 
-const oldUnlock = unlock;
-unlock = function(){
-  const val = document.getElementById('passcode').value.trim();
-  if (val !== ADMIN_PASSCODE) { alert('Wrong passcode'); return; }
-  localStorage.setItem('sk_admin_unlocked','1');
-  oldUnlock();
-};
+/* ---------- Customers table (derived from orders) ---------- */
+function renderCustomersTable(){a
+  loadOrders();
+  const map = {};
+  orders.forEach(o=>{
+    const key = o.phone || 'unknown';
+    if(!map[key]) map[key] = {phone:key, address:o.address, count:0, spend:0};
+    map[key].count++; map[key].spend += o.total;
+  });
+  const list = Object.values(map);
+  document.getElementById('customersBody').innerHTML = list.length ? list.map(c=>`
+    <tr><td>${c.phone}</td><td style="max-width:260px;">${c.address||'-'}</td><td>${c.count}</td><td>₹${c.spend}</td>
+    <td><button class="btn-outline-sm" onclick="openCustomerOrders('${c.phone.replace(/'/g,"\\'")}')"><i class="fa-solid fa-eye"></i> View / Edit Orders</button></td></tr>
+  `).join('') : `<tr class="empty-row"><td colspan="5">No customers yet. They'll appear here after checkout.</td></tr>`;
+}
+renderCustomersTable();
 </script>
 </body>
 </html>
