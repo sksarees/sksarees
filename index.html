@@ -20,11 +20,11 @@
 <script>
 /* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
 const FIREBASE_CONFIG = {
-  apiKey:"YOUR_API_KEY", authDomain:"YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:"YOUR_PROJECT_ID", storageBucket:"YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId:"YOUR_SENDER_ID", appId:"YOUR_APP_ID"
+  apiKey:"AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY", authDomain:"sksareesapp.firebaseapp.com",
+  projectId:"sksareesapp", storageBucket:"sksareesapp.firebasestorage.app",
+  messagingSenderId:"774983284365", appId:"1:774983284365:web:e03c9b2337d041986fd4c4"
 };
-const FB_ON = FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
+const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
 if(FB_ON) firebase.initializeApp(FIREBASE_CONFIG);
 // Firestore for saving customer orders centrally (owner can see ALL orders)
 let db = null;
