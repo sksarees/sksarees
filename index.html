@@ -92,23 +92,41 @@ ul{list-style:none}
 
 /* ═══════════════════════════ HEADER ════════════════════════════ */
 .site-header{background:linear-gradient(135deg,var(--M),var(--MD));position:sticky;top:0;z-index:300;box-shadow:0 3px 20px rgba(0,0,0,.25)}
-.header-main{display:flex;align-items:center;gap:16px;padding:12px 20px;max-width:1200px;margin:0 auto}
+.header-main{display:flex;align-items:center;gap:16px;padding:12px 20px;max-width:1200px;margin:0 auto;flex-wrap:wrap}
 .logo-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:pointer}
-.logo-ring{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1.1rem;color:var(--M);box-shadow:0 2px 10px rgba(201,168,76,.4)}
-.logo-text .brand{font-family:'Playfair Display',serif;font-weight:700;font-size:1.25rem;color:var(--GL);line-height:1.1}
-.logo-text .tag{font-size:.6rem;color:rgba(255,255,255,.6);letter-spacing:.6px;text-transform:uppercase}
-.search-wrap{flex:1;max-width:540px}
+.logo-ring{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1.05rem;color:var(--M);box-shadow:0 2px 10px rgba(201,168,76,.4);flex-shrink:0}
+.logo-text .brand{font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;color:var(--GL);line-height:1.1}
+.logo-text .tag{font-size:.58rem;color:rgba(255,255,255,.6);letter-spacing:.6px;text-transform:uppercase;white-space:nowrap}
+.search-wrap{flex:1;max-width:540px;min-width:160px}
 .search-box{display:flex;border-radius:var(--RAD-SM);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .search-box input{flex:1;padding:10px 14px;border:none;font-size:.88rem;background:#fff;color:#333;min-width:0}
 .search-box input::placeholder{color:#aaa}
-.search-box button{padding:10px 18px;background:var(--G);border:none;font-weight:700;color:var(--MD);font-size:.9rem;white-space:nowrap}
+.search-box button{padding:10px 18px;background:var(--G);border:none;font-weight:700;color:var(--MD);font-size:.9rem;white-space:nowrap;flex-shrink:0}
 .search-box button:hover{background:var(--GL)}
-.hdr-actions{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
-.hdr-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;background:none;border:none;color:#fff;cursor:pointer;border-radius:8px;transition:background .15s;position:relative}
+.hdr-actions{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0}
+.hdr-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;background:none;border:none;color:#fff;cursor:pointer;border-radius:8px;transition:background .15s;position:relative;min-width:44px}
 .hdr-btn:hover{background:rgba(255,255,255,.12)}
-.hdr-btn .hb-icon{font-size:1.35rem;line-height:1}
+.hdr-btn .hb-icon{font-size:1.3rem;line-height:1}
 .hdr-btn .hb-label{font-size:.6rem;opacity:.8;white-space:nowrap}
-.hdr-badge{position:absolute;top:2px;right:4px;background:var(--G);color:var(--MD);border-radius:50%;width:18px;height:18px;font-size:.58rem;font-weight:800;display:none;align-items:center;justify-content:center}
+.hdr-badge{position:absolute;top:2px;right:4px;background:var(--G);color:var(--MD);border-radius:50%;width:17px;height:17px;font-size:.56rem;font-weight:800;display:none;align-items:center;justify-content:center}
+/* ── Mobile: two-row header ── */
+@media(max-width:700px){
+  .header-main{flex-wrap:wrap;padding:8px 12px 0;gap:8px}
+  .logo-wrap{flex-shrink:0}
+  .search-wrap{order:3;flex:1 1 100%;max-width:100%;margin-top:8px;padding-bottom:8px}
+  .search-box input{font-size:.82rem;padding:9px 12px}
+  .hdr-actions{margin-left:auto;gap:2px}
+  .hdr-btn{min-width:40px;padding:5px 7px}
+  .hdr-btn .hb-label{display:none}
+  .logo-text .tag{display:none}
+}
+@media(max-width:700px){
+  .logo-ring{width:38px;height:38px;font-size:.95rem}
+  .logo-text .brand{font-size:1rem}
+}
+@media(min-width:701px){
+  .header-main{flex-wrap:nowrap}
+}
 
 /* ═══════════════════════════ NAV BAR ═══════════════════════════ */
 .site-nav{background:linear-gradient(135deg,var(--MD),#3d0f0f);border-top:1px solid rgba(255,255,255,.08)}
@@ -521,7 +539,6 @@ ul{list-style:none}
 @media(max-width:700px){
   .bottom-nav{display:block}
   .site-nav{display:none}
-  .hdr-btn .hb-label{display:none}
   .hdr-btn .hdr-btn-orders,.hdr-btn-profile{display:none}
   .pb{padding-bottom:72px}
   .products-grid{grid-template-columns:1fr 1fr}
@@ -532,11 +549,8 @@ ul{list-style:none}
   .cta-row .btn{flex:1 1 100%}
 }
 @media(max-width:480px){
-  .header-main{padding:10px 12px;gap:10px}
-  .logo-text .tag{display:none}
-  .search-wrap{max-width:none}
   .footer-top{grid-template-columns:1fr}
-  .hscroll-row .pcard{min-width:170px;max-width:170px}
+  .hscroll-row .pcard{min-width:165px;max-width:165px}
   .fg-row2{grid-template-columns:1fr}
 }
 @media(min-width:701px){
@@ -564,21 +578,62 @@ ul{list-style:none}
         <h2>SK Sarees</h2>
         <p>Login for exclusive offers &amp; order tracking</p>
       </div>
-      <!-- Step Phone -->
+      <!-- Step Phone / Email -->
       <div class="auth-step show" id="stepPhone">
-        <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-          <div style="font-size:.77rem;font-weight:700;color:#1565c0;margin-bottom:3px;">📱 Phone OTP Login</div>
-          <div style="font-size:.72rem;color:#555;">We'll send a 6-digit OTP to verify your Indian mobile. No password needed!</div>
+        <!-- Auth method tabs -->
+        <div style="display:flex;border:1.5px solid #e8e0d5;border-radius:10px;overflow:hidden;margin-bottom:16px;">
+          <button id="tabPhone" onclick="switchAuthTab('phone')" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--M),var(--ML));color:#fff;font-size:.8rem;font-weight:700;border:none;cursor:pointer;">📱 Phone OTP</button>
+          <button id="tabEmail" onclick="switchAuthTab('email')" style="flex:1;padding:10px;background:#fff;color:#777;font-size:.8rem;font-weight:600;border:none;cursor:pointer;">✉️ Email</button>
         </div>
-        <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:7px;">Mobile Number *</label>
-        <div class="phone-row">
-          <div class="ph-code">🇮🇳 +91</div>
-          <input class="ph-input" id="phoneInput" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);validatePhone()" onkeydown="if(event.key==='Enter')sendOTP()"/>
+        <!-- PHONE PANE -->
+        <div id="panePhone">
+          <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+            <div style="font-size:.77rem;font-weight:700;color:#1565c0;margin-bottom:3px;">📱 Phone OTP Login</div>
+            <div style="font-size:.72rem;color:#555;">We'll send a 6-digit OTP to verify your Indian mobile. No password needed!</div>
+          </div>
+          <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:7px;">Mobile Number *</label>
+          <div class="phone-row">
+            <div class="ph-code">🇮🇳 +91</div>
+            <input class="ph-input" id="phoneInput" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);validatePhone()" onkeydown="if(event.key==='Enter')sendOTP()"/>
+          </div>
+          <div id="recap-container"></div>
+          <p class="recap-hint">Protected by Google reCAPTCHA</p>
+          <button class="auth-cta" id="sendOTPBtn" onclick="sendOTP()" disabled>Send OTP →</button>
         </div>
-        <div id="recap-container"></div>
-        <p class="recap-hint">Protected by Google reCAPTCHA</p>
-        <button class="auth-cta" id="sendOTPBtn" onclick="sendOTP()" disabled>Send OTP →</button>
-        <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span><div style="flex:1;height:1px;background:#eee"></div></div>
+        <!-- EMAIL PANE -->
+        <div id="paneEmail" style="display:none">
+          <!-- Login / Signup toggle -->
+          <div style="display:flex;gap:8px;margin-bottom:15px;">
+            <button id="emailLoginBtn" onclick="setEmailMode('login')" style="flex:1;padding:9px;background:linear-gradient(135deg,var(--M),var(--ML));color:#fff;font-size:.8rem;font-weight:700;border:none;border-radius:8px;cursor:pointer;">Sign In</button>
+            <button id="emailSignupBtn" onclick="setEmailMode('signup')" style="flex:1;padding:9px;background:#f5f5f5;color:#777;font-size:.8rem;font-weight:700;border:none;border-radius:8px;cursor:pointer;">Sign Up</button>
+          </div>
+          <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:6px;">Email Address *</label>
+          <input id="emailInput" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.9rem;margin-bottom:11px;outline:none;" onfocus="this.style.borderColor='#7B1C1C'" onblur="this.style.borderColor='#ddd'" onkeydown="if(event.key==='Enter')submitEmailAuth()"/>
+          <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:6px;">Password *</label>
+          <div style="position:relative;margin-bottom:8px;">
+            <input id="passInput" type="password" placeholder="Enter your password" style="width:100%;padding:12px 42px 12px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.9rem;outline:none;" onfocus="this.style.borderColor='#7B1C1C'" onblur="this.style.borderColor='#ddd'" onkeydown="if(event.key==='Enter')submitEmailAuth()"/>
+            <button onclick="togglePassVis()" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1rem;cursor:pointer;">👁️</button>
+          </div>
+          <div id="nameFieldWrap" style="display:none;margin-bottom:4px;">
+            <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:6px;">Your Name</label>
+            <input id="nameInput" type="text" placeholder="e.g. Priya" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.9rem;margin-bottom:11px;outline:none;" onfocus="this.style.borderColor='#7B1C1C'" onblur="this.style.borderColor='#ddd'"/>
+          </div>
+          <div id="forgotLink" style="text-align:right;margin-bottom:14px;">
+            <button onclick="forgotPassword()" style="background:none;border:none;font-size:.75rem;color:#1565c0;cursor:pointer;font-weight:600;">Forgot password?</button>
+          </div>
+          <div id="emailErr" style="display:none;background:#fce4ec;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.78rem;color:#c62828;font-weight:600;"></div>
+          <div id="emailMsg" style="display:none;background:#e8f5e9;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.78rem;color:#2e7d32;font-weight:600;"></div>
+          <button class="auth-cta" id="emailSubmitBtn" onclick="submitEmailAuth()">Sign In →</button>
+          <div style="background:#fff3e0;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.72rem;color:#e65100;line-height:1.6;">
+            <strong>💡 Setup Email Login:</strong><br/>
+            Firebase Console → Authentication → Sign-in method → Enable <strong>Email/Password</strong>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin:16px 0 12px;">
+          <div style="flex:1;height:1px;background:#eee"></div>
+          <span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span>
+          <div style="flex:1;height:1px;background:#eee"></div>
+        </div>
         <button onclick="closeAuth()" style="width:100%;padding:12px;background:#f5f5f5;border:none;border-radius:10px;font-size:.88rem;color:#666;font-weight:600;cursor:pointer;">Continue as Guest</button>
         <p style="text-align:center;font-size:.66rem;color:#bbb;margin-top:12px;">By continuing, you agree to our Terms &amp; Privacy Policy.</p>
       </div>
@@ -919,7 +974,6 @@ ul{list-style:none}
         <div class="profile-card" style="margin-bottom:16px;">
           <div class="menu-list">
             <div class="menu-item" onclick="go('orders')"><span class="mi-icon">📦</span><div class="mi-text"><div class="mt-title">My Orders</div><div class="mt-desc">Track and view order history</div></div><span class="mi-chevron">›</span></div>
-            <div class="menu-item" onclick="openAdmin()"><span class="mi-icon">🔐</span><div class="mi-text"><div class="mt-title">Owner Dashboard</div><div class="mt-desc">View all customer orders (Admin only)</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="go('wishlist')"><span class="mi-icon">❤️</span><div class="mi-text"><div class="mt-title">My Wishlist</div><div class="mt-desc">Saved items for later</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="go('cart')"><span class="mi-icon">🛒</span><div class="mi-text"><div class="mt-title">My Cart</div><div class="mt-desc">Items ready to checkout</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
@@ -1506,7 +1560,17 @@ function openAuth(){
   resetAuth();document.getElementById('authModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(initRecap,200);
 }
 function closeAuth(){document.getElementById('authModal').classList.remove('open');document.body.style.overflow='';clearInterval(resendInt)}
-function resetAuth(){['stepPhone','stepOTP','stepSuccess'].forEach((id,i)=>{const el=document.getElementById(id);if(el){el.className='auth-step'+(i===0?' show':'')}});const pi=document.getElementById('phoneInput');if(pi)pi.value='';for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true}
+function resetAuth(){
+  ['stepPhone','stepOTP','stepSuccess'].forEach((id,i)=>{const el=document.getElementById(id);if(el){el.className='auth-step'+(i===0?' show':'')}});
+  const pi=document.getElementById('phoneInput');if(pi)pi.value='';
+  for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
+  confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true;
+  // Reset email fields
+  ['emailInput','passInput','nameInput'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  clearEmailMsg();
+  setEmailMode('login');
+  switchAuthTab('phone');
+}
 function showStep(name){['Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
 function initRecap(){
   if(!FB_ON)return;const c=document.getElementById('recap-container');c.innerHTML='';
@@ -1553,6 +1617,127 @@ async function editName(){if(!curUser)return;const n=prompt('Enter your name:',c
 function handleFBErr(e){const M={'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.','auth/too-many-requests':'Too many attempts. Please wait a few minutes.','auth/invalid-verification-code':'Wrong OTP. Please try again.','auth/code-expired':'OTP expired. Request a new one.','auth/network-request-failed':'Network error. Check your connection.','auth/captcha-check-failed':'reCAPTCHA failed. Please try again.'};toast(M[e.code]||'Authentication error: '+e.message,'err')}
 
 /* ── AUTH MODAL BACKDROP ── */
+/* ═══════════════════════════════════════════════════════
+   ✉️ EMAIL / PASSWORD AUTH — Firebase Email/Password login
+   ═══════════════════════════════════════════════════════ */
+let emailMode='login'; // 'login' | 'signup'
+
+function switchAuthTab(tab){
+  const tP=document.getElementById('tabPhone'),tE=document.getElementById('tabEmail');
+  const pP=document.getElementById('panePhone'),pE=document.getElementById('paneEmail');
+  if(tab==='phone'){
+    if(pP)pP.style.display='block';if(pE)pE.style.display='none';
+    if(tP){tP.style.background='linear-gradient(135deg,var(--M),var(--ML))';tP.style.color='#fff';}
+    if(tE){tE.style.background='#fff';tE.style.color='#777';}
+  }else{
+    if(pP)pP.style.display='none';if(pE)pE.style.display='block';
+    if(tE){tE.style.background='linear-gradient(135deg,var(--M),var(--ML))';tE.style.color='#fff';}
+    if(tP){tP.style.background='#fff';tP.style.color='#777';}
+  }
+}
+
+function setEmailMode(mode){
+  emailMode=mode;
+  const lb=document.getElementById('emailLoginBtn'),sb=document.getElementById('emailSignupBtn');
+  const nf=document.getElementById('nameFieldWrap'),fl=document.getElementById('forgotLink');
+  const eb=document.getElementById('emailSubmitBtn');
+  if(mode==='login'){
+    if(lb){lb.style.background='linear-gradient(135deg,var(--M),var(--ML))';lb.style.color='#fff';}
+    if(sb){sb.style.background='#f5f5f5';sb.style.color='#777';}
+    if(nf)nf.style.display='none';if(fl)fl.style.display='block';
+    if(eb)eb.textContent='Sign In →';
+  }else{
+    if(sb){sb.style.background='linear-gradient(135deg,var(--M),var(--ML))';sb.style.color='#fff';}
+    if(lb){lb.style.background='#f5f5f5';lb.style.color='#777';}
+    if(nf)nf.style.display='block';if(fl)fl.style.display='none';
+    if(eb)eb.textContent='Create Account →';
+  }
+  clearEmailMsg();
+}
+
+function togglePassVis(){
+  const f=document.getElementById('passInput');
+  if(f)f.type=f.type==='password'?'text':'password';
+}
+
+function emailShowErr(msg){const el=document.getElementById('emailErr');if(el){el.textContent=msg;el.style.display='block';}const m=document.getElementById('emailMsg');if(m)m.style.display='none'}
+function emailShowMsg(msg){const el=document.getElementById('emailMsg');if(el){el.textContent=msg;el.style.display='block';}const m=document.getElementById('emailErr');if(m)m.style.display='none'}
+function clearEmailMsg(){['emailErr','emailMsg'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'})}
+
+async function submitEmailAuth(){
+  if(!FB_ON){
+    emailShowErr('Firebase not configured! Add your Firebase config to index.html and enable Email/Password auth in Firebase Console.');
+    return;
+  }
+  const email=(document.getElementById('emailInput')?.value||'').trim();
+  const pass=(document.getElementById('passInput')?.value||'').trim();
+  const name=(document.getElementById('nameInput')?.value||'').trim();
+  clearEmailMsg();
+  if(!email||!pass){emailShowErr('Please enter email and password.');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailShowErr('Enter a valid email address.');return;}
+  if(pass.length<6){emailShowErr('Password must be at least 6 characters.');return;}
+
+  const btn=document.getElementById('emailSubmitBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spin"></div> '+(emailMode==='login'?'Signing in…':'Creating account…');}
+
+  try{
+    let user;
+    if(emailMode==='login'){
+      const res=await fbAuth.signInWithEmailAndPassword(email,pass);
+      user=res.user;
+    }else{
+      const res=await fbAuth.createUserWithEmailAndPassword(email,pass);
+      user=res.user;
+      if(name)await user.updateProfile({displayName:name});
+    }
+    // Success — close modal and update UI
+    document.getElementById('succName').textContent=`Welcome, ${user.displayName||user.email.split('@')[0]}! 🎉`;
+    document.getElementById('succPhone').textContent=user.email;
+    showStep('Success');
+    updateProfileHeader(user);
+    renderProfileStrip();
+    toast(emailMode==='login'?'Welcome back! 🎉':'Account created successfully! 🎉');
+  }catch(e){
+    console.error('Email auth error:',e);
+    const MSG={
+      'auth/user-not-found':'No account found with this email. Create one first.',
+      'auth/wrong-password':'Incorrect password. Try again or use "Forgot password".',
+      'auth/invalid-login-credentials':'Wrong email or password. Please try again.',
+      'auth/email-already-in-use':'This email already has an account. Try signing in.',
+      'auth/weak-password':'Password is too weak. Use 6+ characters.',
+      'auth/invalid-email':'Enter a valid email address.',
+      'auth/network-request-failed':'Network error. Check your internet connection.',
+      'auth/too-many-requests':'Too many failed attempts. Wait a few minutes.',
+      'auth/user-disabled':'This account has been disabled.',
+    };
+    emailShowErr(MSG[e.code]||'Error: '+e.message);
+  }
+  if(btn){btn.disabled=false;btn.textContent=emailMode==='login'?'Sign In →':'Create Account →';}
+}
+
+async function forgotPassword(){
+  if(!FB_ON){emailShowErr('Firebase not configured.');return;}
+  const email=(document.getElementById('emailInput')?.value||'').trim();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailShowErr('Enter your email address first.');return;}
+  try{
+    await fbAuth.sendPasswordResetEmail(email);
+    emailShowMsg('✅ Password reset email sent to '+email+'. Check your inbox!');
+  }catch(e){
+    emailShowErr(e.code==='auth/user-not-found'?'No account found with this email.':'Could not send reset email. Try again.');
+  }
+}
+
+/* ── Update openAuth to default to phone tab ── */
+const _origOpenAuth=openAuth;
+function openAuth(){
+  // Reset to phone tab each time
+  setTimeout(()=>switchAuthTab('phone'),100);
+  _origOpenAuth();
+}
+
+/* ── Update showStep to handle 'Success' for email too ── */
+// (no change needed — Success step works for both)
+
 document.getElementById('authModal').addEventListener('click',function(e){if(e.target===this)closeAuth()});
 
 /* ── SHAKE KEYFRAME ── */
@@ -1604,33 +1789,15 @@ function renderAdminDashboard(orders,note){
   const content=document.getElementById('adminContent');
   if(!content)return;
 
-  const totalRevenue=orders.reduce((s,o)=>s+(o.tot||0),0);
-  const pendingOrders=orders.filter(o=>o.status!=='delivered'&&o.status!=='cancelled');
-  const codOrders=orders.filter(o=>o.pm==='cod');
-  const paidOrders=orders.filter(o=>o.ps==='paid');
-
   content.innerHTML=`
     ${note?`<div style="background:#fff3e0;border-left:4px solid #FF9800;padding:12px 14px;border-radius:8px;margin-bottom:16px;font-size:.82rem;color:#E65100;font-weight:700;">${note}</div>`:''}
 
-    <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;">
-      ${[
-        {label:'Total Orders',val:orders.length,icon:'📦',color:'#7B1C1C',bg:'#fce4ec'},
-        {label:'Total Revenue',val:fmt(totalRevenue),icon:'💰',color:'#2e7d32',bg:'#e8f5e9'},
-        {label:'Pending Orders',val:pendingOrders.length,icon:'⏳',color:'#e65100',bg:'#fff3e0'},
-        {label:'COD Orders',val:codOrders.length,icon:'💵',color:'#1565c0',bg:'#e3f2fd'},
-        {label:'Paid Orders',val:paidOrders.length,icon:'✅',color:'#6a1b9a',bg:'#f3e5f5'},
-        {label:'Today\'s Orders',val:orders.filter(o=>{const d=new Date(o.date);const t=new Date();return d.toDateString()===t.toDateString()}).length,icon:'📅',color:'#C9A84C',bg:'#fff8e1'},
-      ].map(s=>`<div style="background:${s.bg};border-radius:12px;padding:#fff;padding:16px;text-align:center;">
-        <div style="font-size:1.6rem;margin-bottom:5px;">${s.icon}</div>
-        <div style="font-size:1.4rem;font-weight:900;color:${s.color};">${s.val}</div>
-        <div style="font-size:.68rem;color:#666;font-weight:600;">${s.label}</div>
-      </div>`).join('')}
-    </div>
+    <!-- Stats Grid (live-updated) -->
+    <div id="admStatsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;"></div>
 
     <!-- Filter Buttons -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
-      <button class="filter-btn on" id="admFilAll" onclick="filterAdmin('all',this)">All Orders</button>
+      <button class="filter-btn on" onclick="filterAdmin('all',this)">All Orders</button>
       <button class="filter-btn" onclick="filterAdmin('pending',this)">⏳ Pending</button>
       <button class="filter-btn" onclick="filterAdmin('shipped',this)">🚚 Shipped</button>
       <button class="filter-btn" onclick="filterAdmin('delivered',this)">🎉 Delivered</button>
@@ -1642,11 +1809,11 @@ function renderAdminDashboard(orders,note){
 
     ${orders.length===0?`<div style="text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:12px;">📭</div><div style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--M);margin-bottom:6px;">No Orders Yet</div><div style="font-size:.85rem;color:#888;">Customer orders will appear here as soon as someone purchases Sarees.</div></div>`:''}
 
-    <!-- Orders Table -->
-    <div id="adminOrdersList">
-    ${renderAdminOrderCards(orders)}
-    </div>
+    <!-- Orders List (live-updated) -->
+    <div id="adminOrdersList">${renderAdminOrderCards(orders)}</div>
   `;
+  // Render stats immediately
+  renderAdminStats();
 }
 
 function renderAdminOrderCards(orders){
@@ -1698,27 +1865,72 @@ function renderAdminOrderCards(orders){
   }).join('');
 }
 
+/* Keep track of active admin filter for status update re-render */
+let admFilterType='all';
+
 function filterAdmin(type,btn){
+  admFilterType=type;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
+  applyAdminFilter();
+}
+
+function applyAdminFilter(){
   let filtered=adminOrders;
-  if(type==='pending')filtered=adminOrders.filter(o=>o.status==='confirmed'||o.status==='processing');
-  else if(type==='shipped')filtered=adminOrders.filter(o=>o.status==='shipped');
-  else if(type==='delivered')filtered=adminOrders.filter(o=>o.status==='delivered');
-  else if(type==='cod')filtered=adminOrders.filter(o=>o.pm==='cod');
-  else if(type==='paid')filtered=adminOrders.filter(o=>o.ps==='paid');
-  document.getElementById('adminOrdersList').innerHTML=renderAdminOrderCards(filtered);
+  if(admFilterType==='pending')filtered=adminOrders.filter(o=>o.status==='confirmed'||o.status==='processing');
+  else if(admFilterType==='shipped')filtered=adminOrders.filter(o=>o.status==='shipped');
+  else if(admFilterType==='delivered')filtered=adminOrders.filter(o=>o.status==='delivered');
+  else if(admFilterType==='cod')filtered=adminOrders.filter(o=>o.pm==='cod');
+  else if(admFilterType==='paid')filtered=adminOrders.filter(o=>o.ps==='paid');
+  const el=document.getElementById('adminOrdersList');
+  if(el)el.innerHTML=renderAdminOrderCards(filtered);
+  // Also refresh stats cards
+  renderAdminStats();
+}
+
+function renderAdminStats(){
+  const st=document.getElementById('admStatsGrid');
+  if(!st)return;
+  const totalRevenue=adminOrders.reduce((s,o)=>s+(o.tot||0),0);
+  const pendingCount=adminOrders.filter(o=>o.status!=='delivered'&&o.status!=='cancelled').length;
+  const codCount=adminOrders.filter(o=>o.pm==='cod').length;
+  const paidCount=adminOrders.filter(o=>o.ps==='paid').length;
+  const todayCount=adminOrders.filter(o=>{const d=new Date(o.date);const t=new Date();return d.toDateString()===t.toDateString()}).length;
+  const stats=[
+    {label:'Total Orders',val:adminOrders.length,icon:'📦',color:'#7B1C1C',bg:'#fce4ec'},
+    {label:'Total Revenue',val:fmt(totalRevenue),icon:'💰',color:'#2e7d32',bg:'#e8f5e9'},
+    {label:'Pending Orders',val:pendingCount,icon:'⏳',color:'#e65100',bg:'#fff3e0'},
+    {label:'COD Orders',val:codCount,icon:'💵',color:'#1565c0',bg:'#e3f2fd'},
+    {label:'Paid Orders',val:paidCount,icon:'✅',color:'#6a1b9a',bg:'#f3e5f5'},
+    {label:'Today\'s Orders',val:todayCount,icon:'📅',color:'#C9A84C',bg:'#fff8e1'},
+  ];
+  st.innerHTML=stats.map(s=>`<div style="background:${s.bg};border-radius:12px;padding:16px;text-align:center;">
+    <div style="font-size:1.6rem;margin-bottom:5px;">${s.icon}</div>
+    <div style="font-size:1.4rem;font-weight:900;color:${s.color};">${s.val}</div>
+    <div style="font-size:.68rem;color:#666;font-weight:600;">${s.label}</div>
+  </div>`).join('');
 }
 
 function updateOrderStatus(num,newStatus){
-  if(!db){toast('Connect Firebase to update order status','err');return;}
-  db.collection('orders').doc(num).update({status:newStatus})
-    .then(()=>{
-      toast('Order status updated to '+STATUS[newStatus].label+'! ✅');
-      adminOrders=adminOrders.map(o=>o.num===num?{...o,status:newStatus}:o);
-      document.getElementById('adminOrdersList').innerHTML=renderAdminOrderCards(adminOrders);
-    })
-    .catch(e=>toast('Update failed: '+e.message,'err'));
+  // Update adminOrders local state immediately
+  adminOrders=adminOrders.map(o=>o.num===num?{...o,status:newStatus}:o);
+  // Try to persist to Firestore
+  if(db){
+    db.collection('orders').doc(num).update({status:newStatus})
+      .catch(e=>console.error('Firestore status update error:',e));
+  } else {
+    // Also update localStorage for local admin
+    const saved=JSON.parse(localStorage.getItem('sk_orders')||'[]');
+    const idx=saved.findIndex(o=>o.num===num);
+    if(idx>=0){saved[idx].status=newStatus;localStorage.setItem('sk_orders',JSON.stringify(saved));}
+  }
+  toast('Status updated to '+STATUS[newStatus].label+'! ✅');
+  // Re-render current view preserving filter
+  applyAdminFilter();
+  // Also update the customer's localStorage orders if this device made the order
+  const custOrders=JSON.parse(localStorage.getItem('sk_orders')||'[]');
+  const cIdx=custOrders.findIndex(o=>o.num===num);
+  if(cIdx>=0){custOrders[cIdx].status=newStatus;localStorage.setItem('sk_orders',JSON.stringify(custOrders));}
 }
 
 function exportAdminCSV(){
