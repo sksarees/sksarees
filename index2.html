@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SK Sarees – Elegant Sarees at Best Price | Quality & Tradition</title>
+<meta name="description" content="SK Sarees – Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees. Authentic quality at affordable prices. Shop online with COD available."/>
+<meta name="keywords" content="sarees online, silk sarees, cotton sarees, bridal sarees, kanchipuram sarees, SK Sarees"/>
+<meta name="theme-color" content="#7B1C1C"/>
+<meta property="og:title" content="SK Sarees – Elegant Sarees at Best Price"/>
+<meta property="og:description" content="Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees at Affordable Prices"/>
+<meta property="og:type" content="website"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
+const FIREBASE_CONFIG = {
+ apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+  authDomain: "sksareesapp.firebaseapp.com",
+  projectId: "sksareesapp",
+  storageBucket: "sksareesapp.firebasestorage.app",
+  messagingSenderId: "774983284365",
+  appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
+};
+const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
+if(FB_ON) firebase.initializeApp(FIREBASE_CONFIG);
+window.FB_DB = FB_ON ? firebase.firestore() : null;
+</script>
+<style>
+/* ═══════════════════════════ RESET ═══════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --M:#7B1C1C;--MD:#5a1313;--ML:#a52626;
+  --G:#C9A84C;--GL:#F0CF72;--GP:#FFF8E1;
+  --CR:#FDF6EC;--GR:#2e7d32;--BL:#1565c0;
+  --BG:#f7f3ee;--WH:#ffffff;--TXT:#1a1a1a;--MUTED:#777;
+  --BORDER:#e8e0d5;--SHADOW:0 2px 12px rgba(0,0,0,.08);
+  --RAD:12px;--RAD-SM:8px;--RAD-LG:18px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Inter',sans-serif;background:var(--BG);color:var(--TXT);overflow-x:hidden;line-height:1.5}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%;object-fit:cover}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
+ul{list-style:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--G);border-radius:3px}
+.noscroll{overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.noscroll::-webkit-scrollbar{display:none}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.clamp1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ═══════════════════════════ LAYOUT ═══════════════════════════ */
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.page{display:none}.page.active{display:block}
+.pb{padding-bottom:80px}
+
+/* ═══════════════════════════ TYPOGRAPHY ═══════════════════════ */
+.playfair{font-family:'Playfair Display',serif}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3vw,1.7rem);font-weight:700;color:var(--M);position:relative;padding-bottom:10px;margin-bottom:20px}
+.sec-title::after{content:'';position:absolute;bottom:0;left:0;width:44px;height:3px;background:linear-gradient(90deg,var(--G),var(--GL));border-radius:2px}
+.sec-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.view-all{font-size:.8rem;color:var(--G);font-weight:700;cursor:pointer;white-space:nowrap}
+.view-all:hover{color:var(--M)}
+
+/* ═══════════════════════════ BUTTONS ═══════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;border-radius:var(--RAD-SM);font-weight:700;font-size:.875rem;transition:all .2s;cursor:pointer;border:none}
+.btn-M{background:linear-gradient(135deg,var(--M),var(--ML));color:#fff}
+.btn-M:hover{background:linear-gradient(135deg,var(--MD),var(--M));transform:translateY(-1px);box-shadow:0 5px 16px rgba(123,28,28,.35)}
+.btn-G{background:linear-gradient(135deg,var(--G),var(--GL));color:var(--MD);font-weight:800}
+.btn-G:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(201,168,76,.4)}
+.btn-outline{background:#fff;border:2px solid var(--M);color:var(--M)}
+.btn-outline:hover{background:var(--M);color:#fff}
+.btn-wa{background:#25D366;color:#fff}
+.btn-wa:hover{background:#1da851}
+.btn-full{width:100%}
+.btn-lg{padding:14px 28px;font-size:1rem;border-radius:var(--RAD)}
+.btn-sm{padding:7px 14px;font-size:.78rem;border-radius:6px}
+
+/* ═══════════════════════════ TOP ANNOUNCEMENT ══════════════════ */
+.announce{background:linear-gradient(90deg,var(--G),var(--GL),var(--G));padding:7px 0;overflow:hidden;white-space:nowrap}
+.announce-inner{display:inline-block;animation:ticker 28s linear infinite}
+.announce-inner span{font-size:.72rem;font-weight:700;color:var(--MD);padding:0 32px}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ═══════════════════════════ HEADER ════════════════════════════ */
+.site-header{background:linear-gradient(135deg,var(--M),var(--MD));position:sticky;top:0;z-index:300;box-shadow:0 3px 20px rgba(0,0,0,.25)}
+.header-main{display:flex;align-items:center;gap:16px;padding:12px 20px;max-width:1200px;margin:0 auto}
+.logo-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:pointer}
+.logo-ring{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1.1rem;color:var(--M);box-shadow:0 2px 10px rgba(201,168,76,.4)}
+.logo-text .brand{font-family:'Playfair Display',serif;font-weight:700;font-size:1.25rem;color:var(--GL);line-height:1.1}
+.logo-text .tag{font-size:.6rem;color:rgba(255,255,255,.6);letter-spacing:.6px;text-transform:uppercase}
+.search-wrap{flex:1;max-width:540px}
+.search-box{display:flex;border-radius:var(--RAD-SM);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.search-box input{flex:1;padding:10px 14px;border:none;font-size:.88rem;background:#fff;color:#333;min-width:0}
+.search-box input::placeholder{color:#aaa}
+.search-box button{padding:10px 18px;background:var(--G);border:none;font-weight:700;color:var(--MD);font-size:.9rem;white-space:nowrap}
+.search-box button:hover{background:var(--GL)}
+.hdr-actions{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+.hdr-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;background:none;border:none;color:#fff;cursor:pointer;border-radius:8px;transition:background .15s;position:relative}
+.hdr-btn:hover{background:rgba(255,255,255,.12)}
+.hdr-btn .hb-icon{font-size:1.35rem;line-height:1}
+.hdr-btn .hb-label{font-size:.6rem;opacity:.8;white-space:nowrap}
+.hdr-badge{position:absolute;top:2px;right:4px;background:var(--G);color:var(--MD);border-radius:50%;width:18px;height:18px;font-size:.58rem;font-weight:800;display:none;align-items:center;justify-content:center}
+
+/* ═══════════════════════════ NAV BAR ═══════════════════════════ */
+.site-nav{background:linear-gradient(135deg,var(--MD),#3d0f0f);border-top:1px solid rgba(255,255,255,.08)}
+.site-nav .nav-inner{display:flex;align-items:center;gap:4px;padding:0 20px;max-width:1200px;margin:0 auto;overflow-x:auto}
+.site-nav .nav-inner::-webkit-scrollbar{display:none}
+.nav-link{padding:11px 16px;color:rgba(255,255,255,.8);font-size:.82rem;font-weight:500;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.nav-link:hover,.nav-link.active{color:#fff;border-bottom-color:var(--G)}
+
+/* ═══════════════════════════ BOTTOM NAV (mobile) ═══════════════ */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8e0d5;z-index:250;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.bottom-nav .bn-inner{display:flex;justify-content:space-around;align-items:center;padding:6px 0 8px}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;background:none;border:none;cursor:pointer;position:relative;flex:1}
+.bn-icon{font-size:1.3rem;line-height:1}
+.bn-label{font-size:.6rem;font-weight:500;color:#999}
+.bn-item.active .bn-label{color:var(--M);font-weight:700}
+.bn-badge{position:absolute;top:-2px;right:calc(50% - 18px);background:var(--M);color:#fff;border-radius:50%;width:16px;height:16px;font-size:.55rem;font-weight:800;display:none;align-items:center;justify-content:center}
+
+/* ═══════════════════════════ HERO CAROUSEL ══════════════════════ */
+.hero-wrap{position:relative;overflow:hidden;background:#1a0808}
+.hero-slides{display:flex;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.hero-slide{min-width:100%;position:relative}
+.hero-slide img{width:100%;height:clamp(220px,45vw,520px);object-fit:cover;display:block}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(60,10,10,.82) 0%,rgba(60,10,10,.35) 55%,transparent 100%)}
+.hero-content{position:absolute;bottom:clamp(20px,5vw,60px);left:clamp(16px,6vw,80px);right:42%;color:#fff}
+.hero-badge-pill{background:var(--G);color:var(--MD);font-size:.7rem;font-weight:800;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:10px;letter-spacing:.3px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.hero-content h1{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,4vw,2.6rem);font-weight:800;line-height:1.2;margin-bottom:8px}
+.hero-content p{font-size:clamp(.8rem,2vw,1rem);opacity:.9;margin-bottom:16px;max-width:400px}
+.hero-cta-row{display:flex;gap:10px;flex-wrap:wrap}
+.hero-cta-row .btn{font-size:clamp(.78rem,2vw,.92rem);padding:clamp(8px,2vw,13px) clamp(14px,3vw,24px)}
+.carousel-prev,.carousel-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.22);backdrop-filter:blur(4px);border:none;color:#fff;width:clamp(32px,4vw,46px);height:clamp(32px,4vw,46px);border-radius:50%;font-size:1.3rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;transition:background .2s}
+.carousel-prev{left:12px}.carousel-next{right:12px}
+.carousel-prev:hover,.carousel-next:hover{background:rgba(255,255,255,.38)}
+.carousel-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:7px}
+.cdot{width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.45);border:none;cursor:pointer;padding:0;transition:all .3s}
+.cdot.active{width:24px;background:#fff}
+
+/* ═══════════════════════════ PROMO STRIP ════════════════════════ */
+.promo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--BORDER);border-top:1px solid var(--BORDER);border-bottom:1px solid var(--BORDER)}
+.promo-item{background:#fff;display:flex;align-items:center;gap:12px;padding:14px 20px}
+.promo-item .pi-icon{font-size:1.6rem;flex-shrink:0}
+.promo-item .pi-title{font-size:.82rem;font-weight:700;color:var(--M)}
+.promo-item .pi-sub{font-size:.7rem;color:var(--MUTED)}
+
+/* ═══════════════════════════ CATEGORY GRID ══════════════════════ */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px}
+.cat-card{cursor:pointer;text-align:center;transition:transform .2s}
+.cat-card:hover{transform:translateY(-4px)}
+.cat-img-ring{position:relative;padding-top:100%;border-radius:50%;overflow:hidden;border:3px solid var(--G);box-shadow:0 3px 12px rgba(201,168,76,.28);margin-bottom:8px}
+.cat-img-ring img{position:absolute;inset:0;width:100%;height:100%}
+.cat-img-ring .cir-overlay{position:absolute;inset:0;background:rgba(90,19,19,.15)}
+.cat-name{font-size:.75rem;font-weight:700;color:var(--M);line-height:1.3}
+
+/* ═══════════════════════════ PRODUCT CARD ═══════════════════════ */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.products-grid.grid2{grid-template-columns:repeat(2,1fr)}
+.pcard{background:#fff;border-radius:var(--RAD);overflow:hidden;box-shadow:var(--SHADOW);border:1px solid var(--BORDER);transition:transform .22s,box-shadow .22s;cursor:pointer;position:relative}
+.pcard:hover{transform:translateY(-5px);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.pcard-img{position:relative;padding-top:115%;overflow:hidden}
+.pcard-img img{position:absolute;inset:0;width:100%;height:100%;transition:transform .35s}
+.pcard:hover .pcard-img img{transform:scale(1.06)}
+.pcard-badges{position:absolute;top:9px;left:9px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.badge-off{background:var(--M);color:#fff;font-size:.6rem;font-weight:800;padding:3px 7px;border-radius:5px}
+.badge-new{background:var(--G);color:var(--MD);font-size:.6rem;font-weight:800;padding:3px 7px;border-radius:5px}
+.badge-hot{background:#ff6b35;color:#fff;font-size:.6rem;font-weight:800;padding:3px 7px;border-radius:5px}
+.wish-ico{position:absolute;top:9px;right:9px;z-index:2;background:#fff;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:.95rem;cursor:pointer;transition:transform .2s}
+.wish-ico:hover{transform:scale(1.18)}
+.pcard-body{padding:11px 13px 14px}
+.pcard-sku{font-size:.62rem;color:var(--G);font-weight:700;margin-bottom:3px}
+.pcard-name{font-size:.85rem;font-weight:600;color:var(--TXT);line-height:1.35;margin-bottom:5px}
+.pcard-stars{font-size:.72rem;color:var(--GL);margin-bottom:6px}
+.pcard-stars span{font-size:.65rem;color:#aaa;margin-left:4px}
+.pcard-prices{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:9px}
+.price-now{font-size:1.05rem;font-weight:800;color:var(--M)}
+.price-old{font-size:.78rem;color:#bbb;text-decoration:line-through}
+.pcard-add{width:100%;padding:8px;background:linear-gradient(135deg,var(--M),var(--ML));color:#fff;border:none;border-radius:var(--RAD-SM);font-size:.78rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+.pcard-add:hover{opacity:.88}
+
+/* H-SCROLL ROW */
+.hscroll-row{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px}
+.hscroll-row::-webkit-scrollbar{display:none}
+.hscroll-row .pcard{min-width:200px;max-width:200px;flex-shrink:0}
+
+/* ═══════════════════════════ FLASH SALE BAR ════════════════════ */
+.flash-bar{background:linear-gradient(135deg,var(--M),var(--ML));border-radius:var(--RAD);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.fb-left .fb-tag{font-size:.68rem;color:var(--GL);font-weight:700;margin-bottom:3px}
+.fb-left .fb-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;font-weight:800}
+.fb-left .fb-sub{font-size:.8rem;color:rgba(255,255,255,.8)}
+.fb-timer{font-size:.78rem;color:var(--GL);font-weight:800;margin-top:4px}
+.fb-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+
+/* ═══════════════════════════ BRIDAL BANNER ═════════════════════ */
+.bridal-banner{border-radius:var(--RAD);overflow:hidden;position:relative;cursor:pointer}
+.bridal-banner img{width:100%;height:clamp(180px,30vw,340px)}
+.bb-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(60,10,10,.85) 0%,rgba(60,10,10,.3) 60%,transparent 100%)}
+.bb-content{position:absolute;top:50%;left:clamp(20px,5%,50px);transform:translateY(-50%);color:#fff}
+.bb-content .bbc-tag{font-size:.7rem;color:var(--GL);font-weight:700;margin-bottom:6px;letter-spacing:.5px}
+.bb-content h3{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,3vw,2rem);font-weight:800;margin-bottom:8px}
+.bb-content p{font-size:clamp(.75rem,1.8vw,.9rem);opacity:.88;margin-bottom:14px}
+
+/* ═══════════════════════════ OFFER BOX ═════════════════════════ */
+.offer-box{background:linear-gradient(135deg,#1a237e,#283593);border-radius:var(--RAD);padding:28px;text-align:center;color:#fff}
+.offer-box .ob-icon{font-size:2.5rem;margin-bottom:10px}
+.offer-box h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:6px}
+.offer-box p{font-size:.85rem;opacity:.85;margin-bottom:14px}
+.offer-box .ob-code{background:rgba(255,255,255,.15);border:1px dashed rgba(255,255,255,.4);border-radius:8px;padding:8px 20px;display:inline-block;font-size:1rem;font-weight:800;color:var(--GL);letter-spacing:2px;margin-bottom:16px}
+
+/* ═══════════════════════════ TRUST SECTION ═════════════════════ */
+.trust-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.trust-item{background:#fff;border-radius:var(--RAD);padding:18px 14px;text-align:center;border:1px solid var(--BORDER);box-shadow:var(--SHADOW)}
+.trust-item .ti-icon{font-size:1.8rem;margin-bottom:8px}
+.trust-item .ti-title{font-size:.82rem;font-weight:700;color:var(--M);margin-bottom:3px}
+.trust-item .ti-desc{font-size:.72rem;color:var(--MUTED)}
+
+/* ═══════════════════════════ SECTION WRAPPER ═══════════════════ */
+.sec{padding:clamp(28px,5vw,52px) 0}
+.sec-white{background:#fff}
+.sec-cream{background:var(--CR)}
+
+/* ═══════════════════════════ PRODUCT DETAIL PAGE ═══════════════ */
+.detail-wrap{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.detail-gallery .main-img{border-radius:var(--RAD);overflow:hidden;margin-bottom:10px;aspect-ratio:3/4;background:#f5f0eb}
+.detail-gallery .main-img img{width:100%;height:100%}
+.thumb-row{display:flex;gap:8px;overflow-x:auto}
+.thumb-row::-webkit-scrollbar{display:none}
+.thumb{width:68px;height:78px;border-radius:8px;overflow:hidden;border:2.5px solid transparent;cursor:pointer;flex-shrink:0;transition:border-color .2s}
+.thumb.active{border-color:var(--M)}
+.thumb img{width:100%;height:100%}
+.detail-info .di-sku{font-size:.7rem;color:var(--G);font-weight:700;margin-bottom:5px}
+.detail-info .di-name{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,3vw,1.7rem);font-weight:700;color:var(--TXT);margin-bottom:10px;line-height:1.3}
+.detail-rating{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.detail-rating .dr-stars{font-size:1rem;color:var(--GL)}
+.detail-rating .dr-val{font-size:.9rem;font-weight:700}
+.detail-rating .dr-count{font-size:.8rem;color:var(--MUTED)}
+.price-box{background:var(--GP);border:1.5px solid var(--G);border-radius:var(--RAD-SM);padding:14px 16px;margin-bottom:16px}
+.price-main{font-size:2rem;font-weight:900;color:var(--M)}
+.price-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.price-savings{font-size:.8rem;color:var(--GR);font-weight:600;margin-top:4px}
+.price-incl{font-size:.7rem;color:var(--MUTED);margin-top:2px}
+.badge-disc{background:#e8f5e9;color:var(--GR);font-size:.75rem;font-weight:800;padding:3px 9px;border-radius:6px}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+.spec-item{background:#f9f6f2;border-radius:var(--RAD-SM);padding:10px 12px;border:1px solid var(--BORDER)}
+.spec-item .si-lbl{font-size:.62rem;color:var(--MUTED);margin-bottom:2px}
+.spec-item .si-val{font-size:.82rem;font-weight:700;color:var(--TXT)}
+.care-box{background:var(--GP);border-radius:var(--RAD-SM);padding:13px;margin-bottom:16px}
+.care-box h4{font-size:.8rem;font-weight:700;color:var(--M);margin-bottom:5px}
+.care-box p{font-size:.78rem;color:#555;line-height:1.65}
+.qty-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.qty-ctrl{display:flex;align-items:center;gap:10px;border:2px solid var(--M);border-radius:var(--RAD-SM);padding:6px 14px}
+.qty-ctrl button{background:none;border:none;font-size:1.3rem;color:var(--M);font-weight:800;cursor:pointer;line-height:1;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+.qty-ctrl span{font-size:1.05rem;font-weight:800;min-width:26px;text-align:center}
+.cta-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.cta-row .btn{flex:1;min-width:140px;padding:13px}
+.delivery-strip{display:flex;align-items:center;gap:12px;background:#f9f9f9;border:1px solid var(--BORDER);border-radius:var(--RAD-SM);padding:12px 14px;margin-bottom:14px}
+.delivery-strip .ds-icon{font-size:1.4rem}
+.delivery-strip .ds-title{font-size:.82rem;font-weight:700}
+.delivery-strip .ds-sub{font-size:.7rem;color:var(--MUTED)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--M);font-weight:700;cursor:pointer;margin-bottom:20px;font-size:.88rem;background:none;border:none;padding:0}
+.back-btn:hover{opacity:.75}
+
+/* ═══════════════════════════ REVIEW CARD ═══════════════════════ */
+.review-card{padding:16px 0;border-bottom:1px solid #f0ebe4}
+.review-card:last-child{border-bottom:none}
+.rc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.rc-name{font-weight:700;font-size:.87rem}
+.rc-date{font-size:.72rem;color:var(--MUTED)}
+.rc-stars{font-size:.85rem;color:var(--GL);margin-bottom:5px}
+.rc-text{font-size:.8rem;color:#555;line-height:1.6}
+
+/* ═══════════════════════════ CART PAGE ═════════════════════════ */
+.cart-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+.cart-item{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:16px;display:flex;gap:14px;margin-bottom:14px;box-shadow:var(--SHADOW)}
+.cart-item img{width:96px;height:116px;border-radius:var(--RAD-SM);flex-shrink:0;cursor:pointer}
+.ci-info{flex:1;min-width:0}
+.ci-sku{font-size:.64rem;color:var(--G);font-weight:700}
+.ci-name{font-size:.88rem;font-weight:700;margin:3px 0 5px;line-height:1.3}
+.ci-meta{font-size:.75rem;color:var(--MUTED);margin-bottom:10px}
+.ci-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ci-qty{display:flex;align-items:center;gap:9px;border:1.5px solid #ddd;border-radius:8px;padding:4px 10px}
+.ci-qty button{background:none;border:none;font-size:1.1rem;color:var(--M);font-weight:800;cursor:pointer}
+.ci-qty span{font-weight:800;font-size:.95rem;min-width:20px;text-align:center}
+.ci-price{font-size:1.05rem;font-weight:900;color:var(--M)}
+.ci-rm{background:none;border:none;font-size:.72rem;color:#bbb;cursor:pointer;margin-top:6px;display:flex;align-items:center;gap:4px}
+.cart-sidebar .cs-box{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:20px;box-shadow:var(--SHADOW);margin-bottom:16px}
+.cs-box h3{font-size:.95rem;font-weight:800;color:var(--M);margin-bottom:16px}
+.cs-row{display:flex;justify-content:space-between;margin-bottom:10px}
+.cs-row .cs-lbl{font-size:.83rem;color:var(--MUTED)}
+.cs-row .cs-val{font-size:.83rem;font-weight:700}
+.cs-row .cs-val.green{color:var(--GR)}
+.cs-divider{height:1px;background:#f0ebe4;margin:12px 0}
+.cs-total-lbl{font-size:1rem;font-weight:800}
+.cs-total-val{font-size:1.3rem;font-weight:900;color:var(--M)}
+.promo-wrap{display:flex;gap:8px;margin-top:10px}
+.promo-wrap input{flex:1;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.8rem}
+.promo-wrap input:focus{border-color:var(--M)}
+.free-del-strip{background:var(--GP);border-bottom:1.5px solid var(--G);padding:9px 20px;font-size:.78rem;color:var(--M);font-weight:700}
+
+/* ═══════════════════════════ CHECKOUT PAGE ════════════════════ */
+.checkout-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+.ck-card{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:24px;box-shadow:var(--SHADOW);margin-bottom:18px}
+.ck-card h3{font-size:1rem;font-weight:800;color:var(--M);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--BORDER)}
+.ck-steps{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.ck-step-item{display:flex;align-items:center;gap:8px}
+.cs-bubble{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+.cs-bubble.done{background:var(--M);color:#fff}
+.cs-bubble.pend{background:#eee;color:#999}
+.cs-slabel{font-size:.8rem;font-weight:600}
+.cs-slabel.act{color:var(--M)}
+.cs-slabel.ina{color:#bbb}
+.cs-arrow{color:#ccc}
+.fg{margin-bottom:13px}
+.fg label{font-size:.72rem;font-weight:700;color:#555;display:block;margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 13px;border:1.5px solid #ddd;border-radius:8px;font-size:.85rem;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--M)}
+.fg-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pm-opt{background:#fff;border:2px solid #eee;border-radius:var(--RAD-SM);padding:14px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:10px;transition:border-color .2s}
+.pm-opt.sel{border-color:var(--M);background:#fff9f9}
+.pm-icon{font-size:1.6rem;flex-shrink:0}
+.pm-info .pm-name{font-size:.87rem;font-weight:700}
+.pm-info .pm-desc{font-size:.7rem;color:#888}
+.pm-info .pm-sec{font-size:.65rem;color:var(--G);margin-top:2px}
+.pm-radio{width:20px;height:20px;border-radius:50%;border:2px solid #ddd;margin-left:auto;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pm-radio .pm-dot{width:10px;height:10px;border-radius:50%;background:var(--M);display:none}
+.pm-opt.sel .pm-radio{border-color:var(--M)}.pm-opt.sel .pm-radio .pm-dot{display:block}
+.addr-prev{background:#f9f6f2;border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.addr-prev h4{font-size:.78rem;font-weight:800;color:var(--M);margin-bottom:5px}
+.addr-prev p{font-size:.78rem;color:#555;line-height:1.7}
+.ck-summary-box{background:var(--GP);border:1.5px solid var(--G);border-radius:var(--RAD-SM);padding:14px;margin-bottom:16px}
+
+/* ═══════════════════════════ ORDER SUCCESS ═════════════════════ */
+.success-wrap{text-align:center;padding:clamp(40px,8vw,80px) 20px}
+.success-tick{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4CAF50,#2e7d32);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 18px;animation:popIn .4s cubic-bezier(.4,0,.2,1)}
+@keyframes popIn{from{transform:scale(0)}70%{transform:scale(1.15)}to{transform:scale(1)}}
+.on-box{background:var(--GP);border:1.5px solid var(--G);border-radius:var(--RAD);padding:18px;margin:0 auto 20px;max-width:340px}
+
+/* ═══════════════════════════ ORDERS PAGE ═══════════════════════ */
+.orders-layout{display:grid;grid-template-columns:1fr;gap:16px}
+.order-card{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);box-shadow:var(--SHADOW);overflow:hidden}
+.oc-head{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+.oc-meta .oc-num{font-size:.72rem;color:var(--MUTED)}
+.oc-meta .oc-date{font-size:.82rem;font-weight:700}
+.oc-right{text-align:right}
+.oc-amt{font-size:1.1rem;font-weight:900;color:var(--M)}
+.status-badge{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:12px;display:inline-block;margin-top:4px}
+.sb-confirmed{background:#e3f2fd;color:var(--BL)}
+.sb-shipped{background:#e8eaf6;color:#283593}
+.sb-delivered{background:#e8f5e9;color:var(--GR)}
+.sb-cancelled{background:#fce4ec;color:#c62828}
+.sb-pending{background:#f5f5f5;color:#757575}
+.prog-bar-wrap{height:4px;background:#f0ebe4;border-radius:2px;overflow:hidden;margin:10px 18px 6px}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--G),var(--M));border-radius:2px;transition:width .5s}
+.prog-labels{display:flex;justify-content:space-between;padding:0 18px 10px;font-size:.62rem;color:#ccc;font-weight:700}
+.prog-labels span.done{color:var(--M)}
+.oc-body{border-top:1px solid #f0ebe4;padding:14px 18px;display:none}
+.oi-item{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.oi-item img{width:52px;height:60px;border-radius:6px;flex-shrink:0}
+.oi-name{font-size:.82rem;font-weight:700}
+.oi-sku{font-size:.7rem;color:var(--MUTED)}
+.oi-total{font-weight:800;color:var(--M);margin-left:auto;flex-shrink:0}
+
+/* ═══════════════════════════ PROFILE ═══════════════════════════ */
+.profile-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
+.profile-card{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);box-shadow:var(--SHADOW);overflow:hidden}
+.profile-hero-bg{background:linear-gradient(135deg,var(--M),var(--MD));padding:28px 20px 24px;text-align:center}
+.p-avatar{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px;border:3px solid rgba(255,255,255,.3)}
+.p-name{font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;font-weight:700}
+.p-phone{font-size:.8rem;color:rgba(255,255,255,.7);margin:4px 0 12px}
+.p-edit-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 16px;font-size:.75rem;cursor:pointer}
+.p-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #f0ebe4}
+.p-stat{text-align:center;padding:14px 8px;border-right:1px solid #f0ebe4}
+.p-stat:last-child{border-right:none}
+.p-stat .ps-icon{font-size:1.3rem}
+.p-stat .ps-val{font-size:1.2rem;font-weight:900;color:var(--M)}
+.p-stat .ps-lbl{font-size:.62rem;color:var(--MUTED)}
+.menu-list{padding:8px 0}
+.menu-item{display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:background .15s;border-bottom:1px solid #f8f4f0}
+.menu-item:last-child{border-bottom:none}
+.menu-item:hover{background:#fdf9f4}
+.mi-icon{font-size:1.2rem;min-width:28px;text-align:center}
+.mi-text .mt-title{font-size:.87rem;font-weight:700}
+.mi-text .mt-desc{font-size:.7rem;color:var(--MUTED);margin-top:1px}
+.mi-chevron{color:#ccc;margin-left:auto;font-size:1rem}
+.login-cta-box{background:var(--GP);border:1.5px solid var(--G);border-radius:var(--RAD-SM);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px}
+.lc-title{font-size:.87rem;font-weight:800;color:var(--M)}
+.lc-sub{font-size:.72rem;color:var(--MUTED);margin-top:2px}
+
+/* ═══════════════════════════ WISHLIST ══════════════════════════ */
+.wishlist-layout{display:grid;grid-template-columns:1fr;gap:0}
+
+/* ═══════════════════════════ FILTER BAR ════════════════════════ */
+.filter-wrap{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:16px 18px;box-shadow:var(--SHADOW);margin-bottom:20px}
+.filter-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filter-btn{padding:7px 14px;border:1.5px solid #ddd;border-radius:20px;font-size:.78rem;font-weight:600;cursor:pointer;background:#fff;color:#555;transition:all .15s}
+.filter-btn.on{border-color:var(--M);background:var(--M);color:#fff}
+.sort-sel{padding:8px 12px;border:1.5px solid #ddd;border-radius:var(--RAD-SM);font-size:.8rem;background:#fff;color:#333;min-width:160px}
+.filter-panel{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:18px;box-shadow:var(--SHADOW);margin-bottom:20px;display:none}
+.fp-section{margin-bottom:14px}
+.fp-label{font-size:.68rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.fp-chips{display:flex;flex-wrap:wrap;gap:7px}
+.fchip{padding:5px 13px;border-radius:20px;border:1.5px solid #ddd;background:#fff;color:#444;font-size:.75rem;cursor:pointer;transition:all .15s}
+.fchip.on{border-color:var(--M);background:var(--M);color:#fff}
+.price-range-inputs{display:flex;gap:8px;align-items:center}
+.price-range-inputs input{width:100px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:.78rem}
+.price-range-inputs input:focus{border-color:var(--M)}
+
+/* ═══════════════════════════ EMPTY STATE ═══════════════════════ */
+.empty-state{text-align:center;padding:clamp(50px,10vw,100px) 20px}
+.es-icon{font-size:clamp(3rem,8vw,5rem);margin-bottom:14px}
+.es-title{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,3vw,1.5rem);color:var(--M);margin-bottom:7px}
+.es-sub{font-size:.87rem;color:var(--MUTED);margin-bottom:22px}
+
+/* ═══════════════════════════ TOAST ═════════════════════════════ */
+.toast-container{position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;min-width:280px;max-width:420px}
+.toast{background:var(--M);color:#fff;padding:12px 18px;border-radius:10px;font-size:.83rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;animation:slideToast .3s ease}
+.toast.ok{background:var(--GR)}.toast.err{background:#c62828}
+@keyframes slideToast{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════ MODAL (AUTH) ═══════════════════════ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);z-index:500;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;animation:slideUp .32s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:42px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto 0}
+.modal-body{padding:20px 22px 28px}
+.modal-hdr{text-align:center;margin-bottom:18px}
+.modal-logo{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1.2rem;color:var(--M);margin:0 auto 10px;box-shadow:0 4px 14px rgba(201,168,76,.35)}
+.modal-hdr h2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--M)}
+.modal-hdr p{font-size:.78rem;color:var(--MUTED);margin-top:3px}
+.auth-step{display:none}.auth-step.show{display:block;animation:fadeIn .3s}
+.phone-row{display:flex;border:1.5px solid #ddd;border-radius:10px;overflow:hidden;margin-bottom:12px;transition:border-color .2s}
+.phone-row:focus-within{border-color:var(--M)}
+.ph-code{display:flex;align-items:center;gap:6px;padding:0 12px;background:#f9f9f9;border-right:1px solid #e0e0e0;font-weight:700;font-size:.85rem;white-space:nowrap}
+.ph-input{flex:1;border:none;padding:13px 12px;font-size:1rem;font-weight:600;letter-spacing:1px;background:#fff;outline:none}
+.ph-input::placeholder{font-weight:400;letter-spacing:0;font-size:.85rem;color:#bbb}
+.otp-row{display:flex;gap:10px;justify-content:center;margin:10px 0 16px}
+.otp-box{width:46px;height:52px;border:2px solid #ddd;border-radius:10px;text-align:center;font-size:1.3rem;font-weight:800;color:var(--M);outline:none;transition:border-color .2s,box-shadow .2s}
+.otp-box:focus{border-color:var(--M);box-shadow:0 0 0 3px rgba(123,28,28,.1)}
+.otp-box.filled{border-color:var(--G);background:var(--GP)}
+.resend-row{text-align:center;font-size:.8rem;color:#888;margin-bottom:14px}
+.resend-btn{color:var(--M);font-weight:700;background:none;border:none;cursor:pointer;font-size:.8rem}
+.resend-btn:disabled{color:#bbb;cursor:default}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-cta{width:100%;padding:14px;background:linear-gradient(135deg,var(--M),var(--ML));color:#fff;border:none;border-radius:var(--RAD-SM);font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.auth-cta:hover{opacity:.9}
+.auth-cta:disabled{opacity:.6;cursor:not-allowed}
+#recap-container{margin:10px 0;display:flex;justify-content:center}
+.recap-hint{text-align:center;font-size:.65rem;color:#bbb;margin-top:-4px;margin-bottom:10px}
+.succ-tick{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#4CAF50,#2e7d32);display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 12px;animation:popIn .4s}
+.user-strip{background:var(--GP);border:1.5px solid var(--G);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px}
+.us-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--M),var(--ML));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.us-name{font-size:.9rem;font-weight:800;color:var(--M)}
+.us-phone{font-size:.75rem;color:var(--MUTED);margin-top:2px}
+.us-ver{font-size:.62rem;background:#e8f5e9;color:var(--GR);padding:2px 8px;border-radius:12px;font-weight:700;display:inline-block;margin-top:4px}
+.signout-btn{margin-left:auto;padding:6px 14px;background:#fff;border:1.5px solid #ddd;border-radius:20px;font-size:.72rem;color:#666;cursor:pointer;font-weight:700;flex-shrink:0}
+
+/* ═══════════════════════════ FOOTER ════════════════════════════ */
+.site-footer{background:linear-gradient(135deg,var(--MD),#2d0d0d);color:#fff;margin-top:0}
+.footer-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;padding:48px 20px 36px;max-width:1200px;margin:0 auto}
+.footer-brand .fb-logo{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--GL);font-weight:800;margin-bottom:8px}
+.footer-brand p{font-size:.8rem;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:14px}
+.footer-col h4{font-size:.82rem;font-weight:800;color:var(--GL);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.footer-col li{margin-bottom:8px}
+.footer-col li a{font-size:.8rem;color:rgba(255,255,255,.65);cursor:pointer;transition:color .2s}
+.footer-col li a:hover{color:var(--GL)}
+.social-icons{display:flex;gap:10px;margin-top:8px}
+.si{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;transition:background .2s}
+.si:hover{background:var(--G)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding:16px 20px;max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.footer-bottom p{font-size:.72rem;color:rgba(255,255,255,.45)}
+
+/* ═══════════════════════════ WA FLOAT ══════════════════════════ */
+.wa-float{position:fixed;bottom:90px;right:18px;z-index:200;width:54px;height:54px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.45);cursor:pointer;border:none;transition:transform .2s}
+.wa-float:hover{transform:scale(1.12)}
+@media(min-width:768px){.wa-float{bottom:24px}}
+
+/* ═══════════════════════════ CATEGORIES PAGE ═══════════════════ */
+.cats-page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.cat-page-card{border-radius:var(--RAD);overflow:hidden;cursor:pointer;box-shadow:var(--SHADOW);border:1px solid var(--BORDER);transition:transform .22s}
+.cat-page-card:hover{transform:translateY(-4px)}
+.cpc-img{position:relative;padding-top:62%;overflow:hidden}
+.cpc-img img{position:absolute;inset:0;width:100%;height:100%}
+.cpc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(60,10,10,.88) 0%,transparent 55%)}
+.cpc-info{position:absolute;bottom:0;left:0;right:0;padding:12px 14px}
+.cpc-info .cpc-name{color:#fff;font-weight:800;font-size:.95rem}
+.cpc-info .cpc-count{color:var(--GL);font-size:.73rem}
+.occasion-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.occ-item{background:#fff;border-radius:var(--RAD-SM);padding:14px 10px;text-align:center;border:1px solid var(--BORDER);cursor:pointer;transition:border-color .2s,transform .2s}
+.occ-item:hover{border-color:var(--G);transform:translateY(-2px)}
+.occ-icon{font-size:1.5rem;margin-bottom:5px}
+.occ-name{font-size:.72rem;font-weight:700;color:#333}
+.fabric-chips{display:flex;flex-wrap:wrap;gap:10px}
+.fab-chip{padding:8px 18px;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;transition:opacity .2s;color:#fff}
+.fab-chip:hover{opacity:.85}
+.price-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.price-btn{border-radius:var(--RAD-SM);padding:14px 12px;text-align:center;font-weight:800;font-size:.82rem;cursor:pointer;border:1.5px solid transparent;transition:opacity .2s}
+.price-btn:hover{opacity:.85}
+
+/* ═══════════════════════════ SHIMMER ═══════════════════════════ */
+@keyframes shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+.shimmer{background:linear-gradient(90deg,#f0ece7 25%,#e8e4df 50%,#f0ece7 75%);background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:var(--RAD-SM)}
+
+/* ═══════════════════════════ RESPONSIVE ════════════════════════ */
+@media(max-width:900px){
+  .detail-wrap{grid-template-columns:1fr}
+  .cart-layout,.checkout-layout,.profile-layout{grid-template-columns:1fr}
+  .cart-sidebar,.checkout-sidebar{order:-1}
+}
+@media(max-width:700px){
+  .bottom-nav{display:block}
+  .site-nav{display:none}
+  .hdr-btn .hb-label{display:none}
+  .hdr-btn .hdr-btn-orders,.hdr-btn-profile{display:none}
+  .pb{padding-bottom:72px}
+  .products-grid{grid-template-columns:1fr 1fr}
+  .products-grid.grid2{grid-template-columns:1fr 1fr}
+  .trust-grid{grid-template-columns:1fr 1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+  .cats-page-grid{grid-template-columns:1fr 1fr}
+  .cta-row .btn{flex:1 1 100%}
+}
+@media(max-width:480px){
+  .header-main{padding:10px 12px;gap:10px}
+  .logo-text .tag{display:none}
+  .search-wrap{max-width:none}
+  .footer-top{grid-template-columns:1fr}
+  .hscroll-row .pcard{min-width:170px;max-width:170px}
+  .fg-row2{grid-template-columns:1fr}
+}
+@media(min-width:701px){
+  .wa-float{bottom:24px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastEl"></div>
+
+<!-- WA FLOAT -->
+<button class="wa-float" onclick="openWA()" aria-label="WhatsApp">
+  <svg width="27" height="27" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</button>
+
+<!-- AUTH MODAL -->
+<div class="modal-bg" id="authModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div class="modal-hdr">
+        <div class="modal-logo">SK</div>
+        <h2>SK Sarees</h2>
+        <p>Login for exclusive offers &amp; order tracking</p>
+      </div>
+      <!-- Step Phone -->
+      <div class="auth-step show" id="stepPhone">
+        <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+          <div style="font-size:.77rem;font-weight:700;color:#1565c0;margin-bottom:3px;">📱 Phone OTP Login</div>
+          <div style="font-size:.72rem;color:#555;">We'll send a 6-digit OTP to verify your Indian mobile. No password needed!</div>
+        </div>
+        <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:7px;">Mobile Number *</label>
+        <div class="phone-row">
+          <div class="ph-code">🇮🇳 +91</div>
+          <input class="ph-input" id="phoneInput" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);validatePhone()" onkeydown="if(event.key==='Enter')sendOTP()"/>
+        </div>
+        <div id="recap-container"></div>
+        <p class="recap-hint">Protected by Google reCAPTCHA</p>
+        <button class="auth-cta" id="sendOTPBtn" onclick="sendOTP()" disabled>Send OTP →</button>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span><div style="flex:1;height:1px;background:#eee"></div></div>
+        <button onclick="closeAuth()" style="width:100%;padding:12px;background:#f5f5f5;border:none;border-radius:10px;font-size:.88rem;color:#666;font-weight:600;cursor:pointer;">Continue as Guest</button>
+        <p style="text-align:center;font-size:.66rem;color:#bbb;margin-top:12px;">By continuing, you agree to our Terms &amp; Privacy Policy.</p>
+      </div>
+      <!-- Step OTP -->
+      <div class="auth-step" id="stepOTP">
+        <div style="text-align:center;margin-bottom:16px;"><div style="font-size:2rem;margin-bottom:6px;">📨</div><div style="font-size:.95rem;font-weight:700;">OTP Sent!</div><div id="otpSentTo" style="font-size:.8rem;color:#666;margin-top:4px;"></div></div>
+        <div class="otp-row" id="otpRow">
+          <input class="otp-box" type="tel" maxlength="1" id="o0" oninput="oi(0)" onkeydown="ok(event,0)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o1" oninput="oi(1)" onkeydown="ok(event,1)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o2" oninput="oi(2)" onkeydown="ok(event,2)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o3" oninput="oi(3)" onkeydown="ok(event,3)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o4" oninput="oi(4)" onkeydown="ok(event,4)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o5" oninput="oi(5)" onkeydown="ok(event,5)"/>
+        </div>
+        <div class="resend-row"><span id="timerTxt">Resend in <span id="countdown" style="color:var(--G);font-weight:800;">60s</span></span><button class="resend-btn" id="resendBtn" disabled onclick="resendOTP()">Resend OTP</button></div>
+        <button class="auth-cta" id="verifyBtn" onclick="verifyOTP()" disabled>✅ Verify &amp; Login</button>
+        <button onclick="backToPhone()" style="width:100%;padding:11px;background:none;border:none;font-size:.82rem;color:#888;cursor:pointer;margin-top:10px;">← Change Number</button>
+      </div>
+      <!-- Step Success -->
+      <div class="auth-step" id="stepSuccess">
+        <div style="text-align:center;padding:10px 0 16px;">
+          <div class="succ-tick">✅</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--M);font-weight:700;margin-bottom:5px;">Welcome to SK Sarees!</div>
+          <div id="succName" style="font-size:.85rem;color:#555;margin-bottom:4px;"></div>
+          <div id="succPhone" style="font-size:.8rem;color:#888;margin-bottom:16px;"></div>
+          <div style="background:var(--GP);border:1px solid var(--G);border-radius:10px;padding:12px;margin-bottom:16px;font-size:.82rem;color:var(--M);font-weight:700;">🎁 Use code <strong>SKNEW10</strong> for 10% off your first order!</div>
+          <button class="auth-cta" onclick="closeAuth()">🛍️ Start Shopping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<div class="announce">
+  <div class="announce-inner">
+    <span>🎊 Grand Diwali Sale – Up to 50% Off!</span><span>🚚 Free Shipping on Orders above ₹999</span><span>🪡 New Arrivals Every Week</span><span>💫 Authentic Kanchipuram Silk Available</span><span>📦 COD Available Across India</span><span>💬 WhatsApp: +91 98765 43210</span>
+    <span>🎊 Grand Diwali Sale – Up to 50% Off!</span><span>🚚 Free Shipping on Orders above ₹999</span><span>🪡 New Arrivals Every Week</span><span>💫 Authentic Kanchipuram Silk Available</span><span>📦 COD Available Across India</span><span>💬 WhatsApp: +91 98765 43210</span>
+  </div>
+</div>
+<header class="site-header">
+  <div class="header-main">
+    <div class="logo-wrap" onclick="go('home')">
+      <div class="logo-ring">SK</div>
+      <div class="logo-text"><div class="brand">SK Sarees</div><div class="tag">Quality &amp; Tradition</div></div>
+    </div>
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search sarees, fabric, color, occasion…" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button onclick="doSearch()">🔍 Search</button>
+      </div>
+    </div>
+    <div class="hdr-actions">
+      <button class="hdr-btn" onclick="openAuth()" id="loginBtn" title="Login / Account">
+        <span class="hb-icon">👤</span><span class="hb-label" id="hdrUserLabel">Login</span>
+      </button>
+      <button class="hdr-btn" onclick="go('wishlist')" title="Wishlist">
+        <span class="hb-icon">🤍</span><span class="hb-label">Wishlist</span>
+        <span class="hdr-badge" id="wBadge">0</span>
+      </button>
+      <button class="hdr-btn" onclick="go('cart')" title="Cart">
+        <span class="hb-icon">🛒</span><span class="hb-label">Cart</span>
+        <span class="hdr-badge" id="cBadge">0</span>
+      </button>
+      <button class="hdr-btn hdr-btn-orders" onclick="go('orders')" title="Orders"><span class="hb-icon">📦</span><span class="hb-label">Orders</span></button>
+      <button class="hdr-btn hdr-btn-profile" onclick="go('profile')" title="Profile"><span class="hb-icon">⚙️</span><span class="hb-label">Profile</span></button>
+    </div>
+  </div>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <span class="nav-link active" id="nl-home" onclick="go('home')">🏠 Home</span>
+      <span class="nav-link" id="nl-categories" onclick="go('categories')">🏷️ All Categories</span>
+      <span class="nav-link" onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</span>
+      <span class="nav-link" onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</span>
+      <span class="nav-link" onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</span>
+      <span class="nav-link" onclick="filter({catSlug:'art-silk-sarees'})">Art Silk</span>
+      <span class="nav-link" onclick="filter({catSlug:'georgette-sarees'})">Georgette</span>
+      <span class="nav-link" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</span>
+      <span class="nav-link" onclick="filter({bestSeller:true})">🔥 Best Sellers</span>
+      <span class="nav-link" onclick="filter({isNew:true})">✨ New Arrivals</span>
+      <span class="nav-link" id="nl-orders" onclick="go('orders')">📦 My Orders</span>
+    </div>
+  </nav>
+</header>
+
+<!-- ════════════════ PAGES ════════════════ -->
+
+<!-- HOME -->
+<div class="page active pb" id="page-home">
+
+  <!-- Hero -->
+  <div class="hero-wrap">
+    <div class="hero-slides" id="heroSlides">
+      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({catSlug:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'silk-sarees'})">View Silk Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="go('categories')">Browse All</button></div></div></div>
+      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
+    </div>
+    <button class="carousel-prev" onclick="slide(-1)">‹</button>
+    <button class="carousel-next" onclick="slide(1)">›</button>
+    <div class="carousel-dots" id="heroDots"></div>
+  </div>
+
+  <!-- Promo Strip -->
+  <div class="promo-strip">
+    <div class="promo-item"><div class="pi-icon">🚚</div><div><div class="pi-title">Free Shipping</div><div class="pi-sub">On orders above ₹999</div></div></div>
+    <div class="promo-item"><div class="pi-icon">↩️</div><div><div class="pi-title">Easy Returns</div><div class="pi-sub">7-day hassle-free returns</div></div></div>
+    <div class="promo-item"><div class="pi-icon">✅</div><div><div class="pi-title">100% Authentic</div><div class="pi-sub">Genuine fabric guaranteed</div></div></div>
+    <div class="promo-item"><div class="pi-icon">💬</div><div><div class="pi-title">WhatsApp Support</div><div class="pi-sub">Instant customer help</div></div></div>
+    <div class="promo-item"><div class="pi-icon">💵</div><div><div class="pi-title">COD Available</div><div class="pi-sub">Pay cash on delivery</div></div></div>
+  </div>
+
+  <!-- Flash Sale -->
+  <div class="sec"><div class="container">
+    <div class="flash-bar">
+      <div class="fb-left"><div class="fb-tag">⚡ LIMITED TIME OFFER</div><div class="fb-title">Up to 50% OFF</div><div class="fb-sub">On Selected Premium Sarees</div><div class="fb-timer" id="flashTimer"></div></div>
+      <div class="fb-right"><button class="btn btn-G btn-lg" onclick="filter({bestSeller:true})">Shop Sale Now</button></div>
+    </div>
+  </div></div>
+
+  <!-- Categories -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">Shop by Category</h2><span class="view-all" onclick="go('categories')">View All →</span></div>
+    <div class="cat-grid" id="homeCatGrid"></div>
+  </div></div>
+
+  <!-- Best Sellers -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">🔥 Best Sellers</h2><span class="view-all" onclick="filter({bestSeller:true})">View All →</span></div>
+    <div class="hscroll-row" id="bestSellersRow"></div>
+  </div></div>
+
+  <!-- Bridal Banner -->
+  <div class="sec sec-white"><div class="container">
+    <div class="bridal-banner" onclick="filter({catSlug:'bridal-sarees'})">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="Bridal Collection"/>
+      <div class="bb-overlay"></div>
+      <div class="bb-content">
+        <div class="bbc-tag">💍 EXCLUSIVE COLLECTION</div>
+        <h3>Bridal Sarees<br/>for Your Special Day</h3>
+        <p>Handcrafted Kanjeevaram &amp; Pure Silk bridal sarees<br/>with gold zari work – from ₹8,999</p>
+        <button class="btn btn-G">Explore Bridal →</button>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- Featured / Bridal products -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">💍 Featured Bridal</h2><span class="view-all" onclick="filter({catSlug:'bridal-sarees'})">View All →</span></div>
+    <div class="products-grid" id="featuredGrid"></div>
+  </div></div>
+
+  <!-- New Arrivals -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">✨ New Arrivals</h2><span class="view-all" onclick="filter({isNew:true})">View All →</span></div>
+    <div class="hscroll-row" id="newArrivalsRow"></div>
+  </div></div>
+
+  <!-- Offer Box -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="offer-box">
+      <div class="ob-icon">🎁</div>
+      <h3>First Order? Get 10% OFF!</h3>
+      <p>Use the code below at checkout to save on your first purchase</p>
+      <div class="ob-code">SKNEW10</div>
+      <button class="btn btn-G btn-lg" onclick="go('products')">Shop Now</button>
+    </div>
+  </div></div>
+
+  <!-- All Products -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">🛍️ All Products</h2><span class="view-all" onclick="go('products')">Browse All →</span></div>
+    <div class="products-grid" id="homeAllGrid"></div>
+    <div style="text-align:center;margin-top:28px;"><button class="btn btn-M btn-lg" onclick="go('products')">View All Sarees →</button></div>
+  </div></div>
+
+  <!-- Trust -->
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title" style="text-align:center;padding-bottom:10px;margin-bottom:20px;">Why Choose SK Sarees?</h2>
+    <div class="trust-grid">
+      <div class="trust-item"><div class="ti-icon">✅</div><div class="ti-title">100% Authentic</div><div class="ti-desc">Genuine certified fabric quality</div></div>
+      <div class="trust-item"><div class="ti-icon">🚚</div><div class="ti-title">Pan India Delivery</div><div class="ti-desc">3–7 business days nationwide</div></div>
+      <div class="trust-item"><div class="ti-icon">↩️</div><div class="ti-title">Easy 7-Day Returns</div><div class="ti-desc">Hassle-free return &amp; refund</div></div>
+      <div class="trust-item"><div class="ti-icon">💵</div><div class="ti-title">COD Available</div><div class="ti-desc">Pay cash when saree arrives</div></div>
+      <div class="trust-item"><div class="ti-icon">🔒</div><div class="ti-title">Secure Payments</div><div class="ti-desc">UPI, Card, Net Banking, COD</div></div>
+      <div class="trust-item"><div class="ti-icon">💬</div><div class="ti-title">WhatsApp Support</div><div class="ti-desc">Instant help 9 AM – 9 PM</div></div>
+    </div>
+  </div></div>
+</div><!-- /HOME -->
+
+<!-- CATEGORIES -->
+<div class="page pb" id="page-categories">
+  <div class="sec sec-white"><div class="container">
+    <h1 class="sec-title">Shop by Category</h1>
+    <div class="cats-page-grid" id="catsPageGrid"></div>
+  </div></div>
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title">Shop by Occasion</h2>
+    <div class="occasion-grid" id="occGrid"></div>
+  </div></div>
+  <div class="sec sec-white"><div class="container">
+    <h2 class="sec-title">Shop by Fabric</h2>
+    <div class="fabric-chips" id="fabChips"></div>
+  </div></div>
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title">Shop by Price</h2>
+    <div class="price-btns" id="priceBtns"></div>
+  </div></div>
+</div><!-- /CATEGORIES -->
+
+<!-- PRODUCTS LIST -->
+<div class="page pb" id="page-products">
+  <div class="sec"><div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div><h1 class="sec-title" id="productsTitle" style="margin-bottom:4px;">All Sarees</h1><div style="font-size:.8rem;color:var(--MUTED);" id="productsCount">Loading…</div></div>
+      <button class="back-btn" onclick="go('home')">← Back to Home</button>
+    </div>
+    <div class="filter-wrap">
+      <div class="filter-row">
+        <button class="filter-btn" id="filterToggle" onclick="toggleFilters()">🔽 Filters</button>
+        <select class="sort-sel" id="sortSel" onchange="applyFilters()">
+          <option value="default">Sort: Relevance</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="newest">Newest First</option>
+        </select>
+        <button class="filter-btn" id="vgBtn" onclick="setView('grid')" style="margin-left:auto;">⊞ Grid</button>
+        <button class="filter-btn" id="vlBtn" onclick="setView('list')">≡ List</button>
+      </div>
+    </div>
+    <div class="filter-panel" id="filterPanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><span style="font-weight:800;color:var(--M);font-size:.9rem;">Filter Products</span><button onclick="clearFilters()" style="color:var(--G);font-size:.8rem;font-weight:700;background:none;border:none;cursor:pointer;">Clear All</button></div>
+      <div class="fp-section"><div class="fp-label">Fabric</div><div class="fp-chips" id="fFabric"></div></div>
+      <div class="fp-section"><div class="fp-label">Occasion</div><div class="fp-chips" id="fOccasion"></div></div>
+      <div class="fp-section"><div class="fp-label">Price Range</div><div class="price-range-inputs"><input type="number" id="minP" placeholder="Min ₹" oninput="applyFilters()"/><span style="color:#999">–</span><input type="number" id="maxP" placeholder="Max ₹" oninput="applyFilters()"/></div></div>
+    </div>
+    <div id="productsContainer"></div>
+  </div></div>
+</div><!-- /PRODUCTS -->
+
+<!-- PRODUCT DETAIL -->
+<div class="page pb" id="page-detail">
+  <div class="sec"><div class="container">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <div id="detailContent"></div>
+  </div></div>
+</div><!-- /DETAIL -->
+
+<!-- CART -->
+<div class="page pb" id="page-cart">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title" id="cartTitle">My Cart</h1>
+    <div id="freeDelStrip" class="free-del-strip" style="display:none;margin-bottom:16px;border-radius:var(--RAD-SM);"></div>
+    <div id="cartMain"></div>
+  </div></div>
+</div><!-- /CART -->
+
+<!-- CHECKOUT -->
+<div class="page pb" id="page-checkout">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">Checkout</h1>
+    <div id="checkoutContent"></div>
+  </div></div>
+</div><!-- /CHECKOUT -->
+
+<!-- ORDERS -->
+<div class="page pb" id="page-orders">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">📦 My Orders</h1>
+    <div id="ordersContent"></div>
+  </div></div>
+</div><!-- /ORDERS -->
+
+<!-- WISHLIST -->
+<div class="page pb" id="page-wishlist">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">❤️ My Wishlist</h1>
+    <div id="wishContent"></div>
+  </div></div>
+</div><!-- /WISHLIST -->
+
+<!-- PROFILE -->
+<div class="page pb" id="page-profile">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">My Account</h1>
+    <div class="profile-layout">
+      <div>
+        <div class="profile-card">
+          <div class="profile-hero-bg">
+            <div class="p-avatar" id="pAvatar">👤</div>
+            <div class="p-name" id="pName">Guest Customer</div>
+            <div class="p-phone" id="pPhone">Not logged in</div>
+            <button class="p-edit-btn" id="pEditBtn" onclick="openAuth()">📱 Login / Sign Up</button>
+          </div>
+          <div class="p-stats">
+            <div class="p-stat"><div class="ps-icon">🛒</div><div class="ps-val" id="pStatCart">0</div><div class="ps-lbl">Cart</div></div>
+            <div class="p-stat"><div class="ps-icon">❤️</div><div class="ps-val" id="pStatWish">0</div><div class="ps-lbl">Wishlist</div></div>
+            <div class="p-stat"><div class="ps-icon">📦</div><div class="ps-val" id="pStatOrders">0</div><div class="ps-lbl">Orders</div></div>
+          </div>
+          <div id="profileAuthStrip" style="padding:14px;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="profile-card" style="margin-bottom:16px;">
+          <div class="menu-list">
+            <div class="menu-item" onclick="go('orders')"><span class="mi-icon">📦</span><div class="mi-text"><div class="mt-title">My Orders</div><div class="mt-desc">Track and view order history</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="go('wishlist')"><span class="mi-icon">❤️</span><div class="mi-text"><div class="mt-title">My Wishlist</div><div class="mt-desc">Saved items for later</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="go('cart')"><span class="mi-icon">🛒</span><div class="mi-text"><div class="mt-title">My Cart</div><div class="mt-desc">Items ready to checkout</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="toast('Language: English | தமிழ் – Coming soon!','info')"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About SK Sarees</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="window.open('admin.html','_blank')"><span class="mi-icon">🧾</span><div class="mi-text"><div class="mt-title">Seller Orders Dashboard</div><div class="mt-desc">View all customer orders</div></div><span class="mi-chevron">›</span></div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:20px;box-shadow:var(--SHADOW);">
+          <h3 style="font-size:.85rem;font-weight:800;color:var(--M);margin-bottom:14px;">📞 Contact Us</h3>
+          <div style="font-size:.82rem;color:#555;line-height:2.2;">
+            📞 <strong>+91 98765 43210</strong><br/>
+            📧 <strong>sk.sarees@gmail.com</strong><br/>
+            📍 Main Market Road, Coimbatore,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tamil Nadu – 641001<br/>
+            🕐 Mon–Sat: 9 AM – 9 PM
+          </div>
+          <button class="btn btn-wa btn-full" style="margin-top:14px;" onclick="openWA()">💬 Chat on WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div><!-- /PROFILE -->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="fb-logo">SK Sarees</div>
+      <p>Your trusted destination for premium quality sarees since 2010. We bring authentic Cotton, Silk, Bridal, Art Silk, Georgette &amp; Fancy sarees directly to your doorstep at the most affordable prices.</p>
+      <div class="social-icons">
+        <div class="si" title="Facebook">📘</div>
+        <div class="si" title="Instagram">📸</div>
+        <div class="si" title="YouTube">▶️</div>
+        <div class="si" title="WhatsApp" onclick="openWA()">💬</div>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Categories</h4>
+      <ul>
+        <li><a onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</a></li>
+        <li><a onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</a></li>
+        <li><a onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</a></li>
+        <li><a onclick="filter({catSlug:'art-silk-sarees'})">Art Silk Sarees</a></li>
+        <li><a onclick="filter({catSlug:'georgette-sarees'})">Georgette Sarees</a></li>
+        <li><a onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a onclick="go('home')">Home</a></li>
+        <li><a onclick="filter({bestSeller:true})">Best Sellers</a></li>
+        <li><a onclick="filter({isNew:true})">New Arrivals</a></li>
+        <li><a onclick="go('cart')">My Cart</a></li>
+        <li><a onclick="go('orders')">My Orders</a></li>
+        <li><a onclick="go('wishlist')">Wishlist</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a>📞 +91 98765 43210</a></li>
+        <li><a>📧 sk.sarees@gmail.com</a></li>
+        <li><a onclick="openWA()">💬 WhatsApp Support</a></li>
+        <li><a>↩️ Return Policy</a></li>
+        <li><a>🔒 Privacy Policy</a></li>
+        <li><a>📦 Shipping Info</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 SK Sarees. All rights reserved. | Quality &amp; Tradition Since 2010</p>
+    <p>Made with ❤️ for Indian Women</p>
+  </div>
+</footer>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bn-inner">
+    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
+    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label">Categories</span></button>
+    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label">Cart</span><span class="bn-badge" id="bnCartBadge">0</span></button>
+    <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label">Orders</span></button>
+    <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label">Profile</span></button>
+  </div>
+</nav>
+
+<!-- ════════════════ JAVASCRIPT ════════════════ -->
+<script>
+/* ── DATA ── */
+const CATS=[
+  {id:1,name:'Cotton Sarees',slug:'cotton-sarees',img:'https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:42},
+  {id:2,name:'Silk Sarees',slug:'silk-sarees',img:'https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:38},
+  {id:3,name:'Bridal Sarees',slug:'bridal-sarees',img:'https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:25},
+  {id:4,name:'Art Silk Sarees',slug:'art-silk-sarees',img:'https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:56},
+  {id:5,name:'Georgette Sarees',slug:'georgette-sarees',img:'https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:33},
+  {id:6,name:'Fancy Sarees',slug:'fancy-sarees',img:'https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:47},
+  {id:7,name:'Printed Sarees',slug:'printed-sarees',img:'https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:61},
+  {id:8,name:'Dhoti & Shirts',slug:'dhoti-shirts',img:'https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:18},
+];
+const HERO_IMGS=['https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940'];
+const P=[
+  {id:1,sku:'SK101',name:'Gayathri Pure Cotton Saree',desc:'Handwoven pure cotton saree with traditional border. Perfect for daily wear and office. Made from 100% natural cotton fibers providing comfort all day long.',price:549,op:899,disc:39,cat:'cotton-sarees',fab:'Cotton',col:'Pastel Pink',occ:'Daily Wear',len:'6.3m',care:'Hand wash in cold water. Do not bleach. Iron on low heat.',imgs:['https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.5,rev:128,bs:true,iN:false,ft:false},
+  {id:2,sku:'SK102',name:'Meenakshi Handloom Cotton Saree',desc:'Exquisite handloom cotton saree with contrasting border. Ideal for casual outings and festive occasions. Soft and breathable.',price:699,op:1199,disc:42,cat:'cotton-sarees',fab:'Cotton',col:'Sky Blue',occ:'Casual',len:'6.3m',care:'Hand wash separately. Dry in shade.',imgs:['https://images.pexels.com/photos/38325061/pexels-photo-38325061.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.3,rev:89,bs:false,iN:true,ft:false},
+  {id:3,sku:'SK103',name:'Kamakshi Temple Cotton Saree',desc:'Traditional temple design cotton saree with gold border. Perfect for puja and religious occasions. Elegant and comfortable.',price:799,op:1299,disc:38,cat:'cotton-sarees',fab:'Cotton',col:'Cream',occ:'Religious',len:'6.3m',care:'Dry clean recommended. Hand wash gentle.',imgs:['https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.6,rev:156,bs:true,iN:false,ft:false},
+  {id:4,sku:'SK104',name:'Lakshmi Soft Cotton Daily Wear',desc:'Ultra-soft premium cotton saree for comfortable daily wear. Lightweight and breathable fabric ideal for all seasons.',price:449,op:749,disc:40,cat:'cotton-sarees',fab:'Cotton',col:'Mint Green',occ:'Daily Wear',len:'6.3m',care:'Machine wash gentle cycle. Iron medium heat.',imgs:['https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.2,rev:73,bs:false,iN:true,ft:false},
+  {id:5,sku:'SK201',name:'Kanchipuram Pure Silk Saree',desc:'Authentic Kanchipuram pure silk saree with heavy gold zari border and pallu. Certificate of authenticity included. Perfect for weddings and grand occasions.',price:4999,op:7999,disc:37,cat:'silk-sarees',fab:'Pure Silk',col:'Red',occ:'Wedding',len:'6.3m',care:'Dry clean only. Store in muslin cloth.',imgs:['https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.9,rev:234,bs:true,iN:false,ft:false},
+  {id:6,sku:'SK202',name:'Banarasi Silk Saree – Golden Weave',desc:'Premium Banarasi silk saree with intricate golden weaving. Traditional Mughal motifs with modern elegance. Rich and luxurious.',price:3799,op:5999,disc:37,cat:'silk-sarees',fab:'Banarasi Silk',col:'Maroon',occ:'Festival',len:'6.3m',care:'Dry clean only. Handle with care.',imgs:['https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.8,rev:187,bs:true,iN:false,ft:false},
+  {id:7,sku:'SK203',name:'Dharmavaram Silk Saree – Heritage',desc:'Classic Dharmavaram silk saree with traditional South Indian patterns. Rich texture and vibrant colors for special occasions.',price:2999,op:4499,disc:33,cat:'silk-sarees',fab:'Dharmavaram Silk',col:'Deep Green',occ:'Wedding',len:'6.3m',care:'Dry clean preferred.',imgs:['https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.7,rev:142,bs:false,iN:false,ft:false},
+  {id:8,sku:'SK301',name:'Royal Bridal Silk Saree – SK365',desc:'Magnificent bridal silk saree with heavy embroidery and stone work. Comes with matching blouse piece. The epitome of bridal elegance for your most special day.',price:8999,op:14999,disc:40,cat:'bridal-sarees',fab:'Pure Silk',col:'Deep Red',occ:'Bridal',len:'6.3m',care:'Dry clean only. Professional handling required.',imgs:['https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:5.0,rev:67,bs:true,iN:false,ft:true},
+  {id:9,sku:'SK302',name:'Gayathri Bridal Kanjeevaram',desc:'Premium Kanjeevaram bridal saree with gold and silver zari work. Traditional Madisar style draping possible. Includes extra pallu length for grand look.',price:12999,op:19999,disc:35,cat:'bridal-sarees',fab:'Kanjeevaram Silk',col:'Gold',occ:'Bridal',len:'7.5m',care:'Dry clean only. Store with silica gel.',imgs:['https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.9,rev:43,bs:true,iN:false,ft:true},
+  {id:10,sku:'SK401',name:'Art Silk Saree – Festival Collection',desc:'Beautiful art silk saree with rich texture and vibrant colors. Perfect festival wear at an affordable price. Gives the look of pure silk.',price:899,op:1499,disc:40,cat:'art-silk-sarees',fab:'Art Silk',col:'Orange',occ:'Festival',len:'6.3m',care:'Hand wash in cold water. Do not wring.',imgs:['https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.4,rev:198,bs:true,iN:false,ft:false},
+  {id:11,sku:'SK402',name:'Premium Art Silk – Zari Border',desc:'Premium quality art silk saree with elegant zari border. Gives the look of pure silk at a fraction of the cost. Great for occasions.',price:1199,op:1999,disc:40,cat:'art-silk-sarees',fab:'Art Silk',col:'Royal Blue',occ:'Occasion Wear',len:'6.3m',care:'Dry clean or gentle hand wash.',imgs:['https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.5,rev:134,bs:false,iN:true,ft:false},
+  {id:12,sku:'SK501',name:'Premium Georgette Saree – Floral Print',desc:'Flowy georgette saree with beautiful floral prints. Perfect for parties and evening events. Light and elegant.',price:1299,op:2199,disc:41,cat:'georgette-sarees',fab:'Georgette',col:'Pink',occ:'Party',len:'6.3m',care:'Dry clean recommended. Hand wash cold.',imgs:['https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.6,rev:112,bs:false,iN:true,ft:false},
+  {id:13,sku:'SK502',name:'Embroidered Georgette Party Saree',desc:'Heavy embroidered georgette saree with sequin work. Glamorous party wear for special occasions. Turn heads at every event.',price:2499,op:3999,disc:38,cat:'georgette-sarees',fab:'Georgette',col:'Black',occ:'Party',len:'6.3m',care:'Dry clean only.',imgs:['https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.7,rev:89,bs:true,iN:false,ft:false},
+  {id:14,sku:'SK601',name:'Designer Fancy Saree – Party Wear',desc:'Trendy designer saree with modern patterns. A perfect blend of tradition and contemporary fashion for the modern woman.',price:1799,op:2999,disc:40,cat:'fancy-sarees',fab:'Mixed',col:'Purple',occ:'Party',len:'6.3m',care:'Dry clean recommended.',imgs:['https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.4,rev:76,bs:false,iN:true,ft:false},
+  {id:15,sku:'SK602',name:'Net Saree with Embellishments',desc:'Beautiful net saree with heavy stone work and sequins. Perfect for engagement and reception parties. Makes you look like a queen.',price:2199,op:3699,disc:41,cat:'fancy-sarees',fab:'Net',col:'Golden',occ:'Reception',len:'6.3m',care:'Dry clean only. Handle with care.',imgs:['https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.6,rev:94,bs:true,iN:false,ft:false},
+];
+const REVS={
+  1:[{n:'Priya S.',r:5,t:'Excellent quality cotton saree! Very comfortable to wear daily. The color is exactly as shown.'},{n:'Meena R.',r:4,t:'Good quality. Delivery was fast. Will order again.'}],
+  5:[{n:'Lakshmi K.',r:5,t:'Pure silk quality is outstanding. Bought for my daughter\'s wedding. Everyone complimented!'},{n:'Kavitha M.',r:5,t:'Exactly like the description. The zari work is beautiful. Highly recommended.'}],
+  8:[{n:'Deepa N.',r:5,t:'Perfect bridal saree! The embroidery is breathtaking. Worth every rupee.'}],
+  10:[{n:'Radha P.',r:4,t:'Beautiful art silk saree. Looks very expensive. Great for festival season.'}],
+  12:[{n:'Sundari V.',r:5,t:'Love this georgette saree! Very flowy and elegant for parties.'}],
+};
+
+/* ── STATE ── */
+let cart=JSON.parse(localStorage.getItem('sk_cart')||'[]');
+let wish=JSON.parse(localStorage.getItem('sk_wish')||'[]');
+let orders=JSON.parse(localStorage.getItem('sk_orders')||'[]');
+let curPage='home',prevPage='home',curProd=null,dQty=1;
+let afil={cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''};
+let cView='grid',cidx=0,ctimer=null,payM='cod',ckAddr={};
+let fbAuth=null,rcVerifier=null,confirmRes=null,resendInt=null,curUser=null;
+
+/* ── UTILS ── */
+const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
+const gP=id=>P.find(p=>p.id===id);
+function saveCart(){localStorage.setItem('sk_cart',JSON.stringify(cart));badges()}
+function saveWish(){localStorage.setItem('sk_wish',JSON.stringify(wish));badges()}
+function saveOrders(){localStorage.setItem('sk_orders',JSON.stringify(orders))}
+async function saveOrderRemote(order){
+  if(!window.FB_DB) return;
+  try {
+    await window.FB_DB.collection('orders').doc(order.num).set(order, { merge: true });
+  } catch (err) {
+    console.error('Firestore save failed:', err);
+  }
+}
+function starsHTML(r,sz=14){return`<span style="color:#F0CF72;font-size:${sz}px;">${'★'.repeat(Math.round(r))}</span><span style="color:#ddd;font-size:${sz}px;">${'☆'.repeat(5-Math.round(r))}</span>`}
+
+function toast(msg,type='ok'){
+  const c=document.getElementById('toastEl'),t=document.createElement('div');
+  t.className='toast '+(type==='ok'?'ok':type==='err'?'err':'');
+  t.innerHTML=(type==='ok'?'✅ ':type==='err'?'❌ ':'ℹ️ ')+msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(-10px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),320)},2600);
+}
+function badges(){
+  const cc=cart.reduce((s,i)=>s+i.qty,0),wc=wish.length;
+  ['cBadge','bnCartBadge'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=cc;el.style.display=cc>0?'flex':'none'}});
+  const wb=document.getElementById('wBadge');if(wb){wb.textContent=wc;wb.style.display=wc>0?'flex':'none';}
+  ['pStatCart','pStatWish','pStatOrders'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[cc,wc,orders.length][i]});
+}
+
+/* ── ROUTING ── */
+function go(name,extra){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  if(curPage!==name)prevPage=curPage;
+  curPage=name;
+  const pg=document.getElementById('page-'+name);
+  if(pg)pg.classList.add('active');
+  const bn=document.getElementById('bn-'+name);if(bn)bn.classList.add('active');
+  const nl=document.getElementById('nl-'+name);if(nl)nl.classList.add('active');
+  window.scrollTo({top:0,behavior:'auto'});
+  if(name==='home')renderHome();
+  if(name==='categories')renderCategories();
+  if(name==='products')renderProducts(extra);
+  if(name==='cart')renderCart();
+  if(name==='checkout')renderCheckout();
+  if(name==='orders')renderOrders();
+  if(name==='wishlist')renderWishlist();
+  if(name==='profile'){badges();renderProfileStrip();}
+}
+function goBack(){go(prevPage==='detail'?'home':prevPage)}
+function filter(opts){Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''},opts);go('products')}
+function doSearch(){const q=document.getElementById('searchInput').value.trim();if(!q)return;Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q});document.getElementById('searchInput').value='';go('products')}
+
+/* ── HERO CAROUSEL ── */
+function initCarousel(){
+  ['hImg0','hImg1','hImg2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.src=HERO_IMGS[i]});
+  const dotsEl=document.getElementById('heroDots');dotsEl.innerHTML='';
+  [0,1,2].forEach(i=>{const d=document.createElement('button');d.className='cdot'+(i===0?' active':'');d.onclick=()=>goTo(i);dotsEl.appendChild(d)});
+  ctimer=setInterval(()=>slide(1),4500);
+}
+function goTo(i){
+  cidx=i;
+  document.getElementById('heroSlides').style.transform=`translateX(-${i*100}%)`;
+  document.querySelectorAll('.cdot').forEach((d,j)=>d.classList.toggle('active',j===i));
+}
+function slide(d){goTo((cidx+d+3)%3)}
+
+/* ── FLASH TIMER ── */
+function startTimer(){
+  let s=9955;const el=document.getElementById('flashTimer');
+  setInterval(()=>{s--;if(s<0)s=86400;const h=String(Math.floor(s/3600)).padStart(2,'0'),m=String(Math.floor(s%3600/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');if(el)el.textContent=`⏱ Ends in ${h}:${m}:${ss}`},1000);
+}
+
+/* ── PRODUCT CARD ── */
+function pCard(p,mini=false){
+  const inW=wish.includes(p.id);
+  return`<div class="pcard${mini?'':''}" onclick="openProduct(${p.id})">
+    <div class="pcard-img">
+      <img src="${p.imgs[0]}" alt="${p.name}" loading="lazy"/>
+      <div class="pcard-badges">
+        ${p.disc>0?`<span class="badge-off">${p.disc}% OFF</span>`:''}
+        ${p.iN?'<span class="badge-new">NEW</span>':''}
+        ${p.bs?'<span class="badge-hot">🔥 HOT</span>':''}
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(${p.id})">${inW?'❤️':'🤍'}</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">${p.sku} | ${p.fab}</div>
+      <div class="pcard-name clamp2">${p.name}</div>
+      <div class="pcard-stars">${starsHTML(p.rat)} <span>(${p.rev})</span></div>
+      <div class="pcard-prices"><span class="price-now">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(${p.id})">🛒 Add to Cart</button>
+    </div>
+  </div>`;
+}
+
+/* ── HOME ── */
+function renderHome(){
+  const cg=document.getElementById('homeCatGrid');
+  if(cg)cg.innerHTML=CATS.map(c=>`<div class="cat-card" onclick="filter({cat:'${c.slug}'})"><div class="cat-img-ring"><img src="${c.img}" alt="${c.name}" loading="lazy"/><div class="cir-overlay"></div></div><div class="cat-name">${c.name}</div></div>`).join('');
+  const bs=document.getElementById('bestSellersRow');
+  if(bs)bs.innerHTML=P.filter(p=>p.bs).map(p=>pCard(p,true)).join('');
+  const fg=document.getElementById('featuredGrid');
+  if(fg)fg.innerHTML=P.filter(p=>p.ft).map(p=>pCard(p)).join('');
+  const na=document.getElementById('newArrivalsRow');
+  if(na)na.innerHTML=P.filter(p=>p.iN).map(p=>pCard(p,true)).join('');
+  const ag=document.getElementById('homeAllGrid');
+  if(ag)ag.innerHTML=P.slice(0,12).map(p=>pCard(p)).join('');
+}
+
+/* ── CATEGORIES PAGE ── */
+function renderCategories(){
+  document.getElementById('catsPageGrid').innerHTML=CATS.map(c=>`<div class="cat-page-card" onclick="filter({cat:'${c.slug}'})"><div class="cpc-img"><img src="${c.img}" alt="${c.name}" loading="lazy"/><div class="cpc-overlay"></div><div class="cpc-info"><div class="cpc-name">${c.name}</div><div class="cpc-count">${c.count}+ products</div></div></div></div>`).join('');
+  document.getElementById('occGrid').innerHTML=[['Wedding','💍'],['Festival','🪔'],['Casual','☀️'],['Party','🎉'],['Daily Wear','🌸'],['Religious','🕌'],['Office','💼'],['Reception','✨'],['Bridal','👰']].map(([o,e])=>`<div class="occ-item" onclick="filter({occ:'${o}'})"><div class="occ-icon">${e}</div><div class="occ-name">${o}</div></div>`).join('');
+  document.getElementById('fabChips').innerHTML=[['Cotton','#2e7d32'],['Pure Silk','#7B1C1C'],['Banarasi Silk','#e65100'],['Art Silk','#6a1b9a'],['Georgette','#1565c0'],['Net','#00695c'],['Dharmavaram Silk','#880e4f']].map(([f,c])=>`<span class="fab-chip" style="background:${c};" onclick="filter({fab:'${f}'})">${f}</span>`).join('');
+  document.getElementById('priceBtns').innerHTML=[['Under ₹500','#e8f5e9','#2e7d32',0,499],['₹500–₹1,000','#fff8e1','#f57f17',500,1000],['₹1,000–₹2,500','#e3f2fd','#1565c0',1001,2500],['₹2,500–₹5,000','#fce4ec','#c62828',2501,5000],['₹5,000–₹10,000','#f3e5f5','#6a1b9a',5001,10000],['₹10,000+','#fff8e1','#C9A84C',10001,99999]].map(([l,bg,c,mn,mx])=>`<div class="price-btn" style="background:${bg};color:${c};border-color:${c}33;" onclick="filter({min:${mn},max:${mx}})">${l}</div>`).join('');
+}
+
+/* ── PRODUCTS LIST ── */
+function buildFChips(cid,items,key){
+  document.getElementById(cid).innerHTML=items.map(v=>`<span class="fchip${afil[key]===v?' on':''}" onclick="toggleFil('${key}','${v}')">${v}</span>`).join('');
+}
+function renderProducts(opts){
+  if(opts)Object.assign(afil,opts);
+  buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');
+  buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');
+  const mi=document.getElementById('minP'),ma=document.getElementById('maxP');
+  if(mi&&afil.min)mi.value=afil.min;if(ma&&afil.max)ma.value=afil.max;
+  applyFilters();setTitle();
+}
+function setTitle(){
+  const t=document.getElementById('productsTitle');
+  if(!t)return;
+  if(afil.q)t.textContent=`Search: "${afil.q}"`;
+  else if(afil.cat){const c=CATS.find(c=>c.slug===afil.cat);t.textContent=c?c.name:'Sarees';}
+  else if(afil.bs)t.textContent='Best Sellers';
+  else if(afil.iN)t.textContent='New Arrivals';
+  else if(afil.occ)t.textContent=afil.occ+' Sarees';
+  else if(afil.fab)t.textContent=afil.fab+' Sarees';
+  else t.textContent='All Sarees';
+}
+function applyFilters(){
+  const sort=document.getElementById('sortSel')?.value||'default';
+  const mn=parseFloat(document.getElementById('minP')?.value)||0;
+  const mx=parseFloat(document.getElementById('maxP')?.value)||Infinity;
+  afil.min=mn||'';afil.max=mx===Infinity?'':mx;
+  let res=P.filter(p=>{
+    if(afil.cat&&p.cat!==afil.cat)return false;
+    if(afil.fab&&!p.fab.toLowerCase().includes(afil.fab.toLowerCase()))return false;
+    if(afil.occ&&!p.occ.toLowerCase().includes(afil.occ.toLowerCase()))return false;
+    if(afil.bs&&!p.bs)return false;
+    if(afil.iN&&!p.iN)return false;
+    if(afil.q){const q=afil.q.toLowerCase();if(!p.name.toLowerCase().includes(q)&&!p.sku.toLowerCase().includes(q)&&!p.fab.toLowerCase().includes(q)&&!p.col.toLowerCase().includes(q))return false;}
+    if(p.price<mn)return false;
+    if(mx!==Infinity&&p.price>mx)return false;
+    return true;
+  });
+  if(sort==='price_asc')res.sort((a,b)=>a.price-b.price);
+  else if(sort==='price_desc')res.sort((a,b)=>b.price-a.price);
+  else if(sort==='rating')res.sort((a,b)=>b.rat-a.rat);
+  else if(sort==='newest')res.sort((a,b)=>b.id-a.id);
+  else res.sort((a,b)=>(b.bs?1:0)-(a.bs?1:0)||(b.rat-a.rat));
+  const cnt=document.getElementById('productsCount');
+  if(cnt)cnt.textContent=`${res.length} products found`;
+  const cont=document.getElementById('productsContainer');
+  if(!cont)return;
+  if(!res.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><div class="es-title">No products found</div><div class="es-sub">Try adjusting your filters or search terms.</div><button class="btn btn-M btn-lg" onclick="clearFilters()">Clear Filters</button></div>`;return;}
+  if(cView==='grid'){cont.innerHTML=`<div class="products-grid">${res.map(p=>pCard(p)).join('')}</div>`;}
+  else{cont.innerHTML=res.map(p=>`<div style="background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:14px;display:flex;gap:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;" onclick="openProduct(${p.id})"><img src="${p.imgs[0]}" style="width:100px;height:120px;border-radius:8px;flex-shrink:0;" loading="lazy" alt="${p.name}"/><div style="flex:1;min-width:0;"><div style="font-size:.64rem;color:#C9A84C;font-weight:700;">${p.sku} | ${p.fab}</div><div style="font-size:.9rem;font-weight:700;margin:4px 0 5px;">${p.name}</div><div>${starsHTML(p.rat,13)} <span style="font-size:.7rem;color:#aaa;">(${p.rev})</span></div><div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;"><span style="font-size:1.05rem;font-weight:900;color:#7B1C1C;">${fmt(p.price)}</span><span style="font-size:.78rem;color:#bbb;text-decoration:line-through;">${fmt(p.op)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-M btn-sm" onclick="event.stopPropagation();addCart(${p.id})">Add to Cart</button><button onclick="event.stopPropagation();toggleWish(${p.id})" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">${wish.includes(p.id)?'❤️':'🤍'}</button></div></div></div>`).join('');}
+}
+function toggleFil(k,v){afil[k]=afil[k]===v?'':v;buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
+function clearFilters(){Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''});const mi=document.getElementById('minP'),ma=document.getElementById('maxP');if(mi)mi.value='';if(ma)ma.value='';buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
+function toggleFilters(){const fp=document.getElementById('filterPanel'),btn=document.getElementById('filterToggle');const open=fp.style.display==='none'||fp.style.display==='';fp.style.display=open?'block':'none';btn.classList.toggle('on',open)}
+function setView(v){cView=v;document.getElementById('vgBtn').classList.toggle('on',v==='grid');document.getElementById('vlBtn').classList.toggle('on',v==='list');applyFilters()}
+
+/* ── PRODUCT DETAIL ── */
+function openProduct(id){
+  curProd=id;dQty=1;
+  const p=gP(id);if(!p)return;
+  prevPage=curPage;
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
+  document.getElementById('page-detail').classList.add('active');
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  curPage='detail';
+  window.scrollTo({top:0,behavior:'auto'});
+  renderDetail(p);
+}
+function renderDetail(p){
+  const inW=wish.includes(p.id);
+  const revs=REVS[p.id]||[];
+  const sav=p.op-p.price;
+  document.getElementById('detailContent').innerHTML=`
+  <div class="detail-wrap">
+    <div class="detail-gallery">
+      <div class="main-img"><img id="dMainImg" src="${p.imgs[0]}" alt="${p.name}"/></div>
+      ${p.imgs.length>1?`<div class="thumb-row">${p.imgs.map((im,i)=>`<div class="thumb${i===0?' active':''}" onclick="switchImg('${im}',this)"><img src="${im}" alt=""/></div>`).join('')}</div>`:''}
+    </div>
+    <div class="detail-info">
+      <div class="di-sku">SKU: ${p.sku} · ${p.cat.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+      <h1 class="di-name">${p.name}</h1>
+      <div class="detail-rating"><div class="dr-stars">${starsHTML(p.rat,18)}</div><div class="dr-val">${p.rat}</div><div class="dr-count">(${p.rev} reviews)</div></div>
+      <div class="price-box">
+        <div class="price-row"><span class="price-main">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span>${p.disc>0?`<span class="badge-disc">${p.disc}% OFF</span>`:''}</div>
+        <div class="price-savings">🎉 You save ${fmt(sav)} on this order!</div>
+        <div class="price-incl">Inclusive of all taxes · Free delivery above ₹999</div>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-item"><div class="si-lbl">Fabric</div><div class="si-val">${p.fab}</div></div>
+        <div class="spec-item"><div class="si-lbl">Color</div><div class="si-val">${p.col}</div></div>
+        <div class="spec-item"><div class="si-lbl">Length</div><div class="si-val">${p.len}</div></div>
+        <div class="spec-item"><div class="si-lbl">Occasion</div><div class="si-val">${p.occ}</div></div>
+      </div>
+      <div style="margin-bottom:16px;"><h3 style="font-size:.85rem;font-weight:700;color:var(--M);margin-bottom:8px;">Description</h3><p style="font-size:.83rem;color:#555;line-height:1.7;">${p.desc}</p></div>
+      <div class="care-box"><h4>🧺 Care Instructions</h4><p>${p.care}</p></div>
+      <div class="delivery-strip"><span class="ds-icon">🚚</span><div><div class="ds-title">${p.price>=999?'Free Delivery':'Delivery Charge: ₹49'}</div><div class="ds-sub">Expected delivery: 3–7 business days</div></div></div>
+      <div class="qty-row"><div class="qty-ctrl"><button onclick="dQty=Math.max(1,dQty-1);document.getElementById('dQtyVal').textContent=dQty">−</button><span id="dQtyVal">1</span><button onclick="dQty++;document.getElementById('dQtyVal').textContent=dQty">+</button></div><span style="font-size:.8rem;color:var(--MUTED);">In Stock ✅</span></div>
+      <div class="cta-row">
+        <button class="btn btn-outline btn-lg" onclick="addCartN(${p.id},dQty)">🛒 Add to Cart</button>
+        <button class="btn btn-M btn-lg" onclick="addCartN(${p.id},dQty);go('cart')">Buy Now</button>
+        <button class="btn btn-${inW?'M':'outline'} btn-lg" onclick="toggleWish(${p.id});this.textContent=wish.includes(${p.id})?'❤️ Saved':'🤍 Wishlist'">${inW?'❤️ Saved':'🤍 Wishlist'}</button>
+      </div>
+      <button class="btn btn-wa btn-full btn-lg" onclick="openWA('${p.name}')">💬 Order via WhatsApp</button>
+      <button onclick="shareP()" style="width:100%;margin-top:10px;padding:10px;background:#f5f5f5;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;color:#555;">📤 Share Product</button>
+    </div>
+  </div>
+  ${revs.length?`<div style="margin-top:32px;background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
+    <h3 class="sec-title">Customer Reviews (${revs.length})</h3>
+    ${revs.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join('')}
+  </div>`:''}`;
+}
+function switchImg(src,el){document.getElementById('dMainImg').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+function shareP(){const p=gP(curProd);if(!p)return;const txt=`Check out "${p.name}" on SK Sarees! Only ${fmt(p.price)}. Quality guaranteed.`;if(navigator.share)navigator.share({title:p.name,text:txt,url:location.href});else window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank')}
+
+/* ── CART ── */
+function addCart(id){addCartN(id,1)}
+function addCartN(id,qty){
+  const e=cart.find(i=>i.id===id);
+  if(e)e.qty+=qty;else cart.push({id,qty});
+  saveCart();toast('Added to cart! 🛒');
+}
+function renderCart(){
+  const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);
+  const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;
+  document.getElementById('cartTitle').textContent=`My Cart (${cart.length} items)`;
+  const strip=document.getElementById('freeDelStrip');
+  if(tot>0&&tot<999){strip.textContent=`🚚 Add ₹${(999-tot).toFixed(0)} more for FREE delivery!`;strip.style.display='block';}else strip.style.display='none';
+  const cm=document.getElementById('cartMain');
+  if(!cart.length){cm.innerHTML=`<div class="empty-state"><div class="es-icon">🛒</div><div class="es-title">Your Cart is Empty</div><div class="es-sub">Add beautiful sarees to your cart to get started!</div><button class="btn btn-M btn-lg" onclick="go('products')">Browse Sarees</button></div>`;return;}
+  cm.innerHTML=`<div class="cart-layout">
+    <div class="cart-items-col">
+      ${cart.map(item=>{const p=gP(item.id);if(!p)return'';return`<div class="cart-item">
+        <img src="${p.imgs[0]}" alt="${p.name}" onclick="openProduct(${p.id})" loading="lazy"/>
+        <div class="ci-info">
+          <div class="ci-sku">${p.sku}</div>
+          <div class="ci-name clamp2">${p.name}</div>
+          <div class="ci-meta">${p.fab} · ${p.col}</div>
+          <div class="ci-row">
+            <div class="ci-qty"><button onclick="updCart(${item.id},-1)">−</button><span>${item.qty}</span><button onclick="updCart(${item.id},1)">+</button></div>
+            <span class="ci-price">${fmt(p.price*item.qty)}</span>
+          </div>
+          ${p.op?`<div style="font-size:.73rem;color:#bbb;text-decoration:line-through;margin-top:2px;">${fmt(p.op*item.qty)}</div>`:''}
+          <button class="ci-rm" onclick="rmCart(${item.id})">🗑️ Remove</button>
+        </div>
+      </div>`;}).join('')}
+    </div>
+    <div class="cart-sidebar">
+      <div class="cs-box">
+        <h3>Promo Code</h3>
+        <div class="promo-wrap"><input type="text" placeholder="SKNEW10" id="promoIn"/><button class="btn btn-G" onclick="applyPromo()">Apply</button></div>
+      </div>
+      <div class="cs-box">
+        <h3>Order Summary</h3>
+        <div class="cs-row"><span class="cs-lbl">Subtotal (${cart.reduce((s,i)=>s+i.qty,0)} items)</span><span class="cs-val">${fmt(tot)}</span></div>
+        <div class="cs-row"><span class="cs-lbl">Delivery</span><span class="cs-val ${del===0?'green':''}">${del===0?'FREE 🎉':fmt(del)}</span></div>
+        <div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">${disc>0?'-'+fmt(disc):'—'}</span></div>
+        <div class="cs-divider"></div>
+        <div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
+        ${disc>0?`<div style="font-size:.75rem;color:#2e7d32;font-weight:600;margin-top:6px;">🎉 You save ${fmt(disc)} on this order!</div>`:''}
+        <button class="btn btn-M btn-full btn-lg" style="margin-top:16px;" onclick="go('checkout')">Proceed to Checkout →</button>
+        <button style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:.83rem;color:#7B1C1C;font-weight:700;cursor:pointer;" onclick="go('products')">+ Continue Shopping</button>
+      </div>
+    </div>
+  </div>`;
+}
+function updCart(id,d){const item=cart.find(i=>i.id===id);if(!item)return;item.qty=Math.max(0,item.qty+d);if(item.qty===0)cart=cart.filter(i=>i.id!==id);saveCart();renderCart()}
+function rmCart(id){cart=cart.filter(i=>i.id!==id);saveCart();renderCart();toast('Removed from cart')}
+function applyPromo(){const c=document.getElementById('promoIn').value.trim().toUpperCase();if(c==='SKNEW10')toast('Promo code applied! 10% discount added ✅');else toast('Invalid promo code ❌','err')}
+
+/* ── WISHLIST ── */
+function toggleWish(id){const i=wish.indexOf(id);if(i>=0){wish.splice(i,1);toast('Removed from wishlist')}else{wish.push(id);toast('Added to wishlist! ❤️')}saveWish();renderWishlist()}
+function renderWishlist(){
+  const wc=document.getElementById('wishContent');
+  if(!wc)return;
+  if(!wish.length){wc.innerHTML=`<div class="empty-state"><div class="es-icon">🤍</div><div class="es-title">Your Wishlist is Empty</div><div class="es-sub">Save your favourite sarees here!</div><button class="btn btn-M btn-lg" onclick="go('products')">Explore Sarees</button></div>`;return;}
+  wc.innerHTML=`<div class="products-grid">${wish.map(id=>{const p=gP(id);return p?pCard(p):'';}).join('')}</div>`;
+}
+
+/* ── CHECKOUT ── */
+const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Puducherry'];
+function renderCheckout(){payM='cod';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
+function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;return{tot,del,disc,fin}}
+function addrForm(){
+  const {tot,del,disc,fin}=cartTotals();
+  return`<div class="checkout-layout"><div>
+  <div class="ck-card">
+    <div class="ck-steps"><div class="ck-step-item"><div class="cs-bubble done">📍</div><span class="cs-slabel act">1. Address</span></div><span class="cs-arrow">→</span><div class="ck-step-item"><div class="cs-bubble pend">💳</div><span class="cs-slabel ina">2. Payment</span></div></div>
+    <h3>📍 Delivery Address</h3>
+    <div class="fg-row2"><div class="fg"><label>Full Name *</label><input id="aName" placeholder="Your full name" required/></div><div class="fg"><label>Phone *</label><input id="aPhone" type="tel" placeholder="10-digit mobile" required/></div></div>
+    <div class="fg"><label>Address Line 1 *</label><input id="aLine1" placeholder="House no., Street, Area" required/></div>
+    <div class="fg"><label>Landmark / Address Line 2</label><input id="aLine2" placeholder="Landmark (optional)"/></div>
+    <div class="fg-row2"><div class="fg"><label>City *</label><input id="aCity" placeholder="City" required/></div><div class="fg"><label>Pincode *</label><input id="aPin" placeholder="6-digit PIN" maxlength="6" required/></div></div>
+    <div class="fg"><label>State *</label><select id="aState"><option value="Tamil Nadu">Tamil Nadu</option>${STATES.filter(s=>s!=='Tamil Nadu').map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
+    <button class="btn btn-M btn-full btn-lg" onclick="submitAddr()">Continue to Payment →</button>
+  </div>
+  </div>
+  <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>${cart.slice(0,3).map(i=>{const p=gP(i.id);return p?`<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;"><img src="${p.imgs[0]}" style="width:50px;height:58px;border-radius:7px;" alt=""/><div style="flex:1;font-size:.8rem;font-weight:600;">${p.name}<br/><span style="color:#aaa;font-size:.7rem;">Qty: ${i.qty}</span></div><span style="font-weight:800;color:#7B1C1C;font-size:.87rem;">${fmt(p.price*i.qty)}</span></div>`:''}).join('')}${cart.length>3?`<div style="text-align:center;font-size:.73rem;color:#999;">+ ${cart.length-3} more items</div>`:''}
+  <div class="cs-divider"></div><div class="cs-row"><span class="cs-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div></div></div></div>`;
+}
+function submitAddr(){
+  const [n,ph,l1,l2,ci,pi,st]=['aName','aPhone','aLine1','aLine2','aCity','aPin','aState'].map(id=>document.getElementById(id)?.value?.trim()||'');
+  if(!n||!ph||!l1||!ci||!pi){toast('Please fill all required fields','err');return;}
+  if(ph.length<10){toast('Enter a valid 10-digit phone number','err');return;}
+  ckAddr={name:n,phone:ph,line1:l1,line2:l2,city:ci,pincode:pi,state:st};
+  document.getElementById('checkoutContent').innerHTML=payForm();
+}
+function payForm(){
+  const {tot,del,disc,fin}=cartTotals();
+  return`<div class="checkout-layout"><div>
+  <div class="ck-card">
+    <div class="ck-steps"><div class="ck-step-item"><div class="cs-bubble done">✅</div><span class="cs-slabel ina">1. Address</span></div><span class="cs-arrow">→</span><div class="ck-step-item"><div class="cs-bubble done">💳</div><span class="cs-slabel act">2. Payment</span></div></div>
+    <h3>💳 Payment Method</h3>
+    <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
+    ${[{v:'cod',icon:'💵',name:'Cash on Delivery',desc:'Pay when your saree arrives',sec:false},{v:'upi',icon:'📱',name:'UPI / PhonePe / GPay',desc:'Pay via UPI (powered by Razorpay)',sec:true},{v:'card',icon:'💳',name:'Credit / Debit Card',desc:'Visa, Mastercard, RuPay',sec:true},{v:'netbanking',icon:'🏦',name:'Net Banking',desc:'All major Indian banks',sec:true}].map(pm=>`<div class="pm-opt${pm.v==='cod'?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure via Razorpay</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
+  </div>
+  </div>
+  <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>
+  <div class="cs-row"><span class="cs-lbl">Subtotal</span><span class="cs-val">${fmt(tot)}</span></div>
+  <div class="cs-row"><span class="cs-lbl">Delivery</span><span class="cs-val ${del===0?'green':''}">${del===0?'FREE':fmt(del)}</span></div>
+  ${disc>0?`<div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">-${fmt(disc)}</span></div>`:''}
+  <div class="cs-divider"></div><div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
+  <button class="btn btn-M btn-full btn-lg" style="margin-top:16px;" onclick="placeOrder()">Place Order – ${fmt(fin)}</button>
+  <p style="text-align:center;font-size:.7rem;color:#aaa;margin-top:8px;">🔒 Your info is 100% secure</p>
+  </div></div></div>`;
+}
+function selPM(v){payM=v;document.querySelectorAll('.pm-opt').forEach(o=>o.classList.remove('sel'));document.getElementById('pm-'+v).classList.add('sel')}
+async function placeOrder(){
+  const {tot,del,disc,fin}=cartTotals();
+  const num='SK'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
+  const order={
+    id:Date.now(),
+    num,
+    items:cart.map(i=>{const p=gP(i.id);return p?{id:i.id,name:p.name,sku:p.sku,img:p.imgs[0],qty:i.qty,price:p.price,total:p.price*i.qty}:null}).filter(Boolean),
+    addr:ckAddr,
+    customerName:(curUser&&curUser.displayName)||ckAddr.name||'Guest Customer',
+    customerPhone:(curUser&&curUser.phoneNumber)||ckAddr.phone||'',
+    customerUid:curUser?curUser.uid:'',
+    pm:payM,
+    status:'confirmed',
+    ps:payM==='cod'?'pending':'paid',
+    tot:fin,
+    sub:tot,
+    del,
+    disc,
+    date:new Date().toISOString()
+  };
+  orders.unshift(order);saveOrders();
+  await saveOrderRemote(order);
+  cart=[];saveCart();
+  document.getElementById('checkoutContent').innerHTML=`<div class="success-wrap">
+    <div class="success-tick">🎉</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--M);margin-bottom:8px;">Order Placed!</h2>
+    <p style="color:#666;margin-bottom:20px;">Thank you for shopping with SK Sarees!</p>
+    <div class="on-box"><div style="font-size:.75rem;color:#888;margin-bottom:4px;">Order Number</div><div style="font-size:1.4rem;font-weight:900;color:var(--M);">${num}</div><div style="font-size:.8rem;color:#888;margin-top:6px;">${payM==='cod'?'💵 Pay cash on delivery':'✅ Online payment confirmed'}</div></div>
+    <p style="font-size:.85rem;color:#666;margin-bottom:24px;max-width:420px;margin-left:auto;margin-right:auto;">Your saree will be delivered in 3–7 business days. We will notify you via WhatsApp once it's shipped.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-M btn-lg" onclick="go('orders')">Track My Order</button>
+      <button class="btn btn-outline btn-lg" onclick="go('home')">Continue Shopping</button>
+    </div>
+  </div>`;
+}
+
+/* ── ORDERS ── */
+const STATUS={confirmed:{label:'Confirmed',icon:'✅',cls:'sb-confirmed',pct:25},processing:{label:'Processing',icon:'⚙️',cls:'sb-confirmed',pct:50},shipped:{label:'Shipped',icon:'🚚',cls:'sb-shipped',pct:75},delivered:{label:'Delivered',icon:'🎉',cls:'sb-delivered',pct:100},cancelled:{label:'Cancelled',icon:'❌',cls:'sb-cancelled',pct:0},pending:{label:'Placed',icon:'📋',cls:'sb-pending',pct:10}};
+function renderOrders(){
+  const oc=document.getElementById('ordersContent');
+  if(!orders.length){oc.innerHTML=`<div class="empty-state"><div class="es-icon">📦</div><div class="es-title">No Orders Yet</div><div class="es-sub">Place your first order and it will appear here!</div><button class="btn btn-M btn-lg" onclick="go('products')">Shop Now</button></div>`;return;}
+  oc.innerHTML=`<div class="orders-layout">${orders.map(ord=>{const st=STATUS[ord.status]||STATUS.pending;const dt=new Date(ord.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});const a=ord.addr||{};
+  return`<div class="order-card">
+    <div class="oc-head" onclick="toggleOB(${ord.id})">
+      <div class="oc-meta"><div class="oc-num">Order # ${ord.num}</div><div class="oc-date">${dt}</div></div>
+      <div class="oc-right"><div class="oc-amt">${fmt(ord.tot)}</div><span class="status-badge ${st.cls}">${st.icon} ${st.label}</span></div>
+    </div>
+    ${ord.status!=='cancelled'?`<div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${st.pct}%"></div></div><div class="prog-labels">${['Placed','Confirmed','Shipped','Delivered'].map((s,i)=>`<span class="${st.pct>=(i+1)*25?'done':''}">${s}</span>`).join('')}</div>`:''}
+    <div class="oc-body" id="ob${ord.id}">
+      ${ord.items.map(it=>`<div class="oi-item"><img src="${it.img}" alt="${it.name}"/><div><div class="oi-name">${it.name}</div><div class="oi-sku">${it.sku} · Qty: ${it.qty}</div></div><span class="oi-total">${fmt(it.total)}</span></div>`).join('')}
+      <div class="addr-prev" style="margin-top:10px;"><h4>📍 Delivery Address</h4><p>${a.name}, ${a.phone}<br/>${a.line1}${a.line2?', '+a.line2:''}<br/>${a.city}, ${a.state} – ${a.pincode}</p></div>
+      <div style="font-size:.77rem;color:#888;margin-top:6px;">💳 ${ord.pm==='cod'?'Cash on Delivery':'Online Payment'} · <span style="color:${ord.ps==='paid'?'#2e7d32':'#f57f17'};font-weight:700;">${ord.ps==='paid'?'✅ Paid':'⏳ Pending'}</span></div>
+    </div>
+  </div>`;}).join('')}</div>`;
+}
+function toggleOB(id){const el=document.getElementById('ob'+id);if(el)el.style.display=el.style.display==='block'?'none':'block'}
+
+/* ── PROFILE ── */
+function renderProfileStrip(){
+  const s=document.getElementById('profileAuthStrip');if(!s)return;
+  if(curUser){
+    const dn=curUser.displayName||'SK Customer';
+    s.innerHTML=`<div class="user-strip"><div class="us-avatar">📱</div><div><div class="us-name">${dn}</div><div class="us-phone">${curUser.phoneNumber}</div><div class="us-ver">✅ Phone Verified</div></div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>`;
+  }else{
+    s.innerHTML=`<div class="login-cta-box"><div><div class="lc-title">📱 Login with Phone OTP</div><div class="lc-sub">Secure · Fast · No Password Needed</div></div><button class="btn btn-M btn-sm" onclick="openAuth()">Login / Sign Up</button></div>`;
+  }
+}
+function updateProfileHeader(user){
+  const pa=document.getElementById('pAvatar'),pn=document.getElementById('pName'),pp=document.getElementById('pPhone'),pb=document.getElementById('pEditBtn');
+  if(user){const dn=user.displayName||'SK Customer';if(pa)pa.textContent=dn.slice(0,2).toUpperCase();if(pn)pn.textContent=dn;if(pp)pp.innerHTML=`${user.phoneNumber} <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.58rem;padding:2px 8px;border-radius:12px;margin-left:6px;">✅ Verified</span>`;if(pb){pb.textContent='✏️ Edit Name';pb.onclick=editName;}}
+  else{if(pa)pa.textContent='👤';if(pn)pn.textContent='Guest Customer';if(pp)pp.textContent='Not logged in';if(pb){pb.textContent='📱 Login / Sign Up';pb.onclick=openAuth;}}
+  const hl=document.getElementById('hdrUserLabel');if(hl)hl.textContent=user?(user.displayName||'Account'):'Login';
+}
+function showAbout(){alert('SK Sarees\n\nYour trusted destination for premium quality sarees since 2010.\n\nContact: +91 98765 43210\nEmail: sk.sarees@gmail.com\nAddress: Main Market Road, Coimbatore, TN 641001\n\nQuality & Tradition Since 2010 🪡')}
+
+/* ── WHATSAPP ── */
+function openWA(prod){const ph='919876543210';const msg=prod?`Hi! I'm interested in buying "${prod}" from SK Sarees. Can you help me?`:'Hi! I need help with SK Sarees. Can you assist me?';window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank')}
+
+/* ── FIREBASE AUTH ── */
+function initFB(){
+  if(!FB_ON){console.warn('Firebase not configured. Fill FIREBASE_CONFIG in index.html.');return;}
+  fbAuth=firebase.auth();
+  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  fbAuth.onAuthStateChanged(user=>{curUser=user;updateProfileHeader(user);renderProfileStrip();badges()});
+}
+function openAuth(){
+  if(!FB_ON){alert('Firebase not configured!\n\nTo enable Phone OTP login:\n1. Go to console.firebase.google.com\n2. Create a project\n3. Enable Phone Authentication\n4. Copy your Firebase config\n5. Paste it into FIREBASE_CONFIG in index.html\n\nSee the hosting guide for full instructions.');return;}
+  if(curUser){if(confirm(`Signed in as ${curUser.displayName||curUser.phoneNumber}\n\nDo you want to sign out?`))signOut();return;}
+  resetAuth();document.getElementById('authModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(initRecap,200);
+}
+function closeAuth(){document.getElementById('authModal').classList.remove('open');document.body.style.overflow='';clearInterval(resendInt)}
+function resetAuth(){['stepPhone','stepOTP','stepSuccess'].forEach((id,i)=>{const el=document.getElementById(id);if(el){el.className='auth-step'+(i===0?' show':'')}});const pi=document.getElementById('phoneInput');if(pi)pi.value='';for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true}
+function showStep(name){['Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
+function initRecap(){
+  if(!FB_ON)return;const c=document.getElementById('recap-container');c.innerHTML='';
+  try{rcVerifier=new firebase.auth.RecaptchaVerifier('recap-container',{size:'normal',callback:()=>{const ph=document.getElementById('phoneInput').value.trim();if(ph.length===10)document.getElementById('sendOTPBtn').disabled=false},'expired-callback':()=>{document.getElementById('sendOTPBtn').disabled=true}});rcVerifier.render()}catch(e){console.error(e)}
+}
+function validatePhone(){const ph=document.getElementById('phoneInput').value.trim();document.getElementById('sendOTPBtn').disabled=!(ph.length===10&&/^[6-9]\d{9}$/.test(ph))}
+async function sendOTP(){
+  if(!FB_ON)return;const ph=document.getElementById('phoneInput').value.trim();
+  if(ph.length!==10||!/^[6-9]\d{9}$/.test(ph)){toast('Enter a valid 10-digit Indian mobile number','err');return;}
+  const btn=document.getElementById('sendOTPBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Sending…';
+  try{confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);document.getElementById('otpSentTo').textContent=`Enter the 6-digit OTP sent to +91 ${ph}`;showStep('OTP');startCountdown();document.getElementById('o0').focus();toast('OTP sent! 📨')}
+  catch(e){console.error(e);btn.disabled=false;btn.innerHTML='Send OTP →';handleFBErr(e);initRecap()}
+}
+async function resendOTP(){
+  if(!FB_ON)return;const ph=document.getElementById('phoneInput').value.trim();if(!ph)return;
+  document.getElementById('resendBtn').disabled=true;
+  try{const c=document.getElementById('recap-container');c.innerHTML='';const rv=new firebase.auth.RecaptchaVerifier('recap-container',{size:'invisible'});confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rv);startCountdown();toast('OTP resent! 📨');for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus()}
+  catch(e){handleFBErr(e);document.getElementById('resendBtn').disabled=false}
+}
+function startCountdown(){
+  clearInterval(resendInt);let t=60;
+  const cd=document.getElementById('countdown'),tt=document.getElementById('timerTxt'),rb=document.getElementById('resendBtn');
+  if(tt)tt.style.display='inline';if(rb){rb.style.display='none';rb.disabled=true}
+  resendInt=setInterval(()=>{t--;if(cd)cd.textContent=t+'s';if(t<=0){clearInterval(resendInt);if(tt)tt.style.display='none';if(rb){rb.style.display='inline';rb.disabled=false}}},1000);
+}
+function backToPhone(){showStep('Phone');clearInterval(resendInt);confirmRes=null;initRecap()}
+function oi(i){const b=document.getElementById('o'+i);b.value=b.value.replace(/\D/g,'').slice(-1);b.classList.toggle('filled',b.value!=='');if(b.value&&i<5)document.getElementById('o'+(i+1)).focus();checkOTP()}
+function ok(e,i){if(e.key==='Backspace'&&!document.getElementById('o'+i).value&&i>0){const p=document.getElementById('o'+(i-1));p.value='';p.classList.remove('filled');p.focus()}if(e.key==='Enter')verifyOTP()}
+function getOTP(){let s='';for(let i=0;i<6;i++)s+=document.getElementById('o'+i).value;return s}
+function checkOTP(){document.getElementById('verifyBtn').disabled=getOTP().length!==6}
+async function verifyOTP(){
+  if(!confirmRes){toast('Please request an OTP first','err');return;}
+  const otp=getOTP();if(otp.length!==6){toast('Enter all 6 digits','err');return;}
+  const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Verifying…';
+  try{const res=await confirmRes.confirm(otp);const user=res.user;clearInterval(resendInt);
+    if(!user.displayName){const nm=prompt('Welcome! Enter your name:','');if(nm&&nm.trim())await user.updateProfile({displayName:nm.trim()})}
+    document.getElementById('succName').textContent=`Welcome, ${user.displayName||'SK Sarees Customer'}! 🎉`;
+    document.getElementById('succPhone').textContent=user.phoneNumber;
+    showStep('Success');updateProfileHeader(user);toast('Login successful! Welcome to SK Sarees 🎉')}
+  catch(e){console.error(e);btn.disabled=false;btn.innerHTML='✅ Verify & Login';handleFBErr(e);const row=document.getElementById('otpRow');if(row){row.style.animation='shake .4s';setTimeout(()=>row.style.animation='',500)}for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus()}
+}
+async function signOut(){if(fbAuth){await fbAuth.signOut();toast('Signed out successfully');updateProfileHeader(null);renderProfileStrip()}}
+async function editName(){if(!curUser)return;const n=prompt('Enter your name:',curUser.displayName||'');if(n&&n.trim()&&n.trim()!==curUser.displayName){await curUser.updateProfile({displayName:n.trim()});updateProfileHeader(fbAuth.currentUser);toast('Name updated!')}}
+function handleFBErr(e){const M={'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.','auth/too-many-requests':'Too many attempts. Please wait a few minutes.','auth/invalid-verification-code':'Wrong OTP. Please try again.','auth/code-expired':'OTP expired. Request a new one.','auth/network-request-failed':'Network error. Check your connection.','auth/captcha-check-failed':'reCAPTCHA failed. Please try again.'};toast(M[e.code]||'Authentication error: '+e.message,'err')}
+
+/* ── AUTH MODAL BACKDROP ── */
+document.getElementById('authModal').addEventListener('click',function(e){if(e.target===this)closeAuth()});
+
+/* ── SHAKE KEYFRAME ── */
+const sk=document.createElement('style');sk.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}';document.head.appendChild(sk);
+
+/* ── TOUCH SWIPE CAROUSEL ── */
+let tx=0;
+document.querySelector('.hero-wrap').addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.querySelector('.hero-wrap').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)slide(dx<0?1:-1)},{passive:true});
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  initCarousel();
+  startTimer();
+  renderHome();
+  badges();
+  initFB();
+});
+</script>
+</body>
+</html>
