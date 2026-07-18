@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SK Sarees – Elegant Sarees at Best Price | Quality & Tradition</title>
-<meta name="description" content="SK Sarees – Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees. Authentic quality at affordable prices. Shop online with COD available."/>
-<meta name="keywords" content="sarees online, silk sarees, cotton sarees, bridal sarees, kanchipuram sarees, SK Sarees"/>
-<meta name="theme-color" content="#7B1C1C"/>
-<meta property="og:title" content="SK Sarees – Elegant Sarees at Best Price"/>
-<meta property="og:description" content="Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees at Affordable Prices"/>
-<meta property="og:type" content="website"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SK Sarees – Elegant Sarees at Best Price | Quality &amp; Tradition</title>
+<meta name="description" content="SK Sarees – Premium Cotton, Silk, Bridal, Art Silk, Georgette &amp; Fancy Sarees. Authentic quality at affordable prices. Shop online with COD available.">
+<meta name="keywords" content="sarees online, silk sarees, cotton sarees, bridal sarees, kanchipuram sarees, SK Sarees">
+<meta name="theme-color" content="#7B1C1C">
+<meta property="og:title" content="SK Sarees – Elegant Sarees at Best Price">
+<meta property="og:description" content="Premium Cotton, Silk, Bridal, Art Silk, Georgette &amp; Fancy Sarees at Affordable Prices">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -20,7 +18,7 @@
 <script>
 /* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
 const FIREBASE_CONFIG = {
- apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
   authDomain: "sksareesapp.firebaseapp.com",
   projectId: "sksareesapp",
   storageBucket: "sksareesapp.firebasestorage.app",
@@ -521,7 +519,7 @@ ul{list-style:none}
   .bottom-nav{display:block}
   .site-nav{display:none}
   .hdr-btn .hb-label{display:none}
-  .hdr-btn .hdr-btn-orders,.hdr-btn-profile{display:none}
+  .hdr-btn-orders,.hdr-btn-profile{display:none!important}
   .pb{padding-bottom:72px}
   .products-grid{grid-template-columns:1fr 1fr}
   .products-grid.grid2{grid-template-columns:1fr 1fr}
@@ -529,20 +527,43 @@ ul{list-style:none}
   .footer-top{grid-template-columns:1fr 1fr}
   .cats-page-grid{grid-template-columns:1fr 1fr}
   .cta-row .btn{flex:1 1 100%}
+  .header-main{padding:8px 10px;gap:6px}
+  .logo-ring{width:36px;height:36px;font-size:.9rem}
+  .logo-text .brand{font-size:1rem}
+  .logo-text .tag{display:none}
+  .search-box input{padding:8px 10px;font-size:.8rem}
+  .search-box button{padding:8px 10px;font-size:.8rem}
+  .hdr-actions{gap:2px}
+  .hdr-btn{padding:4px 6px}
+  .hdr-btn .hb-icon{font-size:1.15rem}
+  .hero-content{right:18%}
+  .hero-content h1{font-size:clamp(1.1rem,3.5vw,1.5rem)}
+  .hero-cta-row .btn{font-size:.72rem;padding:7px 12px}
+  .cat-grid{grid-template-columns:repeat(4,1fr);gap:10px}
+  .cat-name{font-size:.65rem}
+  .flash-bar{padding:14px}
+  .fb-left .fb-title{font-size:1.2rem}
+}
+@media(max-width:380px){
+  .header-main{gap:4px;padding:6px 8px}
+  .logo-ring{width:32px;height:32px;font-size:.85rem}
+  .logo-text .brand{font-size:.9rem}
+  .search-box input{padding:7px 8px;font-size:.78rem}
+  .search-box button{padding:7px 8px;font-size:.75rem}
+  .hdr-btn{padding:3px 4px}
+  .cat-grid{grid-template-columns:repeat(3,1fr)}
+  .hero-content{right:10%}
+  .hscroll-row .pcard{min-width:155px;max-width:155px}
 }
 @media(max-width:480px){
-  .header-main{padding:10px 12px;gap:10px}
-  .logo-text .tag{display:none}
-  .search-wrap{max-width:none}
   .footer-top{grid-template-columns:1fr}
-  .hscroll-row .pcard{min-width:170px;max-width:170px}
   .fg-row2{grid-template-columns:1fr}
 }
 @media(min-width:701px){
   .wa-float{bottom:24px}
 }
 </style>
-</head>
+<style>@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}</style></head>
 <body>
 
 <!-- TOAST -->
@@ -550,7 +571,7 @@ ul{list-style:none}
 
 <!-- WA FLOAT -->
 <button class="wa-float" onclick="openWA()" aria-label="WhatsApp">
-  <svg width="27" height="27" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  <svg width="27" height="27" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
 </button>
 
 <!-- AUTH MODAL -->
@@ -563,37 +584,48 @@ ul{list-style:none}
         <h2>SK Sarees</h2>
         <p>Login for exclusive offers &amp; order tracking</p>
       </div>
+      <!-- AUTH TABS -->
+      <div style="display:flex;border-bottom:2px solid #eee;margin-bottom:16px;">
+        <button id="tabEmail" onclick="showAuthTab('email')" style="flex:1;padding:10px;border:none;background:none;font-weight:700;font-size:.85rem;color:var(--M);border-bottom:3px solid var(--M);cursor:pointer;">📧 Email Login</button>
+        <button id="tabPhone" onclick="showAuthTab('phone')" style="flex:1;padding:10px;border:none;background:none;font-weight:700;font-size:.85rem;color:#aaa;border-bottom:3px solid transparent;cursor:pointer;">📱 Phone OTP</button>
+      </div>
+
+      <!-- Step Email -->
+      <div class="auth-step show" id="stepEmail">
+        <div class="fg" style="margin-bottom:10px"><label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:5px;">Email Address *</label><input id="emailInput" type="email" placeholder="your@email.com" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:.9rem;" onkeydown="if(event.key==='Enter')emailLogin()"></div>
+        <div class="fg" style="margin-bottom:14px"><label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:5px;">Password *</label><input id="passInput" type="password" placeholder="Min 6 characters" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:.9rem;" onkeydown="if(event.key==='Enter')emailLogin()"></div>
+        <button class="auth-cta" id="emailLoginBtn" onclick="emailLogin()">🔐 Login / Sign Up</button>
+        <p style="text-align:center;font-size:.7rem;color:#aaa;margin-top:8px;">Auto-creates account if new email</p>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span><div style="flex:1;height:1px;background:#eee"></div></div>
+        <button onclick="closeAuth()" style="width:100%;padding:12px;background:#f5f5f5;border:none;border-radius:10px;font-size:.88rem;color:#666;font-weight:600;cursor:pointer;">Continue as Guest</button>
+      </div>
+
       <!-- Step Phone -->
-      <div class="auth-step show" id="stepPhone">
-        <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-          <div style="font-size:.77rem;font-weight:700;color:#1565c0;margin-bottom:3px;">📱 Phone OTP Login</div>
-          <div style="font-size:.72rem;color:#555;">We'll send a 6-digit OTP to verify your Indian mobile. No password needed!</div>
-        </div>
+      <div class="auth-step" id="stepPhone">
         <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:7px;">Mobile Number *</label>
         <div class="phone-row">
           <div class="ph-code">🇮🇳 +91</div>
-          <input class="ph-input" id="phoneInput" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);validatePhone()" onkeydown="if(event.key==='Enter')sendOTP()"/>
+          <input class="ph-input" id="phoneInput" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);validatePhone()" onkeydown="if(event.key==='Enter')sendOTP()">
         </div>
         <div id="recap-container"></div>
         <p class="recap-hint">Protected by Google reCAPTCHA</p>
-        <button class="auth-cta" id="sendOTPBtn" onclick="sendOTP()" disabled>Send OTP →</button>
+        <button class="auth-cta" id="sendOTPBtn" onclick="sendOTP()" disabled="">Send OTP →</button>
         <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span><div style="flex:1;height:1px;background:#eee"></div></div>
         <button onclick="closeAuth()" style="width:100%;padding:12px;background:#f5f5f5;border:none;border-radius:10px;font-size:.88rem;color:#666;font-weight:600;cursor:pointer;">Continue as Guest</button>
-        <p style="text-align:center;font-size:.66rem;color:#bbb;margin-top:12px;">By continuing, you agree to our Terms &amp; Privacy Policy.</p>
       </div>
       <!-- Step OTP -->
       <div class="auth-step" id="stepOTP">
         <div style="text-align:center;margin-bottom:16px;"><div style="font-size:2rem;margin-bottom:6px;">📨</div><div style="font-size:.95rem;font-weight:700;">OTP Sent!</div><div id="otpSentTo" style="font-size:.8rem;color:#666;margin-top:4px;"></div></div>
         <div class="otp-row" id="otpRow">
-          <input class="otp-box" type="tel" maxlength="1" id="o0" oninput="oi(0)" onkeydown="ok(event,0)"/>
-          <input class="otp-box" type="tel" maxlength="1" id="o1" oninput="oi(1)" onkeydown="ok(event,1)"/>
-          <input class="otp-box" type="tel" maxlength="1" id="o2" oninput="oi(2)" onkeydown="ok(event,2)"/>
-          <input class="otp-box" type="tel" maxlength="1" id="o3" oninput="oi(3)" onkeydown="ok(event,3)"/>
-          <input class="otp-box" type="tel" maxlength="1" id="o4" oninput="oi(4)" onkeydown="ok(event,4)"/>
-          <input class="otp-box" type="tel" maxlength="1" id="o5" oninput="oi(5)" onkeydown="ok(event,5)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o0" oninput="oi(0)" onkeydown="ok(event,0)">
+          <input class="otp-box" type="tel" maxlength="1" id="o1" oninput="oi(1)" onkeydown="ok(event,1)">
+          <input class="otp-box" type="tel" maxlength="1" id="o2" oninput="oi(2)" onkeydown="ok(event,2)">
+          <input class="otp-box" type="tel" maxlength="1" id="o3" oninput="oi(3)" onkeydown="ok(event,3)">
+          <input class="otp-box" type="tel" maxlength="1" id="o4" oninput="oi(4)" onkeydown="ok(event,4)">
+          <input class="otp-box" type="tel" maxlength="1" id="o5" oninput="oi(5)" onkeydown="ok(event,5)">
         </div>
-        <div class="resend-row"><span id="timerTxt">Resend in <span id="countdown" style="color:var(--G);font-weight:800;">60s</span></span><button class="resend-btn" id="resendBtn" disabled onclick="resendOTP()">Resend OTP</button></div>
-        <button class="auth-cta" id="verifyBtn" onclick="verifyOTP()" disabled>✅ Verify &amp; Login</button>
+        <div class="resend-row"><span id="timerTxt">Resend in <span id="countdown" style="color:var(--G);font-weight:800;">60s</span></span><button class="resend-btn" id="resendBtn" disabled="" onclick="resendOTP()">Resend OTP</button></div>
+        <button class="auth-cta" id="verifyBtn" onclick="verifyOTP()" disabled="">✅ Verify &amp; Login</button>
         <button onclick="backToPhone()" style="width:100%;padding:11px;background:none;border:none;font-size:.82rem;color:#888;cursor:pointer;margin-top:10px;">← Change Number</button>
       </div>
       <!-- Step Success -->
@@ -626,7 +658,7 @@ ul{list-style:none}
     </div>
     <div class="search-wrap">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search sarees, fabric, color, occasion…" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <input type="text" id="searchInput" placeholder="Search sarees, fabric, color, occasion…" onkeydown="if(event.key==='Enter')doSearch()">
         <button onclick="doSearch()">🔍 Search</button>
       </div>
     </div>
@@ -636,11 +668,11 @@ ul{list-style:none}
       </button>
       <button class="hdr-btn" onclick="go('wishlist')" title="Wishlist">
         <span class="hb-icon">🤍</span><span class="hb-label">Wishlist</span>
-        <span class="hdr-badge" id="wBadge">0</span>
+        <span class="hdr-badge" id="wBadge" style="display: flex;">1</span>
       </button>
       <button class="hdr-btn" onclick="go('cart')" title="Cart">
         <span class="hb-icon">🛒</span><span class="hb-label">Cart</span>
-        <span class="hdr-badge" id="cBadge">0</span>
+        <span class="hdr-badge" id="cBadge" style="display: none;">0</span>
       </button>
       <button class="hdr-btn hdr-btn-orders" onclick="go('orders')" title="Orders"><span class="hb-icon">📦</span><span class="hb-label">Orders</span></button>
       <button class="hdr-btn hdr-btn-profile" onclick="go('profile')" title="Profile"><span class="hb-icon">⚙️</span><span class="hb-label">Profile</span></button>
@@ -666,18 +698,18 @@ ul{list-style:none}
 <!-- ════════════════ PAGES ════════════════ -->
 
 <!-- HOME -->
-<div class="page active pb" id="page-home">
+<div class="page pb" id="page-home">
 
   <!-- Hero -->
   <div class="hero-wrap">
-    <div class="hero-slides" id="heroSlides">
-      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({catSlug:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'silk-sarees'})">View Silk Sarees</button></div></div></div>
-      <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="go('categories')">Browse All</button></div></div></div>
-      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
+    <div class="hero-slides" id="heroSlides" style="transform: translateX(-100%);">
+      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale" src="https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({catSlug:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'silk-sarees'})">View Silk Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg1" alt="New Arrivals" src="https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="go('categories')">Browse All</button></div></div></div>
+      <div class="hero-slide"><img id="hImg2" alt="Diwali Special" src="https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
     </div>
     <button class="carousel-prev" onclick="slide(-1)">‹</button>
     <button class="carousel-next" onclick="slide(1)">›</button>
-    <div class="carousel-dots" id="heroDots"></div>
+    <div class="carousel-dots" id="heroDots"><button class="cdot"></button><button class="cdot active"></button><button class="cdot"></button></div>
   </div>
 
   <!-- Promo Strip -->
@@ -692,7 +724,7 @@ ul{list-style:none}
   <!-- Flash Sale -->
   <div class="sec"><div class="container">
     <div class="flash-bar">
-      <div class="fb-left"><div class="fb-tag">⚡ LIMITED TIME OFFER</div><div class="fb-title">Up to 50% OFF</div><div class="fb-sub">On Selected Premium Sarees</div><div class="fb-timer" id="flashTimer"></div></div>
+      <div class="fb-left"><div class="fb-tag">⚡ LIMITED TIME OFFER</div><div class="fb-title">Up to 50% OFF</div><div class="fb-sub">On Selected Premium Sarees</div><div class="fb-timer" id="flashTimer">⏱ Ends in 02:44:40</div></div>
       <div class="fb-right"><button class="btn btn-G btn-lg" onclick="filter({bestSeller:true})">Shop Sale Now</button></div>
     </div>
   </div></div>
@@ -700,24 +732,177 @@ ul{list-style:none}
   <!-- Categories -->
   <div class="sec sec-white"><div class="container">
     <div class="sec-hdr"><h2 class="sec-title">Shop by Category</h2><span class="view-all" onclick="go('categories')">View All →</span></div>
-    <div class="cat-grid" id="homeCatGrid"></div>
+    <div class="cat-grid" id="homeCatGrid"><div class="cat-card" onclick="filter({cat:'cotton-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=400&amp;w=400" alt="Cotton Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Cotton Sarees</div></div><div class="cat-card" onclick="filter({cat:'silk-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=400&amp;w=400" alt="Silk Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Silk Sarees</div></div><div class="cat-card" onclick="filter({cat:'bridal-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=400&amp;w=400" alt="Bridal Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Bridal Sarees</div></div><div class="cat-card" onclick="filter({cat:'art-silk-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=400&amp;w=400" alt="Art Silk Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Art Silk Sarees</div></div><div class="cat-card" onclick="filter({cat:'georgette-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=400&amp;w=400" alt="Georgette Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Georgette Sarees</div></div><div class="cat-card" onclick="filter({cat:'fancy-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=400&amp;w=400" alt="Fancy Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Fancy Sarees</div></div><div class="cat-card" onclick="filter({cat:'printed-sarees'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=400&amp;w=400" alt="Printed Sarees" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Printed Sarees</div></div><div class="cat-card" onclick="filter({cat:'dhoti-shirts'})"><div class="cat-img-ring"><img src="https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=400&amp;w=400" alt="Dhoti &amp; Shirts" loading="lazy"><div class="cir-overlay"></div></div><div class="cat-name">Dhoti &amp; Shirts</div></div></div>
   </div></div>
 
   <!-- Best Sellers -->
   <div class="sec sec-cream"><div class="container">
     <div class="sec-hdr"><h2 class="sec-title">🔥 Best Sellers</h2><span class="view-all" onclick="filter({bestSeller:true})">View All →</span></div>
-    <div class="hscroll-row" id="bestSellersRow"></div>
+    <div class="hscroll-row" id="bestSellersRow"><div class="pcard" onclick="openProduct(1)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Gayathri Pure Cotton Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">39% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(1)">❤️</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK101 | Cotton</div>
+      <div class="pcard-name clamp2">Gayathri Pure Cotton Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(128)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹549</span><span class="price-old">₹899</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(1)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(3)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Kamakshi Temple Cotton Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">38% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(3)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK103 | Cotton</div>
+      <div class="pcard-name clamp2">Kamakshi Temple Cotton Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(156)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹799</span><span class="price-old">₹1,299</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(3)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(5)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Kanchipuram Pure Silk Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">37% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(5)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK201 | Pure Silk</div>
+      <div class="pcard-name clamp2">Kanchipuram Pure Silk Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(234)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹4,999</span><span class="price-old">₹7,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(5)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(6)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Banarasi Silk Saree – Golden Weave" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">37% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(6)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK202 | Banarasi Silk</div>
+      <div class="pcard-name clamp2">Banarasi Silk Saree – Golden Weave</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(187)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹3,799</span><span class="price-old">₹5,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(6)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(8)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Royal Bridal Silk Saree – SK365" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(8)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK301 | Pure Silk</div>
+      <div class="pcard-name clamp2">Royal Bridal Silk Saree – SK365</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(67)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹8,999</span><span class="price-old">₹14,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(8)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(9)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Gayathri Bridal Kanjeevaram" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">35% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(9)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK302 | Kanjeevaram Silk</div>
+      <div class="pcard-name clamp2">Gayathri Bridal Kanjeevaram</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(43)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹12,999</span><span class="price-old">₹19,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(9)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(10)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Art Silk Saree – Festival Collection" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(10)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK401 | Art Silk</div>
+      <div class="pcard-name clamp2">Art Silk Saree – Festival Collection</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(198)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹899</span><span class="price-old">₹1,499</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(10)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(13)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Embroidered Georgette Party Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">38% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(13)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK502 | Georgette</div>
+      <div class="pcard-name clamp2">Embroidered Georgette Party Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(89)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹2,499</span><span class="price-old">₹3,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(13)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(15)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Net Saree with Embellishments" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">41% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(15)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK602 | Net</div>
+      <div class="pcard-name clamp2">Net Saree with Embellishments</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(94)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹2,199</span><span class="price-old">₹3,699</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(15)">🛒 Add to Cart</button>
+    </div>
+  </div></div>
   </div></div>
 
   <!-- Bridal Banner -->
   <div class="sec sec-white"><div class="container">
     <div class="bridal-banner" onclick="filter({catSlug:'bridal-sarees'})">
-      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="Bridal Collection"/>
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940" alt="Bridal Collection">
       <div class="bb-overlay"></div>
       <div class="bb-content">
         <div class="bbc-tag">💍 EXCLUSIVE COLLECTION</div>
-        <h3>Bridal Sarees<br/>for Your Special Day</h3>
-        <p>Handcrafted Kanjeevaram &amp; Pure Silk bridal sarees<br/>with gold zari work – from ₹8,999</p>
+        <h3>Bridal Sarees<br>for Your Special Day</h3>
+        <p>Handcrafted Kanjeevaram &amp; Pure Silk bridal sarees<br>with gold zari work – from ₹8,999</p>
         <button class="btn btn-G">Explore Bridal →</button>
       </div>
     </div>
@@ -726,13 +911,132 @@ ul{list-style:none}
   <!-- Featured / Bridal products -->
   <div class="sec sec-cream"><div class="container">
     <div class="sec-hdr"><h2 class="sec-title">💍 Featured Bridal</h2><span class="view-all" onclick="filter({catSlug:'bridal-sarees'})">View All →</span></div>
-    <div class="products-grid" id="featuredGrid"></div>
+    <div class="products-grid" id="featuredGrid"><div class="pcard" onclick="openProduct(8)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Royal Bridal Silk Saree – SK365" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(8)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK301 | Pure Silk</div>
+      <div class="pcard-name clamp2">Royal Bridal Silk Saree – SK365</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(67)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹8,999</span><span class="price-old">₹14,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(8)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(9)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Gayathri Bridal Kanjeevaram" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">35% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(9)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK302 | Kanjeevaram Silk</div>
+      <div class="pcard-name clamp2">Gayathri Bridal Kanjeevaram</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(43)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹12,999</span><span class="price-old">₹19,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(9)">🛒 Add to Cart</button>
+    </div>
+  </div></div>
   </div></div>
 
   <!-- New Arrivals -->
   <div class="sec sec-white"><div class="container">
     <div class="sec-hdr"><h2 class="sec-title">✨ New Arrivals</h2><span class="view-all" onclick="filter({isNew:true})">View All →</span></div>
-    <div class="hscroll-row" id="newArrivalsRow"></div>
+    <div class="hscroll-row" id="newArrivalsRow"><div class="pcard" onclick="openProduct(2)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/38325061/pexels-photo-38325061.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Meenakshi Handloom Cotton Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">42% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(2)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK102 | Cotton</div>
+      <div class="pcard-name clamp2">Meenakshi Handloom Cotton Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(89)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹699</span><span class="price-old">₹1,199</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(2)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(4)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Lakshmi Soft Cotton Daily Wear" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(4)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK104 | Cotton</div>
+      <div class="pcard-name clamp2">Lakshmi Soft Cotton Daily Wear</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(73)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹449</span><span class="price-old">₹749</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(4)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(11)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Premium Art Silk – Zari Border" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(11)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK402 | Art Silk</div>
+      <div class="pcard-name clamp2">Premium Art Silk – Zari Border</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(134)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹1,199</span><span class="price-old">₹1,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(11)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(12)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Premium Georgette Saree – Floral Print" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">41% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(12)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK501 | Georgette</div>
+      <div class="pcard-name clamp2">Premium Georgette Saree – Floral Print</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(112)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹1,299</span><span class="price-old">₹2,199</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(12)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(14)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Designer Fancy Saree – Party Wear" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(14)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK601 | Mixed</div>
+      <div class="pcard-name clamp2">Designer Fancy Saree – Party Wear</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(76)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹1,799</span><span class="price-old">₹2,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(14)">🛒 Add to Cart</button>
+    </div>
+  </div></div>
   </div></div>
 
   <!-- Offer Box -->
@@ -749,7 +1053,211 @@ ul{list-style:none}
   <!-- All Products -->
   <div class="sec sec-white"><div class="container">
     <div class="sec-hdr"><h2 class="sec-title">🛍️ All Products</h2><span class="view-all" onclick="go('products')">Browse All →</span></div>
-    <div class="products-grid" id="homeAllGrid"></div>
+    <div class="products-grid" id="homeAllGrid"><div class="pcard" onclick="openProduct(1)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Gayathri Pure Cotton Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">39% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(1)">❤️</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK101 | Cotton</div>
+      <div class="pcard-name clamp2">Gayathri Pure Cotton Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(128)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹549</span><span class="price-old">₹899</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(1)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(2)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/38325061/pexels-photo-38325061.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Meenakshi Handloom Cotton Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">42% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(2)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK102 | Cotton</div>
+      <div class="pcard-name clamp2">Meenakshi Handloom Cotton Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(89)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹699</span><span class="price-old">₹1,199</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(2)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(3)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Kamakshi Temple Cotton Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">38% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(3)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK103 | Cotton</div>
+      <div class="pcard-name clamp2">Kamakshi Temple Cotton Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(156)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹799</span><span class="price-old">₹1,299</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(3)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(4)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Lakshmi Soft Cotton Daily Wear" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(4)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK104 | Cotton</div>
+      <div class="pcard-name clamp2">Lakshmi Soft Cotton Daily Wear</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(73)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹449</span><span class="price-old">₹749</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(4)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(5)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Kanchipuram Pure Silk Saree" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">37% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(5)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK201 | Pure Silk</div>
+      <div class="pcard-name clamp2">Kanchipuram Pure Silk Saree</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(234)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹4,999</span><span class="price-old">₹7,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(5)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(6)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Banarasi Silk Saree – Golden Weave" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">37% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(6)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK202 | Banarasi Silk</div>
+      <div class="pcard-name clamp2">Banarasi Silk Saree – Golden Weave</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(187)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹3,799</span><span class="price-old">₹5,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(6)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(7)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Dharmavaram Silk Saree – Heritage" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">33% OFF</span>
+        
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(7)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK203 | Dharmavaram Silk</div>
+      <div class="pcard-name clamp2">Dharmavaram Silk Saree – Heritage</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(142)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹2,999</span><span class="price-old">₹4,499</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(7)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(8)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Royal Bridal Silk Saree – SK365" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(8)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK301 | Pure Silk</div>
+      <div class="pcard-name clamp2">Royal Bridal Silk Saree – SK365</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(67)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹8,999</span><span class="price-old">₹14,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(8)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(9)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Gayathri Bridal Kanjeevaram" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">35% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(9)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK302 | Kanjeevaram Silk</div>
+      <div class="pcard-name clamp2">Gayathri Bridal Kanjeevaram</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(43)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹12,999</span><span class="price-old">₹19,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(9)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(10)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Art Silk Saree – Festival Collection" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        
+        <span class="badge-hot">🔥 HOT</span>
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(10)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK401 | Art Silk</div>
+      <div class="pcard-name clamp2">Art Silk Saree – Festival Collection</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★</span><span style="color:#ddd;font-size:14px;">☆</span> <span>(198)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹899</span><span class="price-old">₹1,499</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(10)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(11)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Premium Art Silk – Zari Border" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">40% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(11)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK402 | Art Silk</div>
+      <div class="pcard-name clamp2">Premium Art Silk – Zari Border</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(134)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹1,199</span><span class="price-old">₹1,999</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(11)">🛒 Add to Cart</button>
+    </div>
+  </div><div class="pcard" onclick="openProduct(12)">
+    <div class="pcard-img">
+      <img src="https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&amp;cs=tinysrgb&amp;fit=crop&amp;h=800&amp;w=600" alt="Premium Georgette Saree – Floral Print" loading="lazy">
+      <div class="pcard-badges">
+        <span class="badge-off">41% OFF</span>
+        <span class="badge-new">NEW</span>
+        
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(12)">🤍</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">SK501 | Georgette</div>
+      <div class="pcard-name clamp2">Premium Georgette Saree – Floral Print</div>
+      <div class="pcard-stars"><span style="color:#F0CF72;font-size:14px;">★★★★★</span><span style="color:#ddd;font-size:14px;"></span> <span>(112)</span></div>
+      <div class="pcard-prices"><span class="price-now">₹1,299</span><span class="price-old">₹2,199</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart(12)">🛒 Add to Cart</button>
+    </div>
+  </div></div>
     <div style="text-align:center;margin-top:28px;"><button class="btn btn-M btn-lg" onclick="go('products')">View All Sarees →</button></div>
   </div></div>
 
@@ -812,17 +1320,51 @@ ul{list-style:none}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><span style="font-weight:800;color:var(--M);font-size:.9rem;">Filter Products</span><button onclick="clearFilters()" style="color:var(--G);font-size:.8rem;font-weight:700;background:none;border:none;cursor:pointer;">Clear All</button></div>
       <div class="fp-section"><div class="fp-label">Fabric</div><div class="fp-chips" id="fFabric"></div></div>
       <div class="fp-section"><div class="fp-label">Occasion</div><div class="fp-chips" id="fOccasion"></div></div>
-      <div class="fp-section"><div class="fp-label">Price Range</div><div class="price-range-inputs"><input type="number" id="minP" placeholder="Min ₹" oninput="applyFilters()"/><span style="color:#999">–</span><input type="number" id="maxP" placeholder="Max ₹" oninput="applyFilters()"/></div></div>
+      <div class="fp-section"><div class="fp-label">Price Range</div><div class="price-range-inputs"><input type="number" id="minP" placeholder="Min ₹" oninput="applyFilters()"><span style="color:#999">–</span><input type="number" id="maxP" placeholder="Max ₹" oninput="applyFilters()"></div></div>
     </div>
     <div id="productsContainer"></div>
   </div></div>
 </div><!-- /PRODUCTS -->
 
 <!-- PRODUCT DETAIL -->
-<div class="page pb" id="page-detail">
+<div class="page pb active" id="page-detail">
   <div class="sec"><div class="container">
     <button class="back-btn" onclick="goBack()">← Back</button>
-    <div id="detailContent"></div>
+    <div id="detailContent">
+  <div class="detail-wrap">
+    <div class="detail-gallery">
+      <div class="main-img"><img id="dMainImg" src="https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=800&amp;w=600" alt="Banarasi Silk Saree – Golden Weave"></div>
+      
+    </div>
+    <div class="detail-info">
+      <div class="di-sku">SKU: SK202 · Silk Sarees</div>
+      <h1 class="di-name">Banarasi Silk Saree – Golden Weave</h1>
+      <div class="detail-rating"><div class="dr-stars"><span style="color:#F0CF72;font-size:18px;">★★★★★</span><span style="color:#ddd;font-size:18px;"></span></div><div class="dr-val">4.8</div><div class="dr-count">(187 reviews)</div></div>
+      <div class="price-box">
+        <div class="price-row"><span class="price-main">₹3,799</span><span class="price-old">₹5,999</span><span class="badge-disc">37% OFF</span></div>
+        <div class="price-savings">🎉 You save ₹2,200 on this order!</div>
+        <div class="price-incl">Inclusive of all taxes · Free delivery above ₹999</div>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-item"><div class="si-lbl">Fabric</div><div class="si-val">Banarasi Silk</div></div>
+        <div class="spec-item"><div class="si-lbl">Color</div><div class="si-val">Maroon</div></div>
+        <div class="spec-item"><div class="si-lbl">Length</div><div class="si-val">6.3m</div></div>
+        <div class="spec-item"><div class="si-lbl">Occasion</div><div class="si-val">Festival</div></div>
+      </div>
+      <div style="margin-bottom:16px;"><h3 style="font-size:.85rem;font-weight:700;color:var(--M);margin-bottom:8px;">Description</h3><p style="font-size:.83rem;color:#555;line-height:1.7;">Premium Banarasi silk saree with intricate golden weaving. Traditional Mughal motifs with modern elegance. Rich and luxurious.</p></div>
+      <div class="care-box"><h4>🧺 Care Instructions</h4><p>Dry clean only. Handle with care.</p></div>
+      <div class="delivery-strip"><span class="ds-icon">🚚</span><div><div class="ds-title">Free Delivery</div><div class="ds-sub">Expected delivery: 3–7 business days</div></div></div>
+      <div class="qty-row"><div class="qty-ctrl"><button onclick="dQty=Math.max(1,dQty-1);document.getElementById('dQtyVal').textContent=dQty">−</button><span id="dQtyVal">1</span><button onclick="dQty++;document.getElementById('dQtyVal').textContent=dQty">+</button></div><span style="font-size:.8rem;color:var(--MUTED);">In Stock ✅</span></div>
+      <div class="cta-row">
+        <button class="btn btn-outline btn-lg" onclick="addCartN(6,dQty)">🛒 Add to Cart</button>
+        <button class="btn btn-M btn-lg" onclick="addCartN(6,dQty);go('cart')">Buy Now</button>
+        <button class="btn btn-outline btn-lg" onclick="toggleWish(6);this.textContent=wish.includes(6)?'❤️ Saved':'🤍 Wishlist'">🤍 Wishlist</button>
+      </div>
+      <button class="btn btn-wa btn-full btn-lg" onclick="openWA('Banarasi Silk Saree – Golden Weave')">💬 Order via WhatsApp</button>
+      <button onclick="shareP()" style="width:100%;margin-top:10px;padding:10px;background:#f5f5f5;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;color:#555;">📤 Share Product</button>
+    </div>
+  </div>
+  </div>
   </div></div>
 </div><!-- /DETAIL -->
 
@@ -870,14 +1412,14 @@ ul{list-style:none}
             <div class="p-avatar" id="pAvatar">👤</div>
             <div class="p-name" id="pName">Guest Customer</div>
             <div class="p-phone" id="pPhone">Not logged in</div>
-            <button class="p-edit-btn" id="pEditBtn" onclick="openAuth()">📱 Login / Sign Up</button>
+            <button class="p-edit-btn" id="pEditBtn" onclick="openAuth()">🔐 Login / Sign Up</button>
           </div>
           <div class="p-stats">
             <div class="p-stat"><div class="ps-icon">🛒</div><div class="ps-val" id="pStatCart">0</div><div class="ps-lbl">Cart</div></div>
-            <div class="p-stat"><div class="ps-icon">❤️</div><div class="ps-val" id="pStatWish">0</div><div class="ps-lbl">Wishlist</div></div>
-            <div class="p-stat"><div class="ps-icon">📦</div><div class="ps-val" id="pStatOrders">0</div><div class="ps-lbl">Orders</div></div>
+            <div class="p-stat"><div class="ps-icon">❤️</div><div class="ps-val" id="pStatWish">1</div><div class="ps-lbl">Wishlist</div></div>
+            <div class="p-stat"><div class="ps-icon">📦</div><div class="ps-val" id="pStatOrders">8</div><div class="ps-lbl">Orders</div></div>
           </div>
-          <div id="profileAuthStrip" style="padding:14px;"></div>
+          <div id="profileAuthStrip" style="padding:14px;"><div class="login-cta-box"><div><div class="lc-title">🔐 Login / Sign Up</div><div class="lc-sub">Email or Phone OTP · Quick &amp; Secure</div></div><button class="btn btn-M btn-sm" onclick="openAuth()">Login</button></div></div>
         </div>
       </div>
       <div>
@@ -889,15 +1431,14 @@ ul{list-style:none}
             <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="toast('Language: English | தமிழ் – Coming soon!','info')"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About SK Sarees</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
-            <div class="menu-item" onclick="window.open('admin.html','_blank')"><span class="mi-icon">🧾</span><div class="mi-text"><div class="mt-title">Seller Orders Dashboard</div><div class="mt-desc">View all customer orders</div></div><span class="mi-chevron">›</span></div>
           </div>
         </div>
         <div style="background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:20px;box-shadow:var(--SHADOW);">
           <h3 style="font-size:.85rem;font-weight:800;color:var(--M);margin-bottom:14px;">📞 Contact Us</h3>
           <div style="font-size:.82rem;color:#555;line-height:2.2;">
-            📞 <strong>+91 98765 43210</strong><br/>
-            📧 <strong>sk.sarees@gmail.com</strong><br/>
-            📍 Main Market Road, Coimbatore,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tamil Nadu – 641001<br/>
+            📞 <strong>+91 98765 43210</strong><br>
+            📧 <strong>sk.sarees@gmail.com</strong><br>
+            📍 Main Market Road, Coimbatore,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tamil Nadu – 641001<br>
             🕐 Mon–Sat: 9 AM – 9 PM
           </div>
           <button class="btn btn-wa btn-full" style="margin-top:14px;" onclick="openWA()">💬 Chat on WhatsApp</button>
@@ -963,9 +1504,9 @@ ul{list-style:none}
 <!-- BOTTOM NAV (mobile) -->
 <nav class="bottom-nav">
   <div class="bn-inner">
-    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
+    <button class="bn-item" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
     <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label">Categories</span></button>
-    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label">Cart</span><span class="bn-badge" id="bnCartBadge">0</span></button>
+    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label">Cart</span><span class="bn-badge" id="bnCartBadge" style="display: none;">0</span></button>
     <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label">Orders</span></button>
     <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label">Profile</span></button>
   </div>
@@ -1427,16 +1968,27 @@ function toggleOB(id){const el=document.getElementById('ob'+id);if(el)el.style.d
 function renderProfileStrip(){
   const s=document.getElementById('profileAuthStrip');if(!s)return;
   if(curUser){
-    const dn=curUser.displayName||'SK Customer';
-    s.innerHTML=`<div class="user-strip"><div class="us-avatar">📱</div><div><div class="us-name">${dn}</div><div class="us-phone">${curUser.phoneNumber}</div><div class="us-ver">✅ Phone Verified</div></div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>`;
+    const dn=curUser.displayName||curUser.email||'SK Customer';
+    const contact=curUser.phoneNumber||curUser.email||'';
+    const method=curUser.phoneNumber?'📱 Phone':'📧 Email';
+    s.innerHTML=`<div class="user-strip"><div class="us-avatar">${method==='📱 Phone'?'📱':'📧'}</div><div><div class="us-name">${dn}</div><div class="us-phone">${contact}</div><div class="us-ver">✅ ${method} Verified</div></div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>`;
   }else{
-    s.innerHTML=`<div class="login-cta-box"><div><div class="lc-title">📱 Login with Phone OTP</div><div class="lc-sub">Secure · Fast · No Password Needed</div></div><button class="btn btn-M btn-sm" onclick="openAuth()">Login / Sign Up</button></div>`;
+    s.innerHTML=`<div class="login-cta-box"><div><div class="lc-title">🔐 Login / Sign Up</div><div class="lc-sub">Email or Phone OTP · Quick & Secure</div></div><button class="btn btn-M btn-sm" onclick="openAuth()">Login</button></div>`;
   }
 }
 function updateProfileHeader(user){
   const pa=document.getElementById('pAvatar'),pn=document.getElementById('pName'),pp=document.getElementById('pPhone'),pb=document.getElementById('pEditBtn');
-  if(user){const dn=user.displayName||'SK Customer';if(pa)pa.textContent=dn.slice(0,2).toUpperCase();if(pn)pn.textContent=dn;if(pp)pp.innerHTML=`${user.phoneNumber} <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.58rem;padding:2px 8px;border-radius:12px;margin-left:6px;">✅ Verified</span>`;if(pb){pb.textContent='✏️ Edit Name';pb.onclick=editName;}}
-  else{if(pa)pa.textContent='👤';if(pn)pn.textContent='Guest Customer';if(pp)pp.textContent='Not logged in';if(pb){pb.textContent='📱 Login / Sign Up';pb.onclick=openAuth;}}
+  if(user){
+    const dn=user.displayName||user.email||'SK Customer';
+    const contact=user.phoneNumber||user.email||'';
+    if(pa)pa.textContent=dn.slice(0,2).toUpperCase();
+    if(pn)pn.textContent=dn;
+    if(pp)pp.innerHTML=`${contact} <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.58rem;padding:2px 8px;border-radius:12px;margin-left:6px;">✅ Verified</span>`;
+    if(pb){pb.textContent='✏️ Edit Name';pb.onclick=editName;}
+  } else {
+    if(pa)pa.textContent='👤';if(pn)pn.textContent='Guest Customer';
+    if(pp)pp.textContent='Not logged in';if(pb){pb.textContent='🔐 Login / Sign Up';pb.onclick=openAuth;}
+  }
   const hl=document.getElementById('hdrUserLabel');if(hl)hl.textContent=user?(user.displayName||'Account'):'Login';
 }
 function showAbout(){alert('SK Sarees\n\nYour trusted destination for premium quality sarees since 2010.\n\nContact: +91 98765 43210\nEmail: sk.sarees@gmail.com\nAddress: Main Market Road, Coimbatore, TN 641001\n\nQuality & Tradition Since 2010 🪡')}
@@ -1452,13 +2004,60 @@ function initFB(){
   fbAuth.onAuthStateChanged(user=>{curUser=user;updateProfileHeader(user);renderProfileStrip();badges()});
 }
 function openAuth(){
-  if(!FB_ON){alert('Firebase not configured!\n\nTo enable Phone OTP login:\n1. Go to console.firebase.google.com\n2. Create a project\n3. Enable Phone Authentication\n4. Copy your Firebase config\n5. Paste it into FIREBASE_CONFIG in index.html\n\nSee the hosting guide for full instructions.');return;}
-  if(curUser){if(confirm(`Signed in as ${curUser.displayName||curUser.phoneNumber}\n\nDo you want to sign out?`))signOut();return;}
-  resetAuth();document.getElementById('authModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(initRecap,200);
+  if(!FB_ON){alert('Firebase not configured!\n\n1. Go to console.firebase.google.com\n2. Create a project\n3. Enable Email/Password & Phone Auth\n4. Paste config into index.html');return;}
+  if(curUser){if(confirm(`Signed in as ${curUser.displayName||curUser.email||curUser.phoneNumber}\n\nSign out?`))signOut();return;}
+  resetAuth();document.getElementById('authModal').classList.add('open');document.body.style.overflow='hidden';
 }
 function closeAuth(){document.getElementById('authModal').classList.remove('open');document.body.style.overflow='';clearInterval(resendInt)}
-function resetAuth(){['stepPhone','stepOTP','stepSuccess'].forEach((id,i)=>{const el=document.getElementById(id);if(el){el.className='auth-step'+(i===0?' show':'')}});const pi=document.getElementById('phoneInput');if(pi)pi.value='';for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true}
-function showStep(name){['Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
+function resetAuth(){
+  ['stepEmail','stepPhone','stepOTP','stepSuccess'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='auth-step'});
+  showAuthTab('email');
+  const pi=document.getElementById('phoneInput');if(pi)pi.value='';
+  const ei=document.getElementById('emailInput');if(ei)ei.value='';
+  const ps=document.getElementById('passInput');if(ps)ps.value='';
+  for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
+  confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true;
+}
+function showAuthTab(tab){
+  document.getElementById('stepEmail').className='auth-step'+(tab==='email'?' show':'');
+  document.getElementById('stepPhone').className='auth-step'+(tab==='phone'?' show':'');
+  const te=document.getElementById('tabEmail'),tp=document.getElementById('tabPhone');
+  if(te){te.style.color=tab==='email'?'var(--M)':'#aaa';te.style.borderBottomColor=tab==='email'?'var(--M)':'transparent';}
+  if(tp){tp.style.color=tab==='phone'?'var(--M)':'#aaa';tp.style.borderBottomColor=tab==='phone'?'var(--M)':'transparent';}
+  if(tab==='phone') setTimeout(initRecap,200);
+}
+async function emailLogin(){
+  if(!FB_ON) return;
+  const email=document.getElementById('emailInput').value.trim();
+  const pass=document.getElementById('passInput').value;
+  if(!email||!pass){toast('Enter email and password','err');return;}
+  if(pass.length<6){toast('Password must be at least 6 characters','err');return;}
+  const btn=document.getElementById('emailLoginBtn');
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div> Logging in…';
+  try{
+    let res;
+    try{ res=await fbAuth.signInWithEmailAndPassword(email,pass); }
+    catch(e){
+      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
+        res=await fbAuth.createUserWithEmailAndPassword(email,pass);
+        const nm=prompt('Welcome! Enter your name:','');
+        if(nm&&nm.trim()) await res.user.updateProfile({displayName:nm.trim()});
+        toast('Account created successfully! 🎉');
+      } else throw e;
+    }
+    const user=res.user;
+    document.getElementById('succName').textContent=`Welcome, ${user.displayName||user.email}! 🎉`;
+    document.getElementById('succPhone').textContent=user.email||'';
+    showStep('Success');updateProfileHeader(user);
+    if(!toast._done){toast('Login successful! 🎉');toast._done=true;}
+  } catch(e){
+    console.error(e);
+    const M={'auth/invalid-email':'Invalid email address','auth/wrong-password':'Wrong password','auth/email-already-in-use':'Email already in use. Try logging in.','auth/weak-password':'Password too weak (min 6 chars)','auth/too-many-requests':'Too many attempts. Wait a moment.','auth/network-request-failed':'Network error. Check connection.'};
+    toast(M[e.code]||'Error: '+e.message,'err');
+  }
+  btn.disabled=false;btn.innerHTML='🔐 Login / Sign Up';
+}
+function showStep(name){['Email','Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
 function initRecap(){
   if(!FB_ON)return;const c=document.getElementById('recap-container');c.innerHTML='';
   try{rcVerifier=new firebase.auth.RecaptchaVerifier('recap-container',{size:'normal',callback:()=>{const ph=document.getElementById('phoneInput').value.trim();if(ph.length===10)document.getElementById('sendOTPBtn').disabled=false},'expired-callback':()=>{document.getElementById('sendOTPBtn').disabled=true}});rcVerifier.render()}catch(e){console.error(e)}
@@ -1523,5 +2122,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   initFB();
 });
 </script>
-</body>
-</html>
+
+
+</body></html>
