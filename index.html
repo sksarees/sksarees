@@ -20,12 +20,12 @@
 <script>
 /* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
   authDomain: "sksareesapp.firebaseapp.com",
   projectId: "sksareesapp",
   storageBucket: "sksareesapp.firebasestorage.app",
   messagingSenderId: "774983284365",
-  appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
+  appId: "1:774983284365:web:e03c9b2337d041986fd4c4"
 };
 const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
 if(FB_ON) firebase.initializeApp(FIREBASE_CONFIG);
@@ -1051,10 +1051,12 @@ let curPage='home',prevPage='home',curProd=null,dQty=1;
 let afil={cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''};
 let cView='grid',cidx=0,ctimer=null,payM='cod',ckAddr={};
 let fbAuth=null,rcVerifier=null,confirmRes=null,resendInt=null,curUser=null;
+let liveProducts=null; // will hold Firestore products if available
 
 /* ── UTILS ── */
 const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
-const gP=id=>P.find(p=>p.id===id);
+function gP(id){ return GP().find(p=>p.id===id || p.id===String(id)); }
+function GP(){ return liveProducts||P; }
 function saveCart(){localStorage.setItem('sk_cart',JSON.stringify(cart));badges()}
 function saveWish(){localStorage.setItem('sk_wish',JSON.stringify(wish));badges()}
 function saveOrders(){localStorage.setItem('sk_orders',JSON.stringify(orders))}
@@ -1155,13 +1157,13 @@ function renderHome(){
   const cg=document.getElementById('homeCatGrid');
   if(cg)cg.innerHTML=CATS.map(c=>`<div class="cat-card" onclick="filter({cat:'${c.slug}'})"><div class="cat-img-ring"><img src="${c.img}" alt="${c.name}" loading="lazy"/><div class="cir-overlay"></div></div><div class="cat-name">${c.name}</div></div>`).join('');
   const bs=document.getElementById('bestSellersRow');
-  if(bs)bs.innerHTML=P.filter(p=>p.bs).map(p=>pCard(p,true)).join('');
+  if(bs)bs.innerHTML=GP().filter(p=>p.bs).map(p=>pCard(p,true)).join('');
   const fg=document.getElementById('featuredGrid');
-  if(fg)fg.innerHTML=P.filter(p=>p.ft).map(p=>pCard(p)).join('');
+  if(fg)fg.innerHTML=GP().filter(p=>p.ft).map(p=>pCard(p)).join('');
   const na=document.getElementById('newArrivalsRow');
-  if(na)na.innerHTML=P.filter(p=>p.iN).map(p=>pCard(p,true)).join('');
+  if(na)na.innerHTML=GP().filter(p=>p.iN).map(p=>pCard(p,true)).join('');
   const ag=document.getElementById('homeAllGrid');
-  if(ag)ag.innerHTML=P.slice(0,12).map(p=>pCard(p)).join('');
+  if(ag)ag.innerHTML=GP().slice(0,12).map(p=>pCard(p)).join('');
 }
 
 /* ── CATEGORIES PAGE ── */
@@ -1200,7 +1202,7 @@ function applyFilters(){
   const mn=parseFloat(document.getElementById('minP')?.value)||0;
   const mx=parseFloat(document.getElementById('maxP')?.value)||Infinity;
   afil.min=mn||'';afil.max=mx===Infinity?'':mx;
-  let res=P.filter(p=>{
+  let res=GP().filter(p=>{
     if(afil.cat&&p.cat!==afil.cat)return false;
     if(afil.fab&&!p.fab.toLowerCase().includes(afil.fab.toLowerCase()))return false;
     if(afil.occ&&!p.occ.toLowerCase().includes(afil.occ.toLowerCase()))return false;
@@ -1605,6 +1607,45 @@ let tx=0;
 document.querySelector('.hero-wrap').addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
 document.querySelector('.hero-wrap').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)slide(dx<0?1:-1)},{passive:true});
 
+/* ── LOAD LIVE PRODUCTS FROM FIRESTORE ── */
+function loadLiveProducts(){
+  if(!window.FB_DB) return;
+  window.FB_DB.collection('products').orderBy('createdAt','desc').onSnapshot(snap=>{
+    if(snap.empty) return; // no products in Firestore yet, keep hardcoded defaults
+    liveProducts = snap.docs.map(doc=>{
+      const d=doc.data();
+      // Map Firestore fields to match the local P[] shape
+      return {
+        id:doc.id,
+        sku:d.sku||'',
+        name:d.name||'',
+        desc:d.desc||d.description||'',
+        price:Number(d.price)||0,
+        op:Number(d.originalPrice||d.op)||Math.round((Number(d.price)||0)*1.5),
+        disc:Number(d.disc||d.discountPercent)||Math.round((1-(Number(d.price)||1)/(Number(d.originalPrice||d.op)||Math.round((Number(d.price)||1)*1.5)))*100),
+        cat:d.cat||d.categorySlug||'cotton-sarees',
+        fab:d.fab||d.fabric||'Cotton',
+        col:d.col||d.color||'',
+        occ:d.occ||d.occasion||'Daily Wear',
+        len:d.len||d.length||'6.3m',
+        care:d.care||d.careInstructions||'',
+        imgs:d.imgs||d.images||(d.image?[d.image]:[]),
+        rat:Number(d.rat||d.rating)||4.5,
+        rev:Number(d.rev||d.reviewCount)||0,
+        bs:!!d.bs||!!d.bestSeller||!!d.featured,
+        iN:!!d.iN||!!d.isNew,
+        ft:!!d.ft||!!d.isFeatured,
+      };
+    });
+    console.log('🔥 Loaded '+liveProducts.length+' products from Firestore');
+    // Re-render current page with live data
+    if(curPage==='home') renderHome();
+    if(curPage==='products') applyFilters();
+  }, err=>{
+    console.warn('Firestore products listener error:', err);
+  });
+}
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
   initCarousel();
@@ -1612,6 +1653,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderHome();
   badges();
   initFB();
+  loadLiveProducts(); // listen for admin product updates
 });
 </script>
 </body>
