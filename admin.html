@@ -226,11 +226,12 @@ const FBC={
   appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
 };
   const FB=FBC.apiKey!=="G-QGHYX73WG6";
+  
 let db=null,auth=null;
 if(FB){firebase.initializeApp(FBC);db=firebase.firestore();auth=firebase.auth();}
 
 /* Admin emails allowed to login */
-const ADMIN_EMAILS=["admin@sareeshopping.com","sk7867915699@gmail.com"]; // ← ADD YOUR EMAIL HERE
+const ADMIN_EMAILS=["admin@sareeshopping.com","owner@sareeshopping.com"]; // ← ADD YOUR EMAIL HERE
 
 /* ══════════════ STATE ══════════════ */
 let products=[
@@ -286,16 +287,20 @@ if(FB){
 /* ══════════════ LOAD DATA ══════════════ */
 function loadData(){
   if(!db)return;
-  // Products listener
-  prodUnsub=db.collection('products').orderBy('createdAt','desc').onSnapshot(snap=>{
-    if(!snap.empty){products=snap.docs.map(d=>({id:d.id,...d.data()}))}
+  // Products listener (no orderBy — sort client-side so missing createdAt won't hide docs)
+  prodUnsub=db.collection('products').onSnapshot(snap=>{
+    if(!snap.empty){
+      products=snap.docs.map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    }
     renderDash();renderProducts();renderInv();renderReports();
-  },e=>{console.error(e);T('Products load failed','err')});
-  // Orders listener
-  orderUnsub=db.collection('orders').orderBy('date','desc').onSnapshot(snap=>{
-    allOrders=snap.docs.map(d=>({docId:d.id,...d.data()}));
+  },e=>{console.error(e);T('Products load failed: '+e.message,'err')});
+  // Orders listener (sort client-side by date)
+  orderUnsub=db.collection('orders').onSnapshot(snap=>{
+    allOrders=snap.docs.map(d=>({docId:d.id,...d.data()}))
+      .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
     renderDash();renderOrders();
-  },e=>{console.error(e);T('Orders load failed','err')});
+  },e=>{console.error(e);T('Orders load failed: '+e.message,'err')});
 }
 
 /* ══════════════ PAGES ══════════════ */
@@ -483,11 +488,25 @@ function renderReports(){
 
 /* ══════════════ SEED ══════════════ */
 async function seedFS(){
-  if(!db){T('Firebase not configured!','err');return}
+  if(!db){T('Firebase not configured! Fill FIREBASE_CONFIG in admin.html','err');return}
   if(!confirm('Upload '+products.length+' sample products to Firestore?\nThey will appear live on the store.'))return;
-  T('Uploading…','info');let c=0;
-  for(const p of products){try{const d={...p,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};delete d.id;await db.collection('products').add(d);c++}catch(e){console.error(e)}}
-  T('✅ '+c+' products uploaded to store!');
+  T('Uploading…','info');
+  let c=0, lastErr=null;
+  for(const p of products){
+    try{
+      const d={...p,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+      delete d.id;
+      await db.collection('products').add(d);
+      c++;
+    }catch(e){console.error('Seed error:',e);lastErr=e;}
+  }
+  if(c===products.length){
+    T('✅ '+c+' products uploaded! Open the store to see them.','ok');
+  } else if(c>0){
+    T('⚠️ Only '+c+' of '+products.length+' uploaded. '+(lastErr?lastErr.message:''),'warn');
+  } else {
+    T('❌ Upload failed. Check Firestore rules allow writes. '+(lastErr?lastErr.message:''),'err');
+  }
 }
 
 /* ══════════════ EXPORT ══════════════ */
