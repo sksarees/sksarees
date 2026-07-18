@@ -20,6 +20,23 @@ tailwind.config={
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ── FIREBASE CONFIG ── Must match index.html exactly ── */
+const FIREBASE_CONFIG = {
+ apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+  authDomain: "sksareesapp.firebaseapp.com",
+  projectId: "sksareesapp",
+  storageBucket: "sksareesapp.firebasestorage.app",
+  messagingSenderId: "774983284365",
+  appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
+};
+const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
+let db = null;
+if(FB_ON){ firebase.initializeApp(FIREBASE_CONFIG); db = firebase.firestore(); }
+</script>
 <style>
   body{font-family:'Inter',sans-serif}
   .sidebar-link.active{background:rgba(201,168,76,.15);color:#C9A84C;border-right:3px solid #C9A84C}
@@ -87,10 +104,17 @@ tailwind.config={
       <h1 class="font-serif font-bold text-lg text-gray-800 dark:text-gray-100" id="pageTitle">Dashboard</h1>
       <div class="ml-auto flex items-center gap-3">
         <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-lg" title="Toggle Dark Mode" id="darkBtn">🌙</button>
-        <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full text-xs font-semibold">
-          <span class="w-2 h-2 rounded-full bg-green-500"></span>
-          <span class="text-gray-500 dark:text-gray-400">Admin</span>
+        <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full text-xs font-semibold" id="fbStatus">
+          <span class="w-2 h-2 rounded-full" id="fbDot"></span>
+          <span class="text-gray-500 dark:text-gray-400" id="fbLabel">Checking…</span>
         </div>
+        <script>
+          document.addEventListener('DOMContentLoaded',()=>{
+            const dot=document.getElementById('fbDot'),lbl=document.getElementById('fbLabel');
+            if(FB_ON){dot.classList.add('bg-green-500');lbl.textContent='Firebase Connected';}
+            else{dot.classList.add('bg-red-500');lbl.textContent='Firebase Offline';}
+          });
+        </script>
       </div>
     </div>
   </header>
@@ -131,6 +155,7 @@ tailwind.config={
           <button onclick="goPage('products')" class="px-5 py-2.5 bg-brand-400 hover:bg-brand-500 text-gray-900 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5">View All Products</button>
           <button onclick="goPage('inventory')" class="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-bold text-sm transition-all">Check Inventory</button>
           <button onclick="exportProducts()" class="px-5 py-2.5 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl font-bold text-sm transition-all">⬇️ Export CSV</button>
+          <button onclick="seedFirestore()" class="px-5 py-2.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 hover:bg-orange-200 rounded-xl font-bold text-sm transition-all" title="Upload sample products to Firestore for the first time">🔥 Seed Products to Firestore</button>
         </div>
       </div>
       <!-- Recent Products -->
@@ -578,7 +603,7 @@ function editProduct(id) {
 /* ════════════════════════════════════════════════════════════
    SAVE PRODUCT (ADD / UPDATE)
    ════════════════════════════════════════════════════════════ */
-function saveProduct() {
+async function saveProduct() {
   const name = document.getElementById('fName').value.trim();
   const category = document.getElementById('fCategory').value;
   const price = parseFloat(document.getElementById('fPrice').value);
@@ -586,9 +611,14 @@ function saveProduct() {
   if (!name) { toast('Product name is required', 'warn'); return; }
   if (!category) { toast('Select a category', 'warn'); return; }
   if (!price || price <= 0) { toast('Enter a valid price', 'warn'); return; }
+
+  // Build category slug from category name
+  const catSlug = category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
+
   const data = {
     name, category, price, stock,
     image: document.getElementById('fImage').value.trim(),
+    imgs: [document.getElementById('fImage').value.trim()].filter(Boolean),
     desc: document.getElementById('fDesc').value.trim(),
     shortDesc: document.getElementById('fShortDesc').value.trim(),
     brand: document.getElementById('fBrand').value.trim(),
@@ -600,19 +630,67 @@ function saveProduct() {
     tags: document.getElementById('fTags').value.trim(),
     status: document.getElementById('fStatus').value,
     featured: document.getElementById('fFeatured').checked,
+    // Fields index.html expects
+    cat: catSlug,
+    fab: category.replace(' Sarees','').replace('Art ',''),
+    col: '',
+    occ: data?.featured ? 'Wedding' : 'Daily Wear',
+    len: '6.3m',
+    care: '',
+    op: Math.round(price * 1.5),
+    disc: 33,
+    rat: 4.5,
+    rev: 0,
+    bs: document.getElementById('fFeatured').checked,
+    iN: true,
+    ft: document.getElementById('fFeatured').checked,
+    updatedAt: new Date().toISOString(),
   };
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ Saving…';
+
   if (editingId) {
-    // Update existing
+    // Update local
     const idx = products.findIndex(p => p.id === editingId);
     if (idx !== -1) { products[idx] = { ...products[idx], ...data }; }
-    toast('Product updated successfully!');
+    // Update Firestore
+    if (db) {
+      try {
+        const docId = typeof editingId === 'string' ? editingId : 'prod_' + editingId;
+        await db.collection('products').doc(docId).set(data, { merge: true });
+        toast('✅ Product updated & synced to store!');
+      } catch(err) {
+        console.error(err);
+        toast('Updated locally. Firestore sync failed: ' + err.message, 'warn');
+      }
+    } else {
+      toast('Product updated locally (no Firebase)');
+    }
   } else {
     // Add new
     data.id = nextId++;
     if (!data.sku) data.sku = 'SK' + String(data.id).padStart(3, '0');
+    data.createdAt = new Date().toISOString();
     products.push(data);
-    toast('New product added!');
+    // Save to Firestore
+    if (db) {
+      try {
+        const docRef = await db.collection('products').add(data);
+        data.id = docRef.id;
+        products[products.length - 1].id = docRef.id;
+        toast('✅ New product added & live on store!');
+      } catch(err) {
+        console.error(err);
+        toast('Added locally. Firestore sync failed: ' + err.message, 'warn');
+      }
+    } else {
+      toast('Product added locally (no Firebase)');
+    }
   }
+  saveBtn.disabled = false;
+  saveBtn.textContent = '💾 Save Product';
   closeModal();
   renderTable();
   renderDashboard();
@@ -621,7 +699,7 @@ function saveProduct() {
 /* ════════════════════════════════════════════════════════════
    DELETE PRODUCT
    ════════════════════════════════════════════════════════════ */
-function deleteProduct(id) {
+async function deleteProduct(id) {
   const targetId = id || editingId;
   if (!targetId) return;
   const p = products.find(pr => pr.id === targetId);
@@ -629,6 +707,17 @@ function deleteProduct(id) {
   if (!confirm(`Delete "${p.name}"?\n\nThis action cannot be undone.`)) return;
   products = products.filter(pr => pr.id !== targetId);
   if (editingId === targetId) closeModal();
+  // Delete from Firestore
+  if (db) {
+    try {
+      const docId = typeof targetId === 'string' ? targetId : 'prod_' + targetId;
+      await db.collection('products').doc(docId).delete();
+      toast('🗑️ Product deleted from store');
+    } catch(err) {
+      console.error(err);
+      toast('Deleted locally. Firestore delete failed.', 'warn');
+    }
+  }
   renderTable();
   renderDashboard();
   toast('Product deleted', 'err');
@@ -758,11 +847,92 @@ function exportProducts() {
 }
 
 /* ════════════════════════════════════════════════════════════
+   LOAD PRODUCTS FROM FIRESTORE (live sync)
+   ════════════════════════════════════════════════════════════ */
+function loadProductsFromFirestore() {
+  if (!db) {
+    console.warn('⚠️ Firebase not configured. Using local sample data only.');
+    toast('No Firebase — using sample data. Products won\'t sync to store.', 'warn');
+    return;
+  }
+  toast('🔥 Connecting to Firestore…', 'info');
+  db.collection('products').orderBy('createdAt','desc').onSnapshot(snap => {
+    if (!snap.empty) {
+      products = snap.docs.map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          name: d.name || '',
+          category: d.category || '',
+          price: Number(d.price) || 0,
+          stock: Number(d.stock) || 0,
+          image: d.image || (d.imgs && d.imgs[0]) || '',
+          imgs: d.imgs || (d.image ? [d.image] : []),
+          status: d.status || 'Active',
+          featured: !!d.featured,
+          sku: d.sku || '',
+          brand: d.brand || 'SK Sarees',
+          weight: Number(d.weight) || 0,
+          dimL: Number(d.dimL) || 0,
+          dimW: Number(d.dimW) || 0,
+          dimH: Number(d.dimH) || 0,
+          tags: d.tags || '',
+          desc: d.desc || d.description || '',
+          shortDesc: d.shortDesc || '',
+          cat: d.cat || '',
+          fab: d.fab || '',
+          col: d.col || '',
+          occ: d.occ || '',
+          len: d.len || '6.3m',
+          care: d.care || '',
+          op: Number(d.op || d.originalPrice) || Math.round((Number(d.price)||1)*1.5),
+          disc: Number(d.disc) || 33,
+          rat: Number(d.rat) || 4.5,
+          rev: Number(d.rev) || 0,
+          bs: !!d.bs,
+          iN: !!d.iN,
+          ft: !!d.ft,
+          createdAt: d.createdAt || '',
+          updatedAt: d.updatedAt || '',
+        };
+      });
+      nextId = products.length + 1;
+      console.log('🔥 Loaded ' + products.length + ' products from Firestore');
+    }
+    renderDashboard();
+    renderTable();
+  }, err => {
+    console.error('Firestore error:', err);
+    toast('Firestore error. Check rules & config.', 'err');
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   SEED: Push sample products to Firestore (one-time)
+   ════════════════════════════════════════════════════════════ */
+async function seedFirestore() {
+  if (!db) { toast('Firebase not configured!', 'err'); return; }
+  if (!confirm('This will upload all ' + products.length + ' sample products to Firestore.\n\nThey will appear live on the store website.\n\nContinue?')) return;
+  toast('⏳ Uploading products…', 'info');
+  let count = 0;
+  for (const p of products) {
+    try {
+      const data = { ...p, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      delete data.id;
+      await db.collection('products').add(data);
+      count++;
+    } catch(err) { console.error(err); }
+  }
+  toast('✅ Uploaded ' + count + ' products to Firestore!');
+}
+
+/* ════════════════════════════════════════════════════════════
    INIT
    ════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   renderTable();
+  loadProductsFromFirestore();
 });
 </script>
 </body>
