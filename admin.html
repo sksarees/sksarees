@@ -216,7 +216,6 @@ input[type=number]{-moz-appearance:textfield}
 
 <script>
 /* ══════════════ FIREBASE CONFIG ══════════════ */
-  
 const FBC={
   apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
   authDomain: "sksareesapp.firebaseapp.com",
@@ -226,7 +225,6 @@ const FBC={
   appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
 };
   const FB=FBC.apiKey!=="G-QGHYX73WG6";
-  
 let db=null,auth=null;
 if(FB){firebase.initializeApp(FBC);db=firebase.firestore();auth=firebase.auth();}
 
@@ -427,8 +425,8 @@ function renderOrders(){
   const empty=document.getElementById('oEmpty');
   if(!f.length){list.innerHTML='';empty.classList.remove('hidden');return}
   empty.classList.add('hidden');
-  const stMap={confirmed:'bg-blue-100 text-blue-700',processing:'bg-yellow-100 text-yellow-700',shipped:'bg-indigo-100 text-indigo-700',delivered:'bg-green-100 text-green-700',cancelled:'bg-red-100 text-red-600',pending:'bg-gray-100 text-gray-600'};
-  const stOpts=['confirmed','processing','shipped','delivered','cancelled'];
+  const stMap={payment_review:'bg-orange-100 text-orange-700',confirmed:'bg-blue-100 text-blue-700',processing:'bg-yellow-100 text-yellow-700',shipped:'bg-indigo-100 text-indigo-700',delivered:'bg-green-100 text-green-700',cancelled:'bg-red-100 text-red-600',pending:'bg-gray-100 text-gray-600'};
+  const stOpts=['payment_review','confirmed','processing','shipped','delivered','cancelled'];
   list.innerHTML=f.map(o=>{
     const a=o.addr||{};
     const dt=o.date?new Date(o.date).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
@@ -443,6 +441,15 @@ function renderOrders(){
       <div id="ob-${o.docId}" class="hidden border-t border-gray-100 dark:border-gray-700 p-4 space-y-3">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${items}</div>
         <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3 text-xs text-gray-500"><strong class="text-gray-700 dark:text-gray-300">📍 Address:</strong><br/>${a.name||''}, ${a.phone||''}<br/>${a.line1||''}${a.line2?', '+a.line2:''}<br/>${a.city||''}, ${a.state||''} – ${a.pincode||''}</div>
+        ${(o.status==='payment_review'||o.ps==='verifying'||o.ps==='pending'&&o.pm!=='cod')?`
+        <div class="flex flex-wrap items-center gap-2 bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 border border-orange-200 dark:border-orange-800">
+          <div class="text-xs font-bold text-orange-700 dark:text-orange-300">💰 Payment via ${(o.pm||'').toUpperCase()} ${o.payRef?('· Ref: '+o.payRef):''} — needs approval</div>
+          <div class="flex gap-2 w-full mt-1">
+            <button onclick="approvePayment('${o.docId}')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700">✅ Approve & Confirm Order</button>
+            <button onclick="rejectPayment('${o.docId}')" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-xs font-bold hover:bg-red-200">✗ Reject</button>
+          </div>
+          <a href="https://wa.me/91${(o.customerPhone||a.phone||'').replace(/\\D/g,'')}" target="_blank" class="w-full text-center px-4 py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 mt-1">💬 WhatsApp Customer</a>
+        </div>`:''}
         <div class="flex flex-wrap items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-200 dark:border-blue-800">
           <label class="text-xs font-bold text-blue-700 dark:text-blue-300">📋 Update Status:</label>
           <select id="oSel-${o.docId}" class="px-3 py-2 border border-blue-200 rounded-lg text-xs font-bold bg-white dark:bg-gray-700">${selOpts}</select>
@@ -452,6 +459,19 @@ function renderOrders(){
       </div>
     </div>`;
   }).join('');
+}
+async function approvePayment(docId){
+  try{
+    await db.collection('orders').doc(docId).update({status:'confirmed',ps:'paid',updatedAt:new Date().toISOString()});
+    T('✅ Payment approved! Order confirmed.','ok');
+  }catch(e){T('Approve failed: '+e.message,'err')}
+}
+async function rejectPayment(docId){
+  if(!confirm('Reject this payment and cancel the order?'))return;
+  try{
+    await db.collection('orders').doc(docId).update({status:'cancelled',ps:'pending',updatedAt:new Date().toISOString()});
+    T('Order rejected & cancelled','info');
+  }catch(e){T('Reject failed: '+e.message,'err')}
 }
 
 async function updStatus(docId){
