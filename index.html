@@ -17,19 +17,32 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Razorpay Checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<!-- QR Code generator (for UPI QR payment) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 /* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+ apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
   authDomain: "sksareesapp.firebaseapp.com",
   projectId: "sksareesapp",
   storageBucket: "sksareesapp.firebasestorage.app",
   messagingSenderId: "774983284365",
   appId: "1:774983284365:web:e03c9b2337d041986fd4c4"};
 const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
-
 if(FB_ON) firebase.initializeApp(FIREBASE_CONFIG);
 window.FB_DB = FB_ON ? firebase.firestore() : null;
+
+/* ── BUSINESS & PAYMENT CONFIG ── */
+const BIZ = {
+  name: "Saree Shopping",
+  whatsapp: "917867915699",           // WhatsApp number (no +)
+  upiId: "sareeshopping@okhdfcbank",  // ← Replace with YOUR real UPI ID
+  upiName: "Saree Shopping",
+  razorpayKey: "rzp_test_YOUR_KEY_ID" // ← Replace with your Razorpay Key ID
+};
+const RAZORPAY_ON = BIZ.razorpayKey !== "rzp_test_YOUR_KEY_ID";
 </script>
 <style>
 /* ═══════════════════════════ RESET ═══════════════════════════ */
@@ -1062,7 +1075,7 @@ let liveProducts=null; // will hold Firestore products if available
 
 /* ── UTILS ── */
 const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
-function gP(id){ return GP().find(p=>p.id===id || p.id===String(id)); }
+function gP(id){ return GP().find(p=>String(p.id)===String(id)); }
 function GP(){ return liveProducts||P; }
 function saveCart(){localStorage.setItem('sk_cart',JSON.stringify(cart));badges()}
 function saveWish(){localStorage.setItem('sk_wish',JSON.stringify(wish));badges()}
@@ -1139,7 +1152,7 @@ function startTimer(){
 /* ── PRODUCT CARD ── */
 function pCard(p,mini=false){
   const inW=wish.includes(p.id);
-  return`<div class="pcard${mini?'':''}" onclick="openProduct(${p.id})">
+  return`<div class="pcard${mini?'':''}" onclick="openProduct('${p.id}')">
     <div class="pcard-img">
       <img src="${p.imgs[0]}" alt="${p.name}" loading="lazy"/>
       <div class="pcard-badges">
@@ -1147,14 +1160,14 @@ function pCard(p,mini=false){
         ${p.iN?'<span class="badge-new">NEW</span>':''}
         ${p.bs?'<span class="badge-hot">🔥 HOT</span>':''}
       </div>
-      <button class="wish-ico" onclick="event.stopPropagation();toggleWish(${p.id})">${inW?'❤️':'🤍'}</button>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish('${p.id}')">${inW?'❤️':'🤍'}</button>
     </div>
     <div class="pcard-body">
       <div class="pcard-sku">${p.sku} | ${p.fab}</div>
       <div class="pcard-name clamp2">${p.name}</div>
       <div class="pcard-stars">${starsHTML(p.rat)} <span>(${p.rev})</span></div>
       <div class="pcard-prices"><span class="price-now">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span></div>
-      <button class="pcard-add" onclick="event.stopPropagation();addCart(${p.id})">🛒 Add to Cart</button>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart('${p.id}')">🛒 Add to Cart</button>
     </div>
   </div>`;
 }
@@ -1231,7 +1244,7 @@ function applyFilters(){
   if(!cont)return;
   if(!res.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><div class="es-title">No products found</div><div class="es-sub">Try adjusting your filters or search terms.</div><button class="btn btn-M btn-lg" onclick="clearFilters()">Clear Filters</button></div>`;return;}
   if(cView==='grid'){cont.innerHTML=`<div class="products-grid">${res.map(p=>pCard(p)).join('')}</div>`;}
-  else{cont.innerHTML=res.map(p=>`<div style="background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:14px;display:flex;gap:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;" onclick="openProduct(${p.id})"><img src="${p.imgs[0]}" style="width:100px;height:120px;border-radius:8px;flex-shrink:0;" loading="lazy" alt="${p.name}"/><div style="flex:1;min-width:0;"><div style="font-size:.64rem;color:#C9A84C;font-weight:700;">${p.sku} | ${p.fab}</div><div style="font-size:.9rem;font-weight:700;margin:4px 0 5px;">${p.name}</div><div>${starsHTML(p.rat,13)} <span style="font-size:.7rem;color:#aaa;">(${p.rev})</span></div><div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;"><span style="font-size:1.05rem;font-weight:900;color:#7B1C1C;">${fmt(p.price)}</span><span style="font-size:.78rem;color:#bbb;text-decoration:line-through;">${fmt(p.op)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-M btn-sm" onclick="event.stopPropagation();addCart(${p.id})">Add to Cart</button><button onclick="event.stopPropagation();toggleWish(${p.id})" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">${wish.includes(p.id)?'❤️':'🤍'}</button></div></div></div>`).join('');}
+  else{cont.innerHTML=res.map(p=>`<div style="background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:14px;display:flex;gap:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;" onclick="openProduct('${p.id}')"><img src="${p.imgs[0]}" style="width:100px;height:120px;border-radius:8px;flex-shrink:0;" loading="lazy" alt="${p.name}"/><div style="flex:1;min-width:0;"><div style="font-size:.64rem;color:#C9A84C;font-weight:700;">${p.sku} | ${p.fab}</div><div style="font-size:.9rem;font-weight:700;margin:4px 0 5px;">${p.name}</div><div>${starsHTML(p.rat,13)} <span style="font-size:.7rem;color:#aaa;">(${p.rev})</span></div><div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;"><span style="font-size:1.05rem;font-weight:900;color:#7B1C1C;">${fmt(p.price)}</span><span style="font-size:.78rem;color:#bbb;text-decoration:line-through;">${fmt(p.op)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-M btn-sm" onclick="event.stopPropagation();addCart('${p.id}')">Add to Cart</button><button onclick="event.stopPropagation();toggleWish('${p.id}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">${wish.includes(p.id)?'❤️':'🤍'}</button></div></div></div>`).join('');}
 }
 function toggleFil(k,v){afil[k]=afil[k]===v?'':v;buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
 function clearFilters(){Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''});const mi=document.getElementById('minP'),ma=document.getElementById('maxP');if(mi)mi.value='';if(ma)ma.value='';buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
@@ -1280,18 +1293,82 @@ function renderDetail(p){
       <div class="delivery-strip"><span class="ds-icon">🚚</span><div><div class="ds-title">${p.price>=999?'Free Delivery':'Delivery Charge: ₹49'}</div><div class="ds-sub">Expected delivery: 3–7 business days</div></div></div>
       <div class="qty-row"><div class="qty-ctrl"><button onclick="dQty=Math.max(1,dQty-1);document.getElementById('dQtyVal').textContent=dQty">−</button><span id="dQtyVal">1</span><button onclick="dQty++;document.getElementById('dQtyVal').textContent=dQty">+</button></div><span style="font-size:.8rem;color:var(--MUTED);">In Stock ✅</span></div>
       <div class="cta-row">
-        <button class="btn btn-outline btn-lg" onclick="addCartN(${p.id},dQty)">🛒 Add to Cart</button>
-        <button class="btn btn-M btn-lg" onclick="addCartN(${p.id},dQty);go('cart')">Buy Now</button>
-        <button class="btn btn-${inW?'M':'outline'} btn-lg" onclick="toggleWish(${p.id});this.textContent=wish.includes(${p.id})?'❤️ Saved':'🤍 Wishlist'">${inW?'❤️ Saved':'🤍 Wishlist'}</button>
+        <button class="btn btn-outline btn-lg" onclick="addCartN('${p.id}',dQty)">🛒 Add to Cart</button>
+        <button class="btn btn-M btn-lg" onclick="addCartN('${p.id}',dQty);go('cart')">Buy Now</button>
+        <button class="btn btn-${inW?'M':'outline'} btn-lg" onclick="toggleWish('${p.id}');this.textContent=wish.includes('${p.id}')?'❤️ Saved':'🤍 Wishlist'">${inW?'❤️ Saved':'🤍 Wishlist'}</button>
       </div>
       <button class="btn btn-wa btn-full btn-lg" onclick="openWA('${p.name}')">💬 Order via WhatsApp</button>
       <button onclick="shareP()" style="width:100%;margin-top:10px;padding:10px;background:#f5f5f5;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;color:#555;">📤 Share Product</button>
     </div>
   </div>
-  ${revs.length?`<div style="margin-top:32px;background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-    <h3 class="sec-title">Customer Reviews (${revs.length})</h3>
-    ${revs.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join('')}
-  </div>`:''}`;
+  <div id="reviewSection" style="margin-top:32px;background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
+    <h3 class="sec-title">⭐ Ratings & Reviews</h3>
+    <!-- Write Review Box -->
+    <div style="background:var(--GP);border:1px solid var(--G);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:.9rem;font-weight:800;color:var(--M);margin-bottom:10px;">Write a Review</div>
+      <div style="margin-bottom:10px;">
+        <span style="font-size:.78rem;color:#666;margin-right:8px;">Your Rating:</span>
+        <span id="starPicker">${[1,2,3,4,5].map(n=>`<span onclick="setReviewStar(${n})" data-star="${n}" style="cursor:pointer;font-size:1.5rem;color:#ddd;">★</span>`).join('')}</span>
+      </div>
+      <input id="revName" placeholder="Your name" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.85rem;margin-bottom:8px;"/>
+      <textarea id="revText" rows="3" placeholder="Share your experience with this saree…" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.85rem;resize:none;margin-bottom:10px;"></textarea>
+      <button class="btn btn-M btn-full" id="submitRevBtn" onclick="submitReview('${p.id}')">📝 Submit Review</button>
+    </div>
+    <!-- Reviews List -->
+    <div id="reviewsList">
+      ${revs.length?revs.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join(''):'<p style="color:#999;font-size:.85rem;text-align:center;padding:16px;">No reviews yet. Be the first to review! 🌸</p>'}
+    </div>
+  </div>`;
+  reviewRating=0;
+  loadReviews(p.id);
+}
+/* ── REVIEW / RATING SYSTEM ── */
+let reviewRating=0;
+function setReviewStar(n){
+  reviewRating=n;
+  document.querySelectorAll('#starPicker span').forEach(s=>{
+    s.style.color=(+s.dataset.star<=n)?'#F0B429':'#ddd';
+  });
+}
+async function loadReviews(pid){
+  if(!window.FB_DB)return;
+  try{
+    const snap=await window.FB_DB.collection('reviews').where('pid','==',String(pid)).get();
+    if(snap.empty)return;
+    const list=snap.docs.map(d=>d.data()).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    const base=REVS[pid]||[];
+    const all=[...list.map(r=>({n:r.name,r:r.rating,t:r.text})),...base];
+    const el=document.getElementById('reviewsList');
+    if(el)el.innerHTML=all.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join('');
+  }catch(e){console.warn('loadReviews:',e)}
+}
+async function submitReview(pid){
+  const name=(document.getElementById('revName').value||'').trim();
+  const text=(document.getElementById('revText').value||'').trim();
+  if(!reviewRating){toast('Please select a star rating','err');return;}
+  if(!name){toast('Please enter your name','err');return;}
+  if(!text){toast('Please write your review','err');return;}
+  const btn=document.getElementById('submitRevBtn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const review={pid:String(pid),name,rating:reviewRating,text,date:new Date().toISOString()};
+  try{
+    if(window.FB_DB){
+      await window.FB_DB.collection('reviews').add(review);
+      toast('✅ Thank you for your review!');
+      await loadReviews(pid);
+    } else {
+      // Local fallback
+      if(!REVS[pid])REVS[pid]=[];
+      REVS[pid].unshift({n:name,r:reviewRating,t:text});
+      const el=document.getElementById('reviewsList');
+      if(el)el.innerHTML=REVS[pid].map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join('');
+      toast('✅ Review added!');
+    }
+    document.getElementById('revName').value='';
+    document.getElementById('revText').value='';
+    setReviewStar(0);reviewRating=0;
+  }catch(e){console.error(e);toast('Could not submit review','err');}
+  btn.disabled=false;btn.textContent='📝 Submit Review';
 }
 function switchImg(src,el){document.getElementById('dMainImg').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
 function shareP(){const p=gP(curProd);if(!p)return;const txt=`Check out "${p.name}" on Saree Shopping! Only ${fmt(p.price)}. Quality guaranteed.`;if(navigator.share)navigator.share({title:p.name,text:txt,url:location.href});else window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank')}
@@ -1299,7 +1376,7 @@ function shareP(){const p=gP(curProd);if(!p)return;const txt=`Check out "${p.nam
 /* ── CART ── */
 function addCart(id){addCartN(id,1)}
 function addCartN(id,qty){
-  const e=cart.find(i=>i.id===id);
+  const e=cart.find(i=>String(i.id)===String(id));
   if(e)e.qty+=qty;else cart.push({id,qty});
   saveCart();toast('Added to cart! 🛒');
 }
@@ -1314,17 +1391,17 @@ function renderCart(){
   cm.innerHTML=`<div class="cart-layout">
     <div class="cart-items-col">
       ${cart.map(item=>{const p=gP(item.id);if(!p)return'';return`<div class="cart-item">
-        <img src="${p.imgs[0]}" alt="${p.name}" onclick="openProduct(${p.id})" loading="lazy"/>
+        <img src="${p.imgs[0]}" alt="${p.name}" onclick="openProduct('${p.id}')" loading="lazy"/>
         <div class="ci-info">
           <div class="ci-sku">${p.sku}</div>
           <div class="ci-name clamp2">${p.name}</div>
           <div class="ci-meta">${p.fab} · ${p.col}</div>
           <div class="ci-row">
-            <div class="ci-qty"><button onclick="updCart(${item.id},-1)">−</button><span>${item.qty}</span><button onclick="updCart(${item.id},1)">+</button></div>
+            <div class="ci-qty"><button onclick="updCart('${item.id}',-1)">−</button><span>${item.qty}</span><button onclick="updCart('${item.id}',1)">+</button></div>
             <span class="ci-price">${fmt(p.price*item.qty)}</span>
           </div>
           ${p.op?`<div style="font-size:.73rem;color:#bbb;text-decoration:line-through;margin-top:2px;">${fmt(p.op*item.qty)}</div>`:''}
-          <button class="ci-rm" onclick="rmCart(${item.id})">🗑️ Remove</button>
+          <button class="ci-rm" onclick="rmCart('${item.id}')">🗑️ Remove</button>
         </div>
       </div>`;}).join('')}
     </div>
@@ -1347,12 +1424,12 @@ function renderCart(){
     </div>
   </div>`;
 }
-function updCart(id,d){const item=cart.find(i=>i.id===id);if(!item)return;item.qty=Math.max(0,item.qty+d);if(item.qty===0)cart=cart.filter(i=>i.id!==id);saveCart();renderCart()}
-function rmCart(id){cart=cart.filter(i=>i.id!==id);saveCart();renderCart();toast('Removed from cart')}
+function updCart(id,d){const item=cart.find(i=>String(i.id)===String(id));if(!item)return;item.qty=Math.max(0,item.qty+d);if(item.qty===0)cart=cart.filter(i=>String(i.id)!==String(id));saveCart();renderCart()}
+function rmCart(id){cart=cart.filter(i=>String(i.id)!==String(id));saveCart();renderCart();toast('Removed from cart')}
 function applyPromo(){const c=document.getElementById('promoIn').value.trim().toUpperCase();if(c==='SKNEW10')toast('Promo code applied! 10% discount added ✅');else toast('Invalid promo code ❌','err')}
 
 /* ── WISHLIST ── */
-function toggleWish(id){const i=wish.indexOf(id);if(i>=0){wish.splice(i,1);toast('Removed from wishlist')}else{wish.push(id);toast('Added to wishlist! ❤️')}saveWish();renderWishlist()}
+function toggleWish(id){const i=wish.findIndex(x=>String(x)===String(id));if(i>=0){wish.splice(i,1);toast('Removed from wishlist')}else{wish.push(id);toast('Added to wishlist! ❤️')}saveWish();renderWishlist()}
 function renderWishlist(){
   const wc=document.getElementById('wishContent');
   if(!wc)return;
@@ -1393,9 +1470,14 @@ function payForm(){
   return`<div class="checkout-layout"><div>
   <div class="ck-card">
     <div class="ck-steps"><div class="ck-step-item"><div class="cs-bubble done">✅</div><span class="cs-slabel ina">1. Address</span></div><span class="cs-arrow">→</span><div class="ck-step-item"><div class="cs-bubble done">💳</div><span class="cs-slabel act">2. Payment</span></div></div>
-    <h3>💳 Payment Method</h3>
+    <h3>💳 Choose Payment Method</h3>
     <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
-    ${[{v:'cod',icon:'💵',name:'Cash on Delivery',desc:'Pay when your saree arrives',sec:false},{v:'upi',icon:'📱',name:'UPI / PhonePe / GPay',desc:'Pay via UPI (powered by Razorpay)',sec:true},{v:'card',icon:'💳',name:'Credit / Debit Card',desc:'Visa, Mastercard, RuPay',sec:true},{v:'netbanking',icon:'🏦',name:'Net Banking',desc:'All major Indian banks',sec:true}].map(pm=>`<div class="pm-opt${pm.v==='cod'?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure via Razorpay</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
+    ${[
+      {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay)',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
+      {v:'razorpay',icon:'💳',name:'Card / UPI / NetBanking',desc:'Secure online payment via Razorpay',sec:true},
+      {v:'cod',icon:'💵',name:'Cash on Delivery',desc:'Pay cash when your saree arrives',sec:false},
+      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp',desc:'Confirm order & pay through WhatsApp chat',sec:false}
+    ].map(pm=>`<div class="pm-opt${pm.v==='upiqr'?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
   </div>
   </div>
   <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>
@@ -1403,40 +1485,148 @@ function payForm(){
   <div class="cs-row"><span class="cs-lbl">Delivery</span><span class="cs-val ${del===0?'green':''}">${del===0?'FREE':fmt(del)}</span></div>
   ${disc>0?`<div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">-${fmt(disc)}</span></div>`:''}
   <div class="cs-divider"></div><div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
-  <button class="btn btn-M btn-full btn-lg" style="margin-top:16px;" onclick="placeOrder()">Place Order – ${fmt(fin)}</button>
+  <button class="btn btn-M btn-full btn-lg" id="payActionBtn" style="margin-top:16px;" onclick="proceedPayment()">Pay ${fmt(fin)} →</button>
   <p style="text-align:center;font-size:.7rem;color:#aaa;margin-top:8px;">🔒 Your info is 100% secure</p>
   </div></div></div>`;
 }
-function selPM(v){payM=v;document.querySelectorAll('.pm-opt').forEach(o=>o.classList.remove('sel'));document.getElementById('pm-'+v).classList.add('sel')}
-async function placeOrder(){
+function selPM(v){
+  payM=v;
+  document.querySelectorAll('.pm-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('pm-'+v).classList.add('sel');
+  const btn=document.getElementById('payActionBtn');
+  const {fin}=cartTotals();
+  if(btn){
+    if(v==='cod')btn.textContent='Place COD Order →';
+    else if(v==='whatsapp')btn.textContent='💬 Send Order on WhatsApp';
+    else if(v==='upiqr')btn.textContent='📲 Show UPI QR Code';
+    else btn.textContent='Pay '+fmt(fin)+' →';
+  }
+}
+/* Route to correct payment flow */
+function proceedPayment(){
+  if(payM==='cod') placeOrder('cod','pending');
+  else if(payM==='whatsapp') whatsappOrder();
+  else if(payM==='upiqr') showUpiQR();
+  else if(payM==='razorpay') payWithRazorpay();
+}
+/* ── WhatsApp Order ── */
+function whatsappOrder(){
   const {tot,del,disc,fin}=cartTotals();
-  const num='SK'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
+  const items=cart.map(i=>{const p=gP(i.id);return p?`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}`:''}).filter(Boolean).join('%0A');
+  const msg=`*New Order - Saree Shopping*%0A%0A*Items:*%0A${items}%0A%0A*Total: ${fmt(fin)}*%0A%0A*Deliver to:*%0A${ckAddr.name}, ${ckAddr.phone}%0A${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}%0A${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
+  // Also save the order as pending
+  placeOrder('whatsapp','pending',true);
+  window.open(`https://wa.me/${BIZ.whatsapp}?text=${msg}`,'_blank');
+}
+/* ── Razorpay Payment ── */
+function payWithRazorpay(){
+  const {fin}=cartTotals();
+  if(!RAZORPAY_ON){
+    toast('Razorpay not configured. Use UPI QR or COD.','err');
+    return;
+  }
+  const options={
+    key:BIZ.razorpayKey,
+    amount:Math.round(fin*100), // paise
+    currency:'INR',
+    name:BIZ.name,
+    description:'Saree Order Payment',
+    prefill:{name:ckAddr.name,contact:ckAddr.phone,email:(curUser&&curUser.email)||''},
+    theme:{color:'#7B1C1C'},
+    handler:function(response){
+      // Payment success — Razorpay verified
+      placeOrder('razorpay','paid',false,response.razorpay_payment_id);
+    },
+    modal:{ondismiss:function(){toast('Payment cancelled','err')}}
+  };
+  const rzp=new Razorpay(options);
+  rzp.on('payment.failed',function(){toast('Payment failed. Try again.','err')});
+  rzp.open();
+}
+/* ── UPI QR Code Payment ── */
+function showUpiQR(){
+  const {fin}=cartTotals();
+  const txnRef='SS'+Date.now();
+  const upiUrl=`upi://pay?pa=${encodeURIComponent(BIZ.upiId)}&pn=${encodeURIComponent(BIZ.upiName)}&am=${fin}&cu=INR&tn=${encodeURIComponent('Saree Order '+txnRef)}`;
+  document.getElementById('checkoutContent').innerHTML=`
+    <div style="max-width:440px;margin:0 auto;text-align:center;">
+      <div class="ck-card" style="padding:26px 22px;">
+        <h3 style="margin-bottom:6px;">📲 Scan & Pay via UPI</h3>
+        <p style="font-size:.82rem;color:#666;margin-bottom:16px;">Open any UPI app (GPay, PhonePe, Paytm) and scan this QR to pay <strong style="color:var(--M)">${fmt(fin)}</strong></p>
+        <div style="display:flex;justify-content:center;margin-bottom:14px;"><canvas id="upiQRCanvas" style="border:8px solid #fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.12);"></canvas></div>
+        <div style="background:var(--GP);border:1px solid var(--G);border-radius:10px;padding:12px;margin-bottom:16px;">
+          <div style="font-size:.72rem;color:#888;">Pay to UPI ID</div>
+          <div style="font-size:1rem;font-weight:800;color:var(--M);">${BIZ.upiId}</div>
+          <div style="font-size:.72rem;color:#888;margin-top:6px;">Amount</div>
+          <div style="font-size:1.3rem;font-weight:900;color:var(--M);">${fmt(fin)}</div>
+        </div>
+        <a href="${upiUrl}" class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;">📱 Open UPI App to Pay</a>
+        <div style="background:#fff8e1;border:1px solid #ffcc70;border-radius:10px;padding:12px;font-size:.78rem;color:#8a6d00;line-height:1.5;margin-bottom:14px;">
+          ⚠️ After paying, click <strong>"I've Paid"</strong> below. Your order will be <strong>confirmed once we verify the payment</strong> (usually within a few minutes).
+        </div>
+        <button class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;" onclick="placeOrder('upiqr','verifying',false,'${txnRef}')">✅ I've Paid – Confirm Order</button>
+        <button class="btn btn-outline btn-full" onclick="renderCheckout()">← Change Payment Method</button>
+      </div>
+    </div>`;
+  // Render QR
+  setTimeout(()=>{
+    if(window.QRCode){
+      QRCode.toCanvas(document.getElementById('upiQRCanvas'),upiUrl,{width:220,margin:1,color:{dark:'#7B1C1C',light:'#ffffff'}},function(err){if(err)console.error(err)});
+    }
+  },100);
+}
+async function placeOrder(method, payStatus, keepChatOpen, payRef){
+  method = method || payM || 'cod';
+  const {tot,del,disc,fin}=cartTotals();
+  const num='SS'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
+  // Determine order status & payment status
+  let ps = payStatus || (method==='cod'?'pending':'paid');
+  let orderStatus = 'confirmed';
+  if(method==='upiqr' && ps==='verifying'){ orderStatus='payment_review'; ps='verifying'; }
+  if(method==='whatsapp'){ orderStatus='payment_review'; ps='pending'; }
   const order={
     id:Date.now(),
     num,
-    items:cart.map(i=>{const p=gP(i.id);return p?{id:i.id,name:p.name,sku:p.sku,img:p.imgs[0],qty:i.qty,price:p.price,total:p.price*i.qty}:null}).filter(Boolean),
+    items:cart.map(i=>{const p=gP(i.id);return p?{id:i.id,name:p.name,sku:p.sku,img:(p.imgs&&p.imgs[0])||'',qty:i.qty,price:p.price,total:p.price*i.qty}:null}).filter(Boolean),
     addr:ckAddr,
     customerName:(curUser&&curUser.displayName)||ckAddr.name||'Guest Customer',
     customerPhone:(curUser&&curUser.phoneNumber)||ckAddr.phone||'',
+    customerEmail:(curUser&&curUser.email)||'',
     customerUid:curUser?curUser.uid:'',
-    pm:payM,
-    status:'confirmed',
-    ps:payM==='cod'?'pending':'paid',
-    tot:fin,
-    sub:tot,
-    del,
-    disc,
+    pm:method,
+    status:orderStatus,
+    ps:ps,
+    payRef:payRef||'',
+    tot:fin, sub:tot, del, disc,
     date:new Date().toISOString()
   };
   orders.unshift(order);saveOrders();
   await saveOrderRemote(order);
   cart=[];saveCart();
+
+  // Confirmation screen varies by payment flow
+  let statusLine, note, icon='🎉', title='Order Placed!';
+  if(method==='cod'){
+    statusLine='💵 Cash on Delivery';
+    note='Your saree will be delivered in 3–7 business days. We will notify you via WhatsApp once it\'s shipped.';
+  } else if(method==='razorpay'){
+    statusLine='✅ Payment Successful (Online)';
+    note='Payment received! Your order is confirmed and will be shipped in 3–7 business days.';
+  } else if(method==='upiqr'){
+    icon='⏳'; title='Payment Under Review';
+    statusLine='📲 UPI Payment – Awaiting Verification';
+    note='Thank you! We are verifying your UPI payment. Your order will be <strong>confirmed once we approve the payment</strong> (usually within a few minutes). You will get a WhatsApp update.';
+  } else if(method==='whatsapp'){
+    icon='💬'; title='Order Sent on WhatsApp';
+    statusLine='💬 WhatsApp Order';
+    note='We have opened WhatsApp with your order details. Please send the message to confirm. We will reply with payment & delivery details.';
+  }
   document.getElementById('checkoutContent').innerHTML=`<div class="success-wrap">
-    <div class="success-tick">🎉</div>
-    <h2 style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--M);margin-bottom:8px;">Order Placed!</h2>
+    <div class="success-tick">${icon}</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--M);margin-bottom:8px;">${title}</h2>
     <p style="color:#666;margin-bottom:20px;">Thank you for shopping with Saree Shopping!</p>
-    <div class="on-box"><div style="font-size:.75rem;color:#888;margin-bottom:4px;">Order Number</div><div style="font-size:1.4rem;font-weight:900;color:var(--M);">${num}</div><div style="font-size:.8rem;color:#888;margin-top:6px;">${payM==='cod'?'💵 Pay cash on delivery':'✅ Online payment confirmed'}</div></div>
-    <p style="font-size:.85rem;color:#666;margin-bottom:24px;max-width:420px;margin-left:auto;margin-right:auto;">Your saree will be delivered in 3–7 business days. We will notify you via WhatsApp once it's shipped.</p>
+    <div class="on-box"><div style="font-size:.75rem;color:#888;margin-bottom:4px;">Order Number</div><div style="font-size:1.4rem;font-weight:900;color:var(--M);">${num}</div><div style="font-size:.8rem;color:#888;margin-top:6px;">${statusLine}</div></div>
+    <p style="font-size:.85rem;color:#666;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">${note}</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-M btn-lg" onclick="go('orders')">Track My Order</button>
       <button class="btn btn-outline btn-lg" onclick="go('home')">Continue Shopping</button>
@@ -1445,13 +1635,13 @@ async function placeOrder(){
 }
 
 /* ── ORDERS ── */
-const STATUS={confirmed:{label:'Confirmed',icon:'✅',cls:'sb-confirmed',pct:25},processing:{label:'Processing',icon:'⚙️',cls:'sb-confirmed',pct:50},shipped:{label:'Shipped',icon:'🚚',cls:'sb-shipped',pct:75},delivered:{label:'Delivered',icon:'🎉',cls:'sb-delivered',pct:100},cancelled:{label:'Cancelled',icon:'❌',cls:'sb-cancelled',pct:0},pending:{label:'Placed',icon:'📋',cls:'sb-pending',pct:10}};
+const STATUS={payment_review:{label:'Payment Review',icon:'⏳',cls:'sb-pending',pct:15},confirmed:{label:'Confirmed',icon:'✅',cls:'sb-confirmed',pct:25},processing:{label:'Processing',icon:'⚙️',cls:'sb-confirmed',pct:50},shipped:{label:'Shipped',icon:'🚚',cls:'sb-shipped',pct:75},delivered:{label:'Delivered',icon:'🎉',cls:'sb-delivered',pct:100},cancelled:{label:'Cancelled',icon:'❌',cls:'sb-cancelled',pct:0},pending:{label:'Placed',icon:'📋',cls:'sb-pending',pct:10}};
 function renderOrders(){
   const oc=document.getElementById('ordersContent');
   if(!orders.length){oc.innerHTML=`<div class="empty-state"><div class="es-icon">📦</div><div class="es-title">No Orders Yet</div><div class="es-sub">Place your first order and it will appear here!</div><button class="btn btn-M btn-lg" onclick="go('products')">Shop Now</button></div>`;return;}
   oc.innerHTML=`<div class="orders-layout">${orders.map(ord=>{const st=STATUS[ord.status]||STATUS.pending;const dt=new Date(ord.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});const a=ord.addr||{};
   return`<div class="order-card">
-    <div class="oc-head" onclick="toggleOB(${ord.id})">
+    <div class="oc-head" onclick="toggleOB('${ord.id}')">
       <div class="oc-meta"><div class="oc-num">Order # ${ord.num}</div><div class="oc-date">${dt}</div></div>
       <div class="oc-right"><div class="oc-amt">${fmt(ord.tot)}</div><span class="status-badge ${st.cls}">${st.icon} ${st.label}</span></div>
     </div>
