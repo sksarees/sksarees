@@ -3,937 +3,503 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SK Sarees – Admin Panel</title>
+<title>Saree Shopping – Admin Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config={
-  darkMode:'class',
-  theme:{extend:{
-    colors:{
-      brand:{50:'#fdf6ec',100:'#faecd4',200:'#f4d6a3',300:'#edd071',400:'#C9A84C',500:'#b5923a',600:'#96752f',700:'#705723',800:'#5e491f',900:'#4f3d1c'},
-      maroon:{50:'#fdf2f2',100:'#fce4e4',200:'#fac9c9',400:'#d04e4e',500:'#7B1C1C',600:'#6a1717',700:'#5a1313',800:'#3d0e0e',900:'#2a0909'},
-    },
-    fontFamily:{serif:["'Playfair Display'",'serif'],sans:['Inter','sans-serif']},
-  }}
-};
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{400:'#C9A84C',300:'#edd071'},maroon:{500:'#7B1C1C',600:'#6a1717',700:'#5a1313'}}}}}</script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-/* ── FIREBASE CONFIG ── Must match index.html exactly ── */
-const FIREBASE_CONFIG = {
- apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
-  authDomain: "sksareesapp.firebaseapp.com",
-  projectId: "sksareesapp",
-  storageBucket: "sksareesapp.firebasestorage.app",
-  messagingSenderId: "774983284365",
-  appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
-};
-const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
-let db = null;
-if(FB_ON){ firebase.initializeApp(FIREBASE_CONFIG); db = firebase.firestore(); }
-</script>
 <style>
-  body{font-family:'Inter',sans-serif}
-  .sidebar-link.active{background:rgba(201,168,76,.15);color:#C9A84C;border-right:3px solid #C9A84C}
-  .sidebar-link:hover{background:rgba(255,255,255,.06)}
-  .modal-enter{animation:modalIn .25s ease}
-  @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
-  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-  input[type=number]{-moz-appearance:textfield}
-  .line-clamp-1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#C9A84C;border-radius:3px}
-  @media(max-width:1024px){.sidebar-overlay.open{display:block}}
+body{font-family:'Inter',sans-serif}
+.side-link.on{background:rgba(201,168,76,.15);color:#C9A84C;border-right:3px solid #C9A84C}
+.side-link:hover{background:rgba(255,255,255,.06)}
+.anim{animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#C9A84C;border-radius:3px}
+.clamp1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
 
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
-<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-gray-300 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300 flex flex-col shadow-2xl">
-  <!-- Brand -->
-  <div class="px-6 py-5 border-b border-gray-800 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-300 flex items-center justify-center font-serif font-extrabold text-gray-900">SK</div>
-    <div>
-      <div class="font-serif font-bold text-brand-400 text-lg leading-none">SK Sarees</div>
-      <div class="text-[10px] text-gray-500 tracking-wider uppercase">Admin Panel</div>
+<!-- ═══ TOAST ═══ -->
+<div id="TW" class="fixed top-4 right-4 z-[999] flex flex-col gap-2 max-w-sm"></div>
+
+<!-- ═══ LOGIN PAGE ═══ -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 anim">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-300 flex items-center justify-center font-serif font-extrabold text-2xl text-gray-900 mx-auto mb-4 shadow-lg">SS</div>
+      <h1 class="font-serif text-2xl font-extrabold text-maroon-500 dark:text-brand-400">Admin Login</h1>
+      <p class="text-sm text-gray-400 mt-1">Saree Shopping · Owner Dashboard</p>
     </div>
-    <button onclick="toggleSidebar()" class="lg:hidden ml-auto text-gray-400 hover:text-white text-xl">✕</button>
+    <div id="loginErr" class="hidden bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl p-3 text-sm font-semibold mb-4"></div>
+    <div class="space-y-3">
+      <div><label class="block text-xs font-bold text-gray-500 mb-1">Admin Email</label>
+        <input id="adEmail" type="email" placeholder="admin@sareeshopping.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400 focus:border-brand-400" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 mb-1">Password</label>
+        <input id="adPass" type="password" placeholder="Enter password" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400 focus:border-brand-400" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button id="loginBtn" onclick="doLogin()" class="w-full py-3.5 bg-gradient-to-r from-maroon-500 to-maroon-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all">🔐 Sign In</button>
+    </div>
+    <p class="text-xs text-gray-400 text-center mt-4 leading-relaxed">Create admin account in Firebase Console → Authentication → Add User.<br/>Then add that email to <code class="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[10px]">ADMIN_EMAILS</code> array in admin.html</p>
+    <div class="text-center mt-4"><a href="./" class="text-sm text-brand-400 hover:underline font-semibold">← Back to Store</a></div>
   </div>
-  <!-- Navigation -->
-  <nav class="flex-1 py-4 space-y-1 px-3 overflow-y-auto">
-    <a onclick="goPage('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all" id="nav-dashboard">
-      <span class="text-lg">📊</span> Dashboard
-    </a>
-    <a onclick="goPage('products')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all" id="nav-products">
-      <span class="text-lg">🛍️</span> Products
-    </a>
-    <a onclick="goPage('orders')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all" id="nav-orders">
-      <span class="text-lg">📦</span> Orders
-    </a>
-    <a onclick="goPage('users')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all" id="nav-users">
-      <span class="text-lg">👥</span> Users
-    </a>
-    <a onclick="goPage('inventory')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all" id="nav-inventory">
-      <span class="text-lg">📋</span> Inventory
-    </a>
-    <a onclick="goPage('reports')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all" id="nav-reports">
-      <span class="text-lg">📈</span> Reports
-    </a>
+</div>
+
+<!-- ═══ MAIN APP (hidden until login) ═══ -->
+<div id="mainApp" class="hidden min-h-screen flex">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-gray-900 text-gray-300 transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 flex flex-col shadow-2xl">
+  <div class="px-5 py-4 border-b border-gray-800 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-300 flex items-center justify-center font-serif font-extrabold text-gray-900 text-sm">SS</div>
+    <div><div class="font-serif font-bold text-brand-400 leading-none">Saree Shopping</div><div class="text-[9px] text-gray-600 uppercase tracking-wider">Admin Panel</div></div>
+    <button onclick="toggleSB()" class="lg:hidden ml-auto text-gray-400 hover:text-white text-xl">✕</button>
+  </div>
+  <nav class="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+    <a onclick="goP('dashboard')" id="sn-dashboard" class="side-link on flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📊 Dashboard</a>
+    <a onclick="goP('products')" id="sn-products" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">🛍️ Products</a>
+    <a onclick="goP('orders')" id="sn-orders" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📦 Orders</a>
+    <a onclick="goP('inventory')" id="sn-inventory" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📋 Inventory</a>
+    <a onclick="goP('reports')" id="sn-reports" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📈 Reports</a>
   </nav>
-  <!-- Footer -->
-  <div class="px-6 py-4 border-t border-gray-800 text-xs text-gray-600">
-    <div>SK Sarees Admin v2.0</div>
-    <a href="./" class="text-brand-400 hover:underline mt-1 block">← Back to Store</a>
+  <div class="px-5 py-3 border-t border-gray-800 text-xs text-gray-600">
+    <div id="sbUser" class="text-brand-400 font-bold mb-1 truncate"></div>
+    <a href="./" class="hover:text-brand-400">← Back to Store</a>
   </div>
 </aside>
+<div id="sbOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSB()"></div>
 
-<!-- Sidebar Overlay (mobile) -->
-<div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleSidebar()"></div>
-
-<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<!-- CONTENT -->
 <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-
-  <!-- Top Bar -->
-  <header class="sticky top-0 z-30 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
-    <div class="flex items-center gap-3">
-      <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-xl">☰</button>
-      <h1 class="font-serif font-bold text-lg text-gray-800 dark:text-gray-100" id="pageTitle">Dashboard</h1>
-      <div class="ml-auto flex items-center gap-3">
-        <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-lg" title="Toggle Dark Mode" id="darkBtn">🌙</button>
-        <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full text-xs font-semibold" id="fbStatus">
-          <span class="w-2 h-2 rounded-full" id="fbDot"></span>
-          <span class="text-gray-500 dark:text-gray-400" id="fbLabel">Checking…</span>
-        </div>
-        <script>
-          document.addEventListener('DOMContentLoaded',()=>{
-            const dot=document.getElementById('fbDot'),lbl=document.getElementById('fbLabel');
-            if(FB_ON){dot.classList.add('bg-green-500');lbl.textContent='Firebase Connected';}
-            else{dot.classList.add('bg-red-500');lbl.textContent='Firebase Offline';}
-          });
-        </script>
-      </div>
+  <header class="sticky top-0 z-30 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3">
+    <button onclick="toggleSB()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-xl">☰</button>
+    <h1 class="font-serif font-bold text-lg" id="pgTitle">Dashboard</h1>
+    <div class="ml-auto flex items-center gap-2">
+      <button onclick="toggleDM()" id="dmBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-lg">🌙</button>
+      <span class="hidden sm:inline text-xs text-green-500 font-bold" id="fbStat">● Connected</span>
+      <button onclick="doLogout()" class="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-red-500 border border-gray-200 dark:border-gray-600 rounded-lg">Sign Out</button>
     </div>
   </header>
 
-  <!-- Page Content -->
   <main class="flex-1 p-4 sm:p-6">
 
-    <!-- ══════ DASHBOARD ══════ -->
-    <div id="pg-dashboard" class="page-content">
-      <!-- Stats -->
+    <!-- DASHBOARD -->
+    <div id="pg-dashboard" class="pgc">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
-          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Products</div>
-          <div class="font-serif text-3xl font-extrabold text-maroon-500 dark:text-brand-400 mt-1" id="dsProdCount">0</div>
-          <div class="text-xs text-gray-400 mt-1">Active catalog items</div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
-          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</div>
-          <div class="font-serif text-3xl font-extrabold text-green-600 mt-1" id="dsRevenue">₹0</div>
-          <div class="text-xs text-gray-400 mt-1">From all products value</div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
-          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Low Stock Items</div>
-          <div class="font-serif text-3xl font-extrabold text-orange-500 mt-1" id="dsLowStock">0</div>
-          <div class="text-xs text-gray-400 mt-1">Below 10 units</div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
-          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Categories</div>
-          <div class="font-serif text-3xl font-extrabold text-blue-600 mt-1">8</div>
-          <div class="text-xs text-gray-400 mt-1">Product categories</div>
-        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Products</div><div class="font-serif text-3xl font-extrabold text-maroon-500 dark:text-brand-400 mt-1" id="dProd">0</div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Total Orders</div><div class="font-serif text-3xl font-extrabold text-green-600 mt-1" id="dOrders">0</div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Revenue</div><div class="font-serif text-2xl font-extrabold text-blue-600 mt-1" id="dRev">₹0</div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Low Stock</div><div class="font-serif text-3xl font-extrabold text-orange-500 mt-1" id="dLow">0</div></div>
       </div>
-      <!-- Quick Actions -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm mb-6">
-        <h3 class="font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Quick Actions</h3>
-        <div class="flex flex-wrap gap-3">
-          <button onclick="goPage('products');setTimeout(()=>openModal(),100)" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 shadow-lg shadow-maroon-500/20">+ Add Product</button>
-          <button onclick="goPage('products')" class="px-5 py-2.5 bg-brand-400 hover:bg-brand-500 text-gray-900 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5">View All Products</button>
-          <button onclick="goPage('inventory')" class="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-bold text-sm transition-all">Check Inventory</button>
-          <button onclick="exportProducts()" class="px-5 py-2.5 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl font-bold text-sm transition-all">⬇️ Export CSV</button>
-          <button onclick="seedFirestore()" class="px-5 py-2.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 hover:bg-orange-200 rounded-xl font-bold text-sm transition-all" title="Upload sample products to Firestore for the first time">🔥 Seed Products to Firestore</button>
-        </div>
+      <div class="flex flex-wrap gap-3 mb-6">
+        <button onclick="goP('products');setTimeout(()=>openModal(),100)" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">+ Add Product</button>
+        <button onclick="goP('orders')" class="px-5 py-2.5 bg-brand-400 text-gray-900 rounded-xl font-bold text-sm">View Orders</button>
+        <button onclick="seedFS()" class="px-5 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm" title="First-time: push sample products to Firestore">🔥 Seed Products</button>
+        <button onclick="exportCSV()" class="px-5 py-2.5 border border-gray-200 rounded-xl font-bold text-sm">⬇️ Export CSV</button>
       </div>
-      <!-- Recent Products -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
-        <h3 class="font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Recent Products</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashRecentProducts"></div>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Recent Products</h3>
+        <div id="dRecent" class="space-y-2"></div>
       </div>
     </div>
 
-    <!-- ══════ PRODUCTS ══════ -->
-    <div id="pg-products" class="page-content hidden">
-      <!-- Toolbar -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
-        <button onclick="openModal()" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 shadow-lg shadow-maroon-500/20 flex items-center gap-2">
-          <span class="text-lg">+</span> Add New Product
-        </button>
-        <div class="flex-1"></div>
-        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-          <input type="text" id="searchInput" placeholder="🔍 Search products..." oninput="renderTable()" class="flex-1 sm:flex-none sm:w-56 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all"/>
-          <select id="catFilter" onchange="renderTable()" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-brand-400">
-            <option value="all">All Categories</option>
-            <option value="Cotton Sarees">Cotton Sarees</option>
-            <option value="Silk Sarees">Silk Sarees</option>
-            <option value="Bridal Sarees">Bridal Sarees</option>
-            <option value="Art Silk Sarees">Art Silk Sarees</option>
-            <option value="Georgette Sarees">Georgette Sarees</option>
-            <option value="Fancy Sarees">Fancy Sarees</option>
-          </select>
-          <select id="statusFilter" onchange="renderTable()" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-brand-400">
-            <option value="all">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Out of Stock">Out of Stock</option>
-          </select>
-        </div>
+    <!-- PRODUCTS -->
+    <div id="pg-products" class="pgc hidden">
+      <div class="flex flex-wrap gap-3 mb-4">
+        <button onclick="openModal()" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">+ Add New Product</button>
+        <input id="sQ" oninput="renderProducts()" placeholder="🔍 Search…" class="flex-1 min-w-[180px] px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-brand-400"/>
+        <select id="sCat" onchange="renderProducts()" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
+          <option value="">All Categories</option><option>Cotton Sarees</option><option>Silk Sarees</option><option>Bridal Sarees</option><option>Art Silk Sarees</option><option>Georgette Sarees</option><option>Fancy Sarees</option>
+        </select>
       </div>
-      <!-- Products Table -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th class="px-4 py-3.5">ID</th>
-                <th class="px-4 py-3.5">Image</th>
-                <th class="px-4 py-3.5">Product Name</th>
-                <th class="px-4 py-3.5">Category</th>
-                <th class="px-4 py-3.5 text-right">Price</th>
-                <th class="px-4 py-3.5 text-center">Stock</th>
-                <th class="px-4 py-3.5 text-center">Status</th>
-                <th class="px-4 py-3.5 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="productTableBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-          </table>
-        </div>
-        <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/30 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
-          <span id="tableInfo">Showing 0 products</span>
-          <button onclick="exportProducts()" class="text-brand-400 hover:underline font-bold">⬇️ Export CSV</button>
-        </div>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-bold text-gray-500 uppercase">
+          <th class="px-4 py-3">ID</th><th class="px-4 py-3">Image</th><th class="px-4 py-3">Name</th><th class="px-4 py-3">Category</th><th class="px-4 py-3 text-right">Price</th><th class="px-4 py-3 text-center">Stock</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center">Actions</th>
+        </tr></thead><tbody id="pTBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody></table></div>
+        <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/30 text-xs text-gray-400" id="pInfo">0 products</div>
       </div>
     </div>
 
-    <!-- ══════ ORDERS ══════ -->
-    <div id="pg-orders" class="page-content hidden">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-100 dark:border-gray-700 shadow-sm text-center">
-        <div class="text-5xl mb-4">📦</div>
-        <h3 class="font-serif text-xl font-bold text-maroon-500 dark:text-brand-400 mb-2">Orders Management</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Connect Firebase Firestore to see live customer orders here.<br/>Orders placed on the store are saved to the <code class="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-xs">orders</code> collection.</p>
-        <a href="./" class="inline-block px-5 py-2.5 bg-brand-400 text-gray-900 rounded-xl font-bold text-sm">← View Store</a>
+    <!-- ORDERS -->
+    <div id="pg-orders" class="pgc hidden">
+      <div class="flex flex-wrap gap-3 mb-4">
+        <input id="oQ" oninput="renderOrders()" placeholder="🔍 Search orders…" class="flex-1 min-w-[180px] px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"/>
+        <select id="oSt" onchange="renderOrders()" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
+          <option value="">All Status</option><option>confirmed</option><option>processing</option><option>shipped</option><option>delivered</option><option>cancelled</option>
+        </select>
       </div>
+      <div id="oList" class="space-y-3"></div>
+      <div id="oEmpty" class="hidden text-center py-16 text-gray-400"><div class="text-5xl mb-3">📦</div><p class="font-bold">No orders yet</p><p class="text-sm">Orders will appear here when customers place them.</p></div>
     </div>
 
-    <!-- ══════ USERS ══════ -->
-    <div id="pg-users" class="page-content hidden">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-100 dark:border-gray-700 shadow-sm text-center">
-        <div class="text-5xl mb-4">👥</div>
-        <h3 class="font-serif text-xl font-bold text-maroon-500 dark:text-brand-400 mb-2">Users Management</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-sm">Manage customer accounts via Firebase Console → Authentication → Users.</p>
-      </div>
-    </div>
-
-    <!-- ══════ INVENTORY ══════ -->
-    <div id="pg-inventory" class="page-content hidden">
+    <!-- INVENTORY -->
+    <div id="pg-inventory" class="pgc hidden">
       <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-          <h3 class="font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">Inventory Overview</h3>
-          <span class="text-xs text-gray-400" id="invCount">0 items</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th class="px-4 py-3">SKU</th>
-                <th class="px-4 py-3">Product</th>
-                <th class="px-4 py-3 text-center">Stock Qty</th>
-                <th class="px-4 py-3 text-center">Status</th>
-                <th class="px-4 py-3 text-center">Alert</th>
-              </tr>
-            </thead>
-            <tbody id="invTableBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-          </table>
-        </div>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-bold text-gray-500 uppercase">
+          <th class="px-4 py-3">SKU</th><th class="px-4 py-3">Product</th><th class="px-4 py-3 text-center">Stock</th><th class="px-4 py-3 text-center">Alert</th>
+        </tr></thead><tbody id="iTBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody></table></div>
       </div>
     </div>
 
-    <!-- ══════ REPORTS ══════ -->
-    <div id="pg-reports" class="page-content hidden">
+    <!-- REPORTS -->
+    <div id="pg-reports" class="pgc hidden">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
-          <h3 class="font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">📊 Stock by Category</h3>
-          <div id="reportCatStock" class="space-y-3"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Stock by Category</h3><div id="rCatStock" class="space-y-3"></div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
-          <h3 class="font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">💰 Revenue by Category</h3>
-          <div id="reportCatRevenue" class="space-y-3"></div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm md:col-span-2">
-          <h3 class="font-bold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">🏷️ Products Summary</h3>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="reportSummary"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Revenue by Category</h3><div id="rCatRev" class="space-y-3"></div>
         </div>
       </div>
     </div>
 
   </main>
 </div>
+</div><!-- /mainApp -->
 
-<!-- ═══════════════ PRODUCT MODAL ═══════════════ -->
-<div id="productModal" class="fixed inset-0 z-[100] hidden">
+<!-- ═══ PRODUCT MODAL ═══ -->
+<div id="pModal" class="fixed inset-0 z-[100] hidden">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
-  <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-16">
-    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl modal-enter border border-gray-200 dark:border-gray-700">
-      <!-- Modal Header -->
+  <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-12">
+    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl anim border border-gray-200 dark:border-gray-700">
       <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-2xl px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-        <h2 class="font-serif font-bold text-lg text-maroon-500 dark:text-brand-400" id="modalTitle">Add New Product</h2>
-        <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-gray-600 text-lg transition-colors">✕</button>
+        <h2 class="font-serif font-bold text-lg text-maroon-500 dark:text-brand-400" id="mTitle">Add Product</h2>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 text-lg flex items-center justify-center">✕</button>
       </div>
-      <!-- Modal Body -->
-      <div class="p-6 space-y-5">
-        <!-- Row 1: Name + Category -->
+      <div class="p-6 space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Product Name *</label>
-            <input id="fName" type="text" placeholder="e.g. Gayathri Pure Cotton Saree" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all"/>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Category *</label>
-            <select id="fCategory" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400">
-              <option value="">Select Category</option>
-              <option>Cotton Sarees</option>
-              <option>Silk Sarees</option>
-              <option>Bridal Sarees</option>
-              <option>Art Silk Sarees</option>
-              <option>Georgette Sarees</option>
-              <option>Fancy Sarees</option>
-              <option>Printed Sarees</option>
-              <option>Dhoti & Shirts</option>
-            </select>
-          </div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Product Name *</label><input id="fN" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Gayathri Pure Cotton Saree"/></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Category *</label><select id="fC" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"><option value="">Select</option><option>Cotton Sarees</option><option>Silk Sarees</option><option>Bridal Sarees</option><option>Art Silk Sarees</option><option>Georgette Sarees</option><option>Fancy Sarees</option><option>Printed Sarees</option></select></div>
         </div>
-        <!-- Row 2: Price + Stock -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Price (₹) *</label>
-            <input id="fPrice" type="number" placeholder="e.g. 1299" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Stock Quantity *</label>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="adjStock(-10)" class="px-2.5 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors">-10</button>
-              <button type="button" onclick="adjStock(-5)" class="px-2.5 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors">-5</button>
-              <input id="fStock" type="number" value="50" class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-center font-bold focus:ring-2 focus:ring-brand-400"/>
-              <button type="button" onclick="adjStock(5)" class="px-2.5 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">+5</button>
-              <button type="button" onclick="adjStock(10)" class="px-2.5 py-2.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 transition-colors">+10</button>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Price (₹) *</label><input id="fP" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="1299"/></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Original Price (₹)</label><input id="fOP" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="1999"/></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Stock *</label>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="adj(-10)" class="px-2 py-2.5 bg-red-100 text-red-600 rounded-lg text-xs font-bold">-10</button>
+              <button type="button" onclick="adj(-5)" class="px-2 py-2.5 bg-red-50 text-red-500 rounded-lg text-xs font-bold">-5</button>
+              <input id="fS" type="number" value="50" class="flex-1 px-2 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-center font-bold min-w-0"/>
+              <button type="button" onclick="adj(5)" class="px-2 py-2.5 bg-green-50 text-green-600 rounded-lg text-xs font-bold">+5</button>
+              <button type="button" onclick="adj(10)" class="px-2 py-2.5 bg-green-100 text-green-600 rounded-lg text-xs font-bold">+10</button>
             </div>
           </div>
         </div>
-        <!-- Row 3: Image URL + Preview -->
-        <div>
-          <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Product Image URL</label>
+        <div><label class="block text-xs font-bold text-gray-500 mb-1">Product Image URL *</label>
           <div class="flex gap-3 items-start">
-            <input id="fImage" type="url" placeholder="https://example.com/image.jpg" oninput="previewImage()" class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-            <div id="imgPreview" class="w-16 h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0">
-              <span class="text-gray-300 dark:text-gray-500 text-2xl">🖼️</span>
-            </div>
+            <input id="fImg" type="url" oninput="prevImg()" class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="https://example.com/saree.jpg"/>
+            <div id="imgPrev" class="w-16 h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0 text-2xl text-gray-300">🖼️</div>
           </div>
         </div>
-        <!-- Row 4: Description -->
-        <div>
-          <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Description</label>
-          <textarea id="fDesc" rows="3" placeholder="Full product description…" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400 resize-none"></textarea>
+        <div><label class="block text-xs font-bold text-gray-500 mb-1">Description</label><textarea id="fD" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm resize-none" placeholder="Full product description…"></textarea></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">SKU</label><input id="fSKU" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="SK501"/></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Fabric</label><input id="fFab" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Cotton"/></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Color</label><input id="fCol" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Red"/></div>
         </div>
-        <!-- Row 5: Short Description -->
-        <div>
-          <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Short Description</label>
-          <input id="fShortDesc" type="text" placeholder="One-line summary for product card" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-        </div>
-        <!-- Row 6: Brand + SKU -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Brand</label>
-            <input id="fBrand" type="text" placeholder="e.g. SK Sarees" value="SK Sarees" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">SKU</label>
-            <input id="fSKU" type="text" placeholder="e.g. SK501" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-          </div>
-        </div>
-        <!-- Row 7: Weight + Dimensions -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Weight (kg)</label>
-            <input id="fWeight" type="number" step="0.01" placeholder="e.g. 0.5" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Dimensions (L × W × H cm)</label>
-            <div class="grid grid-cols-3 gap-2">
-              <input id="fDimL" type="number" placeholder="L" class="px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-center focus:ring-2 focus:ring-brand-400"/>
-              <input id="fDimW" type="number" placeholder="W" class="px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-center focus:ring-2 focus:ring-brand-400"/>
-              <input id="fDimH" type="number" placeholder="H" class="px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-center focus:ring-2 focus:ring-brand-400"/>
-            </div>
-          </div>
-        </div>
-        <!-- Row 8: Tags -->
-        <div>
-          <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Tags (comma separated)</label>
-          <input id="fTags" type="text" placeholder="cotton, daily wear, handloom, south indian" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400"/>
-        </div>
-        <!-- Row 9: Status + Featured -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Status</label>
-            <select id="fStatus" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-brand-400">
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>Out of Stock</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-3 pb-1">
-            <input id="fFeatured" type="checkbox" class="w-5 h-5 rounded-lg border-gray-300 text-brand-400 focus:ring-brand-400 cursor-pointer"/>
-            <label for="fFeatured" class="text-sm font-semibold cursor-pointer">⭐ Featured Product</label>
-          </div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Status</label><select id="fSt" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"><option>Active</option><option>Inactive</option><option>Out of Stock</option></select></div>
+          <div class="flex items-center gap-3"><input id="fFeat" type="checkbox" class="w-5 h-5 rounded"/><label for="fFeat" class="text-sm font-bold cursor-pointer">⭐ Featured / Best Seller</label></div>
         </div>
       </div>
-      <!-- Modal Footer -->
-      <div class="sticky bottom-0 bg-white dark:bg-gray-800 rounded-b-2xl px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3 flex-wrap">
-        <button id="deleteBtn" onclick="deleteProduct()" class="px-4 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl font-bold text-sm transition-colors hidden">🗑️ Delete</button>
+      <div class="sticky bottom-0 bg-white dark:bg-gray-800 rounded-b-2xl px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3">
+        <button id="delBtn" onclick="delProd()" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold text-sm hidden">🗑️ Delete</button>
         <div class="flex-1"></div>
-        <button onclick="closeModal()" class="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-bold text-sm transition-colors">Cancel</button>
-        <button onclick="saveProduct()" class="px-6 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 shadow-lg shadow-maroon-500/20" id="saveBtn">💾 Save Product</button>
+        <button onclick="closeModal()" class="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold text-sm">Cancel</button>
+        <button onclick="saveProd()" id="saveBtn" class="px-6 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">💾 Save</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ TOAST ═══════════════ -->
-<div id="toastWrap" class="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm"></div>
-
-<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
 <script>
-/* ════════════════════════════════════════════════════════════
-   SAMPLE PRODUCTS DATA
-   ════════════════════════════════════════════════════════════ */
-let products = [
-  { id:1, name:'Gayathri Pure Cotton Saree', category:'Cotton Sarees', price:549, stock:45, image:'https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Active', featured:true, sku:'SK101', brand:'SK Sarees', weight:0.4, dimL:30, dimW:25, dimH:5, tags:'cotton, daily wear, handloom', desc:'Handwoven pure cotton saree with traditional border. Perfect for daily wear.', shortDesc:'Soft cotton saree for daily use', },
-  { id:2, name:'Kanchipuram Pure Silk Saree', category:'Silk Sarees', price:4999, stock:15, image:'https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Active', featured:true, sku:'SK201', brand:'SK Sarees', weight:0.8, dimL:35, dimW:28, dimH:6, tags:'silk, kanchipuram, wedding, zari', desc:'Authentic Kanchipuram pure silk saree with heavy gold zari border and pallu.', shortDesc:'Premium Kanchipuram silk with gold zari', },
-  { id:3, name:'Royal Bridal Silk Saree SK365', category:'Bridal Sarees', price:8999, stock:8, image:'https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Active', featured:true, sku:'SK301', brand:'SK Sarees', weight:1.2, dimL:38, dimW:30, dimH:8, tags:'bridal, silk, embroidery, wedding', desc:'Magnificent bridal silk saree with heavy embroidery and stone work.', shortDesc:'Heavy embroidered bridal silk saree', },
-  { id:4, name:'Art Silk Festival Collection', category:'Art Silk Sarees', price:899, stock:55, image:'https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Active', featured:false, sku:'SK401', brand:'SK Sarees', weight:0.35, dimL:30, dimW:24, dimH:4, tags:'art silk, festival, affordable', desc:'Beautiful art silk saree with rich texture. Perfect festival wear.', shortDesc:'Vibrant art silk for festivals', },
-  { id:5, name:'Embroidered Georgette Party Saree', category:'Georgette Sarees', price:2499, stock:3, image:'https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Active', featured:false, sku:'SK502', brand:'SK Sarees', weight:0.5, dimL:32, dimW:26, dimH:5, tags:'georgette, party, embroidered, sequin', desc:'Heavy embroidered georgette saree with sequin work for parties.', shortDesc:'Glamorous georgette party wear', },
-  { id:6, name:'Net Saree with Embellishments', category:'Fancy Sarees', price:2199, stock:0, image:'https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Out of Stock', featured:false, sku:'SK602', brand:'SK Sarees', weight:0.45, dimL:32, dimW:25, dimH:5, tags:'net, fancy, reception, stone work', desc:'Beautiful net saree with heavy stone work and sequins for receptions.', shortDesc:'Embellished net saree for reception', },
-  { id:7, name:'Lakshmi Soft Cotton Daily Wear', category:'Cotton Sarees', price:449, stock:60, image:'https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300', status:'Active', featured:false, sku:'SK104', brand:'SK Sarees', weight:0.35, dimL:28, dimW:22, dimH:4, tags:'cotton, soft, daily, lightweight', desc:'Ultra-soft premium cotton saree for comfortable daily wear.', shortDesc:'Lightweight daily wear cotton', },
+/* ══════════════ FIREBASE CONFIG ══════════════ */
+  
+const FBC={
+  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+  authDomain: "sksareesapp.firebaseapp.com",
+  projectId: "sksareesapp",
+  storageBucket: "sksareesapp.firebasestorage.app",
+  messagingSenderId: "774983284365",
+  appId: "1:774983284365:web:e03c9b2337d041986fd4c4",
+};
+  const FB=FBC.apiKey!=="G-QGHYX73WG6";
+let db=null,auth=null;
+if(FB){firebase.initializeApp(FBC);db=firebase.firestore();auth=firebase.auth();}
+
+/* Admin emails allowed to login */
+const ADMIN_EMAILS=["admin@sareeshopping.com","owner@sareeshopping.com"]; // ← ADD YOUR EMAIL HERE
+
+/* ══════════════ STATE ══════════════ */
+let products=[
+  {id:'s1',name:'Gayathri Pure Cotton Saree',category:'Cotton Sarees',price:549,op:899,stock:45,image:'https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300',status:'Active',featured:true,sku:'SK101',fab:'Cotton',col:'Pink',desc:'Handwoven pure cotton saree with traditional border.'},
+  {id:'s2',name:'Kanchipuram Pure Silk Saree',category:'Silk Sarees',price:4999,op:7999,stock:15,image:'https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300',status:'Active',featured:true,sku:'SK201',fab:'Pure Silk',col:'Red',desc:'Authentic Kanchipuram silk with gold zari.'},
+  {id:'s3',name:'Royal Bridal Silk Saree',category:'Bridal Sarees',price:8999,op:14999,stock:8,image:'https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300',status:'Active',featured:true,sku:'SK301',fab:'Pure Silk',col:'Deep Red',desc:'Magnificent bridal silk with embroidery.'},
+  {id:'s4',name:'Art Silk Festival Collection',category:'Art Silk Sarees',price:899,op:1499,stock:55,image:'https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300',status:'Active',featured:false,sku:'SK401',fab:'Art Silk',col:'Orange',desc:'Beautiful art silk for festival wear.'},
+  {id:'s5',name:'Embroidered Georgette Party Saree',category:'Georgette Sarees',price:2499,op:3999,stock:3,image:'https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=300&w=300',status:'Active',featured:false,sku:'SK502',fab:'Georgette',col:'Black',desc:'Glamorous georgette with sequin work.'},
 ];
+let allOrders=[];
+let editId=null;
+let prodUnsub=null,orderUnsub=null;
 
-let nextId = 8;
-let editingId = null;
+/* ══════════════ UTILS ══════════════ */
+const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
+function T(msg,type='ok'){const w=document.getElementById('TW'),t=document.createElement('div');const c={ok:'bg-green-600',err:'bg-red-600',info:'bg-blue-600',warn:'bg-orange-500'};t.className=`${c[type]||c.ok} text-white px-5 py-3 rounded-xl shadow-lg text-sm font-semibold anim`;t.textContent=msg;w.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3000)}
+function stBadge(s){const m={'Active':'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400','Inactive':'bg-gray-100 text-gray-600','Out of Stock':'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'};return`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${m[s]||m.Active}">${s}</span>`}
+function stCol(q){return q<=0?'text-red-600 bg-red-50':q<=10?'text-orange-500 bg-orange-50':'text-green-600 bg-green-50'}
 
-/* ════════════════════════════════════════════════════════════
-   PAGE ROUTING
-   ════════════════════════════════════════════════════════════ */
-function goPage(page) {
-  // Hide all pages
-  document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-  document.getElementById('pg-' + page).classList.remove('hidden');
-  // Update sidebar active
-  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-  const nav = document.getElementById('nav-' + page);
-  if (nav) nav.classList.add('active');
-  // Update title
-  const titles = { dashboard:'Dashboard', products:'Products', orders:'Orders', users:'Users', inventory:'Inventory', reports:'Reports' };
-  document.getElementById('pageTitle').textContent = titles[page] || 'Admin';
-  // Render page-specific content
-  if (page === 'dashboard') renderDashboard();
-  if (page === 'products') renderTable();
-  if (page === 'inventory') renderInventory();
-  if (page === 'reports') renderReports();
-  // Close sidebar on mobile
-  if (window.innerWidth < 1024) toggleSidebar(false);
+/* ══════════════ AUTH ══════════════ */
+function doLogin(){
+  const email=document.getElementById('adEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('adPass').value;
+  const err=document.getElementById('loginErr');
+  err.classList.add('hidden');
+  if(!email||!pass){err.textContent='Enter email and password';err.classList.remove('hidden');return}
+  if(!FB){err.textContent='Firebase not configured. Fill FIREBASE_CONFIG in admin.html';err.classList.remove('hidden');return}
+  if(!ADMIN_EMAILS.includes(email)){err.textContent='This email is not an authorized admin. Add it to ADMIN_EMAILS in admin.html.';err.classList.remove('hidden');return}
+  const btn=document.getElementById('loginBtn');btn.disabled=true;btn.innerHTML='<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Signing in…';
+  auth.signInWithEmailAndPassword(email,pass).then(()=>{}).catch(e=>{
+    const M={'auth/wrong-password':'Wrong password','auth/user-not-found':'Account not found. Create in Firebase Console.','auth/invalid-credential':'Invalid email or password','auth/too-many-requests':'Too many attempts. Wait.'};
+    err.textContent=M[e.code]||e.message;err.classList.remove('hidden');
+    btn.disabled=false;btn.innerHTML='🔐 Sign In';
+  });
+}
+function doLogout(){if(auth)auth.signOut();if(prodUnsub)prodUnsub();if(orderUnsub)orderUnsub();document.getElementById('mainApp').classList.add('hidden');document.getElementById('loginPage').classList.remove('hidden');T('Signed out','info')}
+
+if(FB){
+  auth.onAuthStateChanged(u=>{
+    if(u&&ADMIN_EMAILS.includes(u.email)){
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('sbUser').textContent=u.email;
+      loadData();
+    } else if(u){auth.signOut();document.getElementById('loginErr').textContent='Not an authorized admin.';document.getElementById('loginErr').classList.remove('hidden')}
+    else{document.getElementById('loginPage').classList.remove('hidden');document.getElementById('mainApp').classList.add('hidden')}
+  });
+} else {
+  document.getElementById('fbStat').textContent='⚫ Offline';
+  document.getElementById('fbStat').className='hidden sm:inline text-xs text-red-500 font-bold';
 }
 
-/* ════════════════════════════════════════════════════════════
-   SIDEBAR TOGGLE
-   ════════════════════════════════════════════════════════════ */
-function toggleSidebar(forceOpen) {
-  const sb = document.getElementById('sidebar');
-  const ov = document.getElementById('sidebarOverlay');
-  const isOpen = !sb.classList.contains('-translate-x-full');
-  const open = forceOpen !== undefined ? forceOpen : !isOpen;
-  sb.classList.toggle('-translate-x-full', !open);
-  ov.classList.toggle('hidden', !open);
+/* ══════════════ LOAD DATA ══════════════ */
+function loadData(){
+  if(!db)return;
+  // Products listener
+  prodUnsub=db.collection('products').orderBy('createdAt','desc').onSnapshot(snap=>{
+    if(!snap.empty){products=snap.docs.map(d=>({id:d.id,...d.data()}))}
+    renderDash();renderProducts();renderInv();renderReports();
+  },e=>{console.error(e);T('Products load failed','err')});
+  // Orders listener
+  orderUnsub=db.collection('orders').orderBy('date','desc').onSnapshot(snap=>{
+    allOrders=snap.docs.map(d=>({docId:d.id,...d.data()}));
+    renderDash();renderOrders();
+  },e=>{console.error(e);T('Orders load failed','err')});
 }
 
-/* ════════════════════════════════════════════════════════════
-   DARK MODE
-   ════════════════════════════════════════════════════════════ */
-function toggleDarkMode() {
-  document.documentElement.classList.toggle('dark');
-  const isDark = document.documentElement.classList.contains('dark');
-  localStorage.setItem('sk_admin_dark', isDark ? '1' : '0');
-  document.getElementById('darkBtn').textContent = isDark ? '☀️' : '🌙';
-}
-// Restore dark mode
-if (localStorage.getItem('sk_admin_dark') === '1') {
-  document.documentElement.classList.add('dark');
-  document.getElementById('darkBtn').textContent = '☀️';
+/* ══════════════ PAGES ══════════════ */
+function goP(p){document.querySelectorAll('.pgc').forEach(e=>e.classList.add('hidden'));document.getElementById('pg-'+p).classList.remove('hidden');document.querySelectorAll('.side-link').forEach(l=>l.classList.remove('on'));const sn=document.getElementById('sn-'+p);if(sn)sn.classList.add('on');document.getElementById('pgTitle').textContent={dashboard:'Dashboard',products:'Products',orders:'Orders',inventory:'Inventory',reports:'Reports'}[p]||'Admin';if(window.innerWidth<1024)toggleSB(false);if(p==='products')renderProducts();if(p==='orders')renderOrders();if(p==='inventory')renderInv();if(p==='reports')renderReports()}
+function toggleSB(f){const s=document.getElementById('sidebar'),o=document.getElementById('sbOverlay');const open=f!==undefined?f:s.classList.contains('-translate-x-full');s.classList.toggle('-translate-x-full',!open);o.classList.toggle('hidden',!open)}
+function toggleDM(){document.documentElement.classList.toggle('dark');const d=document.documentElement.classList.contains('dark');localStorage.setItem('ss_dark',d?'1':'0');document.getElementById('dmBtn').textContent=d?'☀️':'🌙'}
+if(localStorage.getItem('ss_dark')==='1'){document.documentElement.classList.add('dark');document.getElementById('dmBtn').textContent='☀️'}
+
+/* ══════════════ DASHBOARD ══════════════ */
+function renderDash(){
+  document.getElementById('dProd').textContent=products.length;
+  document.getElementById('dOrders').textContent=allOrders.length;
+  document.getElementById('dRev').textContent=fmt(allOrders.reduce((s,o)=>s+Number(o.tot||0),0));
+  document.getElementById('dLow').textContent=products.filter(p=>(p.stock||0)<=10).length;
+  document.getElementById('dRecent').innerHTML=products.slice(0,5).map(p=>`<div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/60" onclick="goP('products');setTimeout(()=>editProd('${p.id}'),100)"><img src="${p.image||''}" class="w-12 h-14 rounded-lg object-cover border" onerror="this.style.display='none'"/><div class="flex-1 min-w-0"><div class="font-semibold text-sm clamp1">${p.name}</div><div class="text-xs text-gray-400">${p.sku||''} · ${p.category||''}</div></div><div class="text-right flex-shrink-0"><div class="font-bold text-sm">${fmt(p.price)}</div><div class="text-xs ${(p.stock||0)<=10?'text-red-500':'text-green-600'}">Stock: ${p.stock||0}</div></div></div>`).join('');
 }
 
-/* ════════════════════════════════════════════════════════════
-   TOAST NOTIFICATION
-   ════════════════════════════════════════════════════════════ */
-function toast(msg, type = 'ok') {
-  const wrap = document.getElementById('toastWrap');
-  const colors = { ok:'bg-green-600', err:'bg-red-600', info:'bg-blue-600', warn:'bg-orange-500' };
-  const icons = { ok:'✅', err:'❌', info:'ℹ️', warn:'⚠️' };
-  const t = document.createElement('div');
-  t.className = `${colors[type]||colors.ok} text-white px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2 modal-enter`;
-  t.innerHTML = `<span>${icons[type]||icons.ok}</span> ${msg}`;
-  wrap.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+/* ══════════════ PRODUCTS TABLE ══════════════ */
+function renderProducts(){
+  const q=(document.getElementById('sQ')?.value||'').toLowerCase();
+  const cat=document.getElementById('sCat')?.value||'';
+  const f=products.filter(p=>{if(q&&!`${p.name} ${p.sku} ${p.category} ${p.fab}`.toLowerCase().includes(q))return false;if(cat&&p.category!==cat)return false;return true});
+  document.getElementById('pTBody').innerHTML=!f.length?`<tr><td colspan="8" class="px-6 py-16 text-center text-gray-400"><div class="text-4xl mb-3">🔍</div>No products found</td></tr>`:f.map(p=>`<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer" onclick="editProd('${p.id}')"><td class="px-4 py-3 font-mono text-xs text-gray-400">${(p.id||'').toString().slice(0,8)}</td><td class="px-4 py-3"><img src="${p.image||''}" class="w-12 h-14 rounded-lg object-cover border" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2256%22><rect fill=%22%23f5f0eb%22 width=%2248%22 height=%2256%22 rx=%228%22/></svg>'"/></td><td class="px-4 py-3"><div class="font-semibold text-sm clamp1">${p.name}</div><div class="text-xs text-gray-400">${p.sku||''} ${p.featured?'⭐':''}</div></td><td class="px-4 py-3 text-xs text-gray-500">${p.category||''}</td><td class="px-4 py-3 text-right font-bold">${fmt(p.price)}</td><td class="px-4 py-3 text-center"><span class="px-3 py-1 rounded-lg text-xs font-bold ${stCol(p.stock||0)}">${p.stock||0}</span></td><td class="px-4 py-3 text-center">${stBadge(p.status||'Active')}</td><td class="px-4 py-3 text-center"><button onclick="event.stopPropagation();editProd('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-blue-50 text-blue-500 text-sm">✏️</button><button onclick="event.stopPropagation();delProd('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-red-50 text-red-500 text-sm">🗑️</button></td></tr>`).join('');
+  document.getElementById('pInfo').textContent=`Showing ${f.length} of ${products.length} products`;
 }
 
-/* ════════════════════════════════════════════════════════════
-   FORMAT HELPERS
-   ════════════════════════════════════════════════════════════ */
-const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
-function statusBadge(s) {
-  const map = {
-    'Active': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    'Inactive': 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-    'Out of Stock': 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+/* ══════════════ MODAL ══════════════ */
+function openModal(p){
+  editId=p?p.id:null;
+  document.getElementById('mTitle').textContent=p?'Edit Product':'Add New Product';
+  document.getElementById('saveBtn').textContent=p?'💾 Update':'💾 Save';
+  document.getElementById('delBtn').classList.toggle('hidden',!p);
+  document.getElementById('fN').value=p?.name||'';
+  document.getElementById('fC').value=p?.category||'';
+  document.getElementById('fP').value=p?.price||'';
+  document.getElementById('fOP').value=p?.op||p?.originalPrice||'';
+  document.getElementById('fS').value=p?.stock??50;
+  document.getElementById('fImg').value=p?.image||'';
+  document.getElementById('fD').value=p?.desc||p?.description||'';
+  document.getElementById('fSKU').value=p?.sku||'';
+  document.getElementById('fFab').value=p?.fab||p?.fabric||'';
+  document.getElementById('fCol').value=p?.col||p?.color||'';
+  document.getElementById('fSt').value=p?.status||'Active';
+  document.getElementById('fFeat').checked=!!p?.featured||!!p?.bs;
+  prevImg();
+  document.getElementById('pModal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('pModal').classList.add('hidden');document.body.style.overflow='';editId=null}
+function editProd(id){const p=products.find(x=>x.id===id);if(p)openModal(p)}
+function adj(v){const i=document.getElementById('fS');i.value=Math.max(0,(parseInt(i.value)||0)+v)}
+function prevImg(){const u=document.getElementById('fImg').value.trim();const b=document.getElementById('imgPrev');b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>'}
+
+/* ══════════════ SAVE PRODUCT ══════════════ */
+async function saveProd(){
+  const name=document.getElementById('fN').value.trim();
+  const category=document.getElementById('fC').value;
+  const price=parseFloat(document.getElementById('fP').value);
+  const stock=parseInt(document.getElementById('fS').value)||0;
+  if(!name){T('Name required','warn');return}
+  if(!category){T('Select category','warn');return}
+  if(!price||price<=0){T('Enter valid price','warn');return}
+  const catSlug=category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
+  const op=parseFloat(document.getElementById('fOP').value)||Math.round(price*1.5);
+  const disc=Math.round((1-price/op)*100);
+  const image=document.getElementById('fImg').value.trim();
+  const data={
+    name,category,price,stock,image,
+    imgs:image?[image]:[],
+    desc:document.getElementById('fD').value.trim(),
+    sku:document.getElementById('fSKU').value.trim(),
+    fab:document.getElementById('fFab').value.trim()||category.replace(' Sarees',''),
+    col:document.getElementById('fCol').value.trim(),
+    status:document.getElementById('fSt').value,
+    featured:document.getElementById('fFeat').checked,
+    // Fields for index.html
+    cat:catSlug,op,disc,
+    occ:document.getElementById('fFeat').checked?'Wedding':'Daily Wear',
+    len:'6.3m',care:'',
+    rat:4.5,rev:0,
+    bs:document.getElementById('fFeat').checked,
+    iN:true,ft:document.getElementById('fFeat').checked,
+    updatedAt:new Date().toISOString(),
   };
-  return `<span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold ${map[s]||map['Active']}">${s}</span>`;
-}
-function stockColor(qty) {
-  if (qty <= 0) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
-  if (qty <= 10) return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
-  return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
+  const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='⏳ Saving…';
+  try{
+    if(editId){
+      if(db){await db.collection('products').doc(editId).set(data,{merge:true});T('✅ Product updated & live on store!')}
+      else{const i=products.findIndex(x=>x.id===editId);if(i!==-1)products[i]={...products[i],...data};T('Updated locally')}
+    } else {
+      data.createdAt=new Date().toISOString();
+      if(!data.sku)data.sku='SK'+Date.now().toString().slice(-5);
+      if(db){const ref=await db.collection('products').add(data);T('✅ Product added & live on store!')}
+      else{data.id='local_'+Date.now();products.push(data);T('Added locally')}
+    }
+  }catch(e){console.error(e);T('Save failed: '+e.message,'err')}
+  btn.disabled=false;btn.textContent='💾 Save';
+  closeModal();renderProducts();renderDash();
 }
 
-/* ════════════════════════════════════════════════════════════
-   RENDER PRODUCTS TABLE
-   ════════════════════════════════════════════════════════════ */
-function renderTable() {
-  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-  const cf = document.getElementById('catFilter')?.value || 'all';
-  const sf = document.getElementById('statusFilter')?.value || 'all';
-  const filtered = products.filter(p => {
-    if (q && !`${p.name} ${p.sku} ${p.category} ${p.brand} ${p.tags}`.toLowerCase().includes(q)) return false;
-    if (cf !== 'all' && p.category !== cf) return false;
-    if (sf !== 'all' && p.status !== sf) return false;
+/* ══════════════ DELETE PRODUCT ══════════════ */
+async function delProd(id){
+  const tid=id||editId;if(!tid)return;
+  const p=products.find(x=>x.id===tid);if(!p)return;
+  if(!confirm(`Delete "${p.name}"?`))return;
+  try{
+    if(db){await db.collection('products').doc(tid).delete();T('🗑️ Deleted from store')}
+    else{products=products.filter(x=>x.id!==tid);T('Deleted locally')}
+  }catch(e){T('Delete failed: '+e.message,'err')}
+  if(editId===tid)closeModal();
+  renderProducts();renderDash();
+}
+
+/* ══════════════ ORDERS ══════════════ */
+function renderOrders(){
+  const q=(document.getElementById('oQ')?.value||'').toLowerCase();
+  const sf=document.getElementById('oSt')?.value||'';
+  const f=allOrders.filter(o=>{
+    if(q&&![o.num,o.customerName,o.customerPhone,o.status,(o.addr||{}).name,(o.addr||{}).phone].join(' ').toLowerCase().includes(q))return false;
+    if(sf&&(o.status||'pending')!==sf)return false;
     return true;
   });
-  const tbody = document.getElementById('productTableBody');
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-16 text-center text-gray-400"><div class="text-4xl mb-3">🔍</div><div class="font-bold">No products found</div><div class="text-xs mt-1">Try adjusting your search or filters</div></td></tr>`;
-    document.getElementById('tableInfo').textContent = '0 products';
-    return;
-  }
-  tbody.innerHTML = filtered.map(p => `
-    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer" onclick="editProduct(${p.id})">
-      <td class="px-4 py-3 font-mono text-xs text-gray-400">#${p.id}</td>
-      <td class="px-4 py-3">
-        <img src="${p.image}" alt="" class="w-12 h-14 rounded-lg object-cover border border-gray-100 dark:border-gray-600" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2256%22><rect fill=%22%23f5f0eb%22 width=%2248%22 height=%2256%22 rx=%228%22/><text x=%2224%22 y=%2232%22 text-anchor=%22middle%22 fill=%22%23ccc%22 font-size=%2218%22>🖼️</text></svg>'"/>
-      </td>
-      <td class="px-4 py-3">
-        <div class="font-semibold text-sm line-clamp-1">${p.name}</div>
-        <div class="text-xs text-gray-400 mt-0.5">${p.sku} ${p.featured ? '⭐' : ''}</div>
-      </td>
-      <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">${p.category}</td>
-      <td class="px-4 py-3 text-right font-bold text-sm">${fmt(p.price)}</td>
-      <td class="px-4 py-3 text-center">
-        <span class="inline-block px-3 py-1 rounded-lg text-xs font-bold ${stockColor(p.stock)}">${p.stock}</span>
-      </td>
-      <td class="px-4 py-3 text-center">${statusBadge(p.status)}</td>
-      <td class="px-4 py-3 text-center">
-        <div class="flex items-center justify-center gap-1">
-          <button onclick="event.stopPropagation();editProduct(${p.id})" class="w-8 h-8 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 flex items-center justify-center transition-colors" title="Edit">✏️</button>
-          <button onclick="event.stopPropagation();deleteProduct(${p.id})" class="w-8 h-8 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 flex items-center justify-center transition-colors" title="Delete">🗑️</button>
+  const list=document.getElementById('oList');
+  const empty=document.getElementById('oEmpty');
+  if(!f.length){list.innerHTML='';empty.classList.remove('hidden');return}
+  empty.classList.add('hidden');
+  const stMap={confirmed:'bg-blue-100 text-blue-700',processing:'bg-yellow-100 text-yellow-700',shipped:'bg-indigo-100 text-indigo-700',delivered:'bg-green-100 text-green-700',cancelled:'bg-red-100 text-red-600',pending:'bg-gray-100 text-gray-600'};
+  const stOpts=['confirmed','processing','shipped','delivered','cancelled'];
+  list.innerHTML=f.map(o=>{
+    const a=o.addr||{};
+    const dt=o.date?new Date(o.date).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    const badge=stMap[o.status]||stMap.pending;
+    const items=(o.items||[]).map(it=>`<div class="flex gap-2 items-center p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg"><img src="${it.img||''}" class="w-10 h-12 rounded object-cover flex-shrink-0" onerror="this.style.display='none'"/><div class="flex-1 min-w-0"><div class="text-xs font-bold clamp1">${it.name||''}</div><div class="text-[10px] text-gray-400">${it.sku||''} · Qty: ${it.qty||1} · ${fmt(it.total||0)}</div></div></div>`).join('');
+    const selOpts=stOpts.map(s=>`<option${s===o.status?' selected':''}>${s}</option>`).join('');
+    return`<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="p-4 cursor-pointer flex justify-between items-start flex-wrap gap-3" onclick="document.getElementById('ob-${o.docId}').classList.toggle('hidden')">
+        <div><div class="font-bold text-sm">🧾 ${o.num||o.docId}</div><div class="text-xs text-gray-400 mt-1">📅 ${dt}<br/>👤 <strong>${o.customerName||a.name||'Guest'}</strong><br/>📱 ${o.customerPhone||a.phone||'N/A'}</div></div>
+        <div class="text-right"><div class="font-serif font-extrabold text-lg text-maroon-500 dark:text-brand-400">${fmt(o.tot||0)}</div><span class="px-3 py-1 rounded-full text-[11px] font-bold ${badge}">${(o.status||'pending').toUpperCase()}</span><div class="text-[10px] text-gray-400 mt-1">${(o.pm||'').toUpperCase()} · ${o.ps==='paid'?'✅ Paid':'⏳ Unpaid'}</div></div>
+      </div>
+      <div id="ob-${o.docId}" class="hidden border-t border-gray-100 dark:border-gray-700 p-4 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${items}</div>
+        <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3 text-xs text-gray-500"><strong class="text-gray-700 dark:text-gray-300">📍 Address:</strong><br/>${a.name||''}, ${a.phone||''}<br/>${a.line1||''}${a.line2?', '+a.line2:''}<br/>${a.city||''}, ${a.state||''} – ${a.pincode||''}</div>
+        <div class="flex flex-wrap items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-200 dark:border-blue-800">
+          <label class="text-xs font-bold text-blue-700 dark:text-blue-300">📋 Update Status:</label>
+          <select id="oSel-${o.docId}" class="px-3 py-2 border border-blue-200 rounded-lg text-xs font-bold bg-white dark:bg-gray-700">${selOpts}</select>
+          <button onclick="updStatus('${o.docId}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">✅ Update</button>
+          <span id="oMsg-${o.docId}" class="text-xs font-bold"></span>
         </div>
-      </td>
-    </tr>
-  `).join('');
-  document.getElementById('tableInfo').textContent = `Showing ${filtered.length} of ${products.length} products`;
-}
-
-/* ════════════════════════════════════════════════════════════
-   MODAL — OPEN / CLOSE / POPULATE
-   ════════════════════════════════════════════════════════════ */
-function openModal(product) {
-  editingId = product ? product.id : null;
-  document.getElementById('modalTitle').textContent = product ? 'Edit Product' : 'Add New Product';
-  document.getElementById('saveBtn').textContent = product ? '💾 Update Product' : '💾 Save Product';
-  document.getElementById('deleteBtn').classList.toggle('hidden', !product);
-  // Populate fields
-  document.getElementById('fName').value = product?.name || '';
-  document.getElementById('fCategory').value = product?.category || '';
-  document.getElementById('fPrice').value = product?.price || '';
-  document.getElementById('fStock').value = product?.stock ?? 50;
-  document.getElementById('fImage').value = product?.image || '';
-  document.getElementById('fDesc').value = product?.desc || '';
-  document.getElementById('fShortDesc').value = product?.shortDesc || '';
-  document.getElementById('fBrand').value = product?.brand || 'SK Sarees';
-  document.getElementById('fSKU').value = product?.sku || '';
-  document.getElementById('fWeight').value = product?.weight || '';
-  document.getElementById('fDimL').value = product?.dimL || '';
-  document.getElementById('fDimW').value = product?.dimW || '';
-  document.getElementById('fDimH').value = product?.dimH || '';
-  document.getElementById('fTags').value = product?.tags || '';
-  document.getElementById('fStatus').value = product?.status || 'Active';
-  document.getElementById('fFeatured').checked = product?.featured || false;
-  previewImage();
-  document.getElementById('productModal').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('productModal').classList.add('hidden');
-  document.body.style.overflow = '';
-  editingId = null;
-}
-
-function editProduct(id) {
-  const p = products.find(pr => pr.id === id);
-  if (p) openModal(p);
-}
-
-/* ════════════════════════════════════════════════════════════
-   SAVE PRODUCT (ADD / UPDATE)
-   ════════════════════════════════════════════════════════════ */
-async function saveProduct() {
-  const name = document.getElementById('fName').value.trim();
-  const category = document.getElementById('fCategory').value;
-  const price = parseFloat(document.getElementById('fPrice').value);
-  const stock = parseInt(document.getElementById('fStock').value) || 0;
-  if (!name) { toast('Product name is required', 'warn'); return; }
-  if (!category) { toast('Select a category', 'warn'); return; }
-  if (!price || price <= 0) { toast('Enter a valid price', 'warn'); return; }
-
-  // Build category slug from category name
-  const catSlug = category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
-
-  const data = {
-    name, category, price, stock,
-    image: document.getElementById('fImage').value.trim(),
-    imgs: [document.getElementById('fImage').value.trim()].filter(Boolean),
-    desc: document.getElementById('fDesc').value.trim(),
-    shortDesc: document.getElementById('fShortDesc').value.trim(),
-    brand: document.getElementById('fBrand').value.trim(),
-    sku: document.getElementById('fSKU').value.trim(),
-    weight: parseFloat(document.getElementById('fWeight').value) || 0,
-    dimL: parseFloat(document.getElementById('fDimL').value) || 0,
-    dimW: parseFloat(document.getElementById('fDimW').value) || 0,
-    dimH: parseFloat(document.getElementById('fDimH').value) || 0,
-    tags: document.getElementById('fTags').value.trim(),
-    status: document.getElementById('fStatus').value,
-    featured: document.getElementById('fFeatured').checked,
-    // Fields index.html expects
-    cat: catSlug,
-    fab: category.replace(' Sarees','').replace('Art ',''),
-    col: '',
-    occ: data?.featured ? 'Wedding' : 'Daily Wear',
-    len: '6.3m',
-    care: '',
-    op: Math.round(price * 1.5),
-    disc: 33,
-    rat: 4.5,
-    rev: 0,
-    bs: document.getElementById('fFeatured').checked,
-    iN: true,
-    ft: document.getElementById('fFeatured').checked,
-    updatedAt: new Date().toISOString(),
-  };
-
-  const saveBtn = document.getElementById('saveBtn');
-  saveBtn.disabled = true;
-  saveBtn.textContent = '⏳ Saving…';
-
-  if (editingId) {
-    // Update local
-    const idx = products.findIndex(p => p.id === editingId);
-    if (idx !== -1) { products[idx] = { ...products[idx], ...data }; }
-    // Update Firestore
-    if (db) {
-      try {
-        const docId = typeof editingId === 'string' ? editingId : 'prod_' + editingId;
-        await db.collection('products').doc(docId).set(data, { merge: true });
-        toast('✅ Product updated & synced to store!');
-      } catch(err) {
-        console.error(err);
-        toast('Updated locally. Firestore sync failed: ' + err.message, 'warn');
-      }
-    } else {
-      toast('Product updated locally (no Firebase)');
-    }
-  } else {
-    // Add new
-    data.id = nextId++;
-    if (!data.sku) data.sku = 'SK' + String(data.id).padStart(3, '0');
-    data.createdAt = new Date().toISOString();
-    products.push(data);
-    // Save to Firestore
-    if (db) {
-      try {
-        const docRef = await db.collection('products').add(data);
-        data.id = docRef.id;
-        products[products.length - 1].id = docRef.id;
-        toast('✅ New product added & live on store!');
-      } catch(err) {
-        console.error(err);
-        toast('Added locally. Firestore sync failed: ' + err.message, 'warn');
-      }
-    } else {
-      toast('Product added locally (no Firebase)');
-    }
-  }
-  saveBtn.disabled = false;
-  saveBtn.textContent = '💾 Save Product';
-  closeModal();
-  renderTable();
-  renderDashboard();
-}
-
-/* ════════════════════════════════════════════════════════════
-   DELETE PRODUCT
-   ════════════════════════════════════════════════════════════ */
-async function deleteProduct(id) {
-  const targetId = id || editingId;
-  if (!targetId) return;
-  const p = products.find(pr => pr.id === targetId);
-  if (!p) return;
-  if (!confirm(`Delete "${p.name}"?\n\nThis action cannot be undone.`)) return;
-  products = products.filter(pr => pr.id !== targetId);
-  if (editingId === targetId) closeModal();
-  // Delete from Firestore
-  if (db) {
-    try {
-      const docId = typeof targetId === 'string' ? targetId : 'prod_' + targetId;
-      await db.collection('products').doc(docId).delete();
-      toast('🗑️ Product deleted from store');
-    } catch(err) {
-      console.error(err);
-      toast('Deleted locally. Firestore delete failed.', 'warn');
-    }
-  }
-  renderTable();
-  renderDashboard();
-  toast('Product deleted', 'err');
-}
-
-/* ════════════════════════════════════════════════════════════
-   STOCK QUICK ADJUST
-   ════════════════════════════════════════════════════════════ */
-function adjStock(val) {
-  const inp = document.getElementById('fStock');
-  inp.value = Math.max(0, (parseInt(inp.value) || 0) + val);
-}
-
-/* ════════════════════════════════════════════════════════════
-   IMAGE PREVIEW
-   ════════════════════════════════════════════════════════════ */
-function previewImage() {
-  const url = document.getElementById('fImage').value.trim();
-  const box = document.getElementById('imgPreview');
-  if (url) {
-    box.innerHTML = `<img src="${url}" alt="Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌ Error</span>'"/>`;
-  } else {
-    box.innerHTML = '<span class="text-gray-300 dark:text-gray-500 text-2xl">🖼️</span>';
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   DASHBOARD
-   ════════════════════════════════════════════════════════════ */
-function renderDashboard() {
-  const active = products.filter(p => p.status === 'Active');
-  document.getElementById('dsProdCount').textContent = products.length;
-  document.getElementById('dsRevenue').textContent = fmt(products.reduce((s, p) => s + p.price * p.stock, 0));
-  document.getElementById('dsLowStock').textContent = products.filter(p => p.stock <= 10).length;
-  // Recent products
-  const recent = document.getElementById('dashRecentProducts');
-  recent.innerHTML = products.slice(-3).reverse().map(p => `
-    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-colors" onclick="goPage('products');setTimeout(()=>editProduct(${p.id}),100)">
-      <img src="${p.image}" alt="" class="w-12 h-14 rounded-lg object-cover border border-gray-100 dark:border-gray-600" onerror="this.style.display='none'"/>
-      <div class="flex-1 min-w-0">
-        <div class="font-semibold text-sm line-clamp-1">${p.name}</div>
-        <div class="text-xs text-gray-400">${p.sku} · ${p.category}</div>
       </div>
-      <div class="text-right flex-shrink-0">
-        <div class="font-bold text-sm">${fmt(p.price)}</div>
-        <div class="text-xs ${p.stock<=10?'text-red-500':'text-green-600'}">Stock: ${p.stock}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-/* ════════════════════════════════════════════════════════════
-   INVENTORY PAGE
-   ════════════════════════════════════════════════════════════ */
-function renderInventory() {
-  const sorted = [...products].sort((a, b) => a.stock - b.stock);
-  document.getElementById('invCount').textContent = sorted.length + ' items';
-  document.getElementById('invTableBody').innerHTML = sorted.map(p => {
-    const alert = p.stock <= 0 ? '🔴 Out of Stock' : p.stock <= 5 ? '🟠 Critical' : p.stock <= 10 ? '🟡 Low Stock' : '🟢 OK';
-    const alertColor = p.stock <= 0 ? 'text-red-600' : p.stock <= 5 ? 'text-orange-500' : p.stock <= 10 ? 'text-yellow-600' : 'text-green-600';
-    return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-      <td class="px-4 py-3 font-mono text-xs text-gray-400">${p.sku}</td>
-      <td class="px-4 py-3 text-sm font-semibold">${p.name}</td>
-      <td class="px-4 py-3 text-center"><span class="inline-block px-3 py-1 rounded-lg text-xs font-bold ${stockColor(p.stock)}">${p.stock}</span></td>
-      <td class="px-4 py-3 text-center">${statusBadge(p.status)}</td>
-      <td class="px-4 py-3 text-center text-xs font-bold ${alertColor}">${alert}</td>
-    </tr>`;
+    </div>`;
   }).join('');
 }
 
-/* ════════════════════════════════════════════════════════════
-   REPORTS PAGE
-   ════════════════════════════════════════════════════════════ */
-function renderReports() {
-  // Stock by category
-  const cats = {};
-  products.forEach(p => { if (!cats[p.category]) cats[p.category] = { stock: 0, revenue: 0, count: 0 }; cats[p.category].stock += p.stock; cats[p.category].revenue += p.price * p.stock; cats[p.category].count++; });
-  const maxStock = Math.max(...Object.values(cats).map(c => c.stock), 1);
-  const maxRev = Math.max(...Object.values(cats).map(c => c.revenue), 1);
-  document.getElementById('reportCatStock').innerHTML = Object.entries(cats).map(([name, data]) => `
-    <div>
-      <div class="flex justify-between text-xs mb-1"><span class="font-semibold">${name}</span><span class="text-gray-400">${data.stock} units</span></div>
-      <div class="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-brand-400 rounded-full transition-all" style="width:${(data.stock/maxStock*100).toFixed(0)}%"></div></div>
-    </div>
-  `).join('');
-  document.getElementById('reportCatRevenue').innerHTML = Object.entries(cats).map(([name, data]) => `
-    <div>
-      <div class="flex justify-between text-xs mb-1"><span class="font-semibold">${name}</span><span class="text-gray-400">${fmt(data.revenue)}</span></div>
-      <div class="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-green-500 rounded-full transition-all" style="width:${(data.revenue/maxRev*100).toFixed(0)}%"></div></div>
-    </div>
-  `).join('');
-  // Summary
-  const totalStock = products.reduce((s, p) => s + p.stock, 0);
-  const totalValue = products.reduce((s, p) => s + p.price * p.stock, 0);
-  const activeCount = products.filter(p => p.status === 'Active').length;
-  const featuredCount = products.filter(p => p.featured).length;
-  document.getElementById('reportSummary').innerHTML = [
-    { label:'Total Products', value:products.length, color:'text-maroon-500 dark:text-brand-400' },
-    { label:'Active Products', value:activeCount, color:'text-green-600' },
-    { label:'Total Stock Units', value:totalStock, color:'text-blue-600' },
-    { label:'Featured Products', value:featuredCount, color:'text-orange-500' },
-    { label:'Avg Price', value:fmt(Math.round(products.reduce((s,p)=>s+p.price,0)/products.length)), color:'text-purple-600' },
-    { label:'Inventory Value', value:fmt(totalValue), color:'text-green-600' },
-    { label:'Out of Stock', value:products.filter(p=>p.stock<=0).length, color:'text-red-600' },
-    { label:'Low Stock (≤10)', value:products.filter(p=>p.stock>0&&p.stock<=10).length, color:'text-orange-500' },
-  ].map(s => `
-    <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 text-center">
-      <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">${s.label}</div>
-      <div class="font-serif text-xl font-extrabold ${s.color} mt-1">${s.value}</div>
-    </div>
-  `).join('');
+async function updStatus(docId){
+  const sel=document.getElementById('oSel-'+docId);
+  const msg=document.getElementById('oMsg-'+docId);
+  const st=sel.value;
+  try{
+    await db.collection('orders').doc(docId).update({status:st,updatedAt:new Date().toISOString()});
+    msg.textContent='✅ Updated!';msg.className='text-xs font-bold text-green-600';
+    T('Order status → '+st.toUpperCase());
+  }catch(e){msg.textContent='❌ Failed';msg.className='text-xs font-bold text-red-600';T('Update failed','err')}
+  setTimeout(()=>{if(msg)msg.textContent=''},3000);
 }
 
-/* ════════════════════════════════════════════════════════════
-   EXPORT CSV
-   ════════════════════════════════════════════════════════════ */
-function exportProducts() {
-  const rows = [['ID','SKU','Name','Category','Brand','Price','Stock','Status','Featured','Weight','Tags','Description']];
-  products.forEach(p => rows.push([p.id, p.sku, p.name, p.category, p.brand, p.price, p.stock, p.status, p.featured?'Yes':'No', p.weight, p.tags, p.desc]));
-  const csv = rows.map(r => r.map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'sk-sarees-products-' + new Date().toISOString().slice(0, 10) + '.csv';
-  a.click(); URL.revokeObjectURL(url);
-  toast('CSV exported successfully!', 'info');
+/* ══════════════ INVENTORY ══════════════ */
+function renderInv(){
+  const sorted=[...products].sort((a,b)=>(a.stock||0)-(b.stock||0));
+  document.getElementById('iTBody').innerHTML=sorted.map(p=>{
+    const s=p.stock||0;
+    const al=s<=0?'🔴 Out of Stock':s<=5?'🟠 Critical':s<=10?'🟡 Low':'🟢 OK';
+    const ac=s<=0?'text-red-600':s<=5?'text-orange-500':s<=10?'text-yellow-600':'text-green-600';
+    return`<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30"><td class="px-4 py-3 font-mono text-xs text-gray-400">${p.sku||''}</td><td class="px-4 py-3 text-sm font-semibold">${p.name}</td><td class="px-4 py-3 text-center"><span class="px-3 py-1 rounded-lg text-xs font-bold ${stCol(s)}">${s}</span></td><td class="px-4 py-3 text-center text-xs font-bold ${ac}">${al}</td></tr>`;
+  }).join('');
 }
 
-/* ════════════════════════════════════════════════════════════
-   LOAD PRODUCTS FROM FIRESTORE (live sync)
-   ════════════════════════════════════════════════════════════ */
-function loadProductsFromFirestore() {
-  if (!db) {
-    console.warn('⚠️ Firebase not configured. Using local sample data only.');
-    toast('No Firebase — using sample data. Products won\'t sync to store.', 'warn');
-    return;
-  }
-  toast('🔥 Connecting to Firestore…', 'info');
-  db.collection('products').orderBy('createdAt','desc').onSnapshot(snap => {
-    if (!snap.empty) {
-      products = snap.docs.map(doc => {
-        const d = doc.data();
-        return {
-          id: doc.id,
-          name: d.name || '',
-          category: d.category || '',
-          price: Number(d.price) || 0,
-          stock: Number(d.stock) || 0,
-          image: d.image || (d.imgs && d.imgs[0]) || '',
-          imgs: d.imgs || (d.image ? [d.image] : []),
-          status: d.status || 'Active',
-          featured: !!d.featured,
-          sku: d.sku || '',
-          brand: d.brand || 'SK Sarees',
-          weight: Number(d.weight) || 0,
-          dimL: Number(d.dimL) || 0,
-          dimW: Number(d.dimW) || 0,
-          dimH: Number(d.dimH) || 0,
-          tags: d.tags || '',
-          desc: d.desc || d.description || '',
-          shortDesc: d.shortDesc || '',
-          cat: d.cat || '',
-          fab: d.fab || '',
-          col: d.col || '',
-          occ: d.occ || '',
-          len: d.len || '6.3m',
-          care: d.care || '',
-          op: Number(d.op || d.originalPrice) || Math.round((Number(d.price)||1)*1.5),
-          disc: Number(d.disc) || 33,
-          rat: Number(d.rat) || 4.5,
-          rev: Number(d.rev) || 0,
-          bs: !!d.bs,
-          iN: !!d.iN,
-          ft: !!d.ft,
-          createdAt: d.createdAt || '',
-          updatedAt: d.updatedAt || '',
-        };
-      });
-      nextId = products.length + 1;
-      console.log('🔥 Loaded ' + products.length + ' products from Firestore');
-    }
-    renderDashboard();
-    renderTable();
-  }, err => {
-    console.error('Firestore error:', err);
-    toast('Firestore error. Check rules & config.', 'err');
-  });
+/* ══════════════ REPORTS ══════════════ */
+function renderReports(){
+  const cats={};products.forEach(p=>{const c=p.category||'Other';if(!cats[c])cats[c]={s:0,r:0};cats[c].s+=(p.stock||0);cats[c].r+=(p.price||0)*(p.stock||0)});
+  const ms=Math.max(...Object.values(cats).map(c=>c.s),1);
+  const mr=Math.max(...Object.values(cats).map(c=>c.r),1);
+  document.getElementById('rCatStock').innerHTML=Object.entries(cats).map(([n,d])=>`<div><div class="flex justify-between text-xs mb-1"><span class="font-semibold">${n}</span><span class="text-gray-400">${d.s} units</span></div><div class="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:${(d.s/ms*100).toFixed(0)}%"></div></div></div>`).join('');
+  document.getElementById('rCatRev').innerHTML=Object.entries(cats).map(([n,d])=>`<div><div class="flex justify-between text-xs mb-1"><span class="font-semibold">${n}</span><span class="text-gray-400">${fmt(d.r)}</span></div><div class="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-green-500 rounded-full" style="width:${(d.r/mr*100).toFixed(0)}%"></div></div></div>`).join('');
 }
 
-/* ════════════════════════════════════════════════════════════
-   SEED: Push sample products to Firestore (one-time)
-   ════════════════════════════════════════════════════════════ */
-async function seedFirestore() {
-  if (!db) { toast('Firebase not configured!', 'err'); return; }
-  if (!confirm('This will upload all ' + products.length + ' sample products to Firestore.\n\nThey will appear live on the store website.\n\nContinue?')) return;
-  toast('⏳ Uploading products…', 'info');
-  let count = 0;
-  for (const p of products) {
-    try {
-      const data = { ...p, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-      delete data.id;
-      await db.collection('products').add(data);
-      count++;
-    } catch(err) { console.error(err); }
-  }
-  toast('✅ Uploaded ' + count + ' products to Firestore!');
+/* ══════════════ SEED ══════════════ */
+async function seedFS(){
+  if(!db){T('Firebase not configured!','err');return}
+  if(!confirm('Upload '+products.length+' sample products to Firestore?\nThey will appear live on the store.'))return;
+  T('Uploading…','info');let c=0;
+  for(const p of products){try{const d={...p,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};delete d.id;await db.collection('products').add(d);c++}catch(e){console.error(e)}}
+  T('✅ '+c+' products uploaded to store!');
 }
 
-/* ════════════════════════════════════════════════════════════
-   INIT
-   ════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  renderDashboard();
-  renderTable();
-  loadProductsFromFirestore();
-});
+/* ══════════════ EXPORT ══════════════ */
+function exportCSV(){
+  const rows=[['SKU','Name','Category','Price','Stock','Status','Featured']];
+  products.forEach(p=>rows.push([p.sku,p.name,p.category,p.price,p.stock,p.status,p.featured?'Yes':'No']));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='products-'+new Date().toISOString().slice(0,10)+'.csv';a.click();T('CSV exported!','info');
+}
+
+/* ══════════════ INIT ══════════════ */
+document.addEventListener('DOMContentLoaded',()=>{renderDash();renderProducts()});
 </script>
 </body>
 </html>
