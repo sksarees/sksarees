@@ -289,7 +289,7 @@ ul{list-style:none}
 .rc-text{font-size:.8rem;color:#555;line-height:1.6}
 
 /* ═══════════════════════════ CART PAGE ═════════════════════════ */
-.cart-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+.cart-layout{display:block}
 .cart-item{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:16px;display:flex;gap:14px;margin-bottom:14px;box-shadow:var(--SHADOW)}
 .cart-item img{width:96px;height:116px;border-radius:var(--RAD-SM);flex-shrink:0;cursor:pointer}
 .ci-info{flex:1;min-width:0}
@@ -1525,7 +1525,7 @@ function renderWishlist(){
 
 /* ── CHECKOUT ── */
 const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Puducherry'];
-function renderCheckout(){payM='whatsapp';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
+function renderCheckout(){payM='upiqr';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
 /* Go back from QR/other payment step to the payment method selection (keeps address) */
 function goBackToPayment(){document.getElementById('checkoutContent').innerHTML=payForm();}
 function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;return{tot,del,disc,fin}}
@@ -1568,9 +1568,9 @@ function payForm(){
     <h3>💳 Choose Payment Method</h3>
     <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
     ${[
-      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false},
       {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay) · UPI QR குறியீடு',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
-      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false}
+      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false},
+      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false}
     ].map((pm,i)=>`<div class="pm-opt${i===0?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
   </div>
   </div>
@@ -1783,7 +1783,23 @@ function initFB(){
   if(!FB_ON){console.warn('Firebase not configured. Fill FIREBASE_CONFIG in index.html.');return;}
   fbAuth=firebase.auth();
   fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  fbAuth.onAuthStateChanged(user=>{curUser=user;updateProfileHeader(user);renderProfileStrip();badges()});
+  fbAuth.onAuthStateChanged(user=>{
+    curUser=user;
+    updateProfileHeader(user);
+    renderProfileStrip();
+    badges();
+    // Save user contact info and load orders after login
+    if(user){
+      if(user.phoneNumber) localStorage.setItem('sk_last_phone', user.phoneNumber);
+      if(user.email) localStorage.setItem('sk_last_email', user.email);
+      // Load orders for the logged-in user
+      setTimeout(()=>{
+        fetchOrdersNow();
+        loadLiveOrders();
+        if(curPage==='orders') renderOrders();
+      }, 300);
+    }
+  });
 }
 function openAuth(){
   if(!FB_ON){alert('Firebase not configured!\n\n1. Go to console.firebase.google.com\n2. Create a project\n3. Enable Email/Password & Phone Auth\n4. Paste config into index.html');return;}
