@@ -289,7 +289,7 @@ ul{list-style:none}
 .rc-text{font-size:.8rem;color:#555;line-height:1.6}
 
 /* ═══════════════════════════ CART PAGE ═════════════════════════ */
-.cart-layout{grid-template-columns:1fr 360px;gap:24px;align-items:start}
+.cart-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
 .cart-item{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:16px;display:flex;gap:14px;margin-bottom:14px;box-shadow:var(--SHADOW)}
 .cart-item img{width:96px;height:116px;border-radius:var(--RAD-SM);flex-shrink:0;cursor:pointer}
 .ci-info{flex:1;min-width:0}
@@ -527,8 +527,8 @@ ul{list-style:none}
   .detail-wrap{grid-template-columns:1fr}
   .cart-layout,.checkout-layout,.profile-layout{grid-template-columns:1fr}
   /* Cart: items first, summary below (natural mobile flow). Checkout: summary+pay AFTER payment methods */
-  .cart-items-col{order:1}
-  .cart-sidebar{order:2;margin-top:16px}
+.cart-sidebar{order:1;margin-bottom:16px}
+.cart-items-col{order:2}
   .checkout-sidebar{order:2;margin-top:16px}
   .checkout-layout>div:first-child{order:1}
 }
@@ -1180,7 +1180,12 @@ function go(name,extra){
   if(name==='products')renderProducts(extra);
   if(name==='cart')renderCart();
   if(name==='checkout')renderCheckout();
-  if(name==='orders')renderOrders();
+  if(name==='orders'){
+    // Fetch fresh orders immediately, then start live listener
+    fetchOrdersNow();
+    loadLiveOrders();
+    renderOrders();
+  }
   if(name==='wishlist')renderWishlist();
   if(name==='profile'){badges();renderProfileStrip();}
 }
@@ -1521,6 +1526,8 @@ function renderWishlist(){
 /* ── CHECKOUT ── */
 const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Puducherry'];
 function renderCheckout(){payM='whatsapp';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
+/* Go back from QR/other payment step to the payment method selection (keeps address) */
+function goBackToPayment(){document.getElementById('checkoutContent').innerHTML=payForm();}
 function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;return{tot,del,disc,fin}}
 function addrForm(){
   const {tot,del,disc,fin}=cartTotals();
@@ -1544,6 +1551,13 @@ function submitAddr(){
   if(!n||!ph||!l1||!ci||!pi){toast('Please fill all required fields','err');return;}
   if(ph.length<10){toast('Enter a valid 10-digit phone number','err');return;}
   ckAddr={name:n,phone:ph,line1:l1,line2:l2,city:ci,pincode:pi,state:st};
+  // Save last-used phone/email so even guest users can fetch their orders later
+  try{
+    localStorage.setItem('sk_last_phone', ph);
+    if(curUser&&curUser.email) localStorage.setItem('sk_last_email', curUser.email);
+  }catch(e){}
+  // Refresh order listener with the new phone number
+  loadLiveOrders();
   document.getElementById('checkoutContent').innerHTML=payForm();
 }
 function payForm(){
@@ -1622,7 +1636,7 @@ function showUpiQR(){
           <span style="font-size:.72rem;">பணம் செலுத்திய பிறகு "நான் பணம் செலுத்தினேன்" என்பதை அழுத்தவும்.</span>
         </div>
         <button class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;" onclick="placeOrder('upiqr','verifying',false,'${txnRef}')">✅ I've Paid · நான் பணம் செலுத்தினேன்</button>
-        <button class="btn btn-outline btn-full" onclick="renderCheckout()">← Change Payment · மாற்று</button>
+        <button class="btn btn-outline btn-full" onclick="goBackToPayment()">← Change Payment · மாற்று</button>
       </div>
     </div>`;
   // Render QR — try local library first, fall back to online QR image
@@ -1672,6 +1686,8 @@ async function placeOrder(method, payStatus, keepChatOpen, payRef){
   orders.unshift(order);saveOrders();
   await saveOrderRemote(order);
   cart=[];saveCart();
+  // Refresh order listener to pick up the new order
+  loadLiveOrders();
 
   // Confirmation screen varies by payment flow
   let statusLine, note, icon='🎉', title='Order Placed!';
@@ -1708,7 +1724,7 @@ const STATUS={payment_review:{label:'Payment Review',icon:'⏳',cls:'sb-pending'
 function renderOrders(){
   const oc=document.getElementById('ordersContent');
   if(!orders.length){oc.innerHTML=`<div class="empty-state"><div class="es-icon">📦</div><div class="es-title">No Orders Yet</div><div class="es-sub">Place your first order and it will appear here!</div><button class="btn btn-M btn-lg" onclick="go('products')">Shop Now</button></div>`;return;}
-  oc.innerHTML=`<div class="orders-layout">${orders.map(ord=>{const st=STATUS[ord.status]||STATUS.pending;const dt=new Date(ord.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});const a=ord.addr||{};
+  oc.innerHTML=`<div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;"><h2 style="font-family:'Fraunces',serif;font-size:1.5rem;color:var(--M);margin:0;">My Orders</h2><button onclick="refreshOrders()" class="btn btn-outline btn-sm">🔄 Refresh</button></div><div class="orders-layout">${orders.map(ord=>{const st=STATUS[ord.status]||STATUS.pending;const dt=new Date(ord.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});const a=ord.addr||{};
   return`<div class="order-card">
     <div class="oc-head" onclick="toggleOB('${ord.id}')">
       <div class="oc-meta"><div class="oc-num">Order # ${ord.num}</div><div class="oc-date">${dt}</div></div>
@@ -1721,6 +1737,12 @@ function renderOrders(){
       <div style="font-size:.77rem;color:#888;margin-top:6px;">💳 ${ord.pm==='cod'?'Cash on Delivery':'Online Payment'} · <span style="color:${ord.ps==='paid'?'#2e7d32':'#f57f17'};font-weight:700;">${ord.ps==='paid'?'✅ Paid':'⏳ Pending'}</span></div>
     </div>
   </div>`;}).join('')}</div>`;
+}
+async function refreshOrders(){
+  await fetchOrdersNow();
+  loadLiveOrders();
+  renderOrders();
+  toast('Orders refreshed','info');
 }
 function toggleOB(id){const el=document.getElementById('ob'+id);if(el)el.style.display=el.style.display==='block'?'none':'block'}
 
@@ -2003,73 +2025,141 @@ function loadLiveProducts(){
 }
 
 /* ── Load orders from Firestore for the current logged-in user ── */
+let ordersUnsub=null;
+let lastOrderId='';
 function loadLiveOrders(){
   if(!window.FB_DB) return;
-  // We need a user identifier. Try phone first, then email, then uid
+  // Normalize phone: strip +91, spaces, dashes — so "9876543210" matches "+919876543210"
+  const normPhone=(p)=>String(p||'').replace(/[\s\-\+]/g,'').replace(/^91/,'').replace(/\D/g,'').slice(-10);
   const getIdentifier=()=>{
-    if(!curUser) return null;
+    // Use current logged-in user AND the last-used checkout phone (for guests)
+    const lastPhone=localStorage.getItem('sk_last_phone')||'';
+    const lastEmail=localStorage.getItem('sk_last_email')||'';
+    const userPhone=curUser?(curUser.phoneNumber||''):'';
+    const userEmail=curUser?(curUser.email||''):'';
     return {
-      phone: curUser.phoneNumber || '',
-      email: curUser.email || '',
-      uid: curUser.uid || ''
+      phone: normPhone(userPhone||lastPhone),
+      email: (userEmail||lastEmail).toLowerCase(),
+      uid: curUser?curUser.uid||'':''
     };
   };
-  let currentUnsub=null;
-  const subscribe=()=>{
-    if(currentUnsub){ currentUnsub(); currentUnsub=null; }
-    const id=getIdentifier();
-    if(!id || (!id.phone && !id.email && !id.uid)) return;
-    // Listen to all orders; client filters by phone/email/uid match
-    currentUnsub=window.FB_DB.collection('orders').onSnapshot(snap=>{
-      if(snap.empty) return;
-      const remoteOrders=snap.docs.map(d=>({docId:d.id,...d.data()})).filter(o=>{
-        // Match by phone, email, or uid
-        const phone=o.customerPhone||'';
-        const email=o.customerEmail||'';
-        const uid=o.customerUid||'';
-        return (id.phone && phone && phone===id.phone) ||
-               (id.email && email && email.toLowerCase()===id.email.toLowerCase()) ||
-               (id.uid && uid && uid===id.uid);
-      }).map(o=>({
-        id: o.docId,
-        num: o.num,
-        items: o.items || [],
-        addr: o.addr || {},
-        customerName: o.customerName || '',
-        customerPhone: o.customerPhone || '',
-        pm: o.pm,
-        status: o.status,
-        ps: o.ps,
-        payRef: o.payRef || '',
-        tot: Number(o.tot)||0,
-        sub: Number(o.sub)||0,
-        del: Number(o.del)||0,
-        disc: Number(o.disc)||0,
-        date: o.date
-      }));
-      if(!remoteOrders.length) return;
-      // Merge: Firestore orders override local ones (by order num)
-      const localNums=new Set(orders.map(o=>o.num));
-      const remoteNums=new Set(remoteOrders.map(o=>o.num));
-      // Update existing local orders from Firestore (status may have changed)
-      orders=orders.map(lo=>{
-        const match=remoteOrders.find(ro=>ro.num===lo.num);
-        return match ? {...lo, status: match.status, ps: match.ps} : lo;
-      });
-      // Add remote orders not already in local (by num)
-      remoteOrders.forEach(ro=>{ if(!localNums.has(ro.num)) orders.unshift(ro); });
-      // Sort newest first
-      orders.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-      saveOrders();
-      if(curPage==='orders') renderOrders();
-      badges();
-    }, err=>{ console.warn('Orders listener error:', err); });
-  };
-  // Re-subscribe on auth change
-  if(FB_ON && firebase.auth){
-    firebase.auth().onAuthStateChanged(()=>subscribe());
+  const id=getIdentifier();
+  const currentId=JSON.stringify(id);
+  // Only re-subscribe if identifier changed
+  if(currentId===lastOrderId && ordersUnsub) return;
+  lastOrderId=currentId;
+  // Unsubscribe previous listener
+  if(ordersUnsub){ try{ordersUnsub();}catch(e){} ordersUnsub=null; }
+  if(!id || (!id.phone && !id.email && !id.uid)){
+    console.log('No identifier found, skipping orders subscription');
+    return;
   }
-  subscribe();
+  console.log('Subscribing to orders for:', id);
+  // Listen to all orders; client filters by phone/email/uid match
+  ordersUnsub=window.FB_DB.collection('orders').onSnapshot(snap=>{
+    if(snap.empty) return;
+    const remoteOrders=snap.docs.map(d=>({docId:d.id,...d.data()})).filter(o=>{
+      const phone=normPhone(o.customerPhone);
+      const email=(o.customerEmail||'').toLowerCase();
+      const uid=o.customerUid||'';
+      return (id.phone && phone && phone===id.phone) ||
+             (id.email && email && email===id.email) ||
+             (id.uid && uid && uid===id.uid);
+    }).map(o=>({
+      id: o.docId,
+      num: o.num,
+      items: o.items || [],
+      addr: o.addr || {},
+      customerName: o.customerName || '',
+      customerPhone: o.customerPhone || '',
+      pm: o.pm,
+      status: o.status,
+      ps: o.ps,
+      payRef: o.payRef || '',
+      tot: Number(o.tot)||0,
+      sub: Number(o.sub)||0,
+      del: Number(o.del)||0,
+      disc: Number(o.disc)||0,
+      date: o.date
+    }));
+    console.log('Firestore orders received:', remoteOrders.length);
+    if(!remoteOrders.length) return;
+    // Merge: Firestore orders override local ones (by order num)
+    const localNums=new Set(orders.map(o=>o.num));
+    // Update existing local orders from Firestore (status may have changed)
+    orders=orders.map(lo=>{
+      const match=remoteOrders.find(ro=>ro.num===lo.num);
+      return match ? {...lo, status: match.status, ps: match.ps, payRef: match.payRef||lo.payRef} : lo;
+    });
+    // Add remote orders not already in local (by num)
+    remoteOrders.forEach(ro=>{ if(!localNums.has(ro.num)) orders.unshift(ro); });
+    // Sort newest first
+    orders.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    saveOrders();
+    if(curPage==='orders') renderOrders();
+    badges();
+  }, err=>{ console.warn('Orders listener error:', err); });
+}
+
+/* ── Fetch orders immediately from Firestore (for fresh data) ── */
+async function fetchOrdersNow(){
+  if(!window.FB_DB) return;
+  const normPhone=(p)=>String(p||'').replace(/[\s\-\+]/g,'').replace(/^91/,'').replace(/\D/g,'').slice(-10);
+  const lastPhone=localStorage.getItem('sk_last_phone')||'';
+  const lastEmail=localStorage.getItem('sk_last_email')||'';
+  const userPhone=curUser?(curUser.phoneNumber||''):'';
+  const userEmail=curUser?(curUser.email||''):'';
+  const id={
+    phone: normPhone(userPhone||lastPhone),
+    email: (userEmail||lastEmail).toLowerCase(),
+    uid: curUser?curUser.uid||'':''
+  };
+  if(!id.phone && !id.email && !id.uid) return;
+  
+  try{
+    console.log('Fetching orders now for:', id);
+    const snap=await window.FB_DB.collection('orders').get();
+    if(snap.empty) return;
+    const remoteOrders=snap.docs.map(d=>({docId:d.id,...d.data()})).filter(o=>{
+      const phone=normPhone(o.customerPhone);
+      const email=(o.customerEmail||'').toLowerCase();
+      const uid=o.customerUid||'';
+      return (id.phone && phone && phone===id.phone) ||
+             (id.email && email && email===id.email) ||
+             (id.uid && uid && uid===id.uid);
+    }).map(o=>({
+      id: o.docId,
+      num: o.num,
+      items: o.items || [],
+      addr: o.addr || {},
+      customerName: o.customerName || '',
+      customerPhone: o.customerPhone || '',
+      pm: o.pm,
+      status: o.status,
+      ps: o.ps,
+      payRef: o.payRef || '',
+      tot: Number(o.tot)||0,
+      sub: Number(o.sub)||0,
+      del: Number(o.del)||0,
+      disc: Number(o.disc)||0,
+      date: o.date
+    }));
+    console.log('Fetched orders:', remoteOrders.length);
+    if(!remoteOrders.length) return;
+    // Merge with local orders
+    const localNums=new Set(orders.map(o=>o.num));
+    orders=orders.map(lo=>{
+      const match=remoteOrders.find(ro=>ro.num===lo.num);
+      return match ? {...lo, status: match.status, ps: match.ps, payRef: match.payRef||lo.payRef} : lo;
+    });
+    remoteOrders.forEach(ro=>{ if(!localNums.has(ro.num)) orders.unshift(ro); });
+    orders.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    saveOrders();
+    if(curPage==='orders') renderOrders();
+    badges();
+  }catch(err){
+    console.warn('Fetch orders error:', err);
+  }
 }
 
 /* ── Open product from shared link (#product/ID) ── */
