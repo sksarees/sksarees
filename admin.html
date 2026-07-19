@@ -331,7 +331,7 @@ function openModal(p){
   document.getElementById('fS').value=p?.stock??50;
   document.getElementById('fImg').value=p?.image||'';
   document.getElementById('fD').value=p?.desc||p?.description||'';
-  document.getElementById('fSKU').value=p?.sku||'';
+  document.getElementById('fSKU').value=p?.sku||(p?'':nextSku());
   document.getElementById('fFab').value=p?.fab||p?.fabric||'';
   document.getElementById('fCol').value=p?.col||p?.color||'';
   document.getElementById('fSt').value=p?.status||'Active';
@@ -346,6 +346,15 @@ function adj(v){const i=document.getElementById('fS');i.value=Math.max(0,(parseI
 function prevImg(){const u=document.getElementById('fImg').value.trim();const b=document.getElementById('imgPrev');b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>'}
 
 /* ══════════════ SAVE PRODUCT ══════════════ */
+/* Auto-generate next SKU (SK + 3-digit number, e.g. SK101, SK116) */
+function nextSku(){
+  const nums=products.map(p=>{
+    const m=String(p.sku||'').match(/SK(\d+)/i);
+    return m?parseInt(m[1],10):0;
+  }).filter(n=>n>0);
+  const max=nums.length?Math.max(...nums):100;
+  return 'SK'+(max+1);
+}
 async function saveProd(){
   const name=document.getElementById('fN').value.trim();
   const category=document.getElementById('fC').value;
@@ -358,11 +367,12 @@ async function saveProd(){
   const op=parseFloat(document.getElementById('fOP').value)||Math.round(price*1.5);
   const disc=Math.round((1-price/op)*100);
   const image=document.getElementById('fImg').value.trim();
+  const skuInput=document.getElementById('fSKU').value.trim();
   const data={
     name,category,price,stock,image,
     imgs:image?[image]:[],
     desc:document.getElementById('fD').value.trim(),
-    sku:document.getElementById('fSKU').value.trim(),
+    sku:skuInput,
     fab:document.getElementById('fFab').value.trim()||category.replace(' Sarees',''),
     col:document.getElementById('fCol').value.trim(),
     status:document.getElementById('fSt').value,
@@ -383,9 +393,14 @@ async function saveProd(){
       else{const i=products.findIndex(x=>x.id===editId);if(i!==-1)products[i]={...products[i],...data};T('Updated locally')}
     } else {
       data.createdAt=new Date().toISOString();
-      if(!data.sku)data.sku='SK'+Date.now().toString().slice(-5);
-      if(db){const ref=await db.collection('products').add(data);T('✅ Product added & live on store!')}
-      else{data.id='local_'+Date.now();products.push(data);T('Added locally')}
+      if(!data.sku) data.sku=nextSku(); // auto-generate SKU
+      if(db){
+        const ref=await db.collection('products').add(data);
+        data.id=ref.id;
+        products.unshift({id:ref.id,...data});
+        T('✅ Product added & live on store! (SKU: '+data.sku+')');
+      }
+      else{data.id='local_'+Date.now();products.unshift(data);T('Added locally (SKU: '+data.sku+')')}
     }
   }catch(e){console.error(e);T('Save failed: '+e.message,'err')}
   btn.disabled=false;btn.textContent='💾 Save';
