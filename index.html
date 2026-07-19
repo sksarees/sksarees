@@ -22,14 +22,14 @@
 <script>
 /* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
 const FIREBASE_CONFIG = {
- const FIREBASE_CONFIG = {
- apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
   authDomain: "sksareesapp.firebaseapp.com",
   projectId: "sksareesapp",
   storageBucket: "sksareesapp.firebasestorage.app",
   messagingSenderId: "774983284365",
-  appId: "1:774983284365:web:e03c9b2337d041986fd4c4"};
-const FB_ON = FIREBASE_CONFIG.apiKey !== "G-QGHYX73WG6";
+  appId: "1:774983284365:web:e03c9b2337d041986fd4c4"
+};
+const FB_ON = !!FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("YOUR_")!==0;
 if(FB_ON) firebase.initializeApp(FIREBASE_CONFIG);
 window.FB_DB = FB_ON ? firebase.firestore() : null;
 
@@ -681,11 +681,14 @@ ul{list-style:none}
     </div>
     <div class="search-wrap">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search sarees · புடவைகளைத் தேடுங்கள்…" onkeydown="if(event.key==='Enter')doSearch()"/>
-        <button onclick="doSearch()">🔍 Search</button>
+        <input type="text" id="searchInput" placeholder="Search sarees…" data-tp="search.ph" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button onclick="doSearch()" data-t="search.btn">🔍 Search</button>
       </div>
     </div>
     <div class="hdr-actions">
+      <button class="hdr-btn" onclick="toggleLang()" id="langBtn" title="Language">
+        <span class="hb-icon">🌐</span><span class="hb-label" id="langLabel">தமிழ்</span>
+      </button>
       <button class="hdr-btn" onclick="openAuth()" id="loginBtn" title="Login / Account">
         <span class="hb-icon">👤</span><span class="hb-label" id="hdrUserLabel">Login</span>
       </button>
@@ -703,16 +706,16 @@ ul{list-style:none}
   </div>
   <nav class="site-nav">
     <div class="nav-inner">
-      <span class="nav-link active" id="nl-home" onclick="go('home')">🏠 Home முகப்பு</span>
-      <span class="nav-link" id="nl-categories" onclick="go('categories')">🏷️ Categories வகைகள்</span>
+      <span class="nav-link active" id="nl-home" onclick="go('home')" data-t="nav.homenav">🏠 Home</span>
+      <span class="nav-link" id="nl-categories" onclick="go('categories')" data-t="nav.allcat">🏷️ All Categories</span>
       <span class="nav-link" onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</span>
       <span class="nav-link" onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</span>
       <span class="nav-link" onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</span>
       <span class="nav-link" onclick="filter({catSlug:'art-silk-sarees'})">Art Silk</span>
       <span class="nav-link" onclick="filter({catSlug:'georgette-sarees'})">Georgette</span>
       <span class="nav-link" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</span>
-      <span class="nav-link" onclick="filter({bestSeller:true})">🔥 Best Sellers சிறந்தவை</span>
-      <span class="nav-link" onclick="filter({isNew:true})">✨ New Arrivals புதியவை</span>
+      <span class="nav-link" onclick="filter({bestSeller:true})" data-t="nav.bestsellers">🔥 Best Sellers</span>
+      <span class="nav-link" onclick="filter({isNew:true})" data-t="nav.newarrivals">✨ New Arrivals</span>
       <span class="nav-link" id="nl-orders" onclick="go('orders')">📦 My Orders</span>
     </div>
   </nav>
@@ -760,7 +763,7 @@ ul{list-style:none}
 
   <!-- Best Sellers -->
   <div class="sec sec-cream"><div class="container">
-    <div class="sec-hdr"><h2 class="sec-title">🔥 Best Sellers</h2><span class="view-all" onclick="filter({bestSeller:true})">View All →</span></div>
+    <div class="sec-hdr"><h2 class="sec-title" data-t="sec.bestsellers">🔥 Best Sellers</h2><span class="view-all" onclick="filter({bestSeller:true})">View All →</span></div>
     <div class="hscroll-row" id="bestSellersRow"></div>
   </div></div>
 
@@ -786,7 +789,7 @@ ul{list-style:none}
 
   <!-- New Arrivals -->
   <div class="sec sec-white"><div class="container">
-    <div class="sec-hdr"><h2 class="sec-title">✨ New Arrivals</h2><span class="view-all" onclick="filter({isNew:true})">View All →</span></div>
+    <div class="sec-hdr"><h2 class="sec-title" data-t="sec.new">✨ New Arrivals</h2><span class="view-all" onclick="filter({isNew:true})">View All →</span></div>
     <div class="hscroll-row" id="newArrivalsRow"></div>
   </div></div>
 
@@ -1017,11 +1020,11 @@ ul{list-style:none}
 <!-- BOTTOM NAV (mobile) -->
 <nav class="bottom-nav">
   <div class="bn-inner">
-    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label">முகப்பு</span></button>
-    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label">வகைகள்</span></button>
-    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label">கார்ட்</span><span class="bn-badge" id="bnCartBadge">0</span></button>
-    <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label">ஆர்டர்</span></button>
-    <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label">சுயவிவரம்</span></button>
+    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label" data-t="nav.home">Home</span></button>
+    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label" data-t="nav.categories">Categories</span></button>
+    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label" data-t="nav.cart">Cart</span><span class="bn-badge" id="bnCartBadge">0</span></button>
+    <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label" data-t="nav.orders">Orders</span></button>
+    <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label" data-t="nav.profile">Profile</span></button>
   </div>
 </nav>
 
@@ -1040,21 +1043,21 @@ const CATS=[
 ];
 const HERO_IMGS=['https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940'];
 const P=[
-  {id:1,sku:'SK101',name:'Gayathri Pure Cotton Saree',desc:'Handwoven pure cotton saree with traditional border. Perfect for daily wear and office. Made from 100% natural cotton fibers providing comfort all day long.',price:549,op:899,disc:39,cat:'cotton-sarees',fab:'Cotton',col:'Pastel Pink',occ:'Daily Wear',len:'6.3m',care:'Hand wash in cold water. Do not bleach. Iron on low heat.',imgs:['https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.5,rev:128,bs:true,iN:false,ft:false},
-  {id:2,sku:'SK102',name:'Meenakshi Handloom Cotton Saree',desc:'Exquisite handloom cotton saree with contrasting border. Ideal for casual outings and festive occasions. Soft and breathable.',price:699,op:1199,disc:42,cat:'cotton-sarees',fab:'Cotton',col:'Sky Blue',occ:'Casual',len:'6.3m',care:'Hand wash separately. Dry in shade.',imgs:['https://images.pexels.com/photos/38325061/pexels-photo-38325061.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.3,rev:89,bs:false,iN:true,ft:false},
-  {id:3,sku:'SK103',name:'Kamakshi Temple Cotton Saree',desc:'Traditional temple design cotton saree with gold border. Perfect for puja and religious occasions. Elegant and comfortable.',price:799,op:1299,disc:38,cat:'cotton-sarees',fab:'Cotton',col:'Cream',occ:'Religious',len:'6.3m',care:'Dry clean recommended. Hand wash gentle.',imgs:['https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.6,rev:156,bs:true,iN:false,ft:false},
-  {id:4,sku:'SK104',name:'Lakshmi Soft Cotton Daily Wear',desc:'Ultra-soft premium cotton saree for comfortable daily wear. Lightweight and breathable fabric ideal for all seasons.',price:449,op:749,disc:40,cat:'cotton-sarees',fab:'Cotton',col:'Mint Green',occ:'Daily Wear',len:'6.3m',care:'Machine wash gentle cycle. Iron medium heat.',imgs:['https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.2,rev:73,bs:false,iN:true,ft:false},
-  {id:5,sku:'SK201',name:'Kanchipuram Pure Silk Saree',desc:'Authentic Kanchipuram pure silk saree with heavy gold zari border and pallu. Certificate of authenticity included. Perfect for weddings and grand occasions.',price:4999,op:7999,disc:37,cat:'silk-sarees',fab:'Pure Silk',col:'Red',occ:'Wedding',len:'6.3m',care:'Dry clean only. Store in muslin cloth.',imgs:['https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.9,rev:234,bs:true,iN:false,ft:false},
-  {id:6,sku:'SK202',name:'Banarasi Silk Saree – Golden Weave',desc:'Premium Banarasi silk saree with intricate golden weaving. Traditional Mughal motifs with modern elegance. Rich and luxurious.',price:3799,op:5999,disc:37,cat:'silk-sarees',fab:'Banarasi Silk',col:'Maroon',occ:'Festival',len:'6.3m',care:'Dry clean only. Handle with care.',imgs:['https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.8,rev:187,bs:true,iN:false,ft:false},
-  {id:7,sku:'SK203',name:'Dharmavaram Silk Saree – Heritage',desc:'Classic Dharmavaram silk saree with traditional South Indian patterns. Rich texture and vibrant colors for special occasions.',price:2999,op:4499,disc:33,cat:'silk-sarees',fab:'Dharmavaram Silk',col:'Deep Green',occ:'Wedding',len:'6.3m',care:'Dry clean preferred.',imgs:['https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.7,rev:142,bs:false,iN:false,ft:false},
-  {id:8,sku:'SK301',name:'Royal Bridal Silk Saree – SK365',desc:'Magnificent bridal silk saree with heavy embroidery and stone work. Comes with matching blouse piece. The epitome of bridal elegance for your most special day.',price:8999,op:14999,disc:40,cat:'bridal-sarees',fab:'Pure Silk',col:'Deep Red',occ:'Bridal',len:'6.3m',care:'Dry clean only. Professional handling required.',imgs:['https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:5.0,rev:67,bs:true,iN:false,ft:true},
-  {id:9,sku:'SK302',name:'Gayathri Bridal Kanjeevaram',desc:'Premium Kanjeevaram bridal saree with gold and silver zari work. Traditional Madisar style draping possible. Includes extra pallu length for grand look.',price:12999,op:19999,disc:35,cat:'bridal-sarees',fab:'Kanjeevaram Silk',col:'Gold',occ:'Bridal',len:'7.5m',care:'Dry clean only. Store with silica gel.',imgs:['https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.9,rev:43,bs:true,iN:false,ft:true},
-  {id:10,sku:'SK401',name:'Art Silk Saree – Festival Collection',desc:'Beautiful art silk saree with rich texture and vibrant colors. Perfect festival wear at an affordable price. Gives the look of pure silk.',price:899,op:1499,disc:40,cat:'art-silk-sarees',fab:'Art Silk',col:'Orange',occ:'Festival',len:'6.3m',care:'Hand wash in cold water. Do not wring.',imgs:['https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.4,rev:198,bs:true,iN:false,ft:false},
-  {id:11,sku:'SK402',name:'Premium Art Silk – Zari Border',desc:'Premium quality art silk saree with elegant zari border. Gives the look of pure silk at a fraction of the cost. Great for occasions.',price:1199,op:1999,disc:40,cat:'art-silk-sarees',fab:'Art Silk',col:'Royal Blue',occ:'Occasion Wear',len:'6.3m',care:'Dry clean or gentle hand wash.',imgs:['https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.5,rev:134,bs:false,iN:true,ft:false},
-  {id:12,sku:'SK501',name:'Premium Georgette Saree – Floral Print',desc:'Flowy georgette saree with beautiful floral prints. Perfect for parties and evening events. Light and elegant.',price:1299,op:2199,disc:41,cat:'georgette-sarees',fab:'Georgette',col:'Pink',occ:'Party',len:'6.3m',care:'Dry clean recommended. Hand wash cold.',imgs:['https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.6,rev:112,bs:false,iN:true,ft:false},
-  {id:13,sku:'SK502',name:'Embroidered Georgette Party Saree',desc:'Heavy embroidered georgette saree with sequin work. Glamorous party wear for special occasions. Turn heads at every event.',price:2499,op:3999,disc:38,cat:'georgette-sarees',fab:'Georgette',col:'Black',occ:'Party',len:'6.3m',care:'Dry clean only.',imgs:['https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.7,rev:89,bs:true,iN:false,ft:false},
-  {id:14,sku:'SK601',name:'Designer Fancy Saree – Party Wear',desc:'Trendy designer saree with modern patterns. A perfect blend of tradition and contemporary fashion for the modern woman.',price:1799,op:2999,disc:40,cat:'fancy-sarees',fab:'Mixed',col:'Purple',occ:'Party',len:'6.3m',care:'Dry clean recommended.',imgs:['https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600'],rat:4.4,rev:76,bs:false,iN:true,ft:false},
-  {id:15,sku:'SK602',name:'Net Saree with Embellishments',desc:'Beautiful net saree with heavy stone work and sequins. Perfect for engagement and reception parties. Makes you look like a queen.',price:2199,op:3699,disc:41,cat:'fancy-sarees',fab:'Net',col:'Golden',occ:'Reception',len:'6.3m',care:'Dry clean only. Handle with care.',imgs:['https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],rat:4.6,rev:94,bs:true,iN:false,ft:false},
+  {id:1,sku:'SK101',name:'Gayathri Pure Cotton Saree',desc:'Handwoven pure cotton saree with traditional border. Perfect for daily wear and office. Made from 100% natural cotton fibers providing comfort all day long.',price:549,op:899,disc:39,cat:'cotton-sarees',fab:'Cotton',col:'Pastel Pink',occ:'Daily Wear',len:'6.3m',care:'Hand wash in cold water. Do not bleach. Iron on low heat.',imgs:['https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.5,rev:128,bs:true,iN:false,ft:false},
+  {id:2,sku:'SK102',name:'Meenakshi Handloom Cotton Saree',desc:'Exquisite handloom cotton saree with contrasting border. Ideal for casual outings and festive occasions. Soft and breathable.',price:699,op:1199,disc:42,cat:'cotton-sarees',fab:'Cotton',col:'Sky Blue',occ:'Casual',len:'6.3m',care:'Hand wash separately. Dry in shade.',imgs:['https://images.pexels.com/photos/38325061/pexels-photo-38325061.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/9861491/pexels-photo-9861491.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.3,rev:89,bs:false,iN:true,ft:false},
+  {id:3,sku:'SK103',name:'Kamakshi Temple Cotton Saree',desc:'Traditional temple design cotton saree with gold border. Perfect for puja and religious occasions. Elegant and comfortable.',price:799,op:1299,disc:38,cat:'cotton-sarees',fab:'Cotton',col:'Cream',occ:'Religious',len:'6.3m',care:'Dry clean recommended. Hand wash gentle.',imgs:['https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/2058056/pexels-photo-2058056.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.6,rev:156,bs:true,iN:false,ft:false},
+  {id:4,sku:'SK104',name:'Lakshmi Soft Cotton Daily Wear',desc:'Ultra-soft premium cotton saree for comfortable daily wear. Lightweight and breathable fabric ideal for all seasons.',price:449,op:749,disc:40,cat:'cotton-sarees',fab:'Cotton',col:'Mint Green',occ:'Daily Wear',len:'6.3m',care:'Machine wash gentle cycle. Iron medium heat.',imgs:['https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7148047/pexels-photo-7148047.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/6069110/pexels-photo-6069110.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.2,rev:73,bs:false,iN:true,ft:false},
+  {id:5,sku:'SK201',name:'Kanchipuram Pure Silk Saree',desc:'Authentic Kanchipuram pure silk saree with heavy gold zari border and pallu. Certificate of authenticity included. Perfect for weddings and grand occasions.',price:4999,op:7999,disc:37,cat:'silk-sarees',fab:'Pure Silk',col:'Red',occ:'Wedding',len:'6.3m',care:'Dry clean only. Store in muslin cloth.',imgs:['https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.9,rev:234,bs:true,iN:false,ft:false},
+  {id:6,sku:'SK202',name:'Banarasi Silk Saree – Golden Weave',desc:'Premium Banarasi silk saree with intricate golden weaving. Traditional Mughal motifs with modern elegance. Rich and luxurious.',price:3799,op:5999,disc:37,cat:'silk-sarees',fab:'Banarasi Silk',col:'Maroon',occ:'Festival',len:'6.3m',care:'Dry clean only. Handle with care.',imgs:['https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/9861491/pexels-photo-9861491.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/2058056/pexels-photo-2058056.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.8,rev:187,bs:true,iN:false,ft:false},
+  {id:7,sku:'SK203',name:'Dharmavaram Silk Saree – Heritage',desc:'Classic Dharmavaram silk saree with traditional South Indian patterns. Rich texture and vibrant colors for special occasions.',price:2999,op:4499,disc:33,cat:'silk-sarees',fab:'Dharmavaram Silk',col:'Deep Green',occ:'Wedding',len:'6.3m',care:'Dry clean preferred.',imgs:['https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/7148047/pexels-photo-7148047.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.7,rev:142,bs:false,iN:false,ft:false},
+  {id:8,sku:'SK301',name:'Royal Bridal Silk Saree – SK365',desc:'Magnificent bridal silk saree with heavy embroidery and stone work. Comes with matching blouse piece. The epitome of bridal elegance for your most special day.',price:8999,op:14999,disc:40,cat:'bridal-sarees',fab:'Pure Silk',col:'Deep Red',occ:'Bridal',len:'6.3m',care:'Dry clean only. Professional handling required.',imgs:['https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/6069110/pexels-photo-6069110.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:5.0,rev:67,bs:true,iN:false,ft:true},
+  {id:9,sku:'SK302',name:'Gayathri Bridal Kanjeevaram',desc:'Premium Kanjeevaram bridal saree with gold and silver zari work. Traditional Madisar style draping possible. Includes extra pallu length for grand look.',price:12999,op:19999,disc:35,cat:'bridal-sarees',fab:'Kanjeevaram Silk',col:'Gold',occ:'Bridal',len:'7.5m',care:'Dry clean only. Store with silica gel.',imgs:['https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/9861491/pexels-photo-9861491.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.9,rev:43,bs:true,iN:false,ft:true},
+  {id:10,sku:'SK401',name:'Art Silk Saree – Festival Collection',desc:'Beautiful art silk saree with rich texture and vibrant colors. Perfect festival wear at an affordable price. Gives the look of pure silk.',price:899,op:1499,disc:40,cat:'art-silk-sarees',fab:'Art Silk',col:'Orange',occ:'Festival',len:'6.3m',care:'Hand wash in cold water. Do not wring.',imgs:['https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/2058056/pexels-photo-2058056.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.4,rev:198,bs:true,iN:false,ft:false},
+  {id:11,sku:'SK402',name:'Premium Art Silk – Zari Border',desc:'Premium quality art silk saree with elegant zari border. Gives the look of pure silk at a fraction of the cost. Great for occasions.',price:1199,op:1999,disc:40,cat:'art-silk-sarees',fab:'Art Silk',col:'Royal Blue',occ:'Occasion Wear',len:'6.3m',care:'Dry clean or gentle hand wash.',imgs:['https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/7148047/pexels-photo-7148047.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/6069110/pexels-photo-6069110.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.5,rev:134,bs:false,iN:true,ft:false},
+  {id:12,sku:'SK501',name:'Premium Georgette Saree – Floral Print',desc:'Flowy georgette saree with beautiful floral prints. Perfect for parties and evening events. Light and elegant.',price:1299,op:2199,disc:41,cat:'georgette-sarees',fab:'Georgette',col:'Pink',occ:'Party',len:'6.3m',care:'Dry clean recommended. Hand wash cold.',imgs:['https://images.pexels.com/photos/36194194/pexels-photo-36194194.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.6,rev:112,bs:false,iN:true,ft:false},
+  {id:13,sku:'SK502',name:'Embroidered Georgette Party Saree',desc:'Heavy embroidered georgette saree with sequin work. Glamorous party wear for special occasions. Turn heads at every event.',price:2499,op:3999,disc:38,cat:'georgette-sarees',fab:'Georgette',col:'Black',occ:'Party',len:'6.3m',care:'Dry clean only.',imgs:['https://images.pexels.com/photos/13042447/pexels-photo-13042447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/9861491/pexels-photo-9861491.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/2058056/pexels-photo-2058056.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.7,rev:89,bs:true,iN:false,ft:false},
+  {id:14,sku:'SK601',name:'Designer Fancy Saree – Party Wear',desc:'Trendy designer saree with modern patterns. A perfect blend of tradition and contemporary fashion for the modern woman.',price:1799,op:2999,disc:40,cat:'fancy-sarees',fab:'Mixed',col:'Purple',occ:'Party',len:'6.3m',care:'Dry clean recommended.',imgs:['https://images.pexels.com/photos/14928074/pexels-photo-14928074.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=600','https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/7148047/pexels-photo-7148047.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.4,rev:76,bs:false,iN:true,ft:false},
+  {id:15,sku:'SK602',name:'Net Saree with Embellishments',desc:'Beautiful net saree with heavy stone work and sequins. Perfect for engagement and reception parties. Makes you look like a queen.',price:2199,op:3699,disc:41,cat:'fancy-sarees',fab:'Net',col:'Golden',occ:'Reception',len:'6.3m',care:'Dry clean only. Handle with care.',imgs:['https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600','https://images.pexels.com/photos/6069110/pexels-photo-6069110.jpeg?auto=compress&cs=tinysrgb&h=800&w=600','https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&h=800&w=600'],rat:4.6,rev:94,bs:true,iN:false,ft:false},
 ];
 const REVS={
   1:[{n:'Priya S.',r:5,t:'Excellent quality cotton saree! Very comfortable to wear daily. The color is exactly as shown.'},{n:'Meena R.',r:4,t:'Good quality. Delivery was fast. Will order again.'}],
@@ -1073,6 +1076,60 @@ let afil={cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''};
 let cView='grid',cidx=0,ctimer=null,payM='cod',ckAddr={};
 let fbAuth=null,rcVerifier=null,confirmRes=null,resendInt=null,curUser=null;
 let liveProducts=null; // will hold Firestore products if available
+
+/* ── LANGUAGE SYSTEM (English / Tamil) ── */
+let LANG = localStorage.getItem('sk_lang') || 'en';
+const T_DICT = {
+  'nav.home':{en:'Home',ta:'முகப்பு'},
+  'nav.categories':{en:'Categories',ta:'வகைகள்'},
+  'nav.cart':{en:'Cart',ta:'கார்ட்'},
+  'nav.orders':{en:'Orders',ta:'ஆர்டர்கள்'},
+  'nav.profile':{en:'Profile',ta:'சுயவிவரம்'},
+  'nav.wishlist':{en:'Wishlist',ta:'விருப்பம்'},
+  'nav.bestsellers':{en:'🔥 Best Sellers',ta:'🔥 சிறந்த விற்பனை'},
+  'nav.newarrivals':{en:'✨ New Arrivals',ta:'✨ புதிய வரவுகள்'},
+  'nav.allcat':{en:'🏷️ All Categories',ta:'🏷️ அனைத்து வகைகள்'},
+  'nav.homenav':{en:'🏠 Home',ta:'🏠 முகப்பு'},
+  'search.ph':{en:'Search sarees, fabric, color…',ta:'புடவைகளைத் தேடுங்கள்…'},
+  'search.btn':{en:'🔍 Search',ta:'🔍 தேடு'},
+  'btn.addcart':{en:'🛒 Add to Cart',ta:'🛒 கார்ட்டில் சேர்'},
+  'btn.buynow':{en:'Buy Now',ta:'இப்போது வாங்கு'},
+  'btn.viewall':{en:'View All →',ta:'அனைத்தும் →'},
+  'sec.shopcat':{en:'Shop by Category',ta:'வகை வாரியாக வாங்கவும்'},
+  'sec.bestsellers':{en:'🔥 Best Sellers',ta:'🔥 சிறந்த விற்பனை'},
+  'sec.new':{en:'✨ New Arrivals',ta:'✨ புதிய வரவுகள்'},
+  'sec.featured':{en:'💎 Featured Sarees',ta:'💎 சிறப்பு புடவைகள்'},
+  'sec.all':{en:'🛍️ All Products',ta:'🛍️ அனைத்து தயாரிப்புகள்'},
+  'login.title':{en:'Login',ta:'உள்நுழை'},
+  'lang.switch':{en:'தமிழ்',ta:'English'},
+};
+function t(key){ const e=T_DICT[key]; return e?(e[LANG]||e.en):key; }
+function toggleLang(){
+  LANG = LANG==='en' ? 'ta' : 'en';
+  localStorage.setItem('sk_lang', LANG);
+  applyLang();
+  toast(LANG==='ta'?'மொழி: தமிழ் ✅':'Language: English ✅');
+}
+function applyLang(){
+  // Update the language button label
+  const ll=document.getElementById('langLabel'); if(ll) ll.textContent=t('lang.switch');
+  // Translate all [data-t] elements
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key=el.getAttribute('data-t');
+    el.textContent=t(key);
+  });
+  // Translate placeholders
+  document.querySelectorAll('[data-tp]').forEach(el=>{
+    el.setAttribute('placeholder', t(el.getAttribute('data-tp')));
+  });
+  // Re-render dynamic pages so product buttons pick up language
+  if(typeof curPage!=='undefined'){
+    if(curPage==='home' && typeof renderHome==='function') renderHome();
+    if(curPage==='products' && typeof applyFilters==='function') applyFilters();
+    if(curPage==='detail' && curProd!=null){ const p=gP(curProd); if(p) renderDetail(p); }
+    if(curPage==='cart' && typeof renderCart==='function') renderCart();
+  }
+}
 
 /* ── UTILS ── */
 const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
@@ -1168,7 +1225,7 @@ function pCard(p,mini=false){
       <div class="pcard-name clamp2">${p.name}</div>
       <div class="pcard-stars">${starsHTML(p.rat)} <span>(${p.rev})</span></div>
       <div class="pcard-prices"><span class="price-now">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span></div>
-      <button class="pcard-add" onclick="event.stopPropagation();addCart('${p.id}')">🛒 Add to Cart</button>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart('${p.id}')">${t('btn.addcart')}</button>
     </div>
   </div>`;
 }
@@ -1533,11 +1590,13 @@ function proceedPayment(){
 /* ── WhatsApp Order ── */
 function whatsappOrder(){
   const {tot,del,disc,fin}=cartTotals();
-  const items=cart.map(i=>{const p=gP(i.id);return p?`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}`:''}).filter(Boolean).join('%0A');
-  const msg=`*New Order - SK Sarees*%0A%0A*Items:*%0A${items}%0A%0A*Total: ${fmt(fin)}*%0A%0A*Deliver to:*%0A${ckAddr.name}, ${ckAddr.phone}%0A${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}%0A${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
-  // Also save the order as pending
+  const NL='\n';
+  const items=cart.map(i=>{const p=gP(i.id);return p?`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}`:''}).filter(Boolean).join(NL);
+  const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
+  // Save order first, then open WhatsApp with properly-encoded message
   placeOrder('whatsapp','pending',true);
-  window.open(`https://wa.me/${BIZ.whatsapp}?text=${msg}`,'_blank');
+  const url='https://wa.me/'+BIZ.whatsapp+'?text='+encodeURIComponent(plain);
+  window.open(url,'_blank');
 }
 /* ── UPI QR Code Payment ── */
 function showUpiQR(){
@@ -1549,7 +1608,7 @@ function showUpiQR(){
       <div class="ck-card" style="padding:26px 22px;">
         <h3 style="margin-bottom:6px;">📲 Scan & Pay via UPI · UPI மூலம் பணம்</h3>
         <p style="font-size:.82rem;color:#666;margin-bottom:16px;">Open any UPI app (GPay / PhonePe / Paytm) and scan to pay <strong style="color:var(--M)">${fmt(fin)}</strong><br/><span style="font-size:.75rem;">எந்த UPI ஆப்பையும் திறந்து QR-ஐ ஸ்கேன் செய்யவும்</span></p>
-        <div style="display:flex;justify-content:center;margin-bottom:14px;"><canvas id="upiQRCanvas" style="border:8px solid #fff;border-radius:16px;box-shadow:0 6px 24px rgba(180,20,90,.15);"></canvas></div>
+        <div style="display:flex;justify-content:center;margin-bottom:14px;"><div id="upiQRBox" style="width:236px;height:236px;border:8px solid #fff;border-radius:16px;box-shadow:0 6px 24px rgba(180,20,90,.15);display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;">Loading QR…</div></div>
         <div style="background:var(--GP);border:1px solid var(--G);border-radius:12px;padding:14px;margin-bottom:16px;">
           <div style="font-size:.72rem;color:#888;">Pay to UPI ID · UPI ஐடி</div>
           <div style="font-size:1.05rem;font-weight:800;color:var(--M);letter-spacing:.3px;">${BIZ.upiId}</div>
@@ -1565,17 +1624,29 @@ function showUpiQR(){
         <button class="btn btn-outline btn-full" onclick="renderCheckout()">← Change Payment · மாற்று</button>
       </div>
     </div>`;
-  // Render QR
+  // Render QR — try local library first, fall back to online QR image
   setTimeout(()=>{
-    if(window.QRCode){
-      QRCode.toCanvas(document.getElementById('upiQRCanvas'),upiUrl,{width:220,margin:1,color:{dark:'#7B1C1C',light:'#ffffff'}},function(err){if(err)console.error(err)});
+    const box=document.getElementById('upiQRBox');
+    if(!box) return;
+    if(window.QRCode && typeof QRCode.toDataURL==='function'){
+      QRCode.toDataURL(upiUrl,{width:220,margin:1,color:{dark:'#B4145A',light:'#ffffff'}},function(err,url){
+        if(err||!url){ fallbackQR(); }
+        else { box.innerHTML='<img src="'+url+'" alt="UPI QR" style="width:220px;height:220px;"/>'; }
+      });
+    } else {
+      fallbackQR();
     }
-  },100);
+    function fallbackQR(){
+      // Use a reliable online QR generator as fallback
+      const enc=encodeURIComponent(upiUrl);
+      box.innerHTML='<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+enc+'" alt="UPI QR" style="width:220px;height:220px;" onerror="this.parentElement.innerHTML=\'<div style=&quot;padding:20px;font-size:.8rem;color:#888;&quot;>Scan not available. Use UPI ID above or tap Open UPI App.</div>\'"/>';
+    }
+  },120);
 }
 async function placeOrder(method, payStatus, keepChatOpen, payRef){
   method = method || payM || 'cod';
   const {tot,del,disc,fin}=cartTotals();
-  const num='SS'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
+  const num='SK'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
   // Determine order status & payment status
   let ps = payStatus || (method==='cod'?'pending':'paid');
   let orderStatus = 'confirmed';
@@ -1938,6 +2009,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initFB();
   loadLiveProducts(); // listen for admin product updates
   openFromHash();     // open shared product link if present
+  applyLang();        // apply saved language
 });
 </script>
 </body>
