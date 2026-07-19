@@ -731,7 +731,7 @@ ul{list-style:none}
   <div class="hero-wrap">
     <div class="hero-slides" id="heroSlides">
       <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({catSlug:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'silk-sarees'})">View Silk Sarees</button></div></div></div>
-      <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="go('categories')">Browse All</button></div></div></div>
+      <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-G btn-lg" onclick="go('categories')">Browse All</button></div></div></div>
       <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
     </div>
     <button class="carousel-prev" onclick="slide(-1)">‹</button>
@@ -1528,7 +1528,7 @@ const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Guj
 function renderCheckout(){payM='upiqr';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
 /* Go back from QR/other payment step to the payment method selection (keeps address) */
 function goBackToPayment(){document.getElementById('checkoutContent').innerHTML=payForm();}
-function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;return{tot,del,disc,fin}}
+function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49;const codCharge=payM==='cod'?20:0;const disc=tot>=2000?Math.round(tot*0.05):0;const fin=tot+del+codCharge-disc;return{tot,del,codCharge,disc,fin}}
 function addrForm(){
   const {tot,del,disc,fin}=cartTotals();
   return`<div class="checkout-layout"><div>
@@ -1577,6 +1577,7 @@ function payForm(){
   <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>
   <div class="cs-row"><span class="cs-lbl">Subtotal</span><span class="cs-val">${fmt(tot)}</span></div>
   <div class="cs-row"><span class="cs-lbl">Delivery</span><span class="cs-val ${del===0?'green':''}">${del===0?'FREE':fmt(del)}</span></div>
+  ${payM==='cod'?`<div class="cs-row"><span class="cs-lbl">COD Charge</span><span class="cs-val">${fmt(codCharge)}</span></div>`:''}
   ${disc>0?`<div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">-${fmt(disc)}</span></div>`:''}
   <div class="cs-divider"></div><div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
   <button class="btn btn-M btn-full btn-lg" id="payActionBtn" style="margin-top:16px;" onclick="proceedPayment()">Pay ${fmt(fin)} →</button>
@@ -1604,10 +1605,11 @@ function proceedPayment(){
 }
 /* ── WhatsApp Order ── */
 function whatsappOrder(){
-  const {tot,del,disc,fin}=cartTotals();
+  const {tot,del,codCharge,disc,fin}=cartTotals();
   const NL='\n';
-  const items=cart.map(i=>{const p=gP(i.id);return p?`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}`:''}).filter(Boolean).join(NL);
-  const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
+  const baseUrl=location.origin+location.pathname;
+  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'#product/'+p.id;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
+  const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Subtotal: ${fmt(tot)}*${NL}*Delivery: ${del===0?'FREE':fmt(del)}*${NL}${payM==='cod'?`*COD Charge: ${fmt(codCharge)}*${NL}`:''}${disc>0?`*Discount: -${fmt(disc)}*${NL}`:''}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
   // Save order first, then open WhatsApp with properly-encoded message
   placeOrder('whatsapp','pending',true);
   const url='https://wa.me/'+BIZ.whatsapp+'?text='+encodeURIComponent(plain);
@@ -1618,6 +1620,8 @@ function showUpiQR(){
   const {fin}=cartTotals();
   const txnRef='SK'+Date.now();
   const upiUrl=`upi://pay?pa=${encodeURIComponent(BIZ.upiId)}&pn=${encodeURIComponent(BIZ.upiName)}&am=${fin}&cu=INR&tn=${encodeURIComponent('SK Sarees Order '+txnRef)}`;
+  // Scroll to top before showing QR
+  window.scrollTo({top:0,behavior:'smooth'});
   document.getElementById('checkoutContent').innerHTML=`
     <div style="max-width:440px;margin:0 auto;text-align:center;">
       <div class="ck-card" style="padding:26px 22px;">
@@ -1660,7 +1664,7 @@ function showUpiQR(){
 }
 async function placeOrder(method, payStatus, keepChatOpen, payRef){
   method = method || payM || 'cod';
-  const {tot,del,disc,fin}=cartTotals();
+  const {tot,del,codCharge,disc,fin}=cartTotals();
   const num='SK'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
   // Determine order status & payment status
   let ps = payStatus || (method==='cod'?'pending':'paid');
@@ -1680,7 +1684,7 @@ async function placeOrder(method, payStatus, keepChatOpen, payRef){
     status:orderStatus,
     ps:ps,
     payRef:payRef||'',
-    tot:fin, sub:tot, del, disc,
+    tot:fin, sub:tot, del, codCharge, disc,
     date:new Date().toISOString()
   };
   orders.unshift(order);saveOrders();
