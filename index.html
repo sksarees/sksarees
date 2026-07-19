@@ -526,9 +526,10 @@ ul{list-style:none}
 @media(max-width:900px){
   .detail-wrap{grid-template-columns:1fr}
   .cart-layout,.checkout-layout,.profile-layout{grid-template-columns:1fr}
-  /* Cart: summary above list is fine. Checkout: summary+pay AFTER payment methods */
-  .cart-sidebar{order:-1}
-  .checkout-sidebar{order:2}
+  /* Cart: items first, summary below (natural mobile flow). Checkout: summary+pay AFTER payment methods */
+  .cart-items-col{order:1}
+  .cart-sidebar{order:2;margin-top:16px}
+  .checkout-sidebar{order:2;margin-top:16px}
   .checkout-layout>div:first-child{order:1}
 }
 @media(max-width:700px){
@@ -1073,7 +1074,7 @@ let wish=JSON.parse(localStorage.getItem('sk_wish')||'[]');
 let orders=JSON.parse(localStorage.getItem('sk_orders')||'[]');
 let curPage='home',prevPage='home',curProd=null,dQty=1;
 let afil={cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''};
-let cView='grid',cidx=0,ctimer=null,payM='cod',ckAddr={};
+let cView='grid',cidx=0,ctimer=null,payM='whatsapp',ckAddr={};
 let fbAuth=null,rcVerifier=null,confirmRes=null,resendInt=null,curUser=null;
 let liveProducts=null; // will hold Firestore products if available
 
@@ -1519,7 +1520,7 @@ function renderWishlist(){
 
 /* ── CHECKOUT ── */
 const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Puducherry'];
-function renderCheckout(){payM='cod';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
+function renderCheckout(){payM='whatsapp';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
 function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;return{tot,del,disc,fin}}
 function addrForm(){
   const {tot,del,disc,fin}=cartTotals();
@@ -1553,10 +1554,10 @@ function payForm(){
     <h3>💳 Choose Payment Method</h3>
     <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
     ${[
+      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false},
       {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay) · UPI QR குறியீடு',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
-      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false},
-      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false}
-    ].map(pm=>`<div class="pm-opt${pm.v==='upiqr'?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
+      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false}
+    ].map((pm,i)=>`<div class="pm-opt${i===0?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
   </div>
   </div>
   <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>
@@ -1965,8 +1966,24 @@ function applyLiveProducts(docs){
   // Only show Active products on the store (hide Inactive/Out of Stock if desired — keep all for now)
   liveProducts = docs.map(mapFsProduct).filter(p=>p._status!=='Inactive');
   console.log('🔥 Loaded '+liveProducts.length+' products from Firestore');
+  // Prune cart: remove items whose products have been deleted from Firestore
+  if(cart.length){
+    const liveIds=new Set(liveProducts.map(p=>String(p.id)));
+    const before=cart.length;
+    cart=cart.filter(i=>liveIds.has(String(i.id)));
+    if(cart.length!==before){
+      saveCart();
+      toast('Some unavailable items were removed from your cart','info');
+    }
+  }
   if(curPage==='home') renderHome();
   if(curPage==='products') applyFilters();
+  if(curPage==='cart') renderCart();
+  if(curPage==='detail' && curProd!=null){
+    const p=gP(curProd);
+    if(!p){ go('products'); toast('This product is no longer available','info'); }
+    else renderDetail(p);
+  }
 }
 function loadLiveProducts(){
   if(!window.FB_DB) return;
@@ -1983,6 +2000,76 @@ function loadLiveProducts(){
   }, err=>{
     console.warn('Firestore products listener error:', err);
   });
+}
+
+/* ── Load orders from Firestore for the current logged-in user ── */
+function loadLiveOrders(){
+  if(!window.FB_DB) return;
+  // We need a user identifier. Try phone first, then email, then uid
+  const getIdentifier=()=>{
+    if(!curUser) return null;
+    return {
+      phone: curUser.phoneNumber || '',
+      email: curUser.email || '',
+      uid: curUser.uid || ''
+    };
+  };
+  let currentUnsub=null;
+  const subscribe=()=>{
+    if(currentUnsub){ currentUnsub(); currentUnsub=null; }
+    const id=getIdentifier();
+    if(!id || (!id.phone && !id.email && !id.uid)) return;
+    // Listen to all orders; client filters by phone/email/uid match
+    currentUnsub=window.FB_DB.collection('orders').onSnapshot(snap=>{
+      if(snap.empty) return;
+      const remoteOrders=snap.docs.map(d=>({docId:d.id,...d.data()})).filter(o=>{
+        // Match by phone, email, or uid
+        const phone=o.customerPhone||'';
+        const email=o.customerEmail||'';
+        const uid=o.customerUid||'';
+        return (id.phone && phone && phone===id.phone) ||
+               (id.email && email && email.toLowerCase()===id.email.toLowerCase()) ||
+               (id.uid && uid && uid===id.uid);
+      }).map(o=>({
+        id: o.docId,
+        num: o.num,
+        items: o.items || [],
+        addr: o.addr || {},
+        customerName: o.customerName || '',
+        customerPhone: o.customerPhone || '',
+        pm: o.pm,
+        status: o.status,
+        ps: o.ps,
+        payRef: o.payRef || '',
+        tot: Number(o.tot)||0,
+        sub: Number(o.sub)||0,
+        del: Number(o.del)||0,
+        disc: Number(o.disc)||0,
+        date: o.date
+      }));
+      if(!remoteOrders.length) return;
+      // Merge: Firestore orders override local ones (by order num)
+      const localNums=new Set(orders.map(o=>o.num));
+      const remoteNums=new Set(remoteOrders.map(o=>o.num));
+      // Update existing local orders from Firestore (status may have changed)
+      orders=orders.map(lo=>{
+        const match=remoteOrders.find(ro=>ro.num===lo.num);
+        return match ? {...lo, status: match.status, ps: match.ps} : lo;
+      });
+      // Add remote orders not already in local (by num)
+      remoteOrders.forEach(ro=>{ if(!localNums.has(ro.num)) orders.unshift(ro); });
+      // Sort newest first
+      orders.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+      saveOrders();
+      if(curPage==='orders') renderOrders();
+      badges();
+    }, err=>{ console.warn('Orders listener error:', err); });
+  };
+  // Re-subscribe on auth change
+  if(FB_ON && firebase.auth){
+    firebase.auth().onAuthStateChanged(()=>subscribe());
+  }
+  subscribe();
 }
 
 /* ── Open product from shared link (#product/ID) ── */
@@ -2007,7 +2094,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderHome();
   badges();
   initFB();
-  loadLiveProducts(); // listen for admin product updates
+  loadLiveProducts(); // listen for admin product updates (syncs cart + detail page)
+  loadLiveOrders();   // listen for admin order status updates
   openFromHash();     // open shared product link if present
   applyLang();        // apply saved language
 });
