@@ -1216,7 +1216,7 @@ function startTimer(){
 /* ── PRODUCT CARD ── */
 function pCard(p,mini=false){
   const inW=wish.includes(p.id);
-  return`<div class="pcard${mini?'':''}" onclick="openProduct('${p.id}')">
+  return`<div class="pcard${mini?'':''}" onclick="openProduct('${p.sku}')">
     <div class="pcard-img">
       <img src="${p.imgs[0]}" alt="${p.name}" loading="lazy"/>
       <div class="pcard-badges">
@@ -1308,7 +1308,7 @@ function applyFilters(){
   if(!cont)return;
   if(!res.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><div class="es-title">No products found</div><div class="es-sub">Try adjusting your filters or search terms.</div><button class="btn btn-M btn-lg" onclick="clearFilters()">Clear Filters</button></div>`;return;}
   if(cView==='grid'){cont.innerHTML=`<div class="products-grid">${res.map(p=>pCard(p)).join('')}</div>`;}
-  else{cont.innerHTML=res.map(p=>`<div style="background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:14px;display:flex;gap:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;" onclick="openProduct('${p.id}')"><img src="${p.imgs[0]}" style="width:100px;height:120px;border-radius:8px;flex-shrink:0;" loading="lazy" alt="${p.name}"/><div style="flex:1;min-width:0;"><div style="font-size:.64rem;color:#C9A84C;font-weight:700;">${p.sku} | ${p.fab}</div><div style="font-size:.9rem;font-weight:700;margin:4px 0 5px;">${p.name}</div><div>${starsHTML(p.rat,13)} <span style="font-size:.7rem;color:#aaa;">(${p.rev})</span></div><div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;"><span style="font-size:1.05rem;font-weight:900;color:#7B1C1C;">${fmt(p.price)}</span><span style="font-size:.78rem;color:#bbb;text-decoration:line-through;">${fmt(p.op)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-M btn-sm" onclick="event.stopPropagation();addCart('${p.id}')">Add to Cart</button><button onclick="event.stopPropagation();toggleWish('${p.id}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">${wish.includes(p.id)?'❤️':'🤍'}</button></div></div></div>`).join('');}
+  else{cont.innerHTML=res.map(p=>`<div style="background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:14px;display:flex;gap:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;" onclick="openProduct('${p.sku}')"><img src="${p.imgs[0]}" style="width:100px;height:120px;border-radius:8px;flex-shrink:0;" loading="lazy" alt="${p.name}"/><div style="flex:1;min-width:0;"><div style="font-size:.64rem;color:#C9A84C;font-weight:700;">${p.sku} | ${p.fab}</div><div style="font-size:.9rem;font-weight:700;margin:4px 0 5px;">${p.name}</div><div>${starsHTML(p.rat,13)} <span style="font-size:.7rem;color:#aaa;">(${p.rev})</span></div><div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;"><span style="font-size:1.05rem;font-weight:900;color:#7B1C1C;">${fmt(p.price)}</span><span style="font-size:.78rem;color:#bbb;text-decoration:line-through;">${fmt(p.op)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-M btn-sm" onclick="event.stopPropagation();addCart('${p.id}')">Add to Cart</button><button onclick="event.stopPropagation();toggleWish('${p.id}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">${wish.includes(p.id)?'❤️':'🤍'}</button></div></div></div>`).join('');}
 }
 function toggleFil(k,v){afil[k]=afil[k]===v?'':v;buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
 function clearFilters(){Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''});const mi=document.getElementById('minP'),ma=document.getElementById('maxP');if(mi)mi.value='';if(ma)ma.value='';buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
@@ -1316,16 +1316,16 @@ function toggleFilters(){const fp=document.getElementById('filterPanel'),btn=doc
 function setView(v){cView=v;document.getElementById('vgBtn').classList.toggle('on',v==='grid');document.getElementById('vlBtn').classList.toggle('on',v==='list');applyFilters()}
 
 /* ── PRODUCT DETAIL ── */
-function openProduct(id){
-  curProd=id;dQty=1;
-  const p=gP(id);if(!p)return;
+function openProduct(sku){
+  const p=GP().find(x=>x.sku===sku);if(!p)return;
+  curProd=p.id;dQty=1;
   prevPage=curPage;
   document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
   document.getElementById('page-detail').classList.add('active');
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   curPage='detail';
-  // Update URL so the product has its own shareable link (#product/ID)
-  try{ history.replaceState(null,'','#product/'+id); }catch(e){}
+  // Update URL so the product has its own shareable link (#product/SKU)
+  try{ history.replaceState(null,'','#product/'+sku); }catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
   renderDetail(p);
 }
@@ -1363,11 +1363,8 @@ function renderDetail(p){
         <button class="btn btn-M btn-lg" onclick="addCartN('${p.id}',dQty);go('cart')">Buy Now · வாங்கு</button>
         <button class="btn btn-${inW?'M':'outline'} btn-lg" onclick="toggleWish('${p.id}');this.textContent=wish.includes('${p.id}')?'❤️ Saved':'🤍 Wishlist'">${inW?'❤️ Saved':'🤍 Wishlist'}</button>
       </div>
-      <button class="btn btn-wa btn-full btn-lg" onclick="openWA('${p.name}')">💬 Order via WhatsApp · வாட்ஸ்அப்</button>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button onclick="shareP()" style="flex:1;padding:11px;background:var(--GP);border:1px solid var(--G);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--M);">📤 Share · பகிர்</button>
-        <button onclick="copyProductLink()" style="flex:1;padding:11px;background:#f5f0f3;border:1px solid var(--BORDER);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--M);">🔗 Copy Link</button>
-      </div>
+      <button class="btn btn-wa btn-full btn-lg" onclick="orderViaWhatsApp('${p.sku}')">💬 Order via WhatsApp · வாட்ஸ்அப்</button>
+      <button onclick="shareP()" style="width:100%;margin-top:10px;padding:11px;background:var(--GP);border:1px solid var(--G);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--M);">📤 Share Product · பகிர்</button>
     </div>
   </div>
   <div id="reviewSection" style="margin-top:32px;background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
@@ -1423,8 +1420,21 @@ async function submitReview(pid){
   try{
     if(window.FB_DB){
       await window.FB_DB.collection('reviews').add(review);
+      // Update product review count in Firestore
+      const p=GP().find(x=>String(x.id)===String(pid));
+      if(p){
+        await window.FB_DB.collection('products').doc(p.id).update({
+          rev:window.firebase.firestore.FieldValue.increment(1),
+          rat:window.firebase.firestore.FieldValue.increment((reviewRating-p.rat)/(p.rev+1))
+        });
+      }
       toast('✅ Thank you for your review!');
       await loadReviews(pid);
+      // Reload product detail to update rating display
+      if(curProd==pid){
+        const updatedP=GP().find(x=>String(x.id)===String(pid));
+        if(updatedP)renderDetail(updatedP);
+      }
     } else {
       // Local fallback
       if(!REVS[pid])REVS[pid]=[];
@@ -1442,8 +1452,8 @@ async function submitReview(pid){
 function switchImg(src,el){document.getElementById('dMainImg').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
 function shareP(){
   const p=gP(curProd);if(!p)return;
-  // Build a clean shareable link that opens THIS product directly
-  const link=location.origin+location.pathname+'#product/'+p.id;
+  // Build a clean shareable link that opens THIS product directly using SKU
+  const link=location.origin+location.pathname+'#product/'+p.sku;
   const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
   if(navigator.share){
     navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
@@ -1454,7 +1464,7 @@ function shareP(){
 }
 function copyProductLink(){
   const p=gP(curProd);if(!p)return;
-  const link=location.origin+location.pathname+'#product/'+p.id;
+  const link=location.origin+location.pathname+'#product/'+p.sku;
   if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('🔗 Product link copied!')).catch(()=>toast('Link: '+link));}
   else toast('Link: '+link);
 }
@@ -1477,7 +1487,7 @@ function renderCart(){
   cm.innerHTML=`<div class="cart-layout">
     <div class="cart-items-col">
       ${cart.map(item=>{const p=gP(item.id);if(!p)return'';return`<div class="cart-item">
-        <img src="${p.imgs[0]}" alt="${p.name}" onclick="openProduct('${p.id}')" loading="lazy"/>
+        <img src="${p.imgs[0]}" alt="${p.name}" onclick="openProduct('${p.sku}')" loading="lazy"/>
         <div class="ci-info">
           <div class="ci-sku">${p.sku}</div>
           <div class="ci-name clamp2">${p.name}</div>
@@ -1781,6 +1791,17 @@ function showAbout(){alert('SK Sarees\n\nYour trusted destination for premium qu
 
 /* ── WHATSAPP ── */
 function openWA(prod){const ph='917867915699';const msg=prod?`Hi! I'm interested in buying "${prod}" from SK Sarees. Can you help me?`:'Hi! I need help with SK Sarees. Can you assist me?';window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank')}
+
+/* ── ORDER SINGLE PRODUCT VIA WHATSAPP ── */
+function orderViaWhatsApp(sku){
+  const p=GP().find(x=>x.sku===sku);
+  if(!p)return;
+  const ph='917867915699';
+  const baseUrl=location.origin+location.pathname;
+  const link=baseUrl+'#product/'+p.sku;
+  const msg=`Hi! I want to order this product from SK Sarees:\n\n*${p.name}*\nSKU: ${p.sku}\nPrice: ${fmt(p.price)}\n\nProduct Link: ${link}\n\nPlease confirm availability and delivery details.`;
+  window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
+}
 
 /* ── FIREBASE AUTH ── */
 function initFB(){
@@ -2182,14 +2203,15 @@ async function fetchOrdersNow(){
   }
 }
 
-/* ── Open product from shared link (#product/ID) ── */
+/* ── Open product from shared link (#product/SKU) ── */
 function openFromHash(){
   const m=location.hash.match(/#product\/(.+)/);
   if(m&&m[1]){
-    const id=decodeURIComponent(m[1]);
+    const sku=decodeURIComponent(m[1]);
     // Wait a moment for products to load, then open
     const tryOpen=(attempt)=>{
-      if(gP(id)){ openProduct(id); }
+      const p=GP().find(x=>x.sku===sku);
+      if(p){ openProduct(sku); }
       else if(attempt<20){ setTimeout(()=>tryOpen(attempt+1),150); }
     };
     tryOpen(0);
