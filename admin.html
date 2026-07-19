@@ -64,6 +64,7 @@ input[type=number]{-moz-appearance:textfield}
     <a onclick="goP('orders')" id="sn-orders" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📦 Orders</a>
     <a onclick="goP('inventory')" id="sn-inventory" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📋 Inventory</a>
     <a onclick="goP('reports')" id="sn-reports" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">📈 Reports</a>
+    <a onclick="goP('settings')" id="sn-settings" class="side-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">⚙️ Settings</a>
   </nav>
   <div class="px-5 py-3 border-t border-gray-800 text-xs text-gray-600">
     <div id="sbUser" class="text-brand-400 font-bold mb-1 truncate"></div>
@@ -156,9 +157,94 @@ input[type=number]{-moz-appearance:textfield}
       </div>
     </div>
 
+    <!-- SETTINGS -->
+    <div id="pg-settings" class="pgc hidden">
+      <div class="space-y-4">
+        <!-- Promo Codes -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-serif font-bold text-lg">🎟️ Promo Codes</h3>
+            <button onclick="openPromoModal()" class="px-4 py-2 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm">+ Add Promo</button>
+          </div>
+          <div id="promoList" class="space-y-2"></div>
+        </div>
+
+        <!-- Shipping & COD -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <h3 class="font-serif font-bold text-lg mb-4">🚚 Shipping & COD Settings</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-2">Free Shipping Threshold (₹)</label>
+              <input id="setFreeShipMin" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="999"/>
+              <p class="text-xs text-gray-400 mt-1">Orders above this amount get free shipping</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-2">Standard Shipping Charge (₹)</label>
+              <input id="setShipCharge" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="49"/>
+              <p class="text-xs text-gray-400 mt-1">Flat shipping fee for orders below threshold</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-2">COD Charge (₹)</label>
+              <input id="setCodCharge" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="0"/>
+              <p class="text-xs text-gray-400 mt-1">Additional fee for Cash on Delivery orders</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <input id="setCodEnabled" type="checkbox" class="w-5 h-5 rounded"/>
+              <label for="setCodEnabled" class="text-sm font-bold cursor-pointer">Enable Cash on Delivery</label>
+            </div>
+            <button onclick="saveSettings()" class="px-6 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">💾 Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 </div><!-- /mainApp -->
+
+<!-- ═══ PROMO MODAL ═══ -->
+<div id="promoModal" class="fixed inset-0 z-[100] hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closePromoModal()"></div>
+  <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-12">
+    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md anim border border-gray-200 dark:border-gray-700">
+      <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-2xl px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h2 class="font-serif font-bold text-lg text-maroon-500 dark:text-brand-400" id="pmTitle">Add Promo Code</h2>
+        <button onclick="closePromoModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 text-lg flex items-center justify-center">✕</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1">Promo Code *</label>
+          <input id="pmCode" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm uppercase font-mono" placeholder="SUMMER20"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1">Discount Type *</label>
+          <select id="pmType" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm">
+            <option value="percent">Percentage (%)</option>
+            <option value="flat">Flat Amount (₹)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1">Discount Value *</label>
+          <input id="pmValue" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="20"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1">Minimum Order (₹)</label>
+          <input id="pmMinOrder" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="500"/>
+        </div>
+        <div class="flex items-center gap-3">
+          <input id="pmEnabled" type="checkbox" checked class="w-5 h-5 rounded"/>
+          <label for="pmEnabled" class="text-sm font-bold cursor-pointer">Enabled</label>
+        </div>
+      </div>
+      <div class="sticky bottom-0 bg-white dark:bg-gray-800 rounded-b-2xl px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3">
+        <button id="pmDelBtn" onclick="delPromo()" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold text-sm hidden">🗑️ Delete</button>
+        <div class="flex-1"></div>
+        <button onclick="closePromoModal()" class="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold text-sm">Cancel</button>
+        <button onclick="savePromo()" class="px-6 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ PRODUCT MODAL ═══ -->
 <div id="pModal" class="fixed inset-0 z-[100] hidden">
@@ -187,11 +273,15 @@ input[type=number]{-moz-appearance:textfield}
             </div>
           </div>
         </div>
-        <div><label class="block text-xs font-bold text-gray-500 mb-1">Product Image URL *</label>
-          <div class="flex gap-3 items-start">
-            <input id="fImg" type="url" oninput="prevImg()" class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="https://example.com/saree.jpg"/>
+        <div class="space-y-3">
+          <label class="block text-xs font-bold text-gray-500">Product Images (3 URLs)</label>
+          <div class="flex gap-2 items-start">
+            <input id="fImg1" type="url" oninput="prevImg()" class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 1 (main) *"/>
+            <input id="fImg2" type="url" class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 2"/>
+            <input id="fImg3" type="url" class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 3"/>
             <div id="imgPrev" class="w-16 h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0 text-2xl text-gray-300">🖼️</div>
           </div>
+          <p class="text-xs text-gray-400">Image 1 is required. Images 2-3 are optional.</p>
         </div>
         <div><label class="block text-xs font-bold text-gray-500 mb-1">Description</label><textarea id="fD" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm resize-none" placeholder="Full product description…"></textarea></div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -241,6 +331,113 @@ const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
 function T(msg,type='ok'){const w=document.getElementById('TW'),t=document.createElement('div');const c={ok:'bg-green-600',err:'bg-red-600',info:'bg-blue-600',warn:'bg-orange-500'};t.className=`${c[type]||c.ok} text-white px-5 py-3 rounded-xl shadow-lg text-sm font-semibold anim`;t.textContent=msg;w.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3000)}
 function stBadge(s){const m={'Active':'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400','Inactive':'bg-gray-100 text-gray-600','Out of Stock':'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'};return`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${m[s]||m.Active}">${s}</span>`}
 function stCol(q){return q<=0?'text-red-600 bg-red-50':q<=10?'text-orange-500 bg-orange-50':'text-green-600 bg-green-50'}
+
+/* ══════════════ SETTINGS & PROMO ══════════════ */
+let promos=[];
+let settings={freeShipMin:999,shipCharge:49,codCharge:0,codEnabled:true};
+
+async function loadSettings(){
+  if(!db)return;
+  try{
+    const doc=await db.collection('settings').doc('config').get();
+    if(doc.exists)settings={...settings,...doc.data()};
+    document.getElementById('setFreeShipMin').value=settings.freeShipMin;
+    document.getElementById('setShipCharge').value=settings.shipCharge;
+    document.getElementById('setCodCharge').value=settings.codCharge;
+    document.getElementById('setCodEnabled').checked=settings.codEnabled;
+  }catch(e){console.error(e)}
+}
+
+async function saveSettings(){
+  if(!db){T('Firebase not configured','err');return}
+  try{
+    settings={
+      freeShipMin:Number(document.getElementById('setFreeShipMin').value)||999,
+      shipCharge:Number(document.getElementById('setShipCharge').value)||49,
+      codCharge:Number(document.getElementById('setCodCharge').value)||0,
+      codEnabled:document.getElementById('setCodEnabled').checked
+    };
+    await db.collection('settings').doc('config').set(settings);
+    T('Settings saved successfully','ok');
+  }catch(e){T('Failed to save: '+e.message,'err')}
+}
+
+async function loadPromos(){
+  if(!db)return;
+  try{
+    const snap=await db.collection('promos').get();
+    promos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPromos();
+  }catch(e){console.error(e)}
+}
+
+function renderPromos(){
+  const list=document.getElementById('promoList');
+  if(!promos.length){list.innerHTML='<p class="text-sm text-gray-400 text-center py-8">No promo codes yet</p>';return}
+  list.innerHTML=promos.map(p=>`<div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+    <div class="flex-1">
+      <div class="font-mono font-bold text-sm">${p.code}</div>
+      <div class="text-xs text-gray-500">${p.type==='percent'?p.value+'%':'₹'+p.value} off${p.minOrder?' · Min ₹'+p.minOrder:''} · ${p.enabled?'<span class="text-green-600">Active</span>':'<span class="text-gray-400">Inactive</span>'}</div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="editPromo('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-blue-50 text-blue-500 text-sm">✏️</button>
+      <button onclick="delPromo('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-red-50 text-red-500 text-sm">🗑️</button>
+    </div>
+  </div>`).join('');
+}
+
+function openPromoModal(p){
+  document.getElementById('pmTitle').textContent=p?'Edit Promo':'Add Promo Code';
+  document.getElementById('pmDelBtn').classList.toggle('hidden',!p);
+  document.getElementById('pmCode').value=p?.code||'';
+  document.getElementById('pmType').value=p?.type||'percent';
+  document.getElementById('pmValue').value=p?.value||'';
+  document.getElementById('pmMinOrder').value=p?.minOrder||'';
+  document.getElementById('pmEnabled').checked=p?.enabled!==false;
+  document.getElementById('promoModal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+
+function closePromoModal(){document.getElementById('promoModal').classList.add('hidden');document.body.style.overflow=''}
+
+function editPromo(id){const p=promos.find(x=>x.id===id);if(p)openPromoModal(p)}
+
+async function savePromo(){
+  if(!db){T('Firebase not configured','err');return}
+  const code=document.getElementById('pmCode').value.trim().toUpperCase();
+  if(!code){T('Promo code required','warn');return}
+  try{
+    const data={
+      code,
+      type:document.getElementById('pmType').value,
+      value:Number(document.getElementById('pmValue').value)||0,
+      minOrder:Number(document.getElementById('pmMinOrder').value)||0,
+      enabled:document.getElementById('pmEnabled').checked
+    };
+    const existing=promos.find(p=>p.code===code);
+    if(existing){
+      await db.collection('promos').doc(existing.id).update(data);
+      T('Promo updated','ok');
+    }else{
+      await db.collection('promos').add(data);
+      T('Promo added','ok');
+    }
+    closePromoModal();
+    loadPromos();
+  }catch(e){T('Failed: '+e.message,'err')}
+}
+
+async function delPromo(id){
+  if(!id){const code=document.getElementById('pmCode').value.trim().toUpperCase();const p=promos.find(x=>x.code===code);if(p)id=p.id}
+  if(!id){T('No promo selected','warn');return}
+  if(!confirm('Delete this promo code?'))return;
+  try{
+    await db.collection('promos').doc(id).delete();
+    T('Promo deleted','ok');
+    closePromoModal();
+    loadPromos();
+  }catch(e){T('Failed: '+e.message,'err')}
+}
 
 /* ══════════════ AUTH ══════════════ */
 function doLogin(){
@@ -292,10 +489,13 @@ function loadData(){
       .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
     renderDash();renderOrders();
   },e=>{console.error(e);T('Orders load failed: '+e.message,'err')});
+  // Load settings and promos
+  loadSettings();
+  loadPromos();
 }
 
 /* ══════════════ PAGES ══════════════ */
-function goP(p){document.querySelectorAll('.pgc').forEach(e=>e.classList.add('hidden'));document.getElementById('pg-'+p).classList.remove('hidden');document.querySelectorAll('.side-link').forEach(l=>l.classList.remove('on'));const sn=document.getElementById('sn-'+p);if(sn)sn.classList.add('on');document.getElementById('pgTitle').textContent={dashboard:'Dashboard',products:'Products',orders:'Orders',inventory:'Inventory',reports:'Reports'}[p]||'Admin';if(window.innerWidth<1024)toggleSB(false);if(p==='products')renderProducts();if(p==='orders')renderOrders();if(p==='inventory')renderInv();if(p==='reports')renderReports()}
+function goP(p){document.querySelectorAll('.pgc').forEach(e=>e.classList.add('hidden'));document.getElementById('pg-'+p).classList.remove('hidden');document.querySelectorAll('.side-link').forEach(l=>l.classList.remove('on'));const sn=document.getElementById('sn-'+p);if(sn)sn.classList.add('on');document.getElementById('pgTitle').textContent={dashboard:'Dashboard',products:'Products',orders:'Orders',inventory:'Inventory',reports:'Reports',settings:'Settings'}[p]||'Admin';if(window.innerWidth<1024)toggleSB(false);if(p==='products')renderProducts();if(p==='orders')renderOrders();if(p==='inventory')renderInv();if(p==='reports')renderReports();if(p==='settings'){renderPromos()}}
 function toggleSB(f){const s=document.getElementById('sidebar'),o=document.getElementById('sbOverlay');const open=f!==undefined?f:s.classList.contains('-translate-x-full');s.classList.toggle('-translate-x-full',!open);o.classList.toggle('hidden',!open)}
 function toggleDM(){document.documentElement.classList.toggle('dark');const d=document.documentElement.classList.contains('dark');localStorage.setItem('ss_dark',d?'1':'0');document.getElementById('dmBtn').textContent=d?'☀️':'🌙'}
 if(localStorage.getItem('ss_dark')==='1'){document.documentElement.classList.add('dark');document.getElementById('dmBtn').textContent='☀️'}
@@ -329,7 +529,9 @@ function openModal(p){
   document.getElementById('fP').value=p?.price||'';
   document.getElementById('fOP').value=p?.op||p?.originalPrice||'';
   document.getElementById('fS').value=p?.stock??50;
-  document.getElementById('fImg').value=p?.image||'';
+  document.getElementById('fImg1').value=p?.images?.[0]||p?.image||'';
+  document.getElementById('fImg2').value=p?.images?.[1]||'';
+  document.getElementById('fImg3').value=p?.images?.[2]||'';
   document.getElementById('fD').value=p?.desc||p?.description||'';
   document.getElementById('fSKU').value=p?.sku||(p?'':nextSku());
   document.getElementById('fFab').value=p?.fab||p?.fabric||'';
@@ -343,7 +545,7 @@ function openModal(p){
 function closeModal(){document.getElementById('pModal').classList.add('hidden');document.body.style.overflow='';editId=null}
 function editProd(id){const p=products.find(x=>x.id===id);if(p)openModal(p)}
 function adj(v){const i=document.getElementById('fS');i.value=Math.max(0,(parseInt(i.value)||0)+v)}
-function prevImg(){const u=document.getElementById('fImg').value.trim();const b=document.getElementById('imgPrev');b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>'}
+function prevImg(){const u=document.getElementById('fImg1').value.trim();const b=document.getElementById('imgPrev');b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>'}
 
 /* ══════════════ SAVE PRODUCT ══════════════ */
 /* Auto-generate next SKU (SK + 3-digit number, e.g. SK101, SK116) */
@@ -366,11 +568,17 @@ async function saveProd(){
   const catSlug=category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
   const op=parseFloat(document.getElementById('fOP').value)||Math.round(price*1.5);
   const disc=Math.round((1-price/op)*100);
-  const image=document.getElementById('fImg').value.trim();
+  const img1=document.getElementById('fImg1').value.trim();
+  const img2=document.getElementById('fImg2').value.trim();
+  const img3=document.getElementById('fImg3').value.trim();
+  const images=[img1,img2,img3].filter(Boolean);
+  if(!img1){T('Image 1 is required','warn');return}
   const skuInput=document.getElementById('fSKU').value.trim();
   const data={
-    name,category,price,stock,image,
-    imgs:image?[image]:[],
+    name,category,price,stock,
+    image:img1, // main image for backward compatibility
+    images, // all 3 images
+    imgs:images, // alias for index.html
     desc:document.getElementById('fD').value.trim(),
     sku:skuInput,
     fab:document.getElementById('fFab').value.trim()||category.replace(' Sarees',''),
