@@ -289,7 +289,7 @@ ul{list-style:none}
 .rc-text{font-size:.8rem;color:#555;line-height:1.6}
 
 /* ═══════════════════════════ CART PAGE ═════════════════════════ */
-.cart-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+.cart-layout{grid-template-columns:1fr 360px;gap:24px;align-items:start}
 .cart-item{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:16px;display:flex;gap:14px;margin-bottom:14px;box-shadow:var(--SHADOW)}
 .cart-item img{width:96px;height:116px;border-radius:var(--RAD-SM);flex-shrink:0;cursor:pointer}
 .ci-info{flex:1;min-width:0}
@@ -1579,7 +1579,7 @@ function selPM(v){
     if(v==='cod')btn.textContent='Place COD Order →';
     else if(v==='whatsapp')btn.textContent='💬 Send Order on WhatsApp';
     else if(v==='upiqr')btn.textContent='📲 Show UPI QR Code';
-    else btn.textContent='Pay '+fmt(fin)+' →';
+    else (v==='upiqr')btn.textContent='Pay '+fmt(fin)+' →';
   }
 }
 /* Route to correct payment flow */
