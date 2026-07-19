@@ -3,27 +3,26 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Saree Shopping – Elegant Sarees at Best Price | Best Price Sarees</title>
-<meta name="description" content="Saree Shopping – Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees. Authentic quality at affordable prices. Shop online with COD available."/>
-<meta name="keywords" content="sarees online, silk sarees, cotton sarees, bridal sarees, kanchipuram sarees, Saree Shopping"/>
+<title>SK Sarees – Elegant Sarees at Best Price | Best Price Sarees</title>
+<meta name="description" content="SK Sarees – Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees. Authentic quality at affordable prices. Shop online with COD available."/>
+<meta name="keywords" content="sarees online, silk sarees, cotton sarees, bridal sarees, kanchipuram sarees, SK Sarees"/>
 <meta name="theme-color" content="#7B1C1C"/>
-<meta property="og:title" content="Saree Shopping – Elegant Sarees at Best Price"/>
+<meta property="og:title" content="SK Sarees – Elegant Sarees at Best Price"/>
 <meta property="og:description" content="Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees at Affordable Prices"/>
 <meta property="og:type" content="website"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<!-- Razorpay Checkout SDK -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <!-- QR Code generator (for UPI QR payment) -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 /* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
 const FIREBASE_CONFIG = {
+ const FIREBASE_CONFIG = {
  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
   authDomain: "sksareesapp.firebaseapp.com",
   projectId: "sksareesapp",
@@ -36,27 +35,26 @@ window.FB_DB = FB_ON ? firebase.firestore() : null;
 
 /* ── BUSINESS & PAYMENT CONFIG ── */
 const BIZ = {
-  name: "Saree Shopping",
-  whatsapp: "917867915699",           // WhatsApp number (no +)
-  upiId: "sareeshopping@okhdfcbank",  // ← Replace with YOUR real UPI ID
-  upiName: "Saree Shopping",
-  razorpayKey: "rzp_test_YOUR_KEY_ID" // ← Replace with your Razorpay Key ID
+  name: "SK Sarees",
+  whatsapp: "917867915699",       // WhatsApp number (no +)
+  email: "sk7867915699@gmail.com",
+  upiId: "sk7867915699-1@oksbi",  // UPI ID for QR payments
+  upiName: "SK Sarees"
 };
-const RAZORPAY_ON = BIZ.razorpayKey !== "rzp_test_YOUR_KEY_ID";
 </script>
 <style>
 /* ═══════════════════════════ RESET ═══════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --M:#7B1C1C;--MD:#5a1313;--ML:#a52626;
-  --G:#C9A84C;--GL:#F0CF72;--GP:#FFF8E1;
-  --CR:#FDF6EC;--GR:#2e7d32;--BL:#1565c0;
-  --BG:#f7f3ee;--WH:#ffffff;--TXT:#1a1a1a;--MUTED:#777;
-  --BORDER:#e8e0d5;--SHADOW:0 2px 12px rgba(0,0,0,.08);
-  --RAD:12px;--RAD-SM:8px;--RAD-LG:18px;
+  --M:#B4145A;--MD:#8A0E45;--ML:#D6297A;   /* magenta-rose brand */
+  --G:#E8A33D;--GL:#F7C873;--GP:#FFF3E0;    /* warm gold accent */
+  --CR:#FFF6FA;--GR:#1E9E5A;--BL:#2563EB;   /* soft rose cream */
+  --BG:#FBF3F7;--WH:#ffffff;--TXT:#2A1420;--MUTED:#9A7D8C;
+  --BORDER:#F0DCE7;--SHADOW:0 4px 20px rgba(180,20,90,.08);
+  --RAD:16px;--RAD-SM:10px;--RAD-LG:22px;
 }
 html{scroll-behavior:smooth;font-size:16px}
-body{font-family:'Inter',sans-serif;background:var(--BG);color:var(--TXT);overflow-x:hidden;line-height:1.5}
+body{font-family:'Poppins',sans-serif;background:var(--BG);color:var(--TXT);overflow-x:hidden;line-height:1.55}
 a{text-decoration:none;color:inherit}
 img{display:block;max-width:100%;object-fit:cover}
 button{cursor:pointer;font-family:inherit;border:none;outline:none}
@@ -75,8 +73,8 @@ ul{list-style:none}
 .pb{padding-bottom:80px}
 
 /* ═══════════════════════════ TYPOGRAPHY ═══════════════════════ */
-.playfair{font-family:'Playfair Display',serif}
-.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,3vw,1.7rem);font-weight:700;color:var(--M);position:relative;padding-bottom:10px;margin-bottom:20px}
+.playfair{font-family:'Fraunces',serif}
+.sec-title{font-family:'Fraunces',serif;font-size:clamp(1.3rem,3vw,1.7rem);font-weight:700;color:var(--M);position:relative;padding-bottom:10px;margin-bottom:20px}
 .sec-title::after{content:'';position:absolute;bottom:0;left:0;width:44px;height:3px;background:linear-gradient(90deg,var(--G),var(--GL));border-radius:2px}
 .sec-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
 .view-all{font-size:.8rem;color:var(--G);font-weight:700;cursor:pointer;white-space:nowrap}
@@ -106,8 +104,8 @@ ul{list-style:none}
 .site-header{background:linear-gradient(135deg,var(--M),var(--MD));position:sticky;top:0;z-index:300;box-shadow:0 3px 20px rgba(0,0,0,.25)}
 .header-main{display:flex;align-items:center;gap:16px;padding:12px 20px;max-width:1200px;margin:0 auto}
 .logo-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:pointer}
-.logo-ring{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1.1rem;color:var(--M);box-shadow:0 2px 10px rgba(201,168,76,.4)}
-.logo-text .brand{font-family:'Playfair Display',serif;font-weight:700;font-size:1.25rem;color:var(--GL);line-height:1.1}
+.logo-ring{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:800;font-size:1.1rem;color:var(--M);box-shadow:0 2px 10px rgba(201,168,76,.4)}
+.logo-text .brand{font-family:'Fraunces',serif;font-weight:700;font-size:1.25rem;color:var(--GL);line-height:1.1}
 .logo-text .tag{font-size:.6rem;color:rgba(255,255,255,.6);letter-spacing:.6px;text-transform:uppercase}
 .search-wrap{flex:1;max-width:540px}
 .search-box{display:flex;border-radius:var(--RAD-SM);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2)}
@@ -147,7 +145,7 @@ ul{list-style:none}
 .hero-content{position:absolute;bottom:clamp(20px,5vw,60px);left:clamp(16px,6vw,80px);right:42%;color:#fff}
 .hero-badge-pill{background:var(--G);color:var(--MD);font-size:.7rem;font-weight:800;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:10px;letter-spacing:.3px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-.hero-content h1{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,4vw,2.6rem);font-weight:800;line-height:1.2;margin-bottom:8px}
+.hero-content h1{font-family:'Fraunces',serif;font-size:clamp(1.4rem,4vw,2.6rem);font-weight:800;line-height:1.2;margin-bottom:8px}
 .hero-content p{font-size:clamp(.8rem,2vw,1rem);opacity:.9;margin-bottom:16px;max-width:400px}
 .hero-cta-row{display:flex;gap:10px;flex-wrap:wrap}
 .hero-cta-row .btn{font-size:clamp(.78rem,2vw,.92rem);padding:clamp(8px,2vw,13px) clamp(14px,3vw,24px)}
@@ -207,7 +205,7 @@ ul{list-style:none}
 /* ═══════════════════════════ FLASH SALE BAR ════════════════════ */
 .flash-bar{background:linear-gradient(135deg,var(--M),var(--ML));border-radius:var(--RAD);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .fb-left .fb-tag{font-size:.68rem;color:var(--GL);font-weight:700;margin-bottom:3px}
-.fb-left .fb-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;font-weight:800}
+.fb-left .fb-title{font-family:'Fraunces',serif;font-size:1.5rem;color:#fff;font-weight:800}
 .fb-left .fb-sub{font-size:.8rem;color:rgba(255,255,255,.8)}
 .fb-timer{font-size:.78rem;color:var(--GL);font-weight:800;margin-top:4px}
 .fb-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
@@ -218,13 +216,13 @@ ul{list-style:none}
 .bb-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(60,10,10,.85) 0%,rgba(60,10,10,.3) 60%,transparent 100%)}
 .bb-content{position:absolute;top:50%;left:clamp(20px,5%,50px);transform:translateY(-50%);color:#fff}
 .bb-content .bbc-tag{font-size:.7rem;color:var(--GL);font-weight:700;margin-bottom:6px;letter-spacing:.5px}
-.bb-content h3{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,3vw,2rem);font-weight:800;margin-bottom:8px}
+.bb-content h3{font-family:'Fraunces',serif;font-size:clamp(1.2rem,3vw,2rem);font-weight:800;margin-bottom:8px}
 .bb-content p{font-size:clamp(.75rem,1.8vw,.9rem);opacity:.88;margin-bottom:14px}
 
 /* ═══════════════════════════ OFFER BOX ═════════════════════════ */
 .offer-box{background:linear-gradient(135deg,#1a237e,#283593);border-radius:var(--RAD);padding:28px;text-align:center;color:#fff}
 .offer-box .ob-icon{font-size:2.5rem;margin-bottom:10px}
-.offer-box h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:6px}
+.offer-box h3{font-family:'Fraunces',serif;font-size:1.4rem;margin-bottom:6px}
 .offer-box p{font-size:.85rem;opacity:.85;margin-bottom:14px}
 .offer-box .ob-code{background:rgba(255,255,255,.15);border:1px dashed rgba(255,255,255,.4);border-radius:8px;padding:8px 20px;display:inline-block;font-size:1rem;font-weight:800;color:var(--GL);letter-spacing:2px;margin-bottom:16px}
 
@@ -250,7 +248,7 @@ ul{list-style:none}
 .thumb.active{border-color:var(--M)}
 .thumb img{width:100%;height:100%}
 .detail-info .di-sku{font-size:.7rem;color:var(--G);font-weight:700;margin-bottom:5px}
-.detail-info .di-name{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,3vw,1.7rem);font-weight:700;color:var(--TXT);margin-bottom:10px;line-height:1.3}
+.detail-info .di-name{font-family:'Fraunces',serif;font-size:clamp(1.2rem,3vw,1.7rem);font-weight:700;color:var(--TXT);margin-bottom:10px;line-height:1.3}
 .detail-rating{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .detail-rating .dr-stars{font-size:1rem;color:var(--GL)}
 .detail-rating .dr-val{font-size:.9rem;font-weight:700}
@@ -386,7 +384,7 @@ ul{list-style:none}
 .profile-card{background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);box-shadow:var(--SHADOW);overflow:hidden}
 .profile-hero-bg{background:linear-gradient(135deg,var(--M),var(--MD));padding:28px 20px 24px;text-align:center}
 .p-avatar{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px;border:3px solid rgba(255,255,255,.3)}
-.p-name{font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;font-weight:700}
+.p-name{font-family:'Fraunces',serif;font-size:1.1rem;color:#fff;font-weight:700}
 .p-phone{font-size:.8rem;color:rgba(255,255,255,.7);margin:4px 0 12px}
 .p-edit-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 16px;font-size:.75rem;cursor:pointer}
 .p-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #f0ebe4}
@@ -429,7 +427,7 @@ ul{list-style:none}
 /* ═══════════════════════════ EMPTY STATE ═══════════════════════ */
 .empty-state{text-align:center;padding:clamp(50px,10vw,100px) 20px}
 .es-icon{font-size:clamp(3rem,8vw,5rem);margin-bottom:14px}
-.es-title{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,3vw,1.5rem);color:var(--M);margin-bottom:7px}
+.es-title{font-family:'Fraunces',serif;font-size:clamp(1.2rem,3vw,1.5rem);color:var(--M);margin-bottom:7px}
 .es-sub{font-size:.87rem;color:var(--MUTED);margin-bottom:22px}
 
 /* ═══════════════════════════ TOAST ═════════════════════════════ */
@@ -447,8 +445,8 @@ ul{list-style:none}
 .modal-handle{width:42px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto 0}
 .modal-body{padding:20px 22px 28px}
 .modal-hdr{text-align:center;margin-bottom:18px}
-.modal-logo{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1.2rem;color:var(--M);margin:0 auto 10px;box-shadow:0 4px 14px rgba(201,168,76,.35)}
-.modal-hdr h2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--M)}
+.modal-logo{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--G),var(--GL));display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:800;font-size:1.2rem;color:var(--M);margin:0 auto 10px;box-shadow:0 4px 14px rgba(201,168,76,.35)}
+.modal-hdr h2{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--M)}
 .modal-hdr p{font-size:.78rem;color:var(--MUTED);margin-top:3px}
 .auth-step{display:none}.auth-step.show{display:block;animation:fadeIn .3s}
 .phone-row{display:flex;border:1.5px solid #ddd;border-radius:10px;overflow:hidden;margin-bottom:12px;transition:border-color .2s}
@@ -481,7 +479,7 @@ ul{list-style:none}
 /* ═══════════════════════════ FOOTER ════════════════════════════ */
 .site-footer{background:linear-gradient(135deg,var(--MD),#2d0d0d);color:#fff;margin-top:0}
 .footer-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;padding:48px 20px 36px;max-width:1200px;margin:0 auto}
-.footer-brand .fb-logo{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--GL);font-weight:800;margin-bottom:8px}
+.footer-brand .fb-logo{font-family:'Fraunces',serif;font-size:1.5rem;color:var(--GL);font-weight:800;margin-bottom:8px}
 .footer-brand p{font-size:.8rem;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:14px}
 .footer-col h4{font-size:.82rem;font-weight:800;color:var(--GL);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
 .footer-col li{margin-bottom:8px}
@@ -528,7 +526,10 @@ ul{list-style:none}
 @media(max-width:900px){
   .detail-wrap{grid-template-columns:1fr}
   .cart-layout,.checkout-layout,.profile-layout{grid-template-columns:1fr}
-  .cart-sidebar,.checkout-sidebar{order:-1}
+  /* Cart: summary above list is fine. Checkout: summary+pay AFTER payment methods */
+  .cart-sidebar{order:-1}
+  .checkout-sidebar{order:2}
+  .checkout-layout>div:first-child{order:1}
 }
 @media(max-width:700px){
   .bottom-nav{display:block}
@@ -598,8 +599,8 @@ ul{list-style:none}
     <div class="modal-handle"></div>
     <div class="modal-body">
       <div class="modal-hdr">
-        <div class="modal-logo">SS</div>
-        <h2>Saree Shopping</h2>
+        <div class="modal-logo">SK</div>
+        <h2>SK Sarees</h2>
         <p>Login for exclusive offers &amp; order tracking</p>
       </div>
       <!-- AUTH TABS -->
@@ -650,7 +651,7 @@ ul{list-style:none}
       <div class="auth-step" id="stepSuccess">
         <div style="text-align:center;padding:10px 0 16px;">
           <div class="succ-tick">✅</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--M);font-weight:700;margin-bottom:5px;">Welcome to Saree Shopping!</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.25rem;color:var(--M);font-weight:700;margin-bottom:5px;">Welcome to SK Sarees!</div>
           <div id="succName" style="font-size:.85rem;color:#555;margin-bottom:4px;"></div>
           <div id="succPhone" style="font-size:.8rem;color:#888;margin-bottom:12px;"></div>
           <div id="verifyNotice" style="display:none;background:#fff3e0;border:1px solid #ffb74d;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.78rem;color:#e65100;line-height:1.5;">
@@ -668,19 +669,19 @@ ul{list-style:none}
 <!-- ════════════════ HEADER ════════════════ -->
 <div class="announce">
   <div class="announce-inner">
-    <span>🎊 Grand Diwali Sale – Up to 50% Off!</span><span>🚚 Free Shipping on Orders above ₹999</span><span>🪡 New Arrivals Every Week</span><span>💫 Authentic Kanchipuram Silk Available</span><span>📦 COD Available Across India</span><span>💬 WhatsApp: +91 78679 15699</span>
-    <span>🎊 Grand Diwali Sale – Up to 50% Off!</span><span>🚚 Free Shipping on Orders above ₹999</span><span>🪡 New Arrivals Every Week</span><span>💫 Authentic Kanchipuram Silk Available</span><span>📦 COD Available Across India</span><span>💬 WhatsApp: +91 78679 15699</span>
+    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>📦 COD Available · பணம் செலுத்துதல்</span><span>💬 WhatsApp: +91 78679 15699</span>
+    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>📦 COD Available · பணம் செலுத்துதல்</span><span>💬 WhatsApp: +91 78679 15699</span>
   </div>
 </div>
 <header class="site-header">
   <div class="header-main">
     <div class="logo-wrap" onclick="go('home')">
-      <div class="logo-ring">SS</div>
-      <div class="logo-text"><div class="brand">Saree Shopping</div><div class="tag">Best Price Sarees</div></div>
+      <div class="logo-ring">SK</div>
+      <div class="logo-text"><div class="brand">SK Sarees</div><div class="tag">புடவை கடை · Best Prices</div></div>
     </div>
     <div class="search-wrap">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search sarees, fabric, color, occasion…" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <input type="text" id="searchInput" placeholder="Search sarees · புடவைகளைத் தேடுங்கள்…" onkeydown="if(event.key==='Enter')doSearch()"/>
         <button onclick="doSearch()">🔍 Search</button>
       </div>
     </div>
@@ -702,16 +703,16 @@ ul{list-style:none}
   </div>
   <nav class="site-nav">
     <div class="nav-inner">
-      <span class="nav-link active" id="nl-home" onclick="go('home')">🏠 Home</span>
-      <span class="nav-link" id="nl-categories" onclick="go('categories')">🏷️ All Categories</span>
+      <span class="nav-link active" id="nl-home" onclick="go('home')">🏠 Home முகப்பு</span>
+      <span class="nav-link" id="nl-categories" onclick="go('categories')">🏷️ Categories வகைகள்</span>
       <span class="nav-link" onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</span>
       <span class="nav-link" onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</span>
       <span class="nav-link" onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</span>
       <span class="nav-link" onclick="filter({catSlug:'art-silk-sarees'})">Art Silk</span>
       <span class="nav-link" onclick="filter({catSlug:'georgette-sarees'})">Georgette</span>
       <span class="nav-link" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</span>
-      <span class="nav-link" onclick="filter({bestSeller:true})">🔥 Best Sellers</span>
-      <span class="nav-link" onclick="filter({isNew:true})">✨ New Arrivals</span>
+      <span class="nav-link" onclick="filter({bestSeller:true})">🔥 Best Sellers சிறந்தவை</span>
+      <span class="nav-link" onclick="filter({isNew:true})">✨ New Arrivals புதியவை</span>
       <span class="nav-link" id="nl-orders" onclick="go('orders')">📦 My Orders</span>
     </div>
   </nav>
@@ -809,7 +810,7 @@ ul{list-style:none}
 
   <!-- Trust -->
   <div class="sec sec-cream"><div class="container">
-    <h2 class="sec-title" style="text-align:center;padding-bottom:10px;margin-bottom:20px;">Why Choose Saree Shopping?</h2>
+    <h2 class="sec-title" style="text-align:center;padding-bottom:10px;margin-bottom:20px;">Why Choose SK Sarees?</h2>
     <div class="trust-grid">
       <div class="trust-item"><div class="ti-icon">✅</div><div class="ti-title">100% Authentic</div><div class="ti-desc">Genuine certified fabric quality</div></div>
       <div class="trust-item"><div class="ti-icon">🚚</div><div class="ti-title">Pan India Delivery</div><div class="ti-desc">3–7 business days nationwide</div></div>
@@ -942,14 +943,14 @@ ul{list-style:none}
             <div class="menu-item" onclick="go('cart')"><span class="mi-icon">🛒</span><div class="mi-text"><div class="mt-title">My Cart</div><div class="mt-desc">Items ready to checkout</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="toast('Language: English | தமிழ் – Coming soon!','info')"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
-            <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About Saree Shopping</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About SK Sarees</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
           </div>
         </div>
         <div style="background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:20px;box-shadow:var(--SHADOW);">
           <h3 style="font-size:.85rem;font-weight:800;color:var(--M);margin-bottom:14px;">📞 Contact Us</h3>
           <div style="font-size:.82rem;color:#555;line-height:2.2;">
             📞 <strong>+91 78679 15699</strong><br/>
-            📧 <strong>sareeshopping@gmail.com</strong><br/>
+            📧 <strong>sk7867915699@gmail.com</strong><br/>
             📍 2/130, Thoothanoor, Edanganasalai Post,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ilampillai Via, Salem – 637502<br/>
             🕐 Mon–Sat: 9 AM – 9 PM
           </div>
@@ -964,7 +965,7 @@ ul{list-style:none}
 <footer class="site-footer">
   <div class="footer-top">
     <div class="footer-brand">
-      <div class="fb-logo">Saree Shopping</div>
+      <div class="fb-logo">SK Sarees</div>
       <p>Your trusted destination for premium quality sarees since 2010. We bring authentic Cotton, Silk, Bridal, Art Silk, Georgette &amp; Fancy sarees directly to your doorstep at the most affordable prices.</p>
       <div class="social-icons">
         <div class="si" title="Facebook">📘</div>
@@ -999,7 +1000,7 @@ ul{list-style:none}
       <h4>Customer Care</h4>
       <ul>
         <li><a>📞 +91 78679 15699</a></li>
-        <li><a>📧 sareeshopping@gmail.com</a></li>
+        <li><a>📧 sk7867915699@gmail.com</a></li>
         <li><a onclick="openWA()">💬 WhatsApp Support</a></li>
         <li><a>↩️ Return Policy</a></li>
         <li><a>🔒 Privacy Policy</a></li>
@@ -1008,7 +1009,7 @@ ul{list-style:none}
     </div>
   </div>
   <div class="footer-bottom">
-    <p>© 2024 Saree Shopping. All rights reserved. | Salem, Tamil Nadu</p>
+    <p>© 2024 SK Sarees. All rights reserved. | Salem, Tamil Nadu</p>
     <p>Made with ❤️ for Indian Women</p>
   </div>
 </footer>
@@ -1016,11 +1017,11 @@ ul{list-style:none}
 <!-- BOTTOM NAV (mobile) -->
 <nav class="bottom-nav">
   <div class="bn-inner">
-    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
-    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label">Categories</span></button>
-    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label">Cart</span><span class="bn-badge" id="bnCartBadge">0</span></button>
-    <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label">Orders</span></button>
-    <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label">Profile</span></button>
+    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label">முகப்பு</span></button>
+    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label">வகைகள்</span></button>
+    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label">கார்ட்</span><span class="bn-badge" id="bnCartBadge">0</span></button>
+    <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label">ஆர்டர்</span></button>
+    <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label">சுயவிவரம்</span></button>
   </div>
 </nav>
 
@@ -1260,6 +1261,8 @@ function openProduct(id){
   document.getElementById('page-detail').classList.add('active');
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   curPage='detail';
+  // Update URL so the product has its own shareable link (#product/ID)
+  try{ history.replaceState(null,'','#product/'+id); }catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
   renderDetail(p);
 }
@@ -1293,12 +1296,15 @@ function renderDetail(p){
       <div class="delivery-strip"><span class="ds-icon">🚚</span><div><div class="ds-title">${p.price>=999?'Free Delivery':'Delivery Charge: ₹49'}</div><div class="ds-sub">Expected delivery: 3–7 business days</div></div></div>
       <div class="qty-row"><div class="qty-ctrl"><button onclick="dQty=Math.max(1,dQty-1);document.getElementById('dQtyVal').textContent=dQty">−</button><span id="dQtyVal">1</span><button onclick="dQty++;document.getElementById('dQtyVal').textContent=dQty">+</button></div><span style="font-size:.8rem;color:var(--MUTED);">In Stock ✅</span></div>
       <div class="cta-row">
-        <button class="btn btn-outline btn-lg" onclick="addCartN('${p.id}',dQty)">🛒 Add to Cart</button>
-        <button class="btn btn-M btn-lg" onclick="addCartN('${p.id}',dQty);go('cart')">Buy Now</button>
+        <button class="btn btn-outline btn-lg" onclick="addCartN('${p.id}',dQty)">🛒 Add to Cart · கார்ட்</button>
+        <button class="btn btn-M btn-lg" onclick="addCartN('${p.id}',dQty);go('cart')">Buy Now · வாங்கு</button>
         <button class="btn btn-${inW?'M':'outline'} btn-lg" onclick="toggleWish('${p.id}');this.textContent=wish.includes('${p.id}')?'❤️ Saved':'🤍 Wishlist'">${inW?'❤️ Saved':'🤍 Wishlist'}</button>
       </div>
-      <button class="btn btn-wa btn-full btn-lg" onclick="openWA('${p.name}')">💬 Order via WhatsApp</button>
-      <button onclick="shareP()" style="width:100%;margin-top:10px;padding:10px;background:#f5f5f5;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;color:#555;">📤 Share Product</button>
+      <button class="btn btn-wa btn-full btn-lg" onclick="openWA('${p.name}')">💬 Order via WhatsApp · வாட்ஸ்அப்</button>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button onclick="shareP()" style="flex:1;padding:11px;background:var(--GP);border:1px solid var(--G);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--M);">📤 Share · பகிர்</button>
+        <button onclick="copyProductLink()" style="flex:1;padding:11px;background:#f5f0f3;border:1px solid var(--BORDER);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--M);">🔗 Copy Link</button>
+      </div>
     </div>
   </div>
   <div id="reviewSection" style="margin-top:32px;background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
@@ -1371,7 +1377,24 @@ async function submitReview(pid){
   btn.disabled=false;btn.textContent='📝 Submit Review';
 }
 function switchImg(src,el){document.getElementById('dMainImg').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
-function shareP(){const p=gP(curProd);if(!p)return;const txt=`Check out "${p.name}" on Saree Shopping! Only ${fmt(p.price)}. Quality guaranteed.`;if(navigator.share)navigator.share({title:p.name,text:txt,url:location.href});else window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank')}
+function shareP(){
+  const p=gP(curProd);if(!p)return;
+  // Build a clean shareable link that opens THIS product directly
+  const link=location.origin+location.pathname+'#product/'+p.id;
+  const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
+  if(navigator.share){
+    navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
+  } else {
+    // Fallback: WhatsApp share
+    window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank');
+  }
+}
+function copyProductLink(){
+  const p=gP(curProd);if(!p)return;
+  const link=location.origin+location.pathname+'#product/'+p.id;
+  if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('🔗 Product link copied!')).catch(()=>toast('Link: '+link));}
+  else toast('Link: '+link);
+}
 
 /* ── CART ── */
 function addCart(id){addCartN(id,1)}
@@ -1473,10 +1496,9 @@ function payForm(){
     <h3>💳 Choose Payment Method</h3>
     <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
     ${[
-      {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay)',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
-      {v:'razorpay',icon:'💳',name:'Card / UPI / NetBanking',desc:'Secure online payment via Razorpay',sec:true},
-      {v:'cod',icon:'💵',name:'Cash on Delivery',desc:'Pay cash when your saree arrives',sec:false},
-      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp',desc:'Confirm order & pay through WhatsApp chat',sec:false}
+      {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay) · UPI QR குறியீடு',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
+      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false},
+      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false}
     ].map(pm=>`<div class="pm-opt${pm.v==='upiqr'?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
   </div>
   </div>
@@ -1507,65 +1529,40 @@ function proceedPayment(){
   if(payM==='cod') placeOrder('cod','pending');
   else if(payM==='whatsapp') whatsappOrder();
   else if(payM==='upiqr') showUpiQR();
-  else if(payM==='razorpay') payWithRazorpay();
 }
 /* ── WhatsApp Order ── */
 function whatsappOrder(){
   const {tot,del,disc,fin}=cartTotals();
   const items=cart.map(i=>{const p=gP(i.id);return p?`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}`:''}).filter(Boolean).join('%0A');
-  const msg=`*New Order - Saree Shopping*%0A%0A*Items:*%0A${items}%0A%0A*Total: ${fmt(fin)}*%0A%0A*Deliver to:*%0A${ckAddr.name}, ${ckAddr.phone}%0A${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}%0A${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
+  const msg=`*New Order - SK Sarees*%0A%0A*Items:*%0A${items}%0A%0A*Total: ${fmt(fin)}*%0A%0A*Deliver to:*%0A${ckAddr.name}, ${ckAddr.phone}%0A${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}%0A${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
   // Also save the order as pending
   placeOrder('whatsapp','pending',true);
   window.open(`https://wa.me/${BIZ.whatsapp}?text=${msg}`,'_blank');
 }
-/* ── Razorpay Payment ── */
-function payWithRazorpay(){
-  const {fin}=cartTotals();
-  if(!RAZORPAY_ON){
-    toast('Razorpay not configured. Use UPI QR or COD.','err');
-    return;
-  }
-  const options={
-    key:BIZ.razorpayKey,
-    amount:Math.round(fin*100), // paise
-    currency:'INR',
-    name:BIZ.name,
-    description:'Saree Order Payment',
-    prefill:{name:ckAddr.name,contact:ckAddr.phone,email:(curUser&&curUser.email)||''},
-    theme:{color:'#7B1C1C'},
-    handler:function(response){
-      // Payment success — Razorpay verified
-      placeOrder('razorpay','paid',false,response.razorpay_payment_id);
-    },
-    modal:{ondismiss:function(){toast('Payment cancelled','err')}}
-  };
-  const rzp=new Razorpay(options);
-  rzp.on('payment.failed',function(){toast('Payment failed. Try again.','err')});
-  rzp.open();
-}
 /* ── UPI QR Code Payment ── */
 function showUpiQR(){
   const {fin}=cartTotals();
-  const txnRef='SS'+Date.now();
-  const upiUrl=`upi://pay?pa=${encodeURIComponent(BIZ.upiId)}&pn=${encodeURIComponent(BIZ.upiName)}&am=${fin}&cu=INR&tn=${encodeURIComponent('Saree Order '+txnRef)}`;
+  const txnRef='SK'+Date.now();
+  const upiUrl=`upi://pay?pa=${encodeURIComponent(BIZ.upiId)}&pn=${encodeURIComponent(BIZ.upiName)}&am=${fin}&cu=INR&tn=${encodeURIComponent('SK Sarees Order '+txnRef)}`;
   document.getElementById('checkoutContent').innerHTML=`
     <div style="max-width:440px;margin:0 auto;text-align:center;">
       <div class="ck-card" style="padding:26px 22px;">
-        <h3 style="margin-bottom:6px;">📲 Scan & Pay via UPI</h3>
-        <p style="font-size:.82rem;color:#666;margin-bottom:16px;">Open any UPI app (GPay, PhonePe, Paytm) and scan this QR to pay <strong style="color:var(--M)">${fmt(fin)}</strong></p>
-        <div style="display:flex;justify-content:center;margin-bottom:14px;"><canvas id="upiQRCanvas" style="border:8px solid #fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.12);"></canvas></div>
-        <div style="background:var(--GP);border:1px solid var(--G);border-radius:10px;padding:12px;margin-bottom:16px;">
-          <div style="font-size:.72rem;color:#888;">Pay to UPI ID</div>
-          <div style="font-size:1rem;font-weight:800;color:var(--M);">${BIZ.upiId}</div>
-          <div style="font-size:.72rem;color:#888;margin-top:6px;">Amount</div>
-          <div style="font-size:1.3rem;font-weight:900;color:var(--M);">${fmt(fin)}</div>
+        <h3 style="margin-bottom:6px;">📲 Scan & Pay via UPI · UPI மூலம் பணம்</h3>
+        <p style="font-size:.82rem;color:#666;margin-bottom:16px;">Open any UPI app (GPay / PhonePe / Paytm) and scan to pay <strong style="color:var(--M)">${fmt(fin)}</strong><br/><span style="font-size:.75rem;">எந்த UPI ஆப்பையும் திறந்து QR-ஐ ஸ்கேன் செய்யவும்</span></p>
+        <div style="display:flex;justify-content:center;margin-bottom:14px;"><canvas id="upiQRCanvas" style="border:8px solid #fff;border-radius:16px;box-shadow:0 6px 24px rgba(180,20,90,.15);"></canvas></div>
+        <div style="background:var(--GP);border:1px solid var(--G);border-radius:12px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:.72rem;color:#888;">Pay to UPI ID · UPI ஐடி</div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--M);letter-spacing:.3px;">${BIZ.upiId}</div>
+          <div style="font-size:.72rem;color:#888;margin-top:8px;">Amount · தொகை</div>
+          <div style="font-size:1.4rem;font-weight:900;color:var(--M);">${fmt(fin)}</div>
         </div>
         <a href="${upiUrl}" class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;">📱 Open UPI App to Pay</a>
-        <div style="background:#fff8e1;border:1px solid #ffcc70;border-radius:10px;padding:12px;font-size:.78rem;color:#8a6d00;line-height:1.5;margin-bottom:14px;">
-          ⚠️ After paying, click <strong>"I've Paid"</strong> below. Your order will be <strong>confirmed once we verify the payment</strong> (usually within a few minutes).
+        <div style="background:#fff8e1;border:1px solid #ffcc70;border-radius:12px;padding:12px;font-size:.78rem;color:#8a6d00;line-height:1.6;margin-bottom:14px;text-align:left;">
+          ⚠️ <strong>After paying, tap "I've Paid" below.</strong> Your order is confirmed once we verify the payment.<br/>
+          <span style="font-size:.72rem;">பணம் செலுத்திய பிறகு "நான் பணம் செலுத்தினேன்" என்பதை அழுத்தவும்.</span>
         </div>
-        <button class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;" onclick="placeOrder('upiqr','verifying',false,'${txnRef}')">✅ I've Paid – Confirm Order</button>
-        <button class="btn btn-outline btn-full" onclick="renderCheckout()">← Change Payment Method</button>
+        <button class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;" onclick="placeOrder('upiqr','verifying',false,'${txnRef}')">✅ I've Paid · நான் பணம் செலுத்தினேன்</button>
+        <button class="btn btn-outline btn-full" onclick="renderCheckout()">← Change Payment · மாற்று</button>
       </div>
     </div>`;
   // Render QR
@@ -1623,8 +1620,8 @@ async function placeOrder(method, payStatus, keepChatOpen, payRef){
   }
   document.getElementById('checkoutContent').innerHTML=`<div class="success-wrap">
     <div class="success-tick">${icon}</div>
-    <h2 style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--M);margin-bottom:8px;">${title}</h2>
-    <p style="color:#666;margin-bottom:20px;">Thank you for shopping with Saree Shopping!</p>
+    <h2 style="font-family:'Fraunces',serif;font-size:2rem;color:var(--M);margin-bottom:8px;">${title}</h2>
+    <p style="color:#666;margin-bottom:20px;">Thank you for shopping with SK Sarees!</p>
     <div class="on-box"><div style="font-size:.75rem;color:#888;margin-bottom:4px;">Order Number</div><div style="font-size:1.4rem;font-weight:900;color:var(--M);">${num}</div><div style="font-size:.8rem;color:#888;margin-top:6px;">${statusLine}</div></div>
     <p style="font-size:.85rem;color:#666;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">${note}</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
@@ -1682,10 +1679,10 @@ function updateProfileHeader(user){
   }
   const hl=document.getElementById('hdrUserLabel');if(hl)hl.textContent=user?(user.displayName||'Account'):'Login';
 }
-function showAbout(){alert('Saree Shopping\n\nYour trusted destination for premium quality sarees.\n\nContact: +91 78679 15699\nEmail: sareeshopping@gmail.com\nAddress: 2/130, Thoothanoor, Edanganasalai Post,\nIlampillai Via, Salem – 637502\nTamil Nadu, India 🪡')}
+function showAbout(){alert('SK Sarees\n\nYour trusted destination for premium quality sarees.\n\nContact: +91 78679 15699\nEmail: sk7867915699@gmail.com\nAddress: 2/130, Thoothanoor, Edanganasalai Post,\nIlampillai Via, Salem – 637502\nTamil Nadu, India 🪡')}
 
 /* ── WHATSAPP ── */
-function openWA(prod){const ph='917867915699';const msg=prod?`Hi! I'm interested in buying "${prod}" from Saree Shopping. Can you help me?`:'Hi! I need help with Saree Shopping. Can you assist me?';window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank')}
+function openWA(prod){const ph='917867915699';const msg=prod?`Hi! I'm interested in buying "${prod}" from SK Sarees. Can you help me?`:'Hi! I need help with SK Sarees. Can you assist me?';window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank')}
 
 /* ── FIREBASE AUTH ── */
 function initFB(){
@@ -1782,23 +1779,53 @@ async function resendVerify(){
   if(btn){btn.disabled=false;btn.textContent='🔄 Resend Verification Email';}
 }
 function showStep(name){['Email','Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
+function clearRecap(){
+  try{ if(rcVerifier){ rcVerifier.clear(); rcVerifier=null; } }catch(e){}
+  const c=document.getElementById('recap-container'); if(c) c.innerHTML='';
+}
 function initRecap(){
-  if(!FB_ON)return;const c=document.getElementById('recap-container');c.innerHTML='';
-  try{rcVerifier=new firebase.auth.RecaptchaVerifier('recap-container',{size:'normal',callback:()=>{const ph=document.getElementById('phoneInput').value.trim();if(ph.length===10)document.getElementById('sendOTPBtn').disabled=false},'expired-callback':()=>{document.getElementById('sendOTPBtn').disabled=true}});rcVerifier.render()}catch(e){console.error(e)}
+  if(!FB_ON)return;
+  clearRecap();
+  try{
+    // Invisible reCAPTCHA works best on mobile — no checkbox needed
+    rcVerifier=new firebase.auth.RecaptchaVerifier('recap-container',{
+      size:'invisible',
+      callback:()=>{},
+      'expired-callback':()=>{ clearRecap(); initRecap(); }
+    });
+    rcVerifier.render();
+  }catch(e){console.error('recaptcha init',e)}
 }
 function validatePhone(){const ph=document.getElementById('phoneInput').value.trim();document.getElementById('sendOTPBtn').disabled=!(ph.length===10&&/^[6-9]\d{9}$/.test(ph))}
 async function sendOTP(){
-  if(!FB_ON)return;const ph=document.getElementById('phoneInput').value.trim();
+  if(!FB_ON){toast('Login not available — Firebase not configured','err');return;}
+  const ph=document.getElementById('phoneInput').value.trim();
   if(ph.length!==10||!/^[6-9]\d{9}$/.test(ph)){toast('Enter a valid 10-digit Indian mobile number','err');return;}
   const btn=document.getElementById('sendOTPBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Sending…';
-  try{confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);document.getElementById('otpSentTo').textContent=`Enter the 6-digit OTP sent to +91 ${ph}`;showStep('OTP');startCountdown();document.getElementById('o0').focus();toast('OTP sent! 📨')}
-  catch(e){console.error(e);btn.disabled=false;btn.innerHTML='Send OTP →';handleFBErr(e);initRecap()}
+  try{
+    if(!rcVerifier) initRecap();
+    confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);
+    document.getElementById('otpSentTo').textContent=`Enter the 6-digit OTP sent to +91 ${ph}`;
+    showStep('OTP');startCountdown();document.getElementById('o0').focus();
+    toast('OTP sent! 📨');
+    btn.disabled=false;btn.innerHTML='Send OTP →';
+  }catch(e){
+    console.error('sendOTP',e);
+    btn.disabled=false;btn.innerHTML='Send OTP →';
+    handleFBErr(e);
+    clearRecap();initRecap();
+  }
 }
 async function resendOTP(){
   if(!FB_ON)return;const ph=document.getElementById('phoneInput').value.trim();if(!ph)return;
   document.getElementById('resendBtn').disabled=true;
-  try{const c=document.getElementById('recap-container');c.innerHTML='';const rv=new firebase.auth.RecaptchaVerifier('recap-container',{size:'invisible'});confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rv);startCountdown();toast('OTP resent! 📨');for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus()}
-  catch(e){handleFBErr(e);document.getElementById('resendBtn').disabled=false}
+  try{
+    clearRecap();initRecap();
+    confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);
+    startCountdown();toast('OTP resent! 📨');
+    for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
+    document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus();
+  }catch(e){handleFBErr(e);document.getElementById('resendBtn').disabled=false;clearRecap();initRecap();}
 }
 function startCountdown(){
   clearInterval(resendInt);let t=60;
@@ -1817,14 +1844,14 @@ async function verifyOTP(){
   const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Verifying…';
   try{const res=await confirmRes.confirm(otp);const user=res.user;clearInterval(resendInt);
     if(!user.displayName){const nm=prompt('Welcome! Enter your name:','');if(nm&&nm.trim())await user.updateProfile({displayName:nm.trim()})}
-    document.getElementById('succName').textContent=`Welcome, ${user.displayName||'Saree Shopping Customer'}! 🎉`;
+    document.getElementById('succName').textContent=`Welcome, ${user.displayName||'SK Sarees Customer'}! 🎉`;
     document.getElementById('succPhone').textContent=user.phoneNumber;
-    showStep('Success');updateProfileHeader(user);toast('Login successful! Welcome to Saree Shopping 🎉')}
+    showStep('Success');updateProfileHeader(user);toast('Login successful! Welcome to SK Sarees 🎉')}
   catch(e){console.error(e);btn.disabled=false;btn.innerHTML='✅ Verify & Login';handleFBErr(e);const row=document.getElementById('otpRow');if(row){row.style.animation='shake .4s';setTimeout(()=>row.style.animation='',500)}for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus()}
 }
 async function signOut(){if(fbAuth){await fbAuth.signOut();toast('Signed out successfully');updateProfileHeader(null);renderProfileStrip()}}
 async function editName(){if(!curUser)return;const n=prompt('Enter your name:',curUser.displayName||'');if(n&&n.trim()&&n.trim()!==curUser.displayName){await curUser.updateProfile({displayName:n.trim()});updateProfileHeader(fbAuth.currentUser);toast('Name updated!')}}
-function handleFBErr(e){const M={'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.','auth/too-many-requests':'Too many attempts. Please wait a few minutes.','auth/invalid-verification-code':'Wrong OTP. Please try again.','auth/code-expired':'OTP expired. Request a new one.','auth/network-request-failed':'Network error. Check your connection.','auth/captcha-check-failed':'reCAPTCHA failed. Please try again.'};toast(M[e.code]||'Authentication error: '+e.message,'err')}
+function handleFBErr(e){const M={'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.','auth/too-many-requests':'Too many attempts. Please wait a few minutes.','auth/invalid-verification-code':'Wrong OTP. Please try again.','auth/code-expired':'OTP expired. Request a new one.','auth/network-request-failed':'Network error. Check your connection.','auth/captcha-check-failed':'reCAPTCHA failed. Please try again.','auth/operation-not-allowed':'Phone login not enabled. Enable it in Firebase Console → Authentication → Sign-in method → Phone.','auth/billing-not-enabled':'Phone auth needs Firebase Blaze plan. Use Email login instead.','auth/quota-exceeded':'SMS quota exceeded. Try later or use Email login.'};toast(M[e.code]||'Auth error: '+(e.message||e.code),'err')}
 
 /* ── AUTH MODAL BACKDROP ── */
 document.getElementById('authModal').addEventListener('click',function(e){if(e.target===this)closeAuth()});
@@ -1887,6 +1914,21 @@ function loadLiveProducts(){
   });
 }
 
+/* ── Open product from shared link (#product/ID) ── */
+function openFromHash(){
+  const m=location.hash.match(/#product\/(.+)/);
+  if(m&&m[1]){
+    const id=decodeURIComponent(m[1]);
+    // Wait a moment for products to load, then open
+    const tryOpen=(attempt)=>{
+      if(gP(id)){ openProduct(id); }
+      else if(attempt<20){ setTimeout(()=>tryOpen(attempt+1),150); }
+    };
+    tryOpen(0);
+  }
+}
+window.addEventListener('hashchange',openFromHash);
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
   initCarousel();
@@ -1895,6 +1937,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   badges();
   initFB();
   loadLiveProducts(); // listen for admin product updates
+  openFromHash();     // open shared product link if present
 });
 </script>
 </body>
