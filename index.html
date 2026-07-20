@@ -41,16 +41,19 @@ const BIZ = {
   upiId: "sk7867915699-1@oksbi",  // UPI ID for QR payments
   upiName: "SK Sarees"
 };
+
+/* ── PROMO CODES (loaded from Firestore) ── */
+let activePromos = [];
 </script>
 <style>
 /* ═══════════════════════════ RESET ═══════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --M:#B4145A;--MD:#8A0E45;--ML:#D6297A;   /* magenta-rose brand */
-  --G:#E8A33D;--GL:#F7C873;--GP:#FFF3E0;    /* warm gold accent */
-  --CR:#FFF6FA;--GR:#1E9E5A;--BL:#2563EB;   /* soft rose cream */
-  --BG:#FBF3F7;--WH:#ffffff;--TXT:#2A1420;--MUTED:#9A7D8C;
-  --BORDER:#F0DCE7;--SHADOW:0 4px 20px rgba(180,20,90,.08);
+  --M:#9F1239;--MD:#881337;--ML:#E11D48;   /* rich rose-red brand */
+  --G:#CA8A04;--GL:#FACC15;--GP:#FEF9C3;    /* warm gold accent */
+  --CR:#FFF7ED;--GR:#059669;--BL:#2563EB;   /* soft cream */
+  --BG:#FFFBEB;--WH:#ffffff;--TXT:#1C1917;--MUTED:#78716C;
+  --BORDER:#D6D3D1;--SHADOW:0 4px 20px rgba(159,18,57,.08);
   --RAD:16px;--RAD-SM:10px;--RAD-LG:22px;
 }
 html{scroll-behavior:smooth;font-size:16px}
@@ -311,7 +314,7 @@ ul{list-style:none}
 .cs-divider{height:1px;background:#f0ebe4;margin:12px 0}
 .cs-total-lbl{font-size:1rem;font-weight:800}
 .cs-total-val{font-size:1.3rem;font-weight:900;color:var(--M)}
-.promo-wrap{gap:8px;margin-top:10px}
+.promo-wrap{display:flex;gap:8px;margin-top:10px}
 .promo-wrap input{flex:1;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.8rem}
 .promo-wrap input:focus{border-color:var(--M)}
 .free-del-strip{background:var(--GP);border-bottom:1.5px solid var(--G);padding:9px 20px;font-size:.78rem;color:var(--M);font-weight:700}
@@ -730,9 +733,9 @@ ul{list-style:none}
   <!-- Hero -->
   <div class="hero-wrap">
     <div class="hero-slides" id="heroSlides">
-      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({catSlug:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'silk-sarees'})">View Silk Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({cat:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({cat:'silk-sarees'})">View Silk Sarees</button></div></div></div>
       <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-G btn-lg" onclick="go('categories')">Browse All</button></div></div></div>
-      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({cat:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
     </div>
     <button class="carousel-prev" onclick="slide(-1)">‹</button>
     <button class="carousel-next" onclick="slide(1)">›</button>
@@ -1040,7 +1043,7 @@ const CATS=[
   {id:5,name:'Georgette Sarees',slug:'georgette-sarees',img:'https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:33},
   {id:6,name:'Fancy Sarees',slug:'fancy-sarees',img:'https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:47},
   {id:7,name:'Printed Sarees',slug:'printed-sarees',img:'https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:61},
-  {id:8,name:'Dhoti & Shirts',slug:'dhoti-shirts',img:'https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:18},
+  {id:8,name:'Dhoti & Shirts',slug:'dhoti-shirts',img:'https://images.pexels.com/photos/7671170/pexels-photo-7671170.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:18},
 ];
 const HERO_IMGS=['https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940'];
 const P=[
@@ -1453,7 +1456,7 @@ function switchImg(src,el){document.getElementById('dMainImg').src=src;document.
 function shareP(){
   const p=gP(curProd);if(!p)return;
   // Build a clean shareable link that opens THIS product directly using SKU
-  const link=location.origin+location.pathname+'#product/'+p.sku;
+  const link=location.origin+'/#product/'+p.sku;
   const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
   if(navigator.share){
     navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
@@ -1464,7 +1467,7 @@ function shareP(){
 }
 function copyProductLink(){
   const p=gP(curProd);if(!p)return;
-  const link=location.origin+location.pathname+'#product/'+p.sku;
+  const link=location.origin+'/#product/'+p.sku;
   if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('🔗 Product link copied!')).catch(()=>toast('Link: '+link));}
   else toast('Link: '+link);
 }
@@ -1477,13 +1480,12 @@ function addCartN(id,qty){
   saveCart();toast('Added to cart! 🛒');
 }
 function renderCart(){
-  const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);
-  const del=tot>=999?0:49,disc=tot>=2000?Math.round(tot*0.05):0,fin=tot+del-disc;
+  const {tot,del,disc,fin}=cartTotals();
   document.getElementById('cartTitle').textContent=`My Cart (${cart.length} items)`;
   const strip=document.getElementById('freeDelStrip');
   if(tot>0&&tot<999){strip.textContent=`🚚 Add ₹${(999-tot).toFixed(0)} more for FREE delivery!`;strip.style.display='block';}else strip.style.display='none';
   const cm=document.getElementById('cartMain');
-  if(!cart.length){cm.innerHTML=`<div class="empty-state"><div class="es-icon">🛒</div><div class="es-title">Your Cart is Empty</div><div class="es-sub">Add beautiful sarees to your cart to get started!</div><button class="btn btn-M btn-lg" onclick="go('products')">Browse Sarees</button></div>`;return;}
+  if(!cart.length){appliedPromo=null;cm.innerHTML=`<div class="empty-state"><div class="es-icon">🛒</div><div class="es-title">Your Cart is Empty</div><div class="es-sub">Add beautiful sarees to your cart to get started!</div><button class="btn btn-M btn-lg" onclick="go('products')">Browse Sarees</button></div>`;return;}
   cm.innerHTML=`<div class="cart-layout">
     <div class="cart-items-col">
       ${cart.map(item=>{const p=gP(item.id);if(!p)return'';return`<div class="cart-item">
@@ -1504,7 +1506,7 @@ function renderCart(){
     <div class="cart-sidebar">
       <div class="cs-box">
         <h3>Promo Code</h3>
-        <div class="promo-wrap"><input type="text" placeholder="SKNEW10" id="promoIn"/><button class="btn btn-G" onclick="applyPromo()">Apply</button></div>
+        ${appliedPromo?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:10px;"><div style="font-size:.82rem;font-weight:700;color:#166534;">✅ ${appliedPromo.code} applied!</div><div style="font-size:.75rem;color:#166534;margin-top:4px;">${appliedPromo.type==='percent'?appliedPromo.value+'%':fmt(appliedPromo.value)} discount</div><button onclick="removePromo()" style="margin-top:8px;padding:6px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;">Remove Code</button></div>`:`<div class="promo-wrap"><input type="text" placeholder="Enter promo code" id="promoIn"/><button class="btn btn-G" onclick="applyPromo()">Apply</button></div>`}
       </div>
       <div class="cs-box">
         <h3>Order Summary</h3>
@@ -1522,7 +1524,28 @@ function renderCart(){
 }
 function updCart(id,d){const item=cart.find(i=>String(i.id)===String(id));if(!item)return;item.qty=Math.max(0,item.qty+d);if(item.qty===0)cart=cart.filter(i=>String(i.id)!==String(id));saveCart();renderCart()}
 function rmCart(id){cart=cart.filter(i=>String(i.id)!==String(id));saveCart();renderCart();toast('Removed from cart')}
-function applyPromo(){const c=document.getElementById('promoIn').value.trim().toUpperCase();if(c==='SKNEW10')toast('Promo code applied! 10% discount added ✅');else toast('Invalid promo code ❌','err')}
+let appliedPromo=null;
+function applyPromo(){
+  const code=document.getElementById('promoIn').value.trim().toUpperCase();
+  if(!code){toast('Please enter a promo code','err');return}
+  const promo=activePromos.find(p=>p.code===code&&p.enabled);
+  if(!promo){toast('Invalid or expired promo code ❌','err');return}
+  const {tot}=cartTotals();
+  if(promo.minOrder&&tot<promo.minOrder){
+    toast(`Minimum order ₹${promo.minOrder} required for this code`,'err');
+    return;
+  }
+  appliedPromo=promo;
+  const discAmt=promo.type==='percent'?Math.round(tot*promo.value/100):promo.value;
+  toast(`Promo code applied! ${promo.type==='percent'?promo.value+'%':fmt(promo.value)} discount added ✅`);
+  renderCart();
+}
+function removePromo(){
+  appliedPromo=null;
+  document.getElementById('promoIn').value='';
+  toast('Promo code removed','info');
+  renderCart();
+}
 
 /* ── WISHLIST ── */
 function toggleWish(id){const i=wish.findIndex(x=>String(x)===String(id));if(i>=0){wish.splice(i,1);toast('Removed from wishlist')}else{wish.push(id);toast('Added to wishlist! ❤️')}saveWish();renderWishlist()}
@@ -1538,7 +1561,18 @@ const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Guj
 function renderCheckout(){payM='upiqr';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
 /* Go back from QR/other payment step to the payment method selection (keeps address) */
 function goBackToPayment(){document.getElementById('checkoutContent').innerHTML=payForm();}
-function cartTotals(){const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);const del=tot>=999?0:49;const codCharge=payM==='cod'?20:0;const disc=tot>=2000?Math.round(tot*0.05):0;const fin=tot+del+codCharge-disc;return{tot,del,codCharge,disc,fin}}
+function cartTotals(){
+  const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);
+  const del=tot>=999?0:49;
+  const codCharge=payM==='cod'?20:0;
+  let disc=tot>=2000?Math.round(tot*0.05):0;
+  if(appliedPromo){
+    const promoDisc=appliedPromo.type==='percent'?Math.round(tot*appliedPromo.value/100):appliedPromo.value;
+    disc=Math.max(disc,promoDisc);
+  }
+  const fin=tot+del+codCharge-disc;
+  return{tot,del,codCharge,disc,fin};
+}
 function addrForm(){
   const {tot,del,disc,fin}=cartTotals();
   return`<div class="checkout-layout"><div>
@@ -1590,7 +1624,7 @@ function payForm(){
   ${payM==='cod'?`<div class="cs-row"><span class="cs-lbl">COD Charge</span><span class="cs-val">${fmt(codCharge)}</span></div>`:''}
   ${disc>0?`<div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">-${fmt(disc)}</span></div>`:''}
   <div class="cs-divider"></div><div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
-  <button class="btn btn-M btn-full btn-lg" id="payActionBtn" style="margin-top:16px;" onclick="proceedPayment()">Pay ${fmt(fin)} →</button>
+  <button class="btn btn-M btn-full btn-lg" id="payActionBtn" style="margin-top:16px;" onclick="proceedPayment()">📲 Show UPI QR Code →</button>
   <p style="text-align:center;font-size:.7rem;color:#aaa;margin-top:8px;">🔒 Your info is 100% secure</p>
   </div></div></div>`;
 }
@@ -1617,8 +1651,8 @@ function proceedPayment(){
 function whatsappOrder(){
   const {tot,del,codCharge,disc,fin}=cartTotals();
   const NL='\n';
-  const baseUrl=location.origin+location.pathname;
-  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'#product/'+p.id;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
+  const baseUrl=location.origin;
+  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
   const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Subtotal: ${fmt(tot)}*${NL}*Delivery: ${del===0?'FREE':fmt(del)}*${NL}${payM==='cod'?`*COD Charge: ${fmt(codCharge)}*${NL}`:''}${disc>0?`*Discount: -${fmt(disc)}*${NL}`:''}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
   // Save order first, then open WhatsApp with properly-encoded message
   placeOrder('whatsapp','pending',true);
@@ -1797,8 +1831,8 @@ function orderViaWhatsApp(sku){
   const p=GP().find(x=>x.sku===sku);
   if(!p)return;
   const ph='917867915699';
-  const baseUrl=location.origin+location.pathname;
-  const link=baseUrl+'#product/'+p.sku;
+  const baseUrl=location.origin;
+  const link=baseUrl+'/#product/'+p.sku;
   const msg=`Hi! I want to order this product from SK Sarees:\n\n*${p.name}*\nSKU: ${p.sku}\nPrice: ${fmt(p.price)}\n\nProduct Link: ${link}\n\nPlease confirm availability and delivery details.`;
   window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
 }
@@ -2220,6 +2254,15 @@ function openFromHash(){
 window.addEventListener('hashchange',openFromHash);
 
 /* ── INIT ── */
+/* ── LOAD PROMOS ── */
+async function loadPromos(){
+  if(!FB_ON)return;
+  try{
+    const snap=await window.FB_DB.collection('promos').where('enabled','==',true).get();
+    activePromos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error('loadPromos:',e)}
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   initCarousel();
   startTimer();
@@ -2228,6 +2271,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initFB();
   loadLiveProducts(); // listen for admin product updates (syncs cart + detail page)
   loadLiveOrders();   // listen for admin order status updates
+  loadPromos();       // load active promo codes
   openFromHash();     // open shared product link if present
   applyLang();        // apply saved language
 });
