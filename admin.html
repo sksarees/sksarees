@@ -192,7 +192,23 @@ input[type=number]{-moz-appearance:textfield}
               <input id="setCodEnabled" type="checkbox" class="w-5 h-5 rounded"/>
               <label for="setCodEnabled" class="text-sm font-bold cursor-pointer">Enable Cash on Delivery</label>
             </div>
+          </div>
+        </div>
+
+        <!-- Reviews Control -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <h3 class="font-serif font-bold text-lg mb-4">⭐ Reviews & Ratings</h3>
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <input id="setReviewsEnabled" type="checkbox" checked class="w-5 h-5 rounded"/>
+              <label for="setReviewsEnabled" class="text-sm font-bold cursor-pointer">Show Customer Reviews</label>
+            </div>
+            <p class="text-xs text-gray-400">Enable or disable customer reviews and ratings on product pages</p>
             <button onclick="saveSettings()" class="px-6 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">💾 Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
           </div>
         </div>
       </div>
@@ -334,7 +350,7 @@ function stCol(q){return q<=0?'text-red-600 bg-red-50':q<=10?'text-orange-500 bg
 
 /* ══════════════ SETTINGS & PROMO ══════════════ */
 let promos=[];
-let settings={freeShipMin:999,shipCharge:49,codCharge:0,codEnabled:true};
+let settings={freeShipMin:999,shipCharge:49,codCharge:0,codEnabled:true,reviewsEnabled:true};
 
 async function loadSettings(){
   if(!db)return;
@@ -345,6 +361,9 @@ async function loadSettings(){
     document.getElementById('setShipCharge').value=settings.shipCharge;
     document.getElementById('setCodCharge').value=settings.codCharge;
     document.getElementById('setCodEnabled').checked=settings.codEnabled;
+    if(document.getElementById('setReviewsEnabled')){
+      document.getElementById('setReviewsEnabled').checked=settings.reviewsEnabled!==false;
+    }
   }catch(e){console.error(e)}
 }
 
@@ -355,7 +374,8 @@ async function saveSettings(){
       freeShipMin:Number(document.getElementById('setFreeShipMin').value)||999,
       shipCharge:Number(document.getElementById('setShipCharge').value)||49,
       codCharge:Number(document.getElementById('setCodCharge').value)||0,
-      codEnabled:document.getElementById('setCodEnabled').checked
+      codEnabled:document.getElementById('setCodEnabled').checked,
+      reviewsEnabled:document.getElementById('setReviewsEnabled')?document.getElementById('setReviewsEnabled').checked:true
     };
     await db.collection('settings').doc('config').set(settings);
     T('Settings saved successfully','ok');
