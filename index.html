@@ -1401,7 +1401,34 @@ function setReviewStar(n) {
     });
 }
 
+// Delete Review Function
+async function deleteReview(pid, index, isFirestore = false) {
+    if (!confirm("Are you sure you want to delete this review?")) return;
 
+    try {
+        if (isFirestore && window.FB_DB) {
+            // For Firestore reviews - you may need review ID instead of index
+            const snap = await window.FB_DB.collection('reviews')
+                .where('pid', '==', String(pid))
+                .get();
+
+            if (!snap.empty) {
+                const docs = snap.docs.sort((a, b) =>
+                    String(b.data().date || '').localeCompare(String(a.data().date || ''))
+                );
+                if (docs[index]) {
+                    await docs[index].ref.delete();
+                }
+            }
+        } else {
+            // Local fallback (REVS)
+            if (REVS[pid]) {
+                REVS[pid].splice(index, 1);
+            }
+        }
+
+        toast('Review deleted successfully');
+        await loadReviews(pid);
         // Refresh product detail if needed
         if (curProd == pid) {
             const updatedP = GP().find(x => String(x.id) === String(pid));
