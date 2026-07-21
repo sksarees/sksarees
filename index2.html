@@ -1384,6 +1384,9 @@ function renderDetail(p){
       <button class="btn btn-M btn-full" id="submitRevBtn" onclick="submitReview('${p.id}')">📝 Submit Review</button>
     </div>
     <!-- Reviews List -->
+    <div id="allReviewsContainer">
+            <!-- All reviews will load here -->
+        </div>
     <div id="reviewsList">
       ${revs.length?revs.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join(''):'<p style="color:#999;font-size:.85rem;text-align:center;padding:16px;">No reviews yet. Be the first to review! 🌸</p>'}
     </div>
@@ -2402,9 +2405,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             </button>
         </div>
 
-        <div id="allReviewsContainer">
-            <!-- All reviews will load here -->
-        </div>
+        
     </div>
 
 </body>
