@@ -316,5 +316,198 @@ unlock = function(){
   oldUnlock();
 };
 </script>
+
+
+  <!DOCTYPE html>
+
+   
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .review-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .rc-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .rc-product {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .rc-name {
+            color: #555;
+        }
+        .rc-stars {
+            color: #F0B429;
+            font-size: 18px;
+            margin: 8px 0;
+        }
+        .delete-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .no-reviews {
+            text-align: center;
+            padding: 60px;
+            color: #888;
+            font-size: 18px;
+        }
+        .header-actions {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <div class="container">
+        <h1>All Customer Reviews</h1>
+        
+        <div class="header-actions">
+            <button onclick="loadAllReviews()" style="padding:10px 16px;">Refresh</button>
+            <button onclick="deleteAllReviewsGlobal()" style="padding:10px 16px; background:#d32f2f; color:white;">
+                Delete All Reviews
+            </button>
+        </div>
+
+        <div id="allReviewsContainer">
+            <!-- All reviews will load here -->
+        </div>
+    </div>
+
+    <script>
+        // ================== SAMPLE DATA (Remove this if using real DB) ==================
+        let REVS = {}; // Local fallback
+        let GP = () => []; // Replace with your actual product function
+
+        // ================== MAIN FUNCTION ==================
+        async function loadAllReviews() {
+            const container = document.getElementById('allReviewsContainer');
+            container.innerHTML = '<p style="text-align:center;">Loading reviews...</p>';
+
+            let allReviews = [];
+
+            // Get Firestore Reviews
+            if (window.FB_DB) {
+                try {
+                    const snap = await window.FB_DB.collection('reviews').get();
+                    snap.forEach(doc => {
+                        const r = doc.data();
+                        allReviews.push({
+                            id: doc.id,
+                            pid: r.pid,
+                            productName: getProductName(r.pid),
+                            name: r.name,
+                            rating: r.rating,
+                            text: r.text,
+                            date: r.date,
+                            isFire: true
+                        });
+                    });
+                } catch (e) {
+                    console.warn("Firestore error:", e);
+                }
+            }
+
+            // Get Local Reviews
+            Object.keys(REVS).forEach(pid => {
+                REVS[pid].forEach((rv, idx) => {
+                    allReviews.push({
+                        pid: pid,
+                        productName: getProductName(pid),
+                        name: rv.n,
+                        rating: rv.r,
+                        text: rv.t,
+                        date: null,
+                        isFire: false,
+                        localIndex: idx
+                    });
+                });
+            });
+
+            // Sort by newest
+            allReviews.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+            if (allReviews.length === 0) {
+                container.innerHTML = `<div class="no-reviews">No reviews found yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = allReviews.map(rv => `
+                <div class="review-card">
+                    <div class="rc-head">
+                        <div>
+                            <span class="rc-product">${rv.productName}</span><br>
+                            <span class="rc-name">by ${rv.name}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteSingleReview('${rv.pid}', ${rv.localIndex || 0}, ${rv.isFire})">
+                            Delete
+                        </button>
+                    </div>
+                    <div class="rc-stars">${'★'.repeat(rv.rating)}</div>
+                    <div style="margin:10px 0;">${rv.text}</div>
+                    ${rv.date ? `<small>${new Date(rv.date).toLocaleDateString()}</small>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function getProductName(pid) {
+            const products = GP(); // Your product list function
+            const p = products.find(x => String(x.id) === String(pid));
+            return p ? p.name : `Product #${pid}`;
+        }
+
+        // Delete Single Review
+        async function deleteSingleReview(pid, index, isFire) {
+            if (!confirm("Delete this review?")) return;
+            
+            // Call your existing delete function
+            await deleteReview(pid, index, isFire);
+            
+            // Refresh the page
+            setTimeout(loadAllReviews, 600);
+        }
+
+        // Delete ALL Reviews (Global)
+        async function deleteAllReviewsGlobal() {
+            if (!confirm("⚠️ Delete ALL reviews from all products?\nThis cannot be undone!")) return;
+            
+            if (window.FB_DB) {
+                const snap = await window.FB_DB.collection('reviews').get();
+                const batch = window.FB_DB.batch();
+                snap.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+            }
+            
+            REVS = {};
+            toast('All reviews deleted');
+            loadAllReviews();
+        }
+
+        // Auto load when page opens
+        window.onload = loadAllReviews;
+    </script>
+
 </body>
 </html>
