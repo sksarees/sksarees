@@ -1942,7 +1942,12 @@ function orderViaWhatsApp(sku){
   window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
+/* ── FIREBAE AUTH ── */
 /* ── FIREBASE AUTH ── */
+let rcVerifier = null;
+let confirmRes = null;
+let resendInt = null;
+
 function initFB(){
   if(!FB_ON){console.warn('Firebase not configured. Fill FIREBASE_CONFIG in index.html.');return;}
   fbAuth=firebase.auth();
@@ -1965,29 +1970,59 @@ function initFB(){
     }
   });
 }
+
 function openAuth(){
   if(!FB_ON){alert('Firebase not configured!\n\n1. Go to console.firebase.google.com\n2. Create a project\n3. Enable Email/Password & Phone Auth\n4. Paste config into index.html');return;}
   if(curUser){if(confirm(`Signed in as ${curUser.displayName||curUser.email||curUser.phoneNumber}\n\nSign out?`))signOut();return;}
-  resetAuth();document.getElementById('authModal').classList.add('open');document.body.style.overflow='hidden';
+  resetAuth();
+  document.getElementById('authModal').classList.add('open');
+  document.body.style.overflow='hidden';
 }
-function closeAuth(){document.getElementById('authModal').classList.remove('open');document.body.style.overflow='';clearInterval(resendInt)}
+
+function closeAuth(){
+  document.getElementById('authModal').classList.remove('open');
+  document.body.style.overflow='';
+  clearInterval(resendInt);
+  clearRecap();
+}
+
 function resetAuth(){
-  ['stepEmail','stepPhone','stepOTP','stepSuccess'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='auth-step'});
+  ['stepEmail','stepPhone','stepOTP','stepSuccess'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.className='auth-step';
+  });
   showAuthTab('email');
   const pi=document.getElementById('phoneInput');if(pi)pi.value='';
   const ei=document.getElementById('emailInput');if(ei)ei.value='';
   const ps=document.getElementById('passInput');if(ps)ps.value='';
-  for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
-  confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true;
+  for(let i=0;i<6;i++){
+    const b=document.getElementById('o'+i);
+    if(b){b.value='';b.classList.remove('filled');}
+  }
+  confirmRes=null;
+  const sb=document.getElementById('sendOTPBtn');
+  if(sb)sb.disabled=true;
+  clearInterval(resendInt);
+  clearRecap();
 }
+
 function showAuthTab(tab){
   document.getElementById('stepEmail').className='auth-step'+(tab==='email'?' show':'');
   document.getElementById('stepPhone').className='auth-step'+(tab==='phone'?' show':'');
   const te=document.getElementById('tabEmail'),tp=document.getElementById('tabPhone');
-  if(te){te.style.color=tab==='email'?'var(--M)':'#aaa';te.style.borderBottomColor=tab==='email'?'var(--M)':'transparent';}
-  if(tp){tp.style.color=tab==='phone'?'var(--M)':'#aaa';tp.style.borderBottomColor=tab==='phone'?'var(--M)':'transparent';}
-  if(tab==='phone') setTimeout(initRecap,200);
+  if(te){
+    te.style.color=tab==='email'?'var(--M)':'#aaa';
+    te.style.borderBottomColor=tab==='email'?'var(--M)':'transparent';
+  }
+  if(tp){
+    tp.style.color=tab==='phone'?'var(--M)':'#aaa';
+    tp.style.borderBottomColor=tab==='phone'?'var(--M)':'transparent';
+  }
+  if(tab==='phone') {
+    setTimeout(()=>initRecap(),300);
+  }
 }
+
 async function emailLogin(){
   if(!FB_ON) return;
   const email=document.getElementById('emailInput').value.trim();
@@ -1997,10 +2032,13 @@ async function emailLogin(){
   const btn=document.getElementById('emailLoginBtn');
   btn.disabled=true;btn.innerHTML='<div class="spin"></div> Logging in…';
   try{
-    let res; let isNewUser=false;
-    try{ res=await fbAuth.signInWithEmailAndPassword(email,pass); }
+    let res; 
+    let isNewUser=false;
+    try{ 
+      res=await fbAuth.signInWithEmailAndPassword(email,pass); 
+    }
     catch(e){
-      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
+      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'){
         res=await fbAuth.createUserWithEmailAndPassword(email,pass);
         isNewUser=true;
         const nm=prompt('Welcome! Enter your name:','');
@@ -2014,6 +2052,10 @@ async function emailLogin(){
       } else throw e;
     }
     const user=res.user;
+    
+    // Reload user to get latest emailVerified status
+    await user.reload();
+    
     const notice=document.getElementById('verifyNotice');
     // Send verification for existing unverified users too
     if(!isNewUser && !user.emailVerified){
@@ -2022,6 +2064,7 @@ async function emailLogin(){
         toast('📧 Verification email sent. Check inbox for link.','info');
       }catch(ve){console.error('sendEmailVerification error:',ve);}
     }
+    
     document.getElementById('succName').textContent=`Welcome, ${user.displayName||user.email}! 🎉`;
     if(user.emailVerified){
       document.getElementById('succPhone').innerHTML=(user.email||'')+' <span style="color:#2e7d32;font-weight:700;">✅ Verified</span>';
@@ -2030,15 +2073,27 @@ async function emailLogin(){
       document.getElementById('succPhone').innerHTML=(user.email||'')+' <span style="color:#e65100;font-weight:700;">⏳ Not verified</span>';
       if(notice) notice.style.display='block';
     }
-    showStep('Success');updateProfileHeader(user);
+    showStep('Success');
+    updateProfileHeader(user);
     toast('Login successful! 🎉');
   } catch(e){
     console.error(e);
-    const M={'auth/invalid-email':'Invalid email address','auth/wrong-password':'Wrong password','auth/email-already-in-use':'Email already registered. Try logging in.','auth/weak-password':'Password too weak (min 6 chars)','auth/too-many-requests':'Too many attempts. Wait a moment.','auth/network-request-failed':'Network error. Check connection.','auth/operation-not-allowed':'Email/Password login not enabled in Firebase Console → Authentication → Sign-in method.'};
+    const M={
+      'auth/invalid-email':'Invalid email address',
+      'auth/wrong-password':'Wrong password',
+      'auth/email-already-in-use':'Email already registered. Try logging in.',
+      'auth/weak-password':'Password too weak (min 6 chars)',
+      'auth/too-many-requests':'Too many attempts. Wait a moment.',
+      'auth/network-request-failed':'Network error. Check connection.',
+      'auth/operation-not-allowed':'Email/Password login not enabled in Firebase Console → Authentication → Sign-in method.',
+      'auth/invalid-credential':'Invalid email or password'
+    };
     toast(M[e.code]||'Error: '+e.message,'err');
   }
-  btn.disabled=false;btn.innerHTML='🔐 Login / Sign Up';
+  btn.disabled=false;
+  btn.innerHTML='🔐 Login / Sign Up';
 }
+
 async function resendVerify(){
   if(!fbAuth||!fbAuth.currentUser){toast('Please log in first','err');return;}
   const btn=document.getElementById('resendVerifyBtn');
@@ -2052,81 +2107,279 @@ async function resendVerify(){
   }
   if(btn){btn.disabled=false;btn.textContent='🔄 Resend Verification Email';}
 }
-function showStep(name){['Email','Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
-function clearRecap(){
-  try{ if(rcVerifier){ rcVerifier.clear(); rcVerifier=null; } }catch(e){}
-  const c=document.getElementById('recap-container'); if(c) c.innerHTML='';
+
+function showStep(name){
+  ['Email','Phone','OTP','Success'].forEach(s=>{
+    const el=document.getElementById('step'+s);
+    if(el)el.className='auth-step'+(s===name?' show':'');
+  });
 }
+
+function clearRecap(){
+  try{ 
+    if(rcVerifier){ 
+      rcVerifier.clear(); 
+      rcVerifier=null; 
+    } 
+  }catch(e){console.error('clearRecap error:',e);}
+  const c=document.getElementById('recap-container'); 
+  if(c) c.innerHTML='';
+}
+
 function initRecap(){
   if(!FB_ON)return;
   clearRecap();
   try{
+    const container = document.getElementById('recap-container');
+    if(!container) {
+      console.error('recap-container element not found');
+      return;
+    }
+    
     // Invisible reCAPTCHA works best on mobile — no checkbox needed
     rcVerifier=new firebase.auth.RecaptchaVerifier('recap-container',{
       size:'invisible',
-      callback:()=>{},
-      'expired-callback':()=>{ clearRecap(); initRecap(); }
+      callback:(response)=>{
+        console.log('reCAPTCHA solved');
+      },
+      'expired-callback':()=>{ 
+        console.log('reCAPTCHA expired');
+        clearRecap(); 
+        setTimeout(()=>initRecap(), 100);
+      }
     });
-    rcVerifier.render();
-  }catch(e){console.error('recaptcha init',e)}
+    rcVerifier.render().then(widgetId => {
+      console.log('reCAPTCHA rendered:', widgetId);
+    }).catch(err => {
+      console.error('reCAPTCHA render error:', err);
+    });
+  }catch(e){
+    console.error('recaptcha init error:',e);
+    toast('reCAPTCHA initialization failed. Please refresh.','err');
+  }
 }
-function validatePhone(){const ph=document.getElementById('phoneInput').value.trim();document.getElementById('sendOTPBtn').disabled=!(ph.length===10&&/^[6-9]\d{9}$/.test(ph))}
+
+function validatePhone(){
+  const ph=document.getElementById('phoneInput').value.trim();
+  const isValid = ph.length===10 && /^[6-9]\d{9}$/.test(ph);
+  document.getElementById('sendOTPBtn').disabled=!isValid;
+}
+
 async function sendOTP(){
   if(!FB_ON){toast('Login not available — Firebase not configured','err');return;}
   const ph=document.getElementById('phoneInput').value.trim();
-  if(ph.length!==10||!/^[6-9]\d{9}$/.test(ph)){toast('Enter a valid 10-digit Indian mobile number','err');return;}
-  const btn=document.getElementById('sendOTPBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Sending…';
+  if(ph.length!==10||!/^[6-9]\d{9}$/.test(ph)){
+    toast('Enter a valid 10-digit Indian mobile number','err');
+    return;
+  }
+  const btn=document.getElementById('sendOTPBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spin"></div> Sending…';
+  
   try{
-    if(!rcVerifier) initRecap();
+    if(!rcVerifier) {
+      await initRecap();
+      // Wait a moment for recaptcha to initialize
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    if(!rcVerifier) {
+      throw new Error('reCAPTCHA not initialized');
+    }
+    
     confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);
     document.getElementById('otpSentTo').textContent=`Enter the 6-digit OTP sent to +91 ${ph}`;
-    showStep('OTP');startCountdown();document.getElementById('o0').focus();
+    showStep('OTP');
+    startCountdown();
+    document.getElementById('o0').focus();
     toast('OTP sent! 📨');
-    btn.disabled=false;btn.innerHTML='Send OTP →';
+    btn.disabled=false;
+    btn.innerHTML='Send OTP →';
   }catch(e){
-    console.error('sendOTP',e);
-    btn.disabled=false;btn.innerHTML='Send OTP →';
+    console.error('sendOTP error:',e);
+    btn.disabled=false;
+    btn.innerHTML='Send OTP →';
     handleFBErr(e);
-    clearRecap();initRecap();
+    clearRecap();
+    setTimeout(()=>initRecap(), 100);
   }
 }
+
 async function resendOTP(){
-  if(!FB_ON)return;const ph=document.getElementById('phoneInput').value.trim();if(!ph)return;
-  document.getElementById('resendBtn').disabled=true;
+  if(!FB_ON)return;
+  const ph=document.getElementById('phoneInput').value.trim();
+  if(!ph)return;
+  const btn = document.getElementById('resendBtn');
+  btn.disabled=true;
+  btn.textContent='Sending...';
+  
   try{
-    clearRecap();initRecap();
+    clearRecap();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await initRecap();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    if(!rcVerifier) {
+      throw new Error('reCAPTCHA not initialized');
+    }
+    
     confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);
-    startCountdown();toast('OTP resent! 📨');
-    for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
-    document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus();
-  }catch(e){handleFBErr(e);document.getElementById('resendBtn').disabled=false;clearRecap();initRecap();}
+    startCountdown();
+    toast('OTP resent! 📨');
+    for(let i=0;i<6;i++){
+      const b=document.getElementById('o'+i);
+      if(b){b.value='';b.classList.remove('filled');}
+    }
+    document.getElementById('verifyBtn').disabled=true;
+    document.getElementById('o0').focus();
+  }catch(e){
+    console.error('resendOTP error:',e);
+    handleFBErr(e);
+    btn.disabled=false;
+    btn.textContent='Resend OTP';
+    clearRecap();
+    setTimeout(()=>initRecap(), 100);
+  }
 }
+
 function startCountdown(){
-  clearInterval(resendInt);let t=60;
-  const cd=document.getElementById('countdown'),tt=document.getElementById('timerTxt'),rb=document.getElementById('resendBtn');
-  if(tt)tt.style.display='inline';if(rb){rb.style.display='none';rb.disabled=true}
-  resendInt=setInterval(()=>{t--;if(cd)cd.textContent=t+'s';if(t<=0){clearInterval(resendInt);if(tt)tt.style.display='none';if(rb){rb.style.display='inline';rb.disabled=false}}},1000);
+  clearInterval(resendInt);
+  let t=60;
+  const cd=document.getElementById('countdown');
+  const tt=document.getElementById('timerTxt');
+  const rb=document.getElementById('resendBtn');
+  
+  if(tt)tt.style.display='inline';
+  if(rb){rb.style.display='none';rb.disabled=true;}
+  if(cd)cd.textContent=t+'s';
+  
+  resendInt=setInterval(()=>{
+    t--;
+    if(cd)cd.textContent=t+'s';
+    if(t<=0){
+      clearInterval(resendInt);
+      if(tt)tt.style.display='none';
+      if(rb){rb.style.display='inline';rb.disabled=false;}
+    }
+  },1000);
 }
-function backToPhone(){showStep('Phone');clearInterval(resendInt);confirmRes=null;initRecap()}
-function oi(i){const b=document.getElementById('o'+i);b.value=b.value.replace(/\D/g,'').slice(-1);b.classList.toggle('filled',b.value!=='');if(b.value&&i<5)document.getElementById('o'+(i+1)).focus();checkOTP()}
-function ok(e,i){if(e.key==='Backspace'&&!document.getElementById('o'+i).value&&i>0){const p=document.getElementById('o'+(i-1));p.value='';p.classList.remove('filled');p.focus()}if(e.key==='Enter')verifyOTP()}
-function getOTP(){let s='';for(let i=0;i<6;i++)s+=document.getElementById('o'+i).value;return s}
-function checkOTP(){document.getElementById('verifyBtn').disabled=getOTP().length!==6}
+
+function backToPhone(){
+  showStep('Phone');
+  clearInterval(resendInt);
+  confirmRes=null;
+  setTimeout(()=>initRecap(), 100);
+}
+
+function oi(i){
+  const b=document.getElementById('o'+i);
+  b.value=b.value.replace(/\D/g,'').slice(-1);
+  b.classList.toggle('filled',b.value!=='');
+  if(b.value&&i<5)document.getElementById('o'+(i+1)).focus();
+  checkOTP();
+}
+
+function ok(e,i){
+  if(e.key==='Backspace'&&!document.getElementById('o'+i).value&&i>0){
+    const p=document.getElementById('o'+(i-1));
+    p.value='';
+    p.classList.remove('filled');
+    p.focus();
+  }
+  if(e.key==='Enter')verifyOTP();
+}
+
+function getOTP(){
+  let s='';
+  for(let i=0;i<6;i++)s+=document.getElementById('o'+i).value;
+  return s;
+}
+
+function checkOTP(){
+  document.getElementById('verifyBtn').disabled=getOTP().length!==6;
+}
+
 async function verifyOTP(){
   if(!confirmRes){toast('Please request an OTP first','err');return;}
-  const otp=getOTP();if(otp.length!==6){toast('Enter all 6 digits','err');return;}
-  const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Verifying…';
-  try{const res=await confirmRes.confirm(otp);const user=res.user;clearInterval(resendInt);
-    if(!user.displayName){const nm=prompt('Welcome! Enter your name:','');if(nm&&nm.trim())await user.updateProfile({displayName:nm.trim()})}
+  const otp=getOTP();
+  if(otp.length!==6){toast('Enter all 6 digits','err');return;}
+  const btn=document.getElementById('verifyBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spin"></div> Verifying…';
+  
+  try{
+    const res=await confirmRes.confirm(otp);
+    const user=res.user;
+    clearInterval(resendInt);
+    
+    if(!user.displayName){
+      const nm=prompt('Welcome! Enter your name:','');
+      if(nm&&nm.trim())await user.updateProfile({displayName:nm.trim()});
+    }
+    
     document.getElementById('succName').textContent=`Welcome, ${user.displayName||'SK Sarees Customer'}! 🎉`;
     document.getElementById('succPhone').textContent=user.phoneNumber;
-    showStep('Success');updateProfileHeader(user);toast('Login successful! Welcome to SK Sarees 🎉')}
-  catch(e){console.error(e);btn.disabled=false;btn.innerHTML='✅ Verify & Login';handleFBErr(e);const row=document.getElementById('otpRow');if(row){row.style.animation='shake .4s';setTimeout(()=>row.style.animation='',500)}for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus()}
+    showStep('Success');
+    updateProfileHeader(user);
+    toast('Login successful! Welcome to SK Sarees 🎉');
+  }
+  catch(e){
+    console.error('verifyOTP error:',e);
+    btn.disabled=false;
+    btn.innerHTML='✅ Verify & Login';
+    handleFBErr(e);
+    
+    const row=document.getElementById('otpRow');
+    if(row){
+      row.style.animation='shake .4s';
+      setTimeout(()=>row.style.animation='',500);
+    }
+    
+    for(let i=0;i<6;i++){
+      const b=document.getElementById('o'+i);
+      if(b){b.value='';b.classList.remove('filled');}
+    }
+    document.getElementById('verifyBtn').disabled=true;
+    document.getElementById('o0').focus();
+  }
 }
-async function signOut(){if(fbAuth){await fbAuth.signOut();toast('Signed out successfully');updateProfileHeader(null);renderProfileStrip()}}
-async function editName(){if(!curUser)return;const n=prompt('Enter your name:',curUser.displayName||'');if(n&&n.trim()&&n.trim()!==curUser.displayName){await curUser.updateProfile({displayName:n.trim()});updateProfileHeader(fbAuth.currentUser);toast('Name updated!')}}
-function handleFBErr(e){const M={'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.','auth/too-many-requests':'Too many attempts. Please wait a few minutes.','auth/invalid-verification-code':'Wrong OTP. Please try again.','auth/code-expired':'OTP expired. Request a new one.','auth/network-request-failed':'Network error. Check your connection.','auth/captcha-check-failed':'reCAPTCHA failed. Please try again.','auth/operation-not-allowed':'Phone login not enabled. Enable it in Firebase Console → Authentication → Sign-in method → Phone.','auth/billing-not-enabled':'Phone auth needs Firebase Blaze plan. Use Email login instead.','auth/quota-exceeded':'SMS quota exceeded. Try later or use Email login.'};toast(M[e.code]||'Auth error: '+(e.message||e.code),'err')}
 
+async function signOut(){
+  if(fbAuth){
+    await fbAuth.signOut();
+    toast('Signed out successfully');
+    updateProfileHeader(null);
+    renderProfileStrip();
+  }
+}
+
+async function editName(){
+  if(!curUser)return;
+  const n=prompt('Enter your name:',curUser.displayName||'');
+  if(n&&n.trim()&&n.trim()!==curUser.displayName){
+    await curUser.updateProfile({displayName:n.trim()});
+    await curUser.reload();
+    updateProfileHeader(fbAuth.currentUser);
+    toast('Name updated!');
+  }
+}
+
+function handleFBErr(e){
+  const M={
+    'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.',
+    'auth/too-many-requests':'Too many attempts. Please wait a few minutes.',
+    'auth/invalid-verification-code':'Wrong OTP. Please try again.',
+    'auth/code-expired':'OTP expired. Request a new one.',
+    'auth/network-request-failed':'Network error. Check your connection.',
+    'auth/captcha-check-failed':'reCAPTCHA failed. Please try again.',
+    'auth/operation-not-allowed':'Phone login not enabled. Enable it in Firebase Console → Authentication → Sign-in method → Phone.',
+    'auth/billing-not-enabled':'Phone auth needs Firebase Blaze plan. Use Email login instead.',
+    'auth/quota-exceeded':'SMS quota exceeded. Try later or use Email login.',
+    'auth/missing-phone-number':'Phone number is required',
+    'auth/invalid-app-credential':'Invalid reCAPTCHA. Please refresh and try again.'
+  };
+  toast(M[e.code]||'Auth error: '+(e.message||e.code),'err');
+      }
 /* ── AUTH MODAL BACKDROP ── */
 document.getElementById('authModal').addEventListener('click',function(e){if(e.target===this)closeAuth()});
 
