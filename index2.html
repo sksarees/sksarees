@@ -201,6 +201,79 @@ ul{list-style:none}
 .pcard-add{width:100%;padding:8px;background:linear-gradient(135deg,var(--M),var(--ML));color:#fff;border:none;border-radius:var(--RAD-SM);font-size:.78rem;font-weight:700;cursor:pointer;transition:opacity .2s}
 .pcard-add:hover{opacity:.88}
 
+  .exit-popup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.75);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:999999;
+backdrop-filter:blur(5px);
+}
+
+.popup-box{
+background:#fff;
+width:90%;
+max-width:360px;
+padding:25px;
+border-radius:20px;
+text-align:center;
+animation:popup .35s;
+}
+
+@keyframes popup{
+from{
+transform:scale(.7);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+.gift{
+font-size:60px;
+margin-bottom:10px;
+}
+
+.popup-box h2{
+margin:0;
+color:#c2185b;
+}
+
+.popup-box p{
+margin:15px 0;
+line-height:1.6;
+color:#444;
+}
+
+.join-btn{
+display:block;
+background:#25D366;
+color:white;
+padding:15px;
+border-radius:12px;
+text-decoration:none;
+font-size:18px;
+font-weight:bold;
+margin-top:15px;
+}
+
+.continue-btn{
+margin-top:12px;
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:#eee;
+font-size:16px;
+cursor:pointer;
+}
 /* H-SCROLL ROW */
 .hscroll-row{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px}
 .hscroll-row::-webkit-scrollbar{display:none}
@@ -2272,6 +2345,77 @@ document.addEventListener('DOMContentLoaded',()=>{
   openFromHash();     // open shared product link if present
   applyLang();        // apply saved language
 });
+  let popupShown = false;
+
+// Back button trap
+history.pushState(null, null, location.href);
+
+window.addEventListener("popstate", function () {
+
+    if (!popupShown) {
+
+        popupShown = true;
+
+        document.getElementById("exitPopup").style.display = "flex";
+
+        history.pushState(null, null, location.href);
+
+    } else {
+
+        history.back();
+
+    }
+
+});
+
+function closePopup(){
+
+    document.getElementById("exitPopup").style.display="none";
+
+}
 </script>
+ 
+<!-- Exit Popup -->
+<div id="exitPopup" class="exit-popup">
+  <div class="popup-box">
+
+    <div class="gift">🎁</div>
+
+    <h2>ஒரு நிமிடம்!</h2>
+
+    <p style="font-size:18px;font-weight:bold;color:#d32f2f;">
+      🎉 இன்று மட்டும்!
+    </p>
+
+    <p>
+      <b>SK SAREES COLLECTION</b> WhatsApp Channel-ஐ Follow செய்து
+      புதிய சேலை கலெக்ஷன்கள், ஆடித்தள்ளுபடி ஆஃபர்கள் மற்றும்
+      Exclusive Deals-ஐ முதலில் பெறுங்கள்.
+    </p>
+<div id="offerTimer" class="offer-timer">
+⏰ இந்த சலுகை இன்னும் <span id="countdown">05:00</span> நிமிடங்களுக்கு மட்டுமே!
+</div>
+    <div style="background:#fff3cd;padding:12px;border-radius:10px;margin:15px 0;">
+      🎁 <b>Special Offer</b><br>
+      WhatsApp Channel Join செய்தால்
+      <span style="color:#e91e63;font-weight:bold;">₹50 Discount Coupon</span>
+      அல்லது
+      <span style="color:#4caf50;font-weight:bold;">Free Shipping Offer</span>
+      பெறுங்கள்.
+    </div>
+
+    <a href="https://whatsapp.com/channel/0029Va9P8DaDjiOVn847IC2P"
+       target="_blank"
+       class="join-btn">
+       📲 Follow SK SAREES COLLECTION
+    </a>
+
+    <button onclick="closePopup()" class="continue-btn">
+      🛍️ Continue Shopping
+    </button>
+
+  </div>
+</div>
+
 </body>
 </html>
