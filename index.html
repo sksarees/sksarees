@@ -1458,8 +1458,8 @@ async function loadReviews(pid) {
                 <div class="review-card">
                     <div class="rc-head">
                         <span class="rc-name">${rv.n}</span>
-                        <button class="delete-review-btn" onclick="deleteReview('${pid}', ${i}, ${rv.isFire})" title="Delete Review">
-                            🗑
+                     <button class="delete-review-btn" onclick="deleteReview('${pid}', ${i}, ${rv.isFire})" title="Delete Review">
+                            
                         </button>
                     </div>
                     <div class="rc-stars">${starsHTML(rv.r, 15)}</div>
@@ -1537,7 +1537,7 @@ function switchImg(src,el){document.getElementById('dMainImg').src=src;document.
 function shareP(){
   const p=gP(curProd);if(!p)return;
   // Build a clean shareable link that opens THIS product directly using SKU
-  const link=location.origin+'sksarees/#product/'+p.sku;
+  const link=location.origin+'/sksarees/#product/'+p.sku;
   const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
   if(navigator.share){
     navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
@@ -1733,7 +1733,7 @@ function whatsappOrder(){
   const {tot,del,codCharge,disc,fin}=cartTotals();
   const NL='\n';
   const baseUrl=location.origin;
-  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
+  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/sksarees/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
   const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Subtotal: ${fmt(tot)}*${NL}*Delivery: ${del===0?'FREE':fmt(del)}*${NL}${payM==='cod'?`*COD Charge: ${fmt(codCharge)}*${NL}`:''}${disc>0?`*Discount: -${fmt(disc)}*${NL}`:''}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
   // Save order first, then open WhatsApp with properly-encoded message
   placeOrder('whatsapp','pending',true);
@@ -1913,7 +1913,7 @@ function orderViaWhatsApp(sku){
   if(!p)return;
   const ph='917867915699';
   const baseUrl=location.origin;
-  const link=baseUrl+'/#product/'+p.sku;
+  const link=baseUrl+'/sksarees/#product/'+p.sku;
   const msg=`Hi! I want to order this product from SK Sarees:\n\n*${p.name}*\nSKU: ${p.sku}\nPrice: ${fmt(p.price)}\n\nProduct Link: ${link}\n\nPlease confirm availability and delivery details.`;
   window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
 }
