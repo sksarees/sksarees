@@ -1738,193 +1738,195 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyLang();        // apply saved language
 });
 </script>
-<div class="offer-title">
-    ⚡ இன்று மட்டும் Special Offer
-</div>
+<div 
+  
+<!-- Exit Popup -->
+<div id="exitPopup" class="popup-overlay">
+    <div class="popup">
 
-<div class="flip-timer">
+        <button class="close-btn" onclick="closePopup()">✕</button>
 
-    <div class="flip-box">
-        <span id="min">05</span>
-        <small>MIN</small>
+        <h2>🎁 இன்று மட்டும்!</h2>
+
+        <p class="popup-text">
+            WhatsApp Channel Follow செய்து
+            <br>
+            <b>₹50 Discount Coupon</b>
+            அல்லது
+            <b>Free Shipping</b>
+            பெறுங்கள்.
+        </p>
+
+        <a href="https://whatsapp.com/channel/0029Va9P8DaDjiOVn847IC2P"
+           target="_blank"
+           class="join-btn">
+            📲 Follow Channel
+        </a>
+
+        <button class="continue-btn" onclick="closePopup()">
+            Continue Shopping
+        </button>
+
     </div>
-
-    <div class="colon">:</div>
-
-    <div class="flip-box">
-        <span id="sec">00</span>
-        <small>SEC</small>
-    </div>
-
 </div>
+  
 
-<p class="offer-text">
-⏰ Hurry! இந்த Offer இன்னும் சில நிமிடங்களுக்கு மட்டுமே.
-</p>
-
-<style>
-.offer-title{
-text-align:center;
-font-size:22px;
-font-weight:bold;
-color:#E53935;
-margin-bottom:15px;
-}
-
-.flip-timer{
-display:flex;
+  <style>.popup-overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.5);
+display:none;
 justify-content:center;
 align-items:center;
-gap:10px;
-margin:20px 0;
+z-index:999999;
 }
 
-.flip-box{
+.popup{
 
-width:90px;
-height:90px;
+width:90%;
+max-width:360px;
 
-background:linear-gradient(#2c2c2c,#000);
+background:#fff;
 
-border-radius:12px;
+border-radius:20px;
 
-display:flex;
-flex-direction:column;
-
-justify-content:center;
-
-align-items:center;
-
-box-shadow:0 8px 20px rgba(0,0,0,.3);
-
-color:#fff;
+padding:25px;
 
 position:relative;
 
-overflow:hidden;
+text-align:center;
+
+box-shadow:0 15px 40px rgba(0,0,0,.3);
+
+animation:popup .3s;
 
 }
 
-.flip-box::after{
+@keyframes popup{
 
-content:'';
+from{
+transform:scale(.8);
+opacity:0;
+}
+
+to{
+transform:scale(1);
+opacity:1;
+}
+
+}
+
+.close-btn{
 
 position:absolute;
 
-top:50%;
+right:12px;
 
-left:0;
+top:12px;
 
-width:100%;
+width:36px;
 
-height:2px;
+height:36px;
 
-background:#555;
+border:none;
 
-}
+border-radius:50%;
 
-.flip-box span{
+background:#f3f3f3;
 
-font-size:42px;
+font-size:20px;
 
-font-weight:700;
-
-line-height:1;
-
-font-family:Arial, sans-serif;
+cursor:pointer;
 
 }
 
-.flip-box small{
+.popup h2{
 
-margin-top:8px;
+color:#d60042;
 
-font-size:12px;
-
-letter-spacing:2px;
-
-color:#ddd;
+margin-top:10px;
 
 }
 
-.colon{
-
-font-size:42px;
-
-font-weight:bold;
-
-color:#E53935;
-
-}
-
-.offer-text{
-
-text-align:center;
+.popup-text{
 
 font-size:16px;
 
+line-height:1.7;
+
+margin:20px 0;
+
+}
+
+.join-btn{
+
+display:block;
+
+background:#25D366;
+
+color:white;
+
+text-decoration:none;
+
+padding:15px;
+
+border-radius:10px;
+
+font-size:18px;
+
 font-weight:bold;
 
-color:#d32f2f;
-
-animation:blink .8s infinite;
-
 }
 
-@keyframes blink{
+.continue-btn{
 
-50%{
+margin-top:12px;
 
-opacity:.5;
+width:100%;
 
-}
+padding:14px;
 
-}
-</style>
+background:#eee;
 
-<script>
-let time = 300;
+border:none;
 
-const minute = document.getElementById("min");
-const second = document.getElementById("sec");
+border-radius:10px;
 
-const countdown = setInterval(()=>{
+font-size:16px;
 
-let m = Math.floor(time/60);
-let s = time%60;
+cursor:pointer;
 
-minute.textContent = String(m).padStart(2,"0");
-second.textContent = String(s).padStart(2,"0");
+}</style> 
+<script>let popupOpened = false;
 
-// Flip Animation
-minute.animate([
-{transform:"rotateX(90deg)"},
-{transform:"rotateX(0deg)"}
-],{
-duration:250
+// Back button trap
+history.pushState(null, "", location.href);
+
+window.addEventListener("popstate", function () {
+
+    if (!popupOpened) {
+
+        popupOpened = true;
+
+        document.getElementById("exitPopup").style.display = "flex";
+
+        history.pushState(null, "", location.href);
+
+    } else {
+
+        history.back();
+
+    }
+
 });
 
-second.animate([
-{transform:"rotateX(90deg)"},
-{transform:"rotateX(0deg)"}
-],{
-duration:250
-});
+function closePopup(){
 
-time--;
+    document.getElementById("exitPopup").style.display = "none";
 
-if(time<0){
-
-clearInterval(countdown);
-
-document.querySelector(".offer-title").innerHTML="❌ Offer Expired";
-
-document.querySelector(".offer-text").innerHTML="இந்த சலுகை முடிந்துவிட்டது.";
-
-}
-
-},1000);
-</script>
-  <script src="js/script.js"></script>
+}</script>
 </body>
 </html>
