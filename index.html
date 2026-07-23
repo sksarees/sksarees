@@ -46,8 +46,8 @@ const BIZ = {
 let activePromos = [];
 </script>
 
-<link rel="stylesheet" href="https://sksarees.github.io/sksarees/css/style.css">
-
+<link rel="stylesheet" href="css/style2.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -195,9 +195,9 @@ let activePromos = [];
   <!-- Hero -->
   <div class="hero-wrap">
     <div class="hero-slides" id="heroSlides">
-      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({cat:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({cat:'silk-sarees'})">View Silk Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({cat:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-G btn-lg" onclick="filter({cat:'silk-sarees'})">View Silk Sarees</button></div></div></div>
       <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-G btn-lg" onclick="go('categories')">Browse All</button></div></div></div>
-      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.6);" onclick="filter({cat:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-G btn-lg" onclick="filter({cat:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
     </div>
     <button class="carousel-prev" onclick="slide(-1)">‹</button>
     <button class="carousel-next" onclick="slide(1)">›</button>
@@ -505,7 +505,7 @@ const CATS=[
   {id:5,name:'Georgette Sarees',slug:'georgette-sarees',img:'https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:33},
   {id:6,name:'Fancy Sarees',slug:'fancy-sarees',img:'https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:47},
   {id:7,name:'Printed Sarees',slug:'printed-sarees',img:'https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:61},
-  {id:8,name:'Dhoti & Shirts',slug:'dhoti-shirts',img:'https://images.pexels.com/photos/7671170/pexels-photo-7671170.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:18},
+  {id:8,name:'Dhoti & Shirts',slug:'dhoti-shirts',img:'https://images.pexels.com/photos/15298629/pexels-photo-15298629.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:18},
 ];
 const HERO_IMGS=['https://images.pexels.com/photos/34056612/pexels-photo-34056612.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/27575174/pexels-photo-27575174.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940','https://images.pexels.com/photos/14950241/pexels-photo-14950241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940'];
 const P=[
@@ -918,7 +918,7 @@ function switchImg(src,el){document.getElementById('dMainImg').src=src;document.
 function shareP(){
   const p=gP(curProd);if(!p)return;
   // Build a clean shareable link that opens THIS product directly using SKU
-  const link=location.origin+'/#product/'+p.sku;
+  const link=location.origin+'/sksarees/#product/'+p.sku;
   const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
   if(navigator.share){
     navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
@@ -929,7 +929,7 @@ function shareP(){
 }
 function copyProductLink(){
   const p=gP(curProd);if(!p)return;
-  const link=location.origin+'/#product/'+p.sku;
+  const link=location.origin+'/sksarees/#product/'+p.sku;
   if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('🔗 Product link copied!')).catch(()=>toast('Link: '+link));}
   else toast('Link: '+link);
 }
@@ -1114,7 +1114,7 @@ function whatsappOrder(){
   const {tot,del,codCharge,disc,fin}=cartTotals();
   const NL='\n';
   const baseUrl=location.origin;
-  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
+  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/sksarees/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
   const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Subtotal: ${fmt(tot)}*${NL}*Delivery: ${del===0?'FREE':fmt(del)}*${NL}${payM==='cod'?`*COD Charge: ${fmt(codCharge)}*${NL}`:''}${disc>0?`*Discount: -${fmt(disc)}*${NL}`:''}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
   // Save order first, then open WhatsApp with properly-encoded message
   placeOrder('whatsapp','pending',true);
@@ -1294,7 +1294,7 @@ function orderViaWhatsApp(sku){
   if(!p)return;
   const ph='917867915699';
   const baseUrl=location.origin;
-  const link=baseUrl+'/#product/'+p.sku;
+  const link=baseUrl+'/sksarees/#product/'+p.sku;
   const msg=`Hi! I want to order this product from SK Sarees:\n\n*${p.name}*\nSKU: ${p.sku}\nPrice: ${fmt(p.price)}\n\nProduct Link: ${link}\n\nPlease confirm availability and delivery details.`;
   window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
 }
@@ -1738,5 +1738,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyLang();        // apply saved language
 });
 </script>
+
+  <script src="js/script.js"></script>
 </body>
 </html>
