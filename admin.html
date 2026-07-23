@@ -101,107 +101,112 @@ input[type=number]{-moz-appearance:textfield}
         <button onclick="seedFS()" class="px-5 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm" title="First-time: push sample products to Firestore">🔥 Seed Products</button>
         <button onclick="exportCSV()" class="px-5 py-2.5 border border-gray-200 rounded-xl font-bold text-sm">⬇️ Export CSV</button>
       </div>
-
-      <!-- ===================== BULK UPLOAD MODAL WITH IMAGE ===================== -->
-<div id="bulkUploadModal" class="fixed inset-0 z-[100] hidden">
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeBulkModal()"></div>
-  
-  <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-12">
-    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 dark:border-gray-700">
-      
-      <!-- Header -->
-      <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-2xl px-6 py-4 border-b flex items-center justify-between">
-        <h2 class="font-serif font-bold text-lg text-maroon-500">📤 Bulk Upload Products</h2>
-        <button onclick="closeBulkModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-xl">✕</button>
-      </div>
-
-      <div class="p-6 space-y-5">
-        <!-- Upload Area -->
-        <div onclick="document.getElementById('bulkCsvFile').click()" 
-             class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-10 text-center cursor-pointer hover:border-maroon-400 transition">
-          <input type="file" id="bulkCsvFile" accept=".csv" class="hidden">
-          <div class="text-6xl mb-4">📁</div>
-          <p class="text-lg font-semibold">Click to Upload CSV File</p>
-          <p class="text-sm text-gray-500">or drag & drop</p>
-        </div>
-
-        <div class="text-xs text-center text-gray-500">
-          Required Columns: <strong>SKU, Name, Category, Price, Stock, Status, Featured, Image</strong>
-        </div>
-
-        <!-- Preview -->
-        <div id="bulkPreview" class="hidden">
-          <h4 class="font-bold mb-2">Preview <span id="bulkCount" class="text-maroon-500"></span></h4>
-          <div class="max-h-80 overflow-auto border rounded-xl">
-            <table id="bulkPreviewTable" class="w-full text-sm"></table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="sticky bottom-0 bg-white dark:bg-gray-800 rounded-b-2xl px-6 py-4 border-t flex gap-3">
-        <button onclick="closeBulkModal()" class="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold">Cancel</button>
-        <button onclick="confirmBulkUpload()" id="bulkSaveBtn" 
-                class="flex-1 py-3 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold shadow-lg hidden">
-          ✅ Upload All Products
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
         <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Recent Products</h3>
         <div id="dRecent" class="space-y-2"></div>
       </div>
-      <!-- ===================== BULK UPLOAD MODAL WITH IMAGE ===================== -->
-<div id="bulkUploadModal" class="fixed inset-0 z-[100] hidden">
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeBulkModal()"></div>
-  
+    </div>
+<!-- ====================== PRODUCT MODAL ====================== -->
+<div id="pModal" class="fixed inset-0 z-[100] hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
   <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-12">
-    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 dark:border-gray-700">
+    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       
-      <!-- Header -->
-      <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-2xl px-6 py-4 border-b flex items-center justify-between">
-        <h2 class="font-serif font-bold text-lg text-maroon-500">📤 Bulk Upload Products</h2>
-        <button onclick="closeBulkModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-xl">✕</button>
+      <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-6 py-4 border-b flex items-center justify-between">
+        <h2 class="font-serif font-bold text-lg text-maroon-500" id="mTitle">Add Product</h2>
+        <button onclick="closeModal()" class="text-2xl text-gray-400 hover:text-gray-600">✕</button>
       </div>
 
-      <div class="p-6 space-y-5">
-        <!-- Upload Area -->
-        <div onclick="document.getElementById('bulkCsvFile').click()" 
-             class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-10 text-center cursor-pointer hover:border-maroon-400 transition">
-          <input type="file" id="bulkCsvFile" accept=".csv" class="hidden">
-          <div class="text-6xl mb-4">📁</div>
-          <p class="text-lg font-semibold">Click to Upload CSV File</p>
-          <p class="text-sm text-gray-500">or drag & drop</p>
+      <div class="p-6 space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Product Name *</label><input id="fN" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Gayathri Pure Cotton Saree"></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Category *</label>
+            <select id="fC" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm">
+              <option value="">Select</option>
+              <option>Cotton Sarees</option><option>Silk Sarees</option><option>Bridal Sarees</option>
+              <option>Art Silk Sarees</option><option>Georgette Sarees</option><option>Fancy Sarees</option><option>Printed Sarees</option>
+            </select>
+          </div>
         </div>
 
-        <div class="text-xs text-center text-gray-500">
-          Required Columns: <strong>SKU, Name, Category, Price, Stock, Status, Featured, Image</strong>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Price (₹) *</label><input id="fP" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Original Price (₹)</label><input id="fOP" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Stock *</label>
+            <div class="flex gap-1">
+              <button onclick="adj(-10)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-xs font-bold">-10</button>
+              <button onclick="adj(-5)" class="px-3 py-2 bg-red-50 text-red-500 rounded-lg text-xs font-bold">-5</button>
+              <input id="fS" type="number" value="50" class="flex-1 text-center font-bold border border-gray-200 dark:border-gray-600 rounded-xl">
+              <button onclick="adj(5)" class="px-3 py-2 bg-green-50 text-green-600 rounded-lg text-xs font-bold">+5</button>
+              <button onclick="adj(10)" class="px-3 py-2 bg-green-100 text-green-600 rounded-lg text-xs font-bold">+10</button>
+            </div>
+          </div>
         </div>
 
-        <!-- Preview -->
-        <div id="bulkPreview" class="hidden">
-          <h4 class="font-bold mb-2">Preview <span id="bulkCount" class="text-maroon-500"></span></h4>
-          <div class="max-h-80 overflow-auto border rounded-xl">
-            <table id="bulkPreviewTable" class="w-full text-sm"></table>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-2">Product Images (URLs)</label>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1 space-y-3">
+              <input id="fImg1" type="url" oninput="prevImg()" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 1 (Main) *">
+              <input id="fImg2" type="url" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 2">
+              <input id="fImg3" type="url" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 3">
+            </div>
+            <div id="imgPrev" class="w-28 h-36 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-4xl bg-gray-50 dark:bg-gray-700">🖼️</div>
+          </div>
+        </div>
+
+        <div><label class="block text-xs font-bold text-gray-500 mb-1">Description</label><textarea id="fD" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"></textarea></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">SKU</label><input id="fSKU" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Fabric</label><input id="fFab" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
+          <div><label class="block text-xs font-bold text-gray-500 mb-1">Color</label><input id="fCol" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1">Status</label>
+            <select id="fSt" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Out of Stock">Out of Stock</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-3 pt-6">
+            <input id="fFeat" type="checkbox" class="w-5 h-5">
+            <label for="fFeat" class="font-medium cursor-pointer">⭐ Featured Product</label>
           </div>
         </div>
       </div>
 
-      <!-- Footer -->
-      <div class="sticky bottom-0 bg-white dark:bg-gray-800 rounded-b-2xl px-6 py-4 border-t flex gap-3">
-        <button onclick="closeBulkModal()" class="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold">Cancel</button>
-        <button onclick="confirmBulkUpload()" id="bulkSaveBtn" 
-                class="flex-1 py-3 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold shadow-lg hidden">
-          ✅ Upload All Products
-        </button>
+      <div class="sticky bottom-0 bg-white dark:bg-gray-800 px-6 py-4 border-t flex gap-3">
+        <button id="delBtn" onclick="if(confirm('Delete this product?')) delProd()" class="hidden px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold">🗑️ Delete</button>
+        <div class="flex-1"></div>
+        <button onclick="closeModal()" class="px-6 py-3 bg-gray-100 rounded-xl font-bold">Cancel</button>
+        <button onclick="saveProd()" id="saveBtn" class="px-8 py-3 bg-maroon-600 text-white rounded-xl font-bold">💾 Save</button>
       </div>
     </div>
   </div>
 </div>
-    </div>
 
+<!-- ====================== BULK UPLOAD MODAL ====================== -->
+<div id="bulkModal" class="fixed inset-0 z-[110] hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeBulkModal()"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl">
+      <div class="px-6 py-4 border-b font-bold text-lg">📤 Bulk Upload Products</div>
+      <div class="p-6">
+        <textarea id="bulkTextarea" rows="14" class="w-full p-4 font-mono text-sm border rounded-xl" 
+          placeholder="name,category,price,stock,image1,image2,image3,desc,fab,col"></textarea>
+        <p class="text-xs text-gray-500 mt-3">Example: Gayathri Cotton Saree,Cotton Sarees,1299,50,https://img1.jpg,,,"Beautiful saree",Cotton,Red</p>
+      </div>
+      <div class="px-6 py-4 border-t flex gap-3">
+        <button onclick="closeBulkModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-bold">Cancel</button>
+        <button onclick="processBulkUpload()" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold">Upload All</button>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- PRODUCTS -->
     <div id="pg-products" class="pgc hidden">
       <div class="flex flex-wrap gap-3 mb-4">
@@ -870,121 +875,134 @@ function exportCSV(){
 
 /* ══════════════ INIT ══════════════ */
 document.addEventListener('DOMContentLoaded',()=>{renderDash();renderProducts()});
-</script>
-  <script>
-// Open Modal
-function openBulkUploadModal() {
-    document.getElementById('bulkUploadModal').classList.remove('hidden');
-    resetBulkUpload();
+</script> <script>let editId = null;
+let products = [];
+
+// Next SKU
+function nextSku(){
+  const nums = products.map(p => {
+    const m = String(p.sku||'').match(/SK(\d+)/i);
+    return m ? parseInt(m[1],10) : 0;
+  }).filter(n=>n>0);
+  const max = nums.length ? Math.max(...nums) : 100;
+  return 'SK' + (max + 1);
 }
 
-// Close Modal
-function closeBulkModal() {
-    document.getElementById('bulkUploadModal').classList.add('hidden');
+// Render Products (Table)
+function renderProducts(){
+  // ... (your existing renderProducts function)
+  console.log("Products rendered:", products.length);
 }
 
-function resetBulkUpload() {
-    document.getElementById('bulkPreview').classList.add('hidden');
-    document.getElementById('bulkSaveBtn').classList.add('hidden');
-    document.getElementById('bulkCsvFile').value = '';
+// Modal Functions
+function openModal(p){
+  editId = p ? p.id : null;
+  document.getElementById('mTitle').textContent = p ? 'Edit Product' : 'Add Product';
+  document.getElementById('saveBtn').textContent = p ? '💾 Update' : '💾 Save';
+  document.getElementById('delBtn').classList.toggle('hidden', !p);
+
+  document.getElementById('fN').value = p?.name || '';
+  document.getElementById('fC').value = p?.category || '';
+  document.getElementById('fP').value = p?.price || '';
+  document.getElementById('fOP').value = p?.op || '';
+  document.getElementById('fS').value = p?.stock ?? 50;
+  document.getElementById('fImg1').value = p?.images?.[0] || p?.image || '';
+  document.getElementById('fImg2').value = p?.images?.[1] || '';
+  document.getElementById('fImg3').value = p?.images?.[2] || '';
+  document.getElementById('fD').value = p?.desc || '';
+  document.getElementById('fSKU').value = p?.sku || (p ? '' : nextSku());
+  document.getElementById('fFab').value = p?.fab || '';
+  document.getElementById('fCol').value = p?.col || '';
+  document.getElementById('fSt').value = p?.status || 'Active';
+  document.getElementById('fFeat').checked = !!p?.featured;
+
+  prevImg();
+  document.getElementById('pModal').classList.remove('hidden');
 }
 
-let bulkPendingProducts = [];
+function closeModal(){
+  document.getElementById('pModal').classList.add('hidden');
+  editId = null;
+}
 
-// File Change
-document.getElementById('bulkCsvFile').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+function editProd(id){ 
+  const p = products.find(x => x.id === id); 
+  if(p) openModal(p); 
+}
 
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        parseBulkCSV(ev.target.result);
+function adj(v){
+  const i = document.getElementById('fS');
+  i.value = Math.max(0, (parseInt(i.value)||0) + v);
+}
+
+function prevImg(){
+  const u = document.getElementById('fImg1').value.trim();
+  const b = document.getElementById('imgPrev');
+  b.innerHTML = u ? `<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='❌'"/>` : '🖼️';
+}
+
+// Save Product (Existing)
+async function saveProd(){
+  // ... paste your improved saveProd() function here
+}
+
+// ==================== BULK UPLOAD ====================
+function openBulkModal(){
+  document.getElementById('bulkModal').classList.remove('hidden');
+}
+
+function closeBulkModal(){
+  document.getElementById('bulkModal').classList.add('hidden');
+}
+
+async function processBulkUpload(){
+  const text = document.getElementById('bulkTextarea').value.trim();
+  if(!text) return T('No data pasted','warn');
+
+  const lines = text.split('\n');
+  let success = 0, failed = 0;
+
+  for(let line of lines){
+    if(!line.trim()) continue;
+    const [name, category, priceStr, stockStr, img1, img2, img3, desc, fab, col] = line.split(',').map(s => s.trim());
+
+    if(!name || !category || !img1 || !priceStr) { failed++; continue; }
+
+    const price = parseFloat(priceStr);
+    if(!price) { failed++; continue; }
+
+    const data = {
+      name, category, price,
+      stock: parseInt(stockStr)||50,
+      image: img1,
+      images: [img1,img2,img3].filter(Boolean),
+      desc: desc||'',
+      sku: nextSku(),
+      fab: fab || '',
+      col: col || '',
+      status: 'Active',
+      featured: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-    reader.readAsText(file);
-});
 
-function parseBulkCSV(csvText) {
-    const lines = csvText.trim().split('\n');
-    bulkPendingProducts = [];
+    try {
+      if(db){
+        const ref = await db.collection('products').add(data);
+        data.id = ref.id;
+      } else {
+        data.id = 'bulk_' + Date.now();
+      }
+      products.unshift(data);
+      success++;
+    } catch(e){ failed++; }
+  }
 
-    for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        
-        const values = parseCSVLine(lines[i]); // Reuse your existing parse function
-
-        const product = {
-            id: Date.now() + i, // temporary id
-            sku: values[0] || '',
-            name: values[1] || '',
-            category: values[2] || 'Saree',
-            price: parseFloat(values[3]) || 0,
-            stock: parseInt(values[4]) || 0,
-            status: values[5] || 'Active',
-            featured: values[6]?.toLowerCase() === 'yes' || false,
-            image: values[7] || ''   // ← New: Image URL
-        };
-
-        if (product.sku && product.name) {
-            bulkPendingProducts.push(product);
-        }
-    }
-
-    showBulkPreview();
-}
-
-function showBulkPreview() {
-    if (bulkPendingProducts.length === 0) {
-        alert("No valid products found in the CSV file.");
-        return;
-    }
-
-    document.getElementById('bulkPreview').classList.remove('hidden');
-    document.getElementById('bulkSaveBtn').classList.remove('hidden');
-    document.getElementById('bulkCount').textContent = `(${bulkPendingProducts.length} products)`;
-
-    const table = document.getElementById('bulkPreviewTable');
-    table.innerHTML = `
-        <thead class="bg-gray-50 dark:bg-gray-900 sticky top-0 text-xs">
-            <tr>
-                <th class="px-4 py-3 text-left">Image</th>
-                <th class="px-4 py-3 text-left">SKU</th>
-                <th class="px-4 py-3 text-left">Name</th>
-                <th class="px-4 py-3 text-left">Category</th>
-                <th class="px-4 py-3 text-right">Price</th>
-                <th class="px-4 py-3 text-center">Stock</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y"></tbody>`;
-
-    const tbody = table.querySelector('tbody');
-
-    bulkPendingProducts.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="px-4 py-3">
-                ${p.image ? `<img src="${p.image}" class="w-10 h-10 object-cover rounded-lg">` : '<span class="text-gray-400">No Image</span>'}
-            </td>
-            <td class="px-4 py-3 font-mono text-xs">${p.sku}</td>
-            <td class="px-4 py-3">${p.name}</td>
-            <td class="px-4 py-3">${p.category}</td>
-            <td class="px-4 py-3 text-right">₹${p.price}</td>
-            <td class="px-4 py-3 text-center">${p.stock}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function confirmBulkUpload() {
-    if (bulkPendingProducts.length === 0) return;
-
-    products = [...products, ...bulkPendingProducts];
-    
-    if (typeof renderProducts === 'function') renderProducts();
-    
-    T(`${bulkPendingProducts.length} products uploaded successfully!`, 'success');
-    closeBulkModal();
-}
-</script>
-  
+  T(`Bulk Upload Completed! Success: ${success}, Failed: ${failed}`);
+  closeBulkModal();
+  document.getElementById('bulkTextarea').value = '';
+  renderProducts();
+  renderDash();
+}</script>
 </body>
 </html>
