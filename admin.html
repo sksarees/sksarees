@@ -97,7 +97,7 @@ input[type=number]{-moz-appearance:textfield}
       </div>
       <div class="flex flex-wrap gap-3 mb-6">
         <button onclick="goP('products');setTimeout(()=>openModal(),100)" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">+ Add Product</button>
-     <button onclick="openBulkModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-semibold flex items-center gap-2">
+        <button onclick="openBulkModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-semibold flex items-center gap-2">
   📤 Bulk Upload
 </button>
         <button onclick="goP('orders')" class="px-5 py-2.5 bg-brand-400 text-gray-900 rounded-xl font-bold text-sm">View Orders</button>
@@ -221,6 +221,39 @@ input[type=number]{-moz-appearance:textfield}
 </div>
 </div><!-- /mainApp -->
 
+   <!-- Bulk Upload Modal -->
+<div id="bulkModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex justify-between items-center">
+      <h2 class="text-xl font-bold text-white">📤 Bulk Product Upload</h2>
+      <button onclick="closeBulkModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
+    </div>
+    
+    <div class="p-6">
+      <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-sm">
+        <p class="font-semibold mb-2">📋 Instructions:</p>
+        <ol class="list-decimal ml-4 space-y-1">
+          <li>Download the CSV template</li>
+          <li>Fill in your product details</li>
+          <li>Upload the completed CSV file</li>
+          <li>Review and confirm the upload</li>
+        </ol>
+      </div>
+      
+      <div class="flex gap-3 mb-6">
+        <button onclick="downloadTemplate()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 font-semibold flex items-center justify-center gap-2">
+          📥 Download CSV Template
+        </button>
+        <label class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2 cursor-pointer">
+          📂 Choose CSV File
+          <input type="file" id="csvFile" accept=".csv" onchange="handleFileSelect(event)" class="hidden"/>
+        </label>
+      </div>
+      
+      <div id="bulkPreview" class="mt-4"></div>
+    </div>
+  </div>
+</div>
 <!-- ═══ PROMO MODAL ═══ -->
 <div id="promoModal" class="fixed inset-0 z-[100] hidden">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closePromoModal()"></div>
@@ -796,260 +829,7 @@ async function processBulkUpload(){
   reader.readAsText(file);
 }
 
-  /* ══════════════ MODAL ══════════════ */
-function openModal(p){
-  editId=p?p.id:null;
-  document.getElementById('mTitle').textContent=p?'Edit Product':'Add New Product';
-  document.getElementById('saveBtn').textContent=p?'💾 Update':'💾 Save';
-  document.getElementById('delBtn').classList.toggle('hidden',!p);
-  document.getElementById('fN').value=p?.name||'';
-  document.getElementById('fC').value=p?.category||'';
-  document.getElementById('fP').value=p?.price||'';
-  document.getElementById('fOP').value=p?.op||p?.originalPrice||'';
-  document.getElementById('fS').value=p?.stock??50;
-  document.getElementById('fImg1').value=p?.images?.[0]||p?.image||'';
-  document.getElementById('fImg2').value=p?.images?.[1]||'';
-  document.getElementById('fImg3').value=p?.images?.[2]||'';
-  document.getElementById('fD').value=p?.desc||p?.description||'';
-  document.getElementById('fSKU').value=p?.sku||(p?'':nextSku());
-  document.getElementById('fFab').value=p?.fab||p?.fabric||'';
-  document.getElementById('fCol').value=p?.col||p?.color||'';
-  document.getElementById('fSt').value=p?.status||'Active';
-  document.getElementById('fFeat').checked=!!p?.featured||!!p?.bs;
-  prevImg();
-  document.getElementById('pModal').classList.remove('hidden');
-  document.body.style.overflow='hidden';
-}
-
-function closeModal(){
-  document.getElementById('pModal').classList.add('hidden');
-  document.body.style.overflow='';
-  editId=null;
-}
-
-function editProd(id){
-  const p=products.find(x=>x.id===id);
-  if(p)openModal(p);
-}
-
-function adj(v){
-  const i=document.getElementById('fS');
-  i.value=Math.max(0,(parseInt(i.value)||0)+v);
-}
-
-function prevImg(){
-  const u=document.getElementById('fImg1').value.trim();
-  const b=document.getElementById('imgPrev');
-  b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>';
-}
-
-/* ══════════════ BULK UPLOAD ══════════════ */
-function openBulkModal(){
-  document.getElementById('bulkModal').classList.remove('hidden');
-  document.body.style.overflow='hidden';
-}
-
-function closeBulkModal(){
-  document.getElementById('bulkModal').classList.add('hidden');
-  document.body.style.overflow='';
-  document.getElementById('csvFile').value='';
-  document.getElementById('bulkPreview').innerHTML='';
-}
-
-function downloadTemplate(){
-  const csv=`Name,Category,Price,Original Price,Stock,Image1,Image2,Image3,Description,Fabric,Color,Status,Featured
-Banarasi Silk Saree,Banarasi Sarees,2999,4499,50,https://example.com/img1.jpg,https://example.com/img2.jpg,https://example.com/img3.jpg,Beautiful traditional saree,Silk,Red,Active,true
-Kanjivaram Saree,Kanjivaram Sarees,3499,5499,30,https://example.com/img4.jpg,,,Elegant kanjivaram silk,Pure Silk,Gold,Active,false`;
-  
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='product_template.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-  T('✅ Template downloaded');
-}
-
-function handleFileSelect(e){
-  const file=e.target.files[0];
-  if(!file){return}
-  
-  if(!file.name.endsWith('.csv')){
-    T('Please upload a CSV file','warn');
-    return;
-  }
-  
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    const text=ev.target.result;
-    parseCSV(text);
-  };
-  reader.readAsText(file);
-}
-
-function parseCSV(text){
-  const lines=text.split('\n').filter(l=>l.trim());
-  if(lines.length<2){
-    T('CSV file is empty','warn');
-    return;
-  }
-  
-  const headers=lines[0].split(',').map(h=>h.trim());
-  const rows=[];
-  
-  for(let i=1;i<lines.length;i++){
-    const values=lines[i].split(',').map(v=>v.trim());
-    const obj={};
-    headers.forEach((h,idx)=>{
-      obj[h]=values[idx]||'';
-    });
-    rows.push(obj);
-  }
-  
-  displayPreview(rows);
-}
-
-function displayPreview(rows){
-  const preview=document.getElementById('bulkPreview');
-  let html=`
-    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-      <p class="text-sm font-semibold text-blue-800">📊 Found ${rows.length} products</p>
-    </div>
-    <div class="max-h-96 overflow-auto">
-      <table class="w-full text-xs">
-        <thead class="bg-gray-100 sticky top-0">
-          <tr>
-            <th class="p-2 text-left">#</th>
-            <th class="p-2 text-left">Name</th>
-            <th class="p-2 text-left">Category</th>
-            <th class="p-2 text-left">Price</th>
-            <th class="p-2 text-left">Stock</th>
-            <th class="p-2 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
-  
-  rows.forEach((r,i)=>{
-    html+=`
-      <tr class="border-b hover:bg-gray-50">
-        <td class="p-2">${i+1}</td>
-        <td class="p-2 font-medium">${r.Name||'—'}</td>
-        <td class="p-2">${r.Category||'—'}</td>
-        <td class="p-2">₹${r.Price||'0'}</td>
-        <td class="p-2">${r.Stock||'0'}</td>
-        <td class="p-2">
-          ${r.Name&&r.Category&&r.Price?'<span class="text-green-600">✓ Valid</span>':'<span class="text-red-600">✗ Missing data</span>'}
-        </td>
-      </tr>
-    `;
-  });
-  
-  html+=`
-        </tbody>
-      </table>
-    </div>
-    <div class="mt-4 flex gap-2">
-      <button onclick="processBulkUpload()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">
-        📤 Upload All Products
-      </button>
-      <button onclick="closeBulkModal()" class="px-4 py-2 border rounded hover:bg-gray-100">
-        Cancel
-      </button>
-    </div>
-  `;
-  
-  preview.innerHTML=html;
-}
-
-async function processBulkUpload(){
-  const file=document.getElementById('csvFile').files[0];
-  if(!file){T('No file selected','warn');return}
-  
-  const reader=new FileReader();
-  reader.onload=async function(e){
-    const text=e.target.result;
-    const lines=text.split('\n').filter(l=>l.trim());
-    const headers=lines[0].split(',').map(h=>h.trim());
-    
-    let added=0,failed=0;
-    const btn=event.target;
-    btn.disabled=true;
-    btn.textContent='⏳ Uploading...';
-    
-    for(let i=1;i<lines.length;i++){
-      const values=lines[i].split(',').map(v=>v.trim());
-      const row={};
-      headers.forEach((h,idx)=>{row[h]=values[idx]||''});
-      
-      // Validate required fields
-      if(!row.Name||!row.Category||!row.Price){
-        failed++;
-        continue;
-      }
-      
-      const price=parseFloat(row.Price);
-      const op=parseFloat(row['Original Price'])||Math.round(price*1.5);
-      const disc=Math.max(0,Math.min(100,Math.round((1-price/op)*100)));
-      const category=row.Category;
-      const catSlug=category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
-      
-      const images=[row.Image1,row.Image2,row.Image3].filter(Boolean);
-      
-      const data={
-        name:row.Name,
-        category,
-        price,
-        stock:parseInt(row.Stock)||50,
-        image:row.Image1||'',
-        images,
-        imgs:images,
-        desc:row.Description||'',
-        sku:nextSku(),
-        fab:row.Fabric||category.replace(' Sarees',''),
-        col:row.Color||'',
-        status:row.Status||'Active',
-        featured:row.Featured?.toLowerCase()==='true',
-        cat:catSlug,
-        op,
-        disc,
-        occ:row.Featured?.toLowerCase()==='true'?'Wedding':'Daily Wear',
-        len:'6.3m',
-        care:'',
-        rat:4.5,
-        rev:0,
-        bs:row.Featured?.toLowerCase()==='true',
-        iN:true,
-        ft:row.Featured?.toLowerCase()==='true',
-        createdAt:new Date().toISOString(),
-        updatedAt:new Date().toISOString(),
-      };
-      
-      try{
-        if(db){
-          const ref=await db.collection('products').add(data);
-          data.id=ref.id;
-          products.unshift({id:ref.id,...data});
-        }else{
-          data.id='local_'+Date.now()+'_'+i;
-          products.unshift(data);
-        }
-        added++;
-        btn.textContent=`⏳ Uploading... (${added}/${lines.length-1})`;
-      }catch(err){
-        console.error('Failed to add:',row.Name,err);
-        failed++;
-      }
-    }
-    
-    T(`✅ Bulk upload complete! Added: ${added}, Failed: ${failed}`);
-    closeBulkModal();
-    renderProducts();
-    renderDash();
-  };
-  reader.readAsText(file);
-}
+ 
 /* ══════════════ SAVE PRODUCT ══════════════ */
 /* Auto-generate next SKU (SK + 3-digit number, e.g. SK101, SK116) */
 function nextSku(){
