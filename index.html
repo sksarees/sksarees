@@ -1738,102 +1738,192 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyLang();        // apply saved language
 });
 </script>
-<div id="exitPopup" class="popup">
-    <div class="popup-content">
-        <span class="close-btn" onclick="closePopup()">✕</span>
-        
-        <h2>🛍️ Special Offer for You!</h2>
-        <p><strong>SK Sarees Collection</strong></p>
-        <h3>🎉 Limited Time Offers Running!</h3>
-        
-        <p style="font-size:18px; margin:20px 0;">
-            Back poga poringala? 😢<br>
-            Inga irukura <strong>Saree Offers</strong> paathutttu ponga!
-        </p>
-
-        <a href="https://wa.me/917867915699?text=Hi%20I%20want%20to%20know%20about%20saree%20offers" 
-           class="whatsapp-btn" target="_blank">
-            📲 WhatsApp Channel Join Pannunga
-        </a>
-
-        <button onclick="closePopup()" class="stay-btn">
-            Continue Shopping
-        </button>
-    </div>
+<div class="offer-title">
+    ⚡ இன்று மட்டும் Special Offer
 </div>
 
+<div class="flip-timer">
+
+    <div class="flip-box">
+        <span id="min">05</span>
+        <small>MIN</small>
+    </div>
+
+    <div class="colon">:</div>
+
+    <div class="flip-box">
+        <span id="sec">00</span>
+        <small>SEC</small>
+    </div>
+
+</div>
+
+<p class="offer-text">
+⏰ Hurry! இந்த Offer இன்னும் சில நிமிடங்களுக்கு மட்டுமே.
+</p>
+
 <style>
-.popup {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
+.offer-title{
+text-align:center;
+font-size:22px;
+font-weight:bold;
+color:#E53935;
+margin-bottom:15px;
 }
 
-.popup-content {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    max-width: 380px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    position: relative;
+.flip-timer{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+margin:20px 0;
 }
 
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 28px;
-    cursor: pointer;
-    color: #999;
+.flip-box{
+
+width:90px;
+height:90px;
+
+background:linear-gradient(#2c2c2c,#000);
+
+border-radius:12px;
+
+display:flex;
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:0 8px 20px rgba(0,0,0,.3);
+
+color:#fff;
+
+position:relative;
+
+overflow:hidden;
+
 }
 
-.whatsapp-btn {
-    display: inline-block;
-    background: #25D366;
-    color: white;
-    padding: 14px 25px;
-    border-radius: 50px;
-    text-decoration: none;
-    font-size: 17px;
-    margin: 15px 0;
+.flip-box::after{
+
+content:'';
+
+position:absolute;
+
+top:50%;
+
+left:0;
+
+width:100%;
+
+height:2px;
+
+background:#555;
+
 }
 
-.stay-btn {
-    background: #f8f8f8;
-    color: #333;
-    border: 1px solid #ddd;
-    padding: 12px 25px;
-    border-radius: 8px;
-    cursor: pointer;
+.flip-box span{
+
+font-size:42px;
+
+font-weight:700;
+
+line-height:1;
+
+font-family:Arial, sans-serif;
+
+}
+
+.flip-box small{
+
+margin-top:8px;
+
+font-size:12px;
+
+letter-spacing:2px;
+
+color:#ddd;
+
+}
+
+.colon{
+
+font-size:42px;
+
+font-weight:bold;
+
+color:#E53935;
+
+}
+
+.offer-text{
+
+text-align:center;
+
+font-size:16px;
+
+font-weight:bold;
+
+color:#d32f2f;
+
+animation:blink .8s infinite;
+
+}
+
+@keyframes blink{
+
+50%{
+
+opacity:.5;
+
+}
+
 }
 </style>
 
 <script>
-// Show popup when user tries to leave the page
-window.addEventListener('beforeunload', function(e) {
-    document.getElementById('exitPopup').style.display = 'flex';
-    e.preventDefault();
-    e.returnValue = '';
+let time = 300;
+
+const minute = document.getElementById("min");
+const second = document.getElementById("sec");
+
+const countdown = setInterval(()=>{
+
+let m = Math.floor(time/60);
+let s = time%60;
+
+minute.textContent = String(m).padStart(2,"0");
+second.textContent = String(s).padStart(2,"0");
+
+// Flip Animation
+minute.animate([
+{transform:"rotateX(90deg)"},
+{transform:"rotateX(0deg)"}
+],{
+duration:250
 });
 
-// Also trigger on back button (works in most cases)
-let popUpShown = false;
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden && !popUpShown) {
-        document.getElementById('exitPopup').style.display = 'flex';
-        popUpShown = true;
-    }
+second.animate([
+{transform:"rotateX(90deg)"},
+{transform:"rotateX(0deg)"}
+],{
+duration:250
 });
 
-function closePopup() {
-    document.getElementById('exitPopup').style.display = 'none';
+time--;
+
+if(time<0){
+
+clearInterval(countdown);
+
+document.querySelector(".offer-title").innerHTML="❌ Offer Expired";
+
+document.querySelector(".offer-text").innerHTML="இந்த சலுகை முடிந்துவிட்டது.";
+
 }
+
+},1000);
 </script>
   <script src="js/script.js"></script>
 </body>
