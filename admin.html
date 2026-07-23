@@ -194,24 +194,7 @@ input[type=number]{-moz-appearance:textfield}
     </div>
 
 
-<!-- ====================== BULK UPLOAD MODAL ====================== -->
-<div id="bulkModal" class="fixed inset-0 z-[110] hidden">
-  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeBulkModal()"></div>
-  <div class="absolute inset-0 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl">
-      <div class="px-6 py-4 border-b font-bold text-lg">📤 Bulk Upload Products</div>
-      <div class="p-6">
-        <textarea id="bulkTextarea" rows="14" class="w-full p-4 font-mono text-sm border rounded-xl" 
-          placeholder="name,category,price,stock,image1,image2,image3,desc,fab,col"></textarea>
-        <p class="text-xs text-gray-500 mt-3">Example: Gayathri Cotton Saree,Cotton Sarees,1299,50,https://img1.jpg,,,"Beautiful saree",Cotton,Red</p>
-      </div>
-      <div class="px-6 py-4 border-t flex gap-3">
-        <button onclick="closeBulkModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-bold">Cancel</button>
-        <button onclick="processBulkUpload()" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold">Upload All</button>
-      </div>
-    </div>
-  </div>
-</div>
+
     <!-- PRODUCTS -->
     <div id="pg-products" class="pgc hidden">
       <div class="flex flex-wrap gap-3 mb-4">
@@ -243,6 +226,24 @@ input[type=number]{-moz-appearance:textfield}
 
     <!-- INVENTORY -->
     <div id="pg-inventory" class="pgc hidden">
+      <!-- ====================== BULK UPLOAD MODAL ====================== -->
+<div id="bulkModal" class="fixed inset-0 z-[110] hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeBulkModal()"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl">
+      <div class="px-6 py-4 border-b font-bold text-lg">📤 Bulk Upload Products</div>
+      <div class="p-6">
+        <textarea id="bulkTextarea" rows="14" class="w-full p-4 font-mono text-sm border rounded-xl" 
+          placeholder="name,category,price,stock,image1,image2,image3,desc,fab,col"></textarea>
+        <p class="text-xs text-gray-500 mt-3">Example: Gayathri Cotton Saree,Cotton Sarees,1299,50,https://img1.jpg,,,"Beautiful saree",Cotton,Red</p>
+      </div>
+      <div class="px-6 py-4 border-t flex gap-3">
+        <button onclick="closeBulkModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-bold">Cancel</button>
+        <button onclick="processBulkUpload()" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold">Upload All</button>
+      </div>
+    </div>
+  </div>
+</div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-bold text-gray-500 uppercase">
           <th class="px-4 py-3">SKU</th><th class="px-4 py-3">Product</th><th class="px-4 py-3 text-center">Stock</th><th class="px-4 py-3 text-center">Alert</th>
