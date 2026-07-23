@@ -1738,7 +1738,103 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyLang();        // apply saved language
 });
 </script>
+<div id="exitPopup" class="popup">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup()">✕</span>
+        
+        <h2>🛍️ Special Offer for You!</h2>
+        <p><strong>SK Sarees Collection</strong></p>
+        <h3>🎉 Limited Time Offers Running!</h3>
+        
+        <p style="font-size:18px; margin:20px 0;">
+            Back poga poringala? 😢<br>
+            Inga irukura <strong>Saree Offers</strong> paathutttu ponga!
+        </p>
 
+        <a href="https://wa.me/917867915699?text=Hi%20I%20want%20to%20know%20about%20saree%20offers" 
+           class="whatsapp-btn" target="_blank">
+            📲 WhatsApp Channel Join Pannunga
+        </a>
+
+        <button onclick="closePopup()" class="stay-btn">
+            Continue Shopping
+        </button>
+    </div>
+</div>
+
+<style>
+.popup {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 380px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+}
+
+.whatsapp-btn {
+    display: inline-block;
+    background: #25D366;
+    color: white;
+    padding: 14px 25px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 17px;
+    margin: 15px 0;
+}
+
+.stay-btn {
+    background: #f8f8f8;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
+
+<script>
+// Show popup when user tries to leave the page
+window.addEventListener('beforeunload', function(e) {
+    document.getElementById('exitPopup').style.display = 'flex';
+    e.preventDefault();
+    e.returnValue = '';
+});
+
+// Also trigger on back button (works in most cases)
+let popUpShown = false;
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden && !popUpShown) {
+        document.getElementById('exitPopup').style.display = 'flex';
+        popUpShown = true;
+    }
+});
+
+function closePopup() {
+    document.getElementById('exitPopup').style.display = 'none';
+}
+</script>
   <script src="js/script.js"></script>
 </body>
 </html>
