@@ -95,94 +95,11 @@ input[type=number]{-moz-appearance:textfield}
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Revenue</div><div class="font-serif text-2xl font-extrabold text-blue-600 mt-1" id="dRev">₹0</div></div>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Low Stock</div><div class="font-serif text-3xl font-extrabold text-orange-500 mt-1" id="dLow">0</div></div>
       </div>
-
-
-
-      <!-- ====================== PRODUCT MODAL ====================== -->
-<div id="pModal" class="fixed inset-0 z-[100] hidden">
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
-  <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-12">
-    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      
-      <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-6 py-4 border-b flex items-center justify-between">
-        <h2 class="font-serif font-bold text-lg text-maroon-500" id="mTitle">Add Product</h2>
-        <button onclick="closeModal()" class="text-2xl text-gray-400 hover:text-gray-600">✕</button>
-      </div>
-
-      <div class="p-6 space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Product Name *</label><input id="fN" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Gayathri Pure Cotton Saree"></div>
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Category *</label>
-            <select id="fC" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm">
-              <option value="">Select</option>
-              <option>Cotton Sarees</option><option>Silk Sarees</option><option>Bridal Sarees</option>
-              <option>Art Silk Sarees</option><option>Georgette Sarees</option><option>Fancy Sarees</option><option>Printed Sarees</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Price (₹) *</label><input id="fP" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Original Price (₹)</label><input id="fOP" type="number" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Stock *</label>
-            <div class="flex gap-1">
-              <button onclick="adj(-10)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-xs font-bold">-10</button>
-              <button onclick="adj(-5)" class="px-3 py-2 bg-red-50 text-red-500 rounded-lg text-xs font-bold">-5</button>
-              <input id="fS" type="number" value="50" class="flex-1 text-center font-bold border border-gray-200 dark:border-gray-600 rounded-xl">
-              <button onclick="adj(5)" class="px-3 py-2 bg-green-50 text-green-600 rounded-lg text-xs font-bold">+5</button>
-              <button onclick="adj(10)" class="px-3 py-2 bg-green-100 text-green-600 rounded-lg text-xs font-bold">+10</button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-500 mb-2">Product Images (URLs)</label>
-          <div class="flex flex-col sm:flex-row gap-4">
-            <div class="flex-1 space-y-3">
-              <input id="fImg1" type="url" oninput="prevImg()" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 1 (Main) *">
-              <input id="fImg2" type="url" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 2">
-              <input id="fImg3" type="url" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" placeholder="Image 3">
-            </div>
-            <div id="imgPrev" class="w-28 h-36 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-4xl bg-gray-50 dark:bg-gray-700">🖼️</div>
-          </div>
-        </div>
-
-        <div><label class="block text-xs font-bold text-gray-500 mb-1">Description</label><textarea id="fD" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"></textarea></div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">SKU</label><input id="fSKU" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Fabric</label><input id="fFab" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
-          <div><label class="block text-xs font-bold text-gray-500 mb-1">Color</label><input id="fCol" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"></div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 mb-1">Status</label>
-            <select id="fSt" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Out of Stock">Out of Stock</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-3 pt-6">
-            <input id="fFeat" type="checkbox" class="w-5 h-5">
-            <label for="fFeat" class="font-medium cursor-pointer">⭐ Featured Product</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="sticky bottom-0 bg-white dark:bg-gray-800 px-6 py-4 border-t flex gap-3">
-        <button id="delBtn" onclick="if(confirm('Delete this product?')) delProd()" class="hidden px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold">🗑️ Delete</button>
-        <div class="flex-1"></div>
-        <button onclick="closeModal()" class="px-6 py-3 bg-gray-100 rounded-xl font-bold">Cancel</button>
-        <button onclick="saveProd()" id="saveBtn" class="px-8 py-3 bg-maroon-600 text-white rounded-xl font-bold">💾 Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-      
       <div class="flex flex-wrap gap-3 mb-6">
         <button onclick="goP('products');setTimeout(()=>openModal(),100)" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">+ Add Product</button>
+     <button onclick="openBulkModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-semibold flex items-center gap-2">
+  📤 Bulk Upload
+</button>
         <button onclick="goP('orders')" class="px-5 py-2.5 bg-brand-400 text-gray-900 rounded-xl font-bold text-sm">View Orders</button>
         <button onclick="seedFS()" class="px-5 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm" title="First-time: push sample products to Firestore">🔥 Seed Products</button>
         <button onclick="exportCSV()" class="px-5 py-2.5 border border-gray-200 rounded-xl font-bold text-sm">⬇️ Export CSV</button>
@@ -192,8 +109,6 @@ input[type=number]{-moz-appearance:textfield}
         <div id="dRecent" class="space-y-2"></div>
       </div>
     </div>
-
-
 
     <!-- PRODUCTS -->
     <div id="pg-products" class="pgc hidden">
@@ -226,24 +141,6 @@ input[type=number]{-moz-appearance:textfield}
 
     <!-- INVENTORY -->
     <div id="pg-inventory" class="pgc hidden">
-      <!-- ====================== BULK UPLOAD MODAL ====================== -->
-<div id="bulkModal" class="fixed inset-0 z-[110] hidden">
-  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeBulkModal()"></div>
-  <div class="absolute inset-0 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl">
-      <div class="px-6 py-4 border-b font-bold text-lg">📤 Bulk Upload Products</div>
-      <div class="p-6">
-        <textarea id="bulkTextarea" rows="14" class="w-full p-4 font-mono text-sm border rounded-xl" 
-          placeholder="name,category,price,stock,image1,image2,image3,desc,fab,col"></textarea>
-        <p class="text-xs text-gray-500 mt-3">Example: Gayathri Cotton Saree,Cotton Sarees,1299,50,https://img1.jpg,,,"Beautiful saree",Cotton,Red</p>
-      </div>
-      <div class="px-6 py-4 border-t flex gap-3">
-        <button onclick="closeBulkModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-bold">Cancel</button>
-        <button onclick="processBulkUpload()" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold">Upload All</button>
-      </div>
-    </div>
-  </div>
-</div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-bold text-gray-500 uppercase">
           <th class="px-4 py-3">SKU</th><th class="px-4 py-3">Product</th><th class="px-4 py-3 text-center">Stock</th><th class="px-4 py-3 text-center">Alert</th>
@@ -668,11 +565,491 @@ function openModal(p){
   document.getElementById('pModal').classList.remove('hidden');
   document.body.style.overflow='hidden';
 }
-function closeModal(){document.getElementById('pModal').classList.add('hidden');document.body.style.overflow='';editId=null}
-function editProd(id){const p=products.find(x=>x.id===id);if(p)openModal(p)}
-function adj(v){const i=document.getElementById('fS');i.value=Math.max(0,(parseInt(i.value)||0)+v)}
-function prevImg(){const u=document.getElementById('fImg1').value.trim();const b=document.getElementById('imgPrev');b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>'}
 
+function closeModal(){
+  document.getElementById('pModal').classList.add('hidden');
+  document.body.style.overflow='';
+  editId=null;
+}
+
+function editProd(id){
+  const p=products.find(x=>x.id===id);
+  if(p)openModal(p);
+}
+
+function adj(v){
+  const i=document.getElementById('fS');
+  i.value=Math.max(0,(parseInt(i.value)||0)+v);
+}
+
+function prevImg(){
+  const u=document.getElementById('fImg1').value.trim();
+  const b=document.getElementById('imgPrev');
+  b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>';
+}
+
+/* ══════════════ BULK UPLOAD ══════════════ */
+function openBulkModal(){
+  document.getElementById('bulkModal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+
+function closeBulkModal(){
+  document.getElementById('bulkModal').classList.add('hidden');
+  document.body.style.overflow='';
+  document.getElementById('csvFile').value='';
+  document.getElementById('bulkPreview').innerHTML='';
+}
+
+function downloadTemplate(){
+  const csv=`Name,Category,Price,Original Price,Stock,Image1,Image2,Image3,Description,Fabric,Color,Status,Featured
+Banarasi Silk Saree,Banarasi Sarees,2999,4499,50,https://example.com/img1.jpg,https://example.com/img2.jpg,https://example.com/img3.jpg,Beautiful traditional saree,Silk,Red,Active,true
+Kanjivaram Saree,Kanjivaram Sarees,3499,5499,30,https://example.com/img4.jpg,,,Elegant kanjivaram silk,Pure Silk,Gold,Active,false`;
+  
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='product_template.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  T('✅ Template downloaded');
+}
+
+function handleFileSelect(e){
+  const file=e.target.files[0];
+  if(!file){return}
+  
+  if(!file.name.endsWith('.csv')){
+    T('Please upload a CSV file','warn');
+    return;
+  }
+  
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const text=ev.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2){
+    T('CSV file is empty','warn');
+    return;
+  }
+  
+  const headers=lines[0].split(',').map(h=>h.trim());
+  const rows=[];
+  
+  for(let i=1;i<lines.length;i++){
+    const values=lines[i].split(',').map(v=>v.trim());
+    const obj={};
+    headers.forEach((h,idx)=>{
+      obj[h]=values[idx]||'';
+    });
+    rows.push(obj);
+  }
+  
+  displayPreview(rows);
+}
+
+function displayPreview(rows){
+  const preview=document.getElementById('bulkPreview');
+  let html=`
+    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+      <p class="text-sm font-semibold text-blue-800">📊 Found ${rows.length} products</p>
+    </div>
+    <div class="max-h-96 overflow-auto">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-100 sticky top-0">
+          <tr>
+            <th class="p-2 text-left">#</th>
+            <th class="p-2 text-left">Name</th>
+            <th class="p-2 text-left">Category</th>
+            <th class="p-2 text-left">Price</th>
+            <th class="p-2 text-left">Stock</th>
+            <th class="p-2 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  rows.forEach((r,i)=>{
+    html+=`
+      <tr class="border-b hover:bg-gray-50">
+        <td class="p-2">${i+1}</td>
+        <td class="p-2 font-medium">${r.Name||'—'}</td>
+        <td class="p-2">${r.Category||'—'}</td>
+        <td class="p-2">₹${r.Price||'0'}</td>
+        <td class="p-2">${r.Stock||'0'}</td>
+        <td class="p-2">
+          ${r.Name&&r.Category&&r.Price?'<span class="text-green-600">✓ Valid</span>':'<span class="text-red-600">✗ Missing data</span>'}
+        </td>
+      </tr>
+    `;
+  });
+  
+  html+=`
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button onclick="processBulkUpload()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">
+        📤 Upload All Products
+      </button>
+      <button onclick="closeBulkModal()" class="px-4 py-2 border rounded hover:bg-gray-100">
+        Cancel
+      </button>
+    </div>
+  `;
+  
+  preview.innerHTML=html;
+}
+
+async function processBulkUpload(){
+  const file=document.getElementById('csvFile').files[0];
+  if(!file){T('No file selected','warn');return}
+  
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const text=e.target.result;
+    const lines=text.split('\n').filter(l=>l.trim());
+    const headers=lines[0].split(',').map(h=>h.trim());
+    
+    let added=0,failed=0;
+    const btn=event.target;
+    btn.disabled=true;
+    btn.textContent='⏳ Uploading...';
+    
+    for(let i=1;i<lines.length;i++){
+      const values=lines[i].split(',').map(v=>v.trim());
+      const row={};
+      headers.forEach((h,idx)=>{row[h]=values[idx]||''});
+      
+      // Validate required fields
+      if(!row.Name||!row.Category||!row.Price){
+        failed++;
+        continue;
+      }
+      
+      const price=parseFloat(row.Price);
+      const op=parseFloat(row['Original Price'])||Math.round(price*1.5);
+      const disc=Math.max(0,Math.min(100,Math.round((1-price/op)*100)));
+      const category=row.Category;
+      const catSlug=category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
+      
+      const images=[row.Image1,row.Image2,row.Image3].filter(Boolean);
+      
+      const data={
+        name:row.Name,
+        category,
+        price,
+        stock:parseInt(row.Stock)||50,
+        image:row.Image1||'',
+        images,
+        imgs:images,
+        desc:row.Description||'',
+        sku:nextSku(),
+        fab:row.Fabric||category.replace(' Sarees',''),
+        col:row.Color||'',
+        status:row.Status||'Active',
+        featured:row.Featured?.toLowerCase()==='true',
+        cat:catSlug,
+        op,
+        disc,
+        occ:row.Featured?.toLowerCase()==='true'?'Wedding':'Daily Wear',
+        len:'6.3m',
+        care:'',
+        rat:4.5,
+        rev:0,
+        bs:row.Featured?.toLowerCase()==='true',
+        iN:true,
+        ft:row.Featured?.toLowerCase()==='true',
+        createdAt:new Date().toISOString(),
+        updatedAt:new Date().toISOString(),
+      };
+      
+      try{
+        if(db){
+          const ref=await db.collection('products').add(data);
+          data.id=ref.id;
+          products.unshift({id:ref.id,...data});
+        }else{
+          data.id='local_'+Date.now()+'_'+i;
+          products.unshift(data);
+        }
+        added++;
+        btn.textContent=`⏳ Uploading... (${added}/${lines.length-1})`;
+      }catch(err){
+        console.error('Failed to add:',row.Name,err);
+        failed++;
+      }
+    }
+    
+    T(`✅ Bulk upload complete! Added: ${added}, Failed: ${failed}`);
+    closeBulkModal();
+    renderProducts();
+    renderDash();
+  };
+  reader.readAsText(file);
+}
+
+  /* ══════════════ MODAL ══════════════ */
+function openModal(p){
+  editId=p?p.id:null;
+  document.getElementById('mTitle').textContent=p?'Edit Product':'Add New Product';
+  document.getElementById('saveBtn').textContent=p?'💾 Update':'💾 Save';
+  document.getElementById('delBtn').classList.toggle('hidden',!p);
+  document.getElementById('fN').value=p?.name||'';
+  document.getElementById('fC').value=p?.category||'';
+  document.getElementById('fP').value=p?.price||'';
+  document.getElementById('fOP').value=p?.op||p?.originalPrice||'';
+  document.getElementById('fS').value=p?.stock??50;
+  document.getElementById('fImg1').value=p?.images?.[0]||p?.image||'';
+  document.getElementById('fImg2').value=p?.images?.[1]||'';
+  document.getElementById('fImg3').value=p?.images?.[2]||'';
+  document.getElementById('fD').value=p?.desc||p?.description||'';
+  document.getElementById('fSKU').value=p?.sku||(p?'':nextSku());
+  document.getElementById('fFab').value=p?.fab||p?.fabric||'';
+  document.getElementById('fCol').value=p?.col||p?.color||'';
+  document.getElementById('fSt').value=p?.status||'Active';
+  document.getElementById('fFeat').checked=!!p?.featured||!!p?.bs;
+  prevImg();
+  document.getElementById('pModal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('pModal').classList.add('hidden');
+  document.body.style.overflow='';
+  editId=null;
+}
+
+function editProd(id){
+  const p=products.find(x=>x.id===id);
+  if(p)openModal(p);
+}
+
+function adj(v){
+  const i=document.getElementById('fS');
+  i.value=Math.max(0,(parseInt(i.value)||0)+v);
+}
+
+function prevImg(){
+  const u=document.getElementById('fImg1').value.trim();
+  const b=document.getElementById('imgPrev');
+  b.innerHTML=u?`<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-red-400 text-xs font-bold\\'>❌</span>'"/>`:'<span class="text-gray-300 text-2xl">🖼️</span>';
+}
+
+/* ══════════════ BULK UPLOAD ══════════════ */
+function openBulkModal(){
+  document.getElementById('bulkModal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+
+function closeBulkModal(){
+  document.getElementById('bulkModal').classList.add('hidden');
+  document.body.style.overflow='';
+  document.getElementById('csvFile').value='';
+  document.getElementById('bulkPreview').innerHTML='';
+}
+
+function downloadTemplate(){
+  const csv=`Name,Category,Price,Original Price,Stock,Image1,Image2,Image3,Description,Fabric,Color,Status,Featured
+Banarasi Silk Saree,Banarasi Sarees,2999,4499,50,https://example.com/img1.jpg,https://example.com/img2.jpg,https://example.com/img3.jpg,Beautiful traditional saree,Silk,Red,Active,true
+Kanjivaram Saree,Kanjivaram Sarees,3499,5499,30,https://example.com/img4.jpg,,,Elegant kanjivaram silk,Pure Silk,Gold,Active,false`;
+  
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='product_template.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  T('✅ Template downloaded');
+}
+
+function handleFileSelect(e){
+  const file=e.target.files[0];
+  if(!file){return}
+  
+  if(!file.name.endsWith('.csv')){
+    T('Please upload a CSV file','warn');
+    return;
+  }
+  
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const text=ev.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2){
+    T('CSV file is empty','warn');
+    return;
+  }
+  
+  const headers=lines[0].split(',').map(h=>h.trim());
+  const rows=[];
+  
+  for(let i=1;i<lines.length;i++){
+    const values=lines[i].split(',').map(v=>v.trim());
+    const obj={};
+    headers.forEach((h,idx)=>{
+      obj[h]=values[idx]||'';
+    });
+    rows.push(obj);
+  }
+  
+  displayPreview(rows);
+}
+
+function displayPreview(rows){
+  const preview=document.getElementById('bulkPreview');
+  let html=`
+    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+      <p class="text-sm font-semibold text-blue-800">📊 Found ${rows.length} products</p>
+    </div>
+    <div class="max-h-96 overflow-auto">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-100 sticky top-0">
+          <tr>
+            <th class="p-2 text-left">#</th>
+            <th class="p-2 text-left">Name</th>
+            <th class="p-2 text-left">Category</th>
+            <th class="p-2 text-left">Price</th>
+            <th class="p-2 text-left">Stock</th>
+            <th class="p-2 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  rows.forEach((r,i)=>{
+    html+=`
+      <tr class="border-b hover:bg-gray-50">
+        <td class="p-2">${i+1}</td>
+        <td class="p-2 font-medium">${r.Name||'—'}</td>
+        <td class="p-2">${r.Category||'—'}</td>
+        <td class="p-2">₹${r.Price||'0'}</td>
+        <td class="p-2">${r.Stock||'0'}</td>
+        <td class="p-2">
+          ${r.Name&&r.Category&&r.Price?'<span class="text-green-600">✓ Valid</span>':'<span class="text-red-600">✗ Missing data</span>'}
+        </td>
+      </tr>
+    `;
+  });
+  
+  html+=`
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button onclick="processBulkUpload()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">
+        📤 Upload All Products
+      </button>
+      <button onclick="closeBulkModal()" class="px-4 py-2 border rounded hover:bg-gray-100">
+        Cancel
+      </button>
+    </div>
+  `;
+  
+  preview.innerHTML=html;
+}
+
+async function processBulkUpload(){
+  const file=document.getElementById('csvFile').files[0];
+  if(!file){T('No file selected','warn');return}
+  
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const text=e.target.result;
+    const lines=text.split('\n').filter(l=>l.trim());
+    const headers=lines[0].split(',').map(h=>h.trim());
+    
+    let added=0,failed=0;
+    const btn=event.target;
+    btn.disabled=true;
+    btn.textContent='⏳ Uploading...';
+    
+    for(let i=1;i<lines.length;i++){
+      const values=lines[i].split(',').map(v=>v.trim());
+      const row={};
+      headers.forEach((h,idx)=>{row[h]=values[idx]||''});
+      
+      // Validate required fields
+      if(!row.Name||!row.Category||!row.Price){
+        failed++;
+        continue;
+      }
+      
+      const price=parseFloat(row.Price);
+      const op=parseFloat(row['Original Price'])||Math.round(price*1.5);
+      const disc=Math.max(0,Math.min(100,Math.round((1-price/op)*100)));
+      const category=row.Category;
+      const catSlug=category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
+      
+      const images=[row.Image1,row.Image2,row.Image3].filter(Boolean);
+      
+      const data={
+        name:row.Name,
+        category,
+        price,
+        stock:parseInt(row.Stock)||50,
+        image:row.Image1||'',
+        images,
+        imgs:images,
+        desc:row.Description||'',
+        sku:nextSku(),
+        fab:row.Fabric||category.replace(' Sarees',''),
+        col:row.Color||'',
+        status:row.Status||'Active',
+        featured:row.Featured?.toLowerCase()==='true',
+        cat:catSlug,
+        op,
+        disc,
+        occ:row.Featured?.toLowerCase()==='true'?'Wedding':'Daily Wear',
+        len:'6.3m',
+        care:'',
+        rat:4.5,
+        rev:0,
+        bs:row.Featured?.toLowerCase()==='true',
+        iN:true,
+        ft:row.Featured?.toLowerCase()==='true',
+        createdAt:new Date().toISOString(),
+        updatedAt:new Date().toISOString(),
+      };
+      
+      try{
+        if(db){
+          const ref=await db.collection('products').add(data);
+          data.id=ref.id;
+          products.unshift({id:ref.id,...data});
+        }else{
+          data.id='local_'+Date.now()+'_'+i;
+          products.unshift(data);
+        }
+        added++;
+        btn.textContent=`⏳ Uploading... (${added}/${lines.length-1})`;
+      }catch(err){
+        console.error('Failed to add:',row.Name,err);
+        failed++;
+      }
+    }
+    
+    T(`✅ Bulk upload complete! Added: ${added}, Failed: ${failed}`);
+    closeBulkModal();
+    renderProducts();
+    renderDash();
+  };
+  reader.readAsText(file);
+}
 /* ══════════════ SAVE PRODUCT ══════════════ */
 /* Auto-generate next SKU (SK + 3-digit number, e.g. SK101, SK116) */
 function nextSku(){
@@ -881,134 +1258,6 @@ function exportCSV(){
 
 /* ══════════════ INIT ══════════════ */
 document.addEventListener('DOMContentLoaded',()=>{renderDash();renderProducts()});
-</script> <script>let editId = null;
-let products = [];
-
-// Next SKU
-function nextSku(){
-  const nums = products.map(p => {
-    const m = String(p.sku||'').match(/SK(\d+)/i);
-    return m ? parseInt(m[1],10) : 0;
-  }).filter(n=>n>0);
-  const max = nums.length ? Math.max(...nums) : 100;
-  return 'SK' + (max + 1);
-}
-
-// Render Products (Table)
-function renderProducts(){
-  // ... (your existing renderProducts function)
-  console.log("Products rendered:", products.length);
-}
-
-// Modal Functions
-function openModal(p){
-  editId = p ? p.id : null;
-  document.getElementById('mTitle').textContent = p ? 'Edit Product' : 'Add Product';
-  document.getElementById('saveBtn').textContent = p ? '💾 Update' : '💾 Save';
-  document.getElementById('delBtn').classList.toggle('hidden', !p);
-
-  document.getElementById('fN').value = p?.name || '';
-  document.getElementById('fC').value = p?.category || '';
-  document.getElementById('fP').value = p?.price || '';
-  document.getElementById('fOP').value = p?.op || '';
-  document.getElementById('fS').value = p?.stock ?? 50;
-  document.getElementById('fImg1').value = p?.images?.[0] || p?.image || '';
-  document.getElementById('fImg2').value = p?.images?.[1] || '';
-  document.getElementById('fImg3').value = p?.images?.[2] || '';
-  document.getElementById('fD').value = p?.desc || '';
-  document.getElementById('fSKU').value = p?.sku || (p ? '' : nextSku());
-  document.getElementById('fFab').value = p?.fab || '';
-  document.getElementById('fCol').value = p?.col || '';
-  document.getElementById('fSt').value = p?.status || 'Active';
-  document.getElementById('fFeat').checked = !!p?.featured;
-
-  prevImg();
-  document.getElementById('pModal').classList.remove('hidden');
-}
-
-function closeModal(){
-  document.getElementById('pModal').classList.add('hidden');
-  editId = null;
-}
-
-function editProd(id){ 
-  const p = products.find(x => x.id === id); 
-  if(p) openModal(p); 
-}
-
-function adj(v){
-  const i = document.getElementById('fS');
-  i.value = Math.max(0, (parseInt(i.value)||0) + v);
-}
-
-function prevImg(){
-  const u = document.getElementById('fImg1').value.trim();
-  const b = document.getElementById('imgPrev');
-  b.innerHTML = u ? `<img src="${u}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='❌'"/>` : '🖼️';
-}
-
-// Save Product (Existing)
-async function saveProd(){
-  // ... paste your improved saveProd() function here
-}
-
-// ==================== BULK UPLOAD ====================
-function openBulkModal(){
-  document.getElementById('bulkModal').classList.remove('hidden');
-}
-
-function closeBulkModal(){
-  document.getElementById('bulkModal').classList.add('hidden');
-}
-
-async function processBulkUpload(){
-  const text = document.getElementById('bulkTextarea').value.trim();
-  if(!text) return T('No data pasted','warn');
-
-  const lines = text.split('\n');
-  let success = 0, failed = 0;
-
-  for(let line of lines){
-    if(!line.trim()) continue;
-    const [name, category, priceStr, stockStr, img1, img2, img3, desc, fab, col] = line.split(',').map(s => s.trim());
-
-    if(!name || !category || !img1 || !priceStr) { failed++; continue; }
-
-    const price = parseFloat(priceStr);
-    if(!price) { failed++; continue; }
-
-    const data = {
-      name, category, price,
-      stock: parseInt(stockStr)||50,
-      image: img1,
-      images: [img1,img2,img3].filter(Boolean),
-      desc: desc||'',
-      sku: nextSku(),
-      fab: fab || '',
-      col: col || '',
-      status: 'Active',
-      featured: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    try {
-      if(db){
-        const ref = await db.collection('products').add(data);
-        data.id = ref.id;
-      } else {
-        data.id = 'bulk_' + Date.now();
-      }
-      products.unshift(data);
-      success++;
-    } catch(e){ failed++; }
-  }
-
-  T(`Bulk Upload Completed! Success: ${success}, Failed: ${failed}`);
-  closeBulkModal();
-  document.getElementById('bulkTextarea').value = '';
-  renderProducts();
-  renderDash();
-}</script>
+</script>
 </body>
 </html>
