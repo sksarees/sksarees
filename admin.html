@@ -95,18 +95,10 @@ input[type=number]{-moz-appearance:textfield}
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Revenue</div><div class="font-serif text-2xl font-extrabold text-blue-600 mt-1" id="dRev">₹0</div></div>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm"><div class="text-xs font-bold text-gray-400 uppercase">Low Stock</div><div class="font-serif text-3xl font-extrabold text-orange-500 mt-1" id="dLow">0</div></div>
       </div>
-      <div class="flex flex-wrap gap-3 mb-6">
-        <button onclick="goP('products');setTimeout(()=>openModal(),100)" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">+ Add Product</button>
-        <button onclick="goP('orders')" class="px-5 py-2.5 bg-brand-400 text-gray-900 rounded-xl font-bold text-sm">View Orders</button>
-        <button onclick="seedFS()" class="px-5 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm" title="First-time: push sample products to Firestore">🔥 Seed Products</button>
-        <button onclick="exportCSV()" class="px-5 py-2.5 border border-gray-200 rounded-xl font-bold text-sm">⬇️ Export CSV</button>
-      </div>
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
-        <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Recent Products</h3>
-        <div id="dRecent" class="space-y-2"></div>
-      </div>
-    </div>
-<!-- ====================== PRODUCT MODAL ====================== -->
+
+
+
+      <!-- ====================== PRODUCT MODAL ====================== -->
 <div id="pModal" class="fixed inset-0 z-[100] hidden">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
   <div class="absolute inset-0 overflow-y-auto flex items-start justify-center p-4 pt-8 sm:pt-12">
@@ -188,6 +180,19 @@ input[type=number]{-moz-appearance:textfield}
     </div>
   </div>
 </div>
+      
+      <div class="flex flex-wrap gap-3 mb-6">
+        <button onclick="goP('products');setTimeout(()=>openModal(),100)" class="px-5 py-2.5 bg-maroon-500 hover:bg-maroon-700 text-white rounded-xl font-bold text-sm shadow-lg">+ Add Product</button>
+        <button onclick="goP('orders')" class="px-5 py-2.5 bg-brand-400 text-gray-900 rounded-xl font-bold text-sm">View Orders</button>
+        <button onclick="seedFS()" class="px-5 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm" title="First-time: push sample products to Firestore">🔥 Seed Products</button>
+        <button onclick="exportCSV()" class="px-5 py-2.5 border border-gray-200 rounded-xl font-bold text-sm">⬇️ Export CSV</button>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Recent Products</h3>
+        <div id="dRecent" class="space-y-2"></div>
+      </div>
+    </div>
+
 
 <!-- ====================== BULK UPLOAD MODAL ====================== -->
 <div id="bulkModal" class="fixed inset-0 z-[110] hidden">
