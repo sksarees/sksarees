@@ -47,7 +47,7 @@ let activePromos = [];
 </script>
 
 <link rel="stylesheet" href="css/style2.css">
-<link rel="stylesheet" href="https://sksarees.github.io/sksarees/css/style.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -188,9 +188,111 @@ let activePromos = [];
 </header>
 
 <!-- ════════════════ PAGES ════════════════ -->
-
+<div class="cat-page-card" onclick="navigateToCategory('cotton-sarees')">
+  <img src="images/cotton-saree.jpg" alt="Cotton Sarees">
+  <h3>Cotton Sarees</h3>
+</div>
 <!-- HOME -->
+<div class="page active pb" id="page-home">
 
+  <!-- Hero -->
+  <div class="hero-wrap">
+    <div class="hero-slides" id="heroSlides">
+      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({cat:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-G btn-lg" onclick="filter({cat:'silk-sarees'})">View Silk Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-G btn-lg" onclick="go('categories')">Browse All</button></div></div></div>
+      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-G btn-lg" onclick="filter({cat:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
+    </div>
+    <button class="carousel-prev" onclick="slide(-1)">‹</button>
+    <button class="carousel-next" onclick="slide(1)">›</button>
+    <div class="carousel-dots" id="heroDots"></div>
+  </div>
+
+  <!-- Promo Strip -->
+  <div class="promo-strip">
+    <div class="promo-item"><div class="pi-icon">🚚</div><div><div class="pi-title">Free Shipping</div><div class="pi-sub">On orders above ₹999</div></div></div>
+    <div class="promo-item"><div class="pi-icon">↩️</div><div><div class="pi-title">Easy Returns</div><div class="pi-sub">7-day hassle-free returns</div></div></div>
+    <div class="promo-item"><div class="pi-icon">✅</div><div><div class="pi-title">100% Authentic</div><div class="pi-sub">Genuine fabric guaranteed</div></div></div>
+    <div class="promo-item"><div class="pi-icon">💬</div><div><div class="pi-title">WhatsApp Support</div><div class="pi-sub">Instant customer help</div></div></div>
+    <div class="promo-item"><div class="pi-icon">💵</div><div><div class="pi-title">COD Available</div><div class="pi-sub">Pay cash on delivery</div></div></div>
+  </div>
+
+  <!-- Flash Sale -->
+  <div class="sec"><div class="container">
+    <div class="flash-bar">
+      <div class="fb-left"><div class="fb-tag">⚡ LIMITED TIME OFFER</div><div class="fb-title">Up to 50% OFF</div><div class="fb-sub">On Selected Premium Sarees</div><div class="fb-timer" id="flashTimer"></div></div>
+      <div class="fb-right"><button class="btn btn-G btn-lg" onclick="filter({bestSeller:true})">Shop Sale Now</button></div>
+    </div>
+  </div></div>
+
+  <!-- Categories -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">Shop by Category</h2><span class="view-all" onclick="go('categories')">View All →</span></div>
+    <div class="cat-grid" id="homeCatGrid"></div>
+  </div></div>
+
+  <!-- Best Sellers -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title" data-t="sec.bestsellers">🔥 Best Sellers</h2><span class="view-all" onclick="filter({bestSeller:true})">View All →</span></div>
+    <div class="hscroll-row" id="bestSellersRow"></div>
+  </div></div>
+
+  <!-- Bridal Banner -->
+  <div class="sec sec-white"><div class="container">
+    <div class="bridal-banner" onclick="filter({catSlug:'bridal-sarees'})">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="Bridal Collection"/>
+      <div class="bb-overlay"></div>
+      <div class="bb-content">
+        <div class="bbc-tag">💍 EXCLUSIVE COLLECTION</div>
+        <h3>Bridal Sarees<br/>for Your Special Day</h3>
+        <p>Handcrafted Kanjeevaram &amp; Pure Silk bridal sarees<br/>with gold zari work – from ₹8,999</p>
+        <button class="btn btn-G">Explore Bridal →</button>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- Featured / Bridal products -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">💍 Featured Bridal</h2><span class="view-all" onclick="filter({catSlug:'bridal-sarees'})">View All →</span></div>
+    <div class="products-grid" id="featuredGrid"></div>
+  </div></div>
+
+  <!-- New Arrivals -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title" data-t="sec.new">✨ New Arrivals</h2><span class="view-all" onclick="filter({isNew:true})">View All →</span></div>
+    <div class="hscroll-row" id="newArrivalsRow"></div>
+  </div></div>
+
+  <!-- Offer Box -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="offer-box">
+      <div class="ob-icon">🎁</div>
+      <h3>First Order? Get 10% OFF!</h3>
+      <p>Use the code below at checkout to save on your first purchase</p>
+      <div class="ob-code">SKNEW10</div>
+      <button class="btn btn-G btn-lg" onclick="go('products')">Shop Now</button>
+    </div>
+  </div></div>
+
+  <!-- All Products -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">🛍️ All Products</h2><span class="view-all" onclick="go('products')">Browse All →</span></div>
+    <div class="products-grid" id="homeAllGrid"></div>
+    <div style="text-align:center;margin-top:28px;"><button class="btn btn-M btn-lg" onclick="go('products')">View All Sarees →</button></div>
+  </div></div>
+
+  <!-- Trust -->
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title" style="text-align:center;padding-bottom:10px;margin-bottom:20px;">Why Choose SK Sarees?</h2>
+    <div class="trust-grid">
+      <div class="trust-item"><div class="ti-icon">✅</div><div class="ti-title">100% Authentic</div><div class="ti-desc">Genuine certified fabric quality</div></div>
+      <div class="trust-item"><div class="ti-icon">🚚</div><div class="ti-title">Pan India Delivery</div><div class="ti-desc">3–7 business days nationwide</div></div>
+      <div class="trust-item"><div class="ti-icon">↩️</div><div class="ti-title">Easy 7-Day Returns</div><div class="ti-desc">Hassle-free return &amp; refund</div></div>
+      <div class="trust-item"><div class="ti-icon">💵</div><div class="ti-title">COD Available</div><div class="ti-desc">Pay cash when saree arrives</div></div>
+      <div class="trust-item"><div class="ti-icon">🔒</div><div class="ti-title">Secure Payments</div><div class="ti-desc">UPI, Card, Net Banking, COD</div></div>
+      <div class="trust-item"><div class="ti-icon">💬</div><div class="ti-title">WhatsApp Support</div><div class="ti-desc">Instant help 9 AM – 9 PM</div></div>
+    </div>
+  </div></div>
+</div><!-- /HOME -->
 
 <!-- CATEGORIES -->
 <div class="page pb" id="page-categories">
@@ -1828,6 +1930,21 @@ function closePopup(){
 
     document.getElementById("exitPopup").style.display = "none";
 
-}</script>
+}
+
+
+function navigateToCategory(catSlug){
+  // If you're using a single-page app
+  if(typeof changePage === 'function'){
+    changePage('products');
+    setTimeout(()=>{
+      filter({cat: catSlug});
+    }, 100);
+  } else {
+    // If separate pages
+    window.location.href = `products.html?cat=${catSlug}`;
+  }
+}
+</script>
 </body>
 </html>
