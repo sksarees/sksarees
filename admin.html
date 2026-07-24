@@ -230,22 +230,14 @@ input[type=number]{-moz-appearance:textfield}
     </div>
     
     <div class="p-6">
-      <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-sm">
-        <p class="font-semibold mb-2">📋 Instructions:</p>
-        <ol class="list-decimal ml-4 space-y-1">
-          <li>Download the CSV template</li>
-          <li>Fill in your product details</li>
-          <li>Upload the completed CSV file</li>
-          <li>Review and confirm the upload</li>
-        </ol>
-      </div>
-      
+  
+
       <div class="flex gap-3 mb-6">
         <button onclick="downloadTemplate()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 font-semibold flex items-center justify-center gap-2">
-          📥 Download CSV Template
+          📥 CSV Temp
         </button>
         <label class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2 cursor-pointer">
-          📂 Choose CSV File
+          📂 Upload CSV File
           <input type="file" id="csvFile" accept=".csv" onchange="handleFileSelect(event)" class="hidden"/>
         </label>
       </div>
@@ -729,9 +721,9 @@ function displayPreview(rows){
       </table>
     </div>
     <div class="mt-4 flex gap-2">
-      <button onclick="processBulkUpload()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">
-        📤 Upload All Products
-      </button>
+ <button onclick="processBulkUpload(event)" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">
+  📤 Upload All Products
+</button>
       <button onclick="closeBulkModal()" class="px-4 py-2 border rounded hover:bg-gray-100">
         Cancel
       </button>
@@ -741,27 +733,33 @@ function displayPreview(rows){
   preview.innerHTML=html;
 }
 
-async function processBulkUpload(){
+async function processBulkUpload(event){
   const file=document.getElementById('csvFile').files[0];
   if(!file){T('No file selected','warn');return}
   
-  const reader=new FileReader();
-  reader.onload=async function(e){
-    const text=e.target.result;
+  const btn=event?.target || document.querySelector('#bulkModal button[onclick*="processBulkUpload"]');
+  const originalText=btn.textContent;
+  
+  btn.disabled=true;
+  btn.textContent='⏳ Uploading...';
+  
+  try{
+    const text=await file.text();
     const lines=text.split('\n').filter(l=>l.trim());
-    const headers=lines[0].split(',').map(h=>h.trim());
     
+    if(lines.length<2){
+      T('CSV file is empty or invalid','err');
+      return;
+    }
+    
+    const headers=lines[0].split(',').map(h=>h.trim());
     let added=0,failed=0;
-    const btn=event.target;
-    btn.disabled=true;
-    btn.textContent='⏳ Uploading...';
     
     for(let i=1;i<lines.length;i++){
       const values=lines[i].split(',').map(v=>v.trim());
       const row={};
       headers.forEach((h,idx)=>{row[h]=values[idx]||''});
       
-      // Validate required fields
       if(!row.Name||!row.Category||!row.Price){
         failed++;
         continue;
@@ -772,7 +770,6 @@ async function processBulkUpload(){
       const disc=Math.max(0,Math.min(100,Math.round((1-price/op)*100)));
       const category=row.Category;
       const catSlug=category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-');
-      
       const images=[row.Image1,row.Image2,row.Image3].filter(Boolean);
       
       const data={
@@ -822,11 +819,31 @@ async function processBulkUpload(){
     }
     
     T(`✅ Bulk upload complete! Added: ${added}, Failed: ${failed}`);
-    closeBulkModal();
-    renderProducts();
-    renderDash();
-  };
-  reader.readAsText(file);
+    
+    setTimeout(()=>{
+      closeBulkModal();
+      renderProducts();
+      renderDash();
+    }, 1000);
+    
+  }catch(error){
+    console.error('Bulk upload error:',error);
+    T('Error processing CSV file','err');
+  }finally{
+    btn.disabled=false;
+    btn.textContent=originalText;
+  }
+}
+
+function closeBulkModal(){
+  const modal=document.getElementById('bulkModal');
+  if(modal){
+    modal.classList.remove('show','open');
+    modal.style.display='none';
+  }
+  const fileInput=document.getElementById('csvFile');
+  if(fileInput) fileInput.value='';
+  document.body.style.overflow='';
 }
 
  
