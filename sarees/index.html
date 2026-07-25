@@ -47,7 +47,7 @@ let activePromos = [];
 </script>
 
 <link rel="stylesheet" href="css/style2.css">
-<link rel="stylesheet" href="https://www.sksaree.shop/css/style.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -192,12 +192,37 @@ let activePromos = [];
 <!-- HOME -->
 <div class="page active pb" id="page-home">
 
+  <!-- Hero -->
+
+
+
+
+
   <!-- Categories -->
   <div class="sec sec-white"><div class="container">
     <div class="sec-hdr"><h2 class="sec-title">Shop by Category</h2><span class="view-all" onclick="go('categories')">View All →</span></div>
     <div class="cat-grid" id="homeCatGrid"></div>
   </div></div>
 
+  <!-- Best Sellers -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title" data-t="sec.bestsellers">🔥 Best Sellers</h2><span class="view-all" onclick="filter({bestSeller:true})">View All →</span></div>
+    <div class="hscroll-row" id="bestSellersRow"></div>
+  </div></div>
+
+  <!-- Bridal Banner -->
+  <div class="sec sec-white"><div class="container">
+    <div class="bridal-banner" onclick="filter({catSlug:'bridal-sarees'})">
+      <img src="https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="Bridal Collection"/>
+      <div class="bb-overlay"></div>
+      <div class="bb-content">
+        <div class="bbc-tag">💍 EXCLUSIVE COLLECTION</div>
+        <h3>Bridal Sarees<br/>for Your Special Day</h3>
+        <p>Handcrafted Kanjeevaram &amp; Pure Silk bridal sarees<br/>with gold zari work – from ₹8,999</p>
+        <button class="btn btn-G">Explore Bridal →</button>
+      </div>
+    </div>
+  </div></div>
 
   <!-- Featured / Bridal products -->
   <div class="sec sec-cream"><div class="container">
@@ -205,8 +230,43 @@ let activePromos = [];
     <div class="products-grid" id="featuredGrid"></div>
   </div></div>
 
+  <!-- New Arrivals -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title" data-t="sec.new">✨ New Arrivals</h2><span class="view-all" onclick="filter({isNew:true})">View All →</span></div>
+    <div class="hscroll-row" id="newArrivalsRow"></div>
+  </div></div>
 
+  <!-- Offer Box -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="offer-box">
+      <div class="ob-icon">🎁</div>
+      <h3>First Order? Get 10% OFF!</h3>
+      <p>Use the code below at checkout to save on your first purchase</p>
+      <div class="ob-code">SKNEW10</div>
+      <button class="btn btn-G btn-lg" onclick="go('products')">Shop Now</button>
+    </div>
+  </div></div>
 
+  <!-- All Products -->
+  <div class="sec sec-white"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">🛍️ All Products</h2><span class="view-all" onclick="go('products')">Browse All →</span></div>
+    <div class="products-grid" id="homeAllGrid"></div>
+    <div style="text-align:center;margin-top:28px;"><button class="btn btn-M btn-lg" onclick="go('products')">View All Sarees →</button></div>
+  </div></div>
+
+  <!-- Trust -->
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title" style="text-align:center;padding-bottom:10px;margin-bottom:20px;">Why Choose SK Sarees?</h2>
+    <div class="trust-grid">
+      <div class="trust-item"><div class="ti-icon">✅</div><div class="ti-title">100% Authentic</div><div class="ti-desc">Genuine certified fabric quality</div></div>
+      <div class="trust-item"><div class="ti-icon">🚚</div><div class="ti-title">Pan India Delivery</div><div class="ti-desc">3–7 business days nationwide</div></div>
+      <div class="trust-item"><div class="ti-icon">↩️</div><div class="ti-title">Easy 7-Day Returns</div><div class="ti-desc">Hassle-free return &amp; refund</div></div>
+      <div class="trust-item"><div class="ti-icon">💵</div><div class="ti-title">COD Available</div><div class="ti-desc">Pay cash when saree arrives</div></div>
+      <div class="trust-item"><div class="ti-icon">🔒</div><div class="ti-title">Secure Payments</div><div class="ti-desc">UPI, Card, Net Banking, COD</div></div>
+      <div class="trust-item"><div class="ti-icon">💬</div><div class="ti-title">WhatsApp Support</div><div class="ti-desc">Instant help 9 AM – 9 PM</div></div>
+    </div>
+  </div></div>
+</div><!-- /HOME -->
 
 <!-- CATEGORIES -->
 <div class="page pb" id="page-categories">
@@ -260,18 +320,92 @@ let activePromos = [];
 </div><!-- /PRODUCTS -->
 
 <!-- PRODUCT DETAIL -->
-<div class="page pb active" id="page-detail">
+<div class="page pb" id="page-detail">
   <div class="sec"><div class="container">
     <button class="back-btn" onclick="goBack()">← Back</button>
     <div id="detailContent"></div>
   </div></div>
 </div><!-- /DETAIL -->
 
+<!-- CART -->
+<div class="page pb" id="page-cart">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title" id="cartTitle">My Cart</h1>
+    <div id="freeDelStrip" class="free-del-strip" style="display:none;margin-bottom:16px;border-radius:var(--RAD-SM);"></div>
+    <div id="cartMain"></div>
+  </div></div>
+</div><!-- /CART -->
 
+<!-- CHECKOUT -->
+<div class="page pb" id="page-checkout">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">Checkout</h1>
+    <div id="checkoutContent"></div>
+  </div></div>
+</div><!-- /CHECKOUT -->
 
+<!-- ORDERS -->
+<div class="page pb" id="page-orders">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">📦 My Orders</h1>
+    <div id="ordersContent"></div>
+  </div></div>
+</div><!-- /ORDERS -->
 
+<!-- WISHLIST -->
+<div class="page pb" id="page-wishlist">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">❤️ My Wishlist</h1>
+    <div id="wishContent"></div>
+  </div></div>
+</div><!-- /WISHLIST -->
 
-
+<!-- PROFILE -->
+<div class="page pb" id="page-profile">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">My Account</h1>
+    <div class="profile-layout">
+      <div>
+        <div class="profile-card">
+          <div class="profile-hero-bg">
+            <div class="p-avatar" id="pAvatar">👤</div>
+            <div class="p-name" id="pName">Guest Customer</div>
+            <div class="p-phone" id="pPhone">Not logged in</div>
+            <button class="p-edit-btn" id="pEditBtn" onclick="openAuth()">📱 Login / Sign Up</button>
+          </div>
+          <div class="p-stats">
+            <div class="p-stat"><div class="ps-icon">🛒</div><div class="ps-val" id="pStatCart">0</div><div class="ps-lbl">Cart</div></div>
+            <div class="p-stat"><div class="ps-icon">❤️</div><div class="ps-val" id="pStatWish">0</div><div class="ps-lbl">Wishlist</div></div>
+            <div class="p-stat"><div class="ps-icon">📦</div><div class="ps-val" id="pStatOrders">0</div><div class="ps-lbl">Orders</div></div>
+          </div>
+          <div id="profileAuthStrip" style="padding:14px;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="profile-card" style="margin-bottom:16px;">
+          <div class="menu-list">
+            <div class="menu-item" onclick="go('orders')"><span class="mi-icon">📦</span><div class="mi-text"><div class="mt-title">My Orders</div><div class="mt-desc">Track and view order history</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="go('wishlist')"><span class="mi-icon">❤️</span><div class="mi-text"><div class="mt-title">My Wishlist</div><div class="mt-desc">Saved items for later</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="go('cart')"><span class="mi-icon">🛒</span><div class="mi-text"><div class="mt-title">My Cart</div><div class="mt-desc">Items ready to checkout</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="toast('Language: English | தமிழ் – Coming soon!','info')"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About SK Sarees</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:20px;box-shadow:var(--SHADOW);">
+          <h3 style="font-size:.85rem;font-weight:800;color:var(--M);margin-bottom:14px;">📞 Contact Us</h3>
+          <div style="font-size:.82rem;color:#555;line-height:2.2;">
+            📞 <strong>+91 78679 15699</strong><br/>
+            📧 <strong>sk7867915699@gmail.com</strong><br/>
+            📍 2/130, Thoothanoor, Edanganasalai Post,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ilampillai Via, Salem – 637502<br/>
+            🕐 Mon–Sat: 9 AM – 9 PM
+          </div>
+          <button class="btn btn-wa btn-full" style="margin-top:14px;" onclick="openWA()">💬 Chat on WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div><!-- /PROFILE -->
 
 <!-- FOOTER -->
 <footer class="site-footer">
@@ -329,8 +463,8 @@ let activePromos = [];
 <!-- BOTTOM NAV (mobile) -->
 <nav class="bottom-nav">
   <div class="bn-inner">
-    <button class="bn-item" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label" data-t="nav.home">Home</span></button>
-    <button class="bn-item active" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label" data-t="nav.categories">Categories</span></button>
+    <button class="bn-item active" id="bn-home" onclick="go('home')"><span class="bn-icon">🏠</span><span class="bn-label" data-t="nav.home">Home</span></button>
+    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label" data-t="nav.categories">Categories</span></button>
     <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label" data-t="nav.cart">Cart</span><span class="bn-badge" id="bnCartBadge">0</span></button>
     <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label" data-t="nav.orders">Orders</span></button>
     <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label" data-t="nav.profile">Profile</span></button>
