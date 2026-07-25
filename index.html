@@ -205,21 +205,10 @@ let activePromos = [];
   </div>
 
   <!-- Promo Strip -->
-  <div class="promo-strip">
-    <div class="promo-item"><div class="pi-icon">🚚</div><div><div class="pi-title">Free Shipping</div><div class="pi-sub">On orders above ₹999</div></div></div>
-    <div class="promo-item"><div class="pi-icon">↩️</div><div><div class="pi-title">Easy Returns</div><div class="pi-sub">7-day hassle-free returns</div></div></div>
-    <div class="promo-item"><div class="pi-icon">✅</div><div><div class="pi-title">100% Authentic</div><div class="pi-sub">Genuine fabric guaranteed</div></div></div>
-    <div class="promo-item"><div class="pi-icon">💬</div><div><div class="pi-title">WhatsApp Support</div><div class="pi-sub">Instant customer help</div></div></div>
-    <div class="promo-item"><div class="pi-icon">💵</div><div><div class="pi-title">COD Available</div><div class="pi-sub">Pay cash on delivery</div></div></div>
-  </div>
+ 
 
   <!-- Flash Sale -->
-  <div class="sec"><div class="container">
-    <div class="flash-bar">
-      <div class="fb-left"><div class="fb-tag">⚡ LIMITED TIME OFFER</div><div class="fb-title">Up to 50% OFF</div><div class="fb-sub">On Selected Premium Sarees</div><div class="fb-timer" id="flashTimer"></div></div>
-      <div class="fb-right"><button class="btn btn-G btn-lg" onclick="filter({bestSeller:true})">Shop Sale Now</button></div>
-    </div>
-  </div></div>
+
 
   <!-- Categories -->
   <div class="sec sec-white"><div class="container">
@@ -411,7 +400,7 @@ let activePromos = [];
             <div class="menu-item" onclick="go('wishlist')"><span class="mi-icon">❤️</span><div class="mi-text"><div class="mt-title">My Wishlist</div><div class="mt-desc">Saved items for later</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="go('cart')"><span class="mi-icon">🛒</span><div class="mi-text"><div class="mt-title">My Cart</div><div class="mt-desc">Items ready to checkout</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
-            <div class="menu-item" onclick="toast('Language: English | தமிழ் – Coming soon!','info')"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="toggleLang()" id="langBtn"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
             <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About SK Sarees</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
           </div>
         </div>
@@ -918,7 +907,7 @@ function switchImg(src,el){document.getElementById('dMainImg').src=src;document.
 function shareP(){
   const p=gP(curProd);if(!p)return;
   // Build a clean shareable link that opens THIS product directly using SKU
-  const link=location.origin+'/sksarees/#product/'+p.sku;
+  const link=location.origin+'/#product/'+p.sku;
   const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
   if(navigator.share){
     navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
@@ -929,7 +918,7 @@ function shareP(){
 }
 function copyProductLink(){
   const p=gP(curProd);if(!p)return;
-  const link=location.origin+'/sksarees/#product/'+p.sku;
+  const link=location.origin+'/#product/'+p.sku;
   if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('🔗 Product link copied!')).catch(()=>toast('Link: '+link));}
   else toast('Link: '+link);
 }
@@ -1114,7 +1103,7 @@ function whatsappOrder(){
   const {tot,del,codCharge,disc,fin}=cartTotals();
   const NL='\n';
   const baseUrl=location.origin;
-  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/sksarees/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
+  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
   const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Subtotal: ${fmt(tot)}*${NL}*Delivery: ${del===0?'FREE':fmt(del)}*${NL}${payM==='cod'?`*COD Charge: ${fmt(codCharge)}*${NL}`:''}${disc>0?`*Discount: -${fmt(disc)}*${NL}`:''}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
   // Save order first, then open WhatsApp with properly-encoded message
   placeOrder('whatsapp','pending',true);
@@ -1294,7 +1283,7 @@ function orderViaWhatsApp(sku){
   if(!p)return;
   const ph='917867915699';
   const baseUrl=location.origin;
-  const link=baseUrl+'/sksarees/#product/'+p.sku;
+  const link=baseUrl+'/#product/'+p.sku;
   const msg=`Hi! I want to order this product from SK Sarees:\n\n*${p.name}*\nSKU: ${p.sku}\nPrice: ${fmt(p.price)}\n\nProduct Link: ${link}\n\nPlease confirm availability and delivery details.`;
   window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
 }
