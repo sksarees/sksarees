@@ -193,10 +193,21 @@ let activePromos = [];
 <div class="page active pb" id="page-home">
 
   <!-- Hero -->
+  <div class="hero-wrap">
+    <div class="hero-slides" id="heroSlides">
+      <div class="hero-slide"><img id="hImg0" alt="Wedding Sale"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🔥 HOT DEAL</div><h1>Wedding Season<br/>Grand Sale</h1><p>Up to 50% Off on Bridal &amp; Silk Saree Collection</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({cat:'bridal-sarees'})">Shop Bridal</button><button class="btn btn-G btn-lg" onclick="filter({cat:'silk-sarees'})">View Silk Sarees</button></div></div></div>
+      <div class="hero-slide"><img id="hImg1" alt="New Arrivals"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">✨ NEW</div><h1>Fresh Arrivals<br/>Every Week</h1><p>Discover our latest Cotton &amp; Georgette Saree collections</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({isNew:true})">New Arrivals</button><button class="btn btn-G btn-lg" onclick="go('categories')">Browse All</button></div></div></div>
+      <div class="hero-slide"><img id="hImg2" alt="Diwali Special"/><div class="hero-overlay"></div><div class="hero-content"><div class="hero-badge-pill">🪔 FESTIVAL</div><h1>Diwali Special<br/>Collection</h1><p>Celebrate in style with our festive Art Silk &amp; Fancy Sarees</p><div class="hero-cta-row"><button class="btn btn-G btn-lg" onclick="filter({occasion:'Festival'})">Festival Sarees</button><button class="btn btn-G btn-lg" onclick="filter({cat:'fancy-sarees'})">Fancy Sarees</button></div></div></div>
+    </div>
+    <button class="carousel-prev" onclick="slide(-1)">‹</button>
+    <button class="carousel-next" onclick="slide(1)">›</button>
+    <div class="carousel-dots" id="heroDots"></div>
+  </div>
 
+  <!-- Promo Strip -->
 
-
-
+  <!-- Flash Sale -->
+  
 
   <!-- Categories -->
   <div class="sec sec-white"><div class="container">
