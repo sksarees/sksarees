@@ -46,7 +46,7 @@ const BIZ = {
 let activePromos = [];
 </script>
 
-<link rel="stylesheet" href="https://sksarees.github.io/sksarees/css/style.css">
+<link rel="stylesheet" href="css/style.css">
 
 </head>
 <body>
@@ -174,12 +174,12 @@ let activePromos = [];
     <div class="nav-inner">
       <span class="nav-link active" id="nl-home" onclick="window.location.href='https://www.sksaree.shop/'" data-t="nav.homenav">🏠 Home</span>
       <span class="nav-link" id="nl-categories" onclick="go('categories')" data-t="nav.allcat">🏷️ All Categories</span>
-      <span class="nav-link" onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</span>
-      <span class="nav-link" onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</span>
-      <span class="nav-link" onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</span>
-      <span class="nav-link" onclick="filter({catSlug:'art-silk-sarees'})">Art Silk</span>
-      <span class="nav-link" onclick="filter({catSlug:'georgette-sarees'})">Georgette</span>
-      <span class="nav-link" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</span>
+      <span class="nav-link" onclick="window.location.href='https://www.sksaree.shop/cotton-sarees.html'">Cotton Sarees</span>
+      <span class="nav-link" onclick="window.location.href='https://www.sksaree.shop/silk-sarees.html'">Silk Sarees</span>
+	  <span class="nav-link" onclick="window.location.href='https://www.sksaree.shop/bridal-sarees.html'">Bridal Sarees</span>
+	    <span class="nav-link" onclick="window.location.href='https://www.sksaree.shop/art-silk-sarees.html'">Art Silk</span>
+		  <span class="nav-link" onclick="window.location.href='https://www.sksaree.shop/georgette-saress.html'">Georgette</span>
+		    <span class="nav-link" onclick="window.location.href='https://www.sksaree.shop/fancy-sarees.html'">Fancy Sarees</span>
       <span class="nav-link" onclick="filter({bestSeller:true})" data-t="nav.bestsellers">🔥 Best Sellers</span>
       <span class="nav-link" onclick="filter({isNew:true})" data-t="nav.newarrivals">✨ New Arrivals</span>
       <span class="nav-link" id="nl-orders" onclick="go('orders')">📦 My Orders</span>
@@ -217,7 +217,7 @@ let activePromos = [];
 
   <!-- Featured / Bridal products -->
   <div class="sec sec-cream"><div class="container">
-    <div class="sec-hdr"><h2 class="sec-title">💍 Cotton Sarees </h2><span class="view-all" onclick="filter({catSlug:'bridal-sarees'})">View All →</span></div>
+    <div class="sec-hdr"><h2 class="sec-title">💍 Cotton Sarees </h2><span class="view-all" onclick="go('categories')">View All →</span></div>
     <div class="products-grid" id="featuredGrid"></div>
   </div></div>
 
