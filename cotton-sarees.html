@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SK Sarees – Elegant Sarees at Best Price | Best Price Sarees</title>
+<meta name="description" content="SK Sarees – Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees. Authentic quality at affordable prices. Shop online with COD available."/>
+<meta name="keywords" content="sarees online, silk sarees, cotton sarees, bridal sarees, kanchipuram sarees, SK Sarees"/>
+<meta name="theme-color" content="#7B1C1C"/>
+<meta property="og:title" content="SK Sarees – Elegant Sarees at Best Price"/>
+<meta property="og:description" content="Premium Cotton, Silk, Bridal, Art Silk, Georgette & Fancy Sarees at Affordable Prices"/>
+<meta property="og:type" content="website"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- QR Code generator (for UPI QR payment) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+/* ── FIREBASE CONFIG ── Replace with YOUR values from console.firebase.google.com ── */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC351uS2-LkxIeDNCqhScnlGzHjoJ9KkOY",
+  authDomain: "sksareesapp.firebaseapp.com",
+  projectId: "sksareesapp",
+  storageBucket: "sksareesapp.firebasestorage.app",
+  messagingSenderId: "774983284365",
+  appId: "1:774983284365:web:e03c9b2337d041986fd4c4"
+};
+const FB_ON = !!FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("YOUR_")!==0;
+if(FB_ON) firebase.initializeApp(FIREBASE_CONFIG);
+window.FB_DB = FB_ON ? firebase.firestore() : null;
+
+/* ── BUSINESS & PAYMENT CONFIG ── */
+const BIZ = {
+  name: "SK Sarees",
+  whatsapp: "917867915699",       // WhatsApp number (no +)
+  email: "sk7867915699@gmail.com",
+  upiId: "sk7867915699-1@oksbi",  // UPI ID for QR payments
+  upiName: "SK Sarees"
+};
+
+/* ── PROMO CODES (loaded from Firestore) ── */
+let activePromos = [];
+</script>
+
+<link rel="stylesheet" href="https://sksarees.github.io/sksarees/css/style.css">
+
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastEl"></div>
+
+<!-- WA FLOAT -->
+<button class="wa-float" onclick="openWA()" aria-label="WhatsApp">
+  <svg width="27" height="27" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</button>
+
+<!-- AUTH MODAL -->
+<div class="modal-bg" id="authModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div class="modal-hdr">
+        <div class="modal-logo">SK</div>
+        <h2>SK Sarees</h2>
+        <p>Login for exclusive offers &amp; order tracking</p>
+      </div>
+      <!-- AUTH TABS -->
+      <div style="display:flex;border-bottom:2px solid #eee;margin-bottom:16px;">
+        <button id="tabEmail" onclick="showAuthTab('email')" style="flex:1;padding:10px;border:none;background:none;font-weight:700;font-size:.85rem;color:var(--M);border-bottom:3px solid var(--M);cursor:pointer;">📧 Email Login</button>
+        <button id="tabPhone" onclick="showAuthTab('phone')" style="flex:1;padding:10px;border:none;background:none;font-weight:700;font-size:.85rem;color:#aaa;border-bottom:3px solid transparent;cursor:pointer;">📱 Phone OTP</button>
+      </div>
+
+      <!-- Step Email -->
+      <div class="auth-step show" id="stepEmail">
+        <div class="fg" style="margin-bottom:10px"><label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:5px;">Email Address *</label><input id="emailInput" type="email" placeholder="your@email.com" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:.9rem;" onkeydown="if(event.key==='Enter')emailLogin()"/></div>
+        <div class="fg" style="margin-bottom:14px"><label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:5px;">Password *</label><input id="passInput" type="password" placeholder="Min 6 characters" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:.9rem;" onkeydown="if(event.key==='Enter')emailLogin()"/></div>
+        <button class="auth-cta" id="emailLoginBtn" onclick="emailLogin()">🔐 Login / Sign Up</button>
+        <p style="text-align:center;font-size:.7rem;color:#aaa;margin-top:8px;">Auto-creates account if new email</p>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span><div style="flex:1;height:1px;background:#eee"></div></div>
+        <button onclick="closeAuth()" style="width:100%;padding:12px;background:#f5f5f5;border:none;border-radius:10px;font-size:.88rem;color:#666;font-weight:600;cursor:pointer;">Continue as Guest</button>
+      </div>
+
+      <!-- Step Phone -->
+      <div class="auth-step" id="stepPhone">
+        <label style="font-size:.73rem;font-weight:700;color:#555;display:block;margin-bottom:7px;">Mobile Number *</label>
+        <div class="phone-row">
+          <div class="ph-code">🇮🇳 +91</div>
+          <input class="ph-input" id="phoneInput" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);validatePhone()" onkeydown="if(event.key==='Enter')sendOTP()"/>
+        </div>
+        <div id="recap-container"></div>
+        <p class="recap-hint">Protected by Google reCAPTCHA</p>
+        <button class="auth-cta" id="sendOTPBtn" onclick="sendOTP()" disabled>Send OTP →</button>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span style="font-size:.72rem;color:#bbb;font-weight:700">OR</span><div style="flex:1;height:1px;background:#eee"></div></div>
+        <button onclick="closeAuth()" style="width:100%;padding:12px;background:#f5f5f5;border:none;border-radius:10px;font-size:.88rem;color:#666;font-weight:600;cursor:pointer;">Continue as Guest</button>
+      </div>
+      <!-- Step OTP -->
+      <div class="auth-step" id="stepOTP">
+        <div style="text-align:center;margin-bottom:16px;"><div style="font-size:2rem;margin-bottom:6px;">📨</div><div style="font-size:.95rem;font-weight:700;">OTP Sent!</div><div id="otpSentTo" style="font-size:.8rem;color:#666;margin-top:4px;"></div></div>
+        <div class="otp-row" id="otpRow">
+          <input class="otp-box" type="tel" maxlength="1" id="o0" oninput="oi(0)" onkeydown="ok(event,0)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o1" oninput="oi(1)" onkeydown="ok(event,1)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o2" oninput="oi(2)" onkeydown="ok(event,2)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o3" oninput="oi(3)" onkeydown="ok(event,3)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o4" oninput="oi(4)" onkeydown="ok(event,4)"/>
+          <input class="otp-box" type="tel" maxlength="1" id="o5" oninput="oi(5)" onkeydown="ok(event,5)"/>
+        </div>
+        <div class="resend-row"><span id="timerTxt">Resend in <span id="countdown" style="color:var(--G);font-weight:800;">60s</span></span><button class="resend-btn" id="resendBtn" disabled onclick="resendOTP()">Resend OTP</button></div>
+        <button class="auth-cta" id="verifyBtn" onclick="verifyOTP()" disabled>✅ Verify &amp; Login</button>
+        <button onclick="backToPhone()" style="width:100%;padding:11px;background:none;border:none;font-size:.82rem;color:#888;cursor:pointer;margin-top:10px;">← Change Number</button>
+      </div>
+      <!-- Step Success -->
+      <div class="auth-step" id="stepSuccess">
+        <div style="text-align:center;padding:10px 0 16px;">
+          <div class="succ-tick">✅</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.25rem;color:var(--M);font-weight:700;margin-bottom:5px;">Welcome to SK Sarees!</div>
+          <div id="succName" style="font-size:.85rem;color:#555;margin-bottom:4px;"></div>
+          <div id="succPhone" style="font-size:.8rem;color:#888;margin-bottom:12px;"></div>
+          <div id="verifyNotice" style="display:none;background:#fff3e0;border:1px solid #ffb74d;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.78rem;color:#e65100;line-height:1.5;">
+            📧 A verification link has been sent to your email. Please check your inbox (and spam folder) and click the link to verify.
+            <button onclick="resendVerify()" id="resendVerifyBtn" style="display:block;width:100%;margin-top:8px;padding:8px;background:#fff;border:1px solid #ffb74d;border-radius:8px;font-size:.75rem;font-weight:700;color:#e65100;cursor:pointer;">🔄 Resend Verification Email</button>
+          </div>
+          <div style="background:var(--GP);border:1px solid var(--G);border-radius:10px;padding:12px;margin-bottom:16px;font-size:.82rem;color:var(--M);font-weight:700;">🎁 Use code <strong>SKNEW10</strong> for 10% off your first order!</div>
+          <button class="auth-cta" onclick="closeAuth()">🛍️ Start Shopping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<div class="announce">
+  <div class="announce-inner">
+    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>📦 COD Available · பணம் செலுத்துதல்</span><span>💬 WhatsApp: +91 78679 15699</span>
+    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>📦 COD Available · பணம் செலுத்துதல்</span><span>💬 WhatsApp: +91 78679 15699</span>
+  </div>
+</div>
+<header class="site-header">
+  <div class="header-main">
+    <div class="logo-wrap" onclick="window.location.href='https://www.sksaree.shop/'">
+      <div class="logo-ring">SK</div>
+      <div class="logo-text"><div class="brand">SK Sarees</div><div class="tag">புடவை கடை · Best Prices</div></div>
+    </div>
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search sarees…" data-tp="search.ph" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button onclick="doSearch()" data-t="search.btn">🔍 Search</button>
+      </div>
+    </div>
+    <div class="hdr-actions">
+      <button class="hdr-btn" onclick="toggleLang()" id="langBtn" title="Language">
+        <span class="hb-icon">🌐</span><span class="hb-label" id="langLabel">தமிழ்</span>
+      </button>
+      <button class="hdr-btn" onclick="openAuth()" id="loginBtn" title="Login / Account">
+        <span class="hb-icon">👤</span><span class="hb-label" id="hdrUserLabel">Login</span>
+      </button>
+      <button class="hdr-btn" onclick="go('wishlist')" title="Wishlist">
+        <span class="hb-icon">🤍</span><span class="hb-label">Wishlist</span>
+        <span class="hdr-badge" id="wBadge">0</span>
+      </button>
+      <button class="hdr-btn" onclick="go('cart')" title="Cart">
+        <span class="hb-icon">🛒</span><span class="hb-label">Cart</span>
+        <span class="hdr-badge" id="cBadge">0</span>
+      </button>
+      <button class="hdr-btn hdr-btn-orders" onclick="go('orders')" title="Orders"><span class="hb-icon">📦</span><span class="hb-label">Orders</span></button>
+      <button class="hdr-btn hdr-btn-profile" onclick="go('profile')" title="Profile"><span class="hb-icon">⚙️</span><span class="hb-label">Profile</span></button>
+    </div>
+  </div>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <span class="nav-link active" id="nl-home" onclick="window.location.href='https://www.sksaree.shop/'" data-t="nav.homenav">🏠 Home</span>
+      <span class="nav-link" id="nl-categories" onclick="go('categories')" data-t="nav.allcat">🏷️ All Categories</span>
+      <span class="nav-link" onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</span>
+      <span class="nav-link" onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</span>
+      <span class="nav-link" onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</span>
+      <span class="nav-link" onclick="filter({catSlug:'art-silk-sarees'})">Art Silk</span>
+      <span class="nav-link" onclick="filter({catSlug:'georgette-sarees'})">Georgette</span>
+      <span class="nav-link" onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</span>
+      <span class="nav-link" onclick="filter({bestSeller:true})" data-t="nav.bestsellers">🔥 Best Sellers</span>
+      <span class="nav-link" onclick="filter({isNew:true})" data-t="nav.newarrivals">✨ New Arrivals</span>
+      <span class="nav-link" id="nl-orders" onclick="go('orders')">📦 My Orders</span>
+    </div>
+  </nav>
+</header>
+
+<!-- ════════════════ PAGES ════════════════ -->
+
+<!-- HOME -->
+<div class="page active pb" id="page-home">
+
+  <!-- Hero -->
+  
+  <div class="hero-wrap">
+    <div class="hero-slides" id="heroSlides">
+	
+	
+     
+    </div>
+ 
+    <div class="carousel-dots" id="heroDots"></div>
+  </div>
+
+  <!-- Promo Strip -->
+
+  <!-- Flash Sale -->
+
+  <!-- Categories -->
+
+
+  <!-- Best Sellers -->
+
+
+
+  <!-- Featured / Bridal products -->
+  <div class="sec sec-cream"><div class="container">
+    <div class="sec-hdr"><h2 class="sec-title">💍 Cotton Sarees </h2><span class="view-all" onclick="filter({catSlug:'bridal-sarees'})">View All →</span></div>
+    <div class="products-grid" id="featuredGrid"></div>
+  </div></div>
+
+  <!-- New Arrivals -->
+
+  <!-- Offer Box -->
+ 
+
+  <!-- All Products -->
+
+
+  <!-- Trust -->
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title" style="text-align:center;padding-bottom:10px;margin-bottom:20px;">Why Choose SK Sarees?</h2>
+    <div class="trust-grid">
+      <div class="trust-item"><div class="ti-icon">✅</div><div class="ti-title">100% Authentic</div><div class="ti-desc">Genuine certified fabric quality</div></div>
+      <div class="trust-item"><div class="ti-icon">🚚</div><div class="ti-title">Pan India Delivery</div><div class="ti-desc">3–7 business days nationwide</div></div>
+      <div class="trust-item"><div class="ti-icon">↩️</div><div class="ti-title">Easy 7-Day Returns</div><div class="ti-desc">Hassle-free return &amp; refund</div></div>
+      <div class="trust-item"><div class="ti-icon">💵</div><div class="ti-title">COD Available</div><div class="ti-desc">Pay cash when saree arrives</div></div>
+      <div class="trust-item"><div class="ti-icon">🔒</div><div class="ti-title">Secure Payments</div><div class="ti-desc">UPI, Card, Net Banking, COD</div></div>
+      <div class="trust-item"><div class="ti-icon">💬</div><div class="ti-title">WhatsApp Support</div><div class="ti-desc">Instant help 9 AM – 9 PM</div></div>
+    </div>
+  </div></div>
+</div><!-- /HOME -->
+
+<!-- CATEGORIES -->
+<div class="page pb" id="page-categories">
+  <div class="sec sec-white"><div class="container">
+    <h1 class="sec-title">Shop by Category</h1>
+    <div class="cats-page-grid" id="catsPageGrid"></div>
+  </div></div>
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title">Shop by Occasion</h2>
+    <div class="occasion-grid" id="occGrid"></div>
+  </div></div>
+  <div class="sec sec-white"><div class="container">
+    <h2 class="sec-title">Shop by Fabric</h2>
+    <div class="fabric-chips" id="fabChips"></div>
+  </div></div>
+  <div class="sec sec-cream"><div class="container">
+    <h2 class="sec-title">Shop by Price</h2>
+    <div class="price-btns" id="priceBtns"></div>
+  </div></div>
+</div><!-- /CATEGORIES -->
+
+<!-- PRODUCTS LIST -->
+<div class="page pb" id="page-products">
+  <div class="sec"><div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div><h1 class="sec-title" id="productsTitle" style="margin-bottom:4px;">All Sarees</h1><div style="font-size:.8rem;color:var(--MUTED);" id="productsCount">Loading…</div></div>
+      <button class="back-btn" onclick="window.location.href='https://www.sksaree.shop/'">← Back to Home</button>
+    </div>
+    <div class="filter-wrap">
+      <div class="filter-row">
+        <button class="filter-btn" id="filterToggle" onclick="toggleFilters()">🔽 Filters</button>
+        <select class="sort-sel" id="sortSel" onchange="applyFilters()">
+          <option value="default">Sort: Relevance</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="newest">Newest First</option>
+        </select>
+        <button class="filter-btn" id="vgBtn" onclick="setView('grid')" style="margin-left:auto;">⊞ Grid</button>
+        <button class="filter-btn" id="vlBtn" onclick="setView('list')">≡ List</button>
+      </div>
+    </div>
+    <div class="filter-panel" id="filterPanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><span style="font-weight:800;color:var(--M);font-size:.9rem;">Filter Products</span><button onclick="clearFilters()" style="color:var(--G);font-size:.8rem;font-weight:700;background:none;border:none;cursor:pointer;">Clear All</button></div>
+      <div class="fp-section"><div class="fp-label">Fabric</div><div class="fp-chips" id="fFabric"></div></div>
+      <div class="fp-section"><div class="fp-label">Occasion</div><div class="fp-chips" id="fOccasion"></div></div>
+      <div class="fp-section"><div class="fp-label">Price Range</div><div class="price-range-inputs"><input type="number" id="minP" placeholder="Min ₹" oninput="applyFilters()"/><span style="color:#999">–</span><input type="number" id="maxP" placeholder="Max ₹" oninput="applyFilters()"/></div></div>
+    </div>
+    <div id="productsContainer"></div>
+  </div></div>
+</div><!-- /PRODUCTS -->
+
+<!-- PRODUCT DETAIL -->
+<div class="page pb" id="page-detail">
+  <div class="sec"><div class="container">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <div id="detailContent"></div>
+  </div></div>
+</div><!-- /DETAIL -->
+
+<!-- CART -->
+<div class="page pb" id="page-cart">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title" id="cartTitle">My Cart</h1>
+    <div id="freeDelStrip" class="free-del-strip" style="display:none;margin-bottom:16px;border-radius:var(--RAD-SM);"></div>
+    <div id="cartMain"></div>
+  </div></div>
+</div><!-- /CART -->
+
+<!-- CHECKOUT -->
+<div class="page pb" id="page-checkout">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">Checkout</h1>
+    <div id="checkoutContent"></div>
+  </div></div>
+</div><!-- /CHECKOUT -->
+
+<!-- ORDERS -->
+<div class="page pb" id="page-orders">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">📦 My Orders</h1>
+    <div id="ordersContent"></div>
+  </div></div>
+</div><!-- /ORDERS -->
+
+<!-- WISHLIST -->
+<div class="page pb" id="page-wishlist">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">❤️ My Wishlist</h1>
+    <div id="wishContent"></div>
+  </div></div>
+</div><!-- /WISHLIST -->
+
+<!-- PROFILE -->
+<div class="page pb" id="page-profile">
+  <div class="sec"><div class="container">
+    <h1 class="sec-title">My Account</h1>
+    <div class="profile-layout">
+      <div>
+        <div class="profile-card">
+          <div class="profile-hero-bg">
+            <div class="p-avatar" id="pAvatar">👤</div>
+            <div class="p-name" id="pName">Guest Customer</div>
+            <div class="p-phone" id="pPhone">Not logged in</div>
+            <button class="p-edit-btn" id="pEditBtn" onclick="openAuth()">📱 Login / Sign Up</button>
+          </div>
+          <div class="p-stats">
+            <div class="p-stat"><div class="ps-icon">🛒</div><div class="ps-val" id="pStatCart">0</div><div class="ps-lbl">Cart</div></div>
+            <div class="p-stat"><div class="ps-icon">❤️</div><div class="ps-val" id="pStatWish">0</div><div class="ps-lbl">Wishlist</div></div>
+            <div class="p-stat"><div class="ps-icon">📦</div><div class="ps-val" id="pStatOrders">0</div><div class="ps-lbl">Orders</div></div>
+          </div>
+          <div id="profileAuthStrip" style="padding:14px;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="profile-card" style="margin-bottom:16px;">
+          <div class="menu-list">
+            <div class="menu-item" onclick="go('orders')"><span class="mi-icon">📦</span><div class="mi-text"><div class="mt-title">My Orders</div><div class="mt-desc">Track and view order history</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="go('wishlist')"><span class="mi-icon">❤️</span><div class="mi-text"><div class="mt-title">My Wishlist</div><div class="mt-desc">Saved items for later</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="go('cart')"><span class="mi-icon">🛒</span><div class="mi-text"><div class="mt-title">My Cart</div><div class="mt-desc">Items ready to checkout</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="openWA()"><span class="mi-icon">💬</span><div class="mi-text"><div class="mt-title">WhatsApp Support</div><div class="mt-desc">Chat with us instantly</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="toast('Language: English | தமிழ் – Coming soon!','info')"><span class="mi-icon">🌐</span><div class="mi-text"><div class="mt-title">Language / மொழி</div><div class="mt-desc">English | தமிழ்</div></div><span class="mi-chevron">›</span></div>
+            <div class="menu-item" onclick="showAbout()"><span class="mi-icon">ℹ️</span><div class="mi-text"><div class="mt-title">About SK Sarees</div><div class="mt-desc">Our story and mission</div></div><span class="mi-chevron">›</span></div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:var(--RAD);border:1px solid var(--BORDER);padding:20px;box-shadow:var(--SHADOW);">
+          <h3 style="font-size:.85rem;font-weight:800;color:var(--M);margin-bottom:14px;">📞 Contact Us</h3>
+          <div style="font-size:.82rem;color:#555;line-height:2.2;">
+            📞 <strong>+91 78679 15699</strong><br/>
+            📧 <strong>sk7867915699@gmail.com</strong><br/>
+            📍 2/130, Thoothanoor, Edanganasalai Post,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ilampillai Via, Salem – 637502<br/>
+            🕐 Mon–Sat: 9 AM – 9 PM
+          </div>
+          <button class="btn btn-wa btn-full" style="margin-top:14px;" onclick="openWA()">💬 Chat on WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div><!-- /PROFILE -->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="fb-logo">SK Sarees</div>
+      <p>Your trusted destination for premium quality sarees since 2010. We bring authentic Cotton, Silk, Bridal, Art Silk, Georgette &amp; Fancy sarees directly to your doorstep at the most affordable prices.</p>
+      <div class="social-icons">
+        <div class="si" title="Facebook">📘</div>
+        <div class="si" title="Instagram">📸</div>
+        <div class="si" title="YouTube">▶️</div>
+        <div class="si" title="WhatsApp" onclick="openWA()">💬</div>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Categories</h4>
+      <ul>
+        <li><a onclick="filter({catSlug:'cotton-sarees'})">Cotton Sarees</a></li>
+        <li><a onclick="filter({catSlug:'silk-sarees'})">Silk Sarees</a></li>
+        <li><a onclick="filter({catSlug:'bridal-sarees'})">Bridal Sarees</a></li>
+        <li><a onclick="filter({catSlug:'art-silk-sarees'})">Art Silk Sarees</a></li>
+        <li><a onclick="filter({catSlug:'georgette-sarees'})">Georgette Sarees</a></li>
+        <li><a onclick="filter({catSlug:'fancy-sarees'})">Fancy Sarees</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a onclick="window.location.href='https://www.sksaree.shop/'">Home</a></li>
+        <li><a onclick="filter({bestSeller:true})">Best Sellers</a></li>
+        <li><a onclick="filter({isNew:true})">New Arrivals</a></li>
+        <li><a onclick="go('cart')">My Cart</a></li>
+        <li><a onclick="go('orders')">My Orders</a></li>
+        <li><a onclick="go('wishlist')">Wishlist</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a>📞 +91 78679 15699</a></li>
+        <li><a>📧 sk7867915699@gmail.com</a></li>
+        <li><a onclick="openWA()">💬 WhatsApp Support</a></li>
+        <li><a>↩️ Return Policy</a></li>
+        <li><a>🔒 Privacy Policy</a></li>
+        <li><a>📦 Shipping Info</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 SK Sarees. All rights reserved. | Salem, Tamil Nadu</p>
+    <p>Made with ❤️ for Indian Women</p>
+  </div>
+</footer>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bn-inner">
+    <button class="bn-item active" id="bn-home" onclick="window.location.href='https://www.sksaree.shop/'"><span class="bn-icon">🏠</span><span class="bn-label" data-t="nav.home">Home</span></button>
+    <button class="bn-item" id="bn-categories" onclick="go('categories')"><span class="bn-icon">🏷️</span><span class="bn-label" data-t="nav.categories">Categories</span></button>
+    <button class="bn-item" id="bn-cart" onclick="go('cart')" style="position:relative;"><span class="bn-icon">🛒</span><span class="bn-label" data-t="nav.cart">Cart</span><span class="bn-badge" id="bnCartBadge">0</span></button>
+    <button class="bn-item" id="bn-orders" onclick="go('orders')"><span class="bn-icon">📦</span><span class="bn-label" data-t="nav.orders">Orders</span></button>
+    <button class="bn-item" id="bn-profile" onclick="go('profile')"><span class="bn-icon">👤</span><span class="bn-label" data-t="nav.profile">Profile</span></button>
+  </div>
+</nav>
+
+<!-- ════════════════ JAVASCRIPT ════════════════ -->
+<script>
+/* ── DATA ── */
+const CATS=[
+  {id:1,name:'Cotton Sarees',slug:'cotton-sarees',img:'https://images.pexels.com/photos/13454130/pexels-photo-13454130.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:42},
+  {id:2,name:'Silk Sarees',slug:'silk-sarees',img:'https://images.pexels.com/photos/10317106/pexels-photo-10317106.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:38},
+  {id:3,name:'Bridal Sarees',slug:'bridal-sarees',img:'https://images.pexels.com/photos/35059564/pexels-photo-35059564.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:25},
+  {id:4,name:'Art Silk Sarees',slug:'art-silk-sarees',img:'https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:56},
+  {id:5,name:'Georgette Sarees',slug:'georgette-sarees',img:'https://images.pexels.com/photos/28054616/pexels-photo-28054616.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:33},
+  {id:6,name:'Fancy Sarees',slug:'fancy-sarees',img:'https://images.pexels.com/photos/7920188/pexels-photo-7920188.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:47},
+  {id:7,name:'Printed Sarees',slug:'printed-sarees',img:'https://images.pexels.com/photos/7920055/pexels-photo-7920055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=400',count:61},
+  {id:8,name:'Dhoti & Shirts',slug:'dhoti-shirts',img:'https://images.pexels.com/photos/7671170/pexels-photo-7671170.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=400&w=400',count:18},
+];
+const HERO_IMGS=['','',''];
+const P=[
+ 
+ 
+];
+const REVS={
+  1:[{n:'Priya S.',r:5,t:'Excellent quality cotton saree! Very comfortable to wear daily. The color is exactly as shown.'},{n:'Meena R.',r:4,t:'Good quality. Delivery was fast. Will order again.'}],
+  5:[{n:'Lakshmi K.',r:5,t:'Pure silk quality is outstanding. Bought for my daughter\'s wedding. Everyone complimented!'},{n:'Kavitha M.',r:5,t:'Exactly like the description. The zari work is beautiful. Highly recommended.'}],
+  8:[{n:'Deepa N.',r:5,t:'Perfect bridal saree! The embroidery is breathtaking. Worth every rupee.'}],
+  10:[{n:'Radha P.',r:4,t:'Beautiful art silk saree. Looks very expensive. Great for festival season.'}],
+  12:[{n:'Sundari V.',r:5,t:'Love this georgette saree! Very flowy and elegant for parties.'}],
+};
+
+/* ── STATE ── */
+let cart=JSON.parse(localStorage.getItem('sk_cart')||'[]');
+let wish=JSON.parse(localStorage.getItem('sk_wish')||'[]');
+let orders=JSON.parse(localStorage.getItem('sk_orders')||'[]');
+let curPage='home',prevPage='home',curProd=null,dQty=1;
+let afil={cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''};
+let cView='grid',cidx=0,ctimer=null,payM='whatsapp',ckAddr={};
+let fbAuth=null,rcVerifier=null,confirmRes=null,resendInt=null,curUser=null;
+let liveProducts=null; // will hold Firestore products if available
+
+/* ── LANGUAGE SYSTEM (English / Tamil) ── */
+let LANG = localStorage.getItem('sk_lang') || 'en';
+const T_DICT = {
+  'nav.home':{en:'Home',ta:'முகப்பு'},
+  'nav.categories':{en:'Categories',ta:'வகைகள்'},
+  'nav.cart':{en:'Cart',ta:'கார்ட்'},
+  'nav.orders':{en:'Orders',ta:'ஆர்டர்கள்'},
+  'nav.profile':{en:'Profile',ta:'சுயவிவரம்'},
+  'nav.wishlist':{en:'Wishlist',ta:'விருப்பம்'},
+  'nav.bestsellers':{en:'🔥 Best Sellers',ta:'🔥 சிறந்த விற்பனை'},
+  'nav.newarrivals':{en:'✨ New Arrivals',ta:'✨ புதிய வரவுகள்'},
+  'nav.allcat':{en:'🏷️ All Categories',ta:'🏷️ அனைத்து வகைகள்'},
+  'nav.homenav':{en:'🏠 Home',ta:'🏠 முகப்பு'},
+  'search.ph':{en:'Search sarees, fabric, color…',ta:'புடவைகளைத் தேடுங்கள்…'},
+  'search.btn':{en:'🔍 Search',ta:'🔍 தேடு'},
+  'btn.addcart':{en:'🛒 Add to Cart',ta:'🛒 கார்ட்டில் சேர்'},
+  'btn.buynow':{en:'Buy Now',ta:'இப்போது வாங்கு'},
+  'btn.viewall':{en:'View All →',ta:'அனைத்தும் →'},
+  'sec.shopcat':{en:'Shop by Category',ta:'வகை வாரியாக வாங்கவும்'},
+  'sec.bestsellers':{en:'🔥 Best Sellers',ta:'🔥 சிறந்த விற்பனை'},
+  'sec.new':{en:'✨ New Arrivals',ta:'✨ புதிய வரவுகள்'},
+  'sec.featured':{en:'💎 Featured Sarees',ta:'💎 சிறப்பு புடவைகள்'},
+  'sec.all':{en:'🛍️ All Products',ta:'🛍️ அனைத்து தயாரிப்புகள்'},
+  'login.title':{en:'Login',ta:'உள்நுழை'},
+  'lang.switch':{en:'தமிழ்',ta:'English'},
+};
+function t(key){ const e=T_DICT[key]; return e?(e[LANG]||e.en):key; }
+function toggleLang(){
+  LANG = LANG==='en' ? 'ta' : 'en';
+  localStorage.setItem('sk_lang', LANG);
+  applyLang();
+  toast(LANG==='ta'?'மொழி: தமிழ் ✅':'Language: English ✅');
+}
+function applyLang(){
+  // Update the language button label
+  const ll=document.getElementById('langLabel'); if(ll) ll.textContent=t('lang.switch');
+  // Translate all [data-t] elements
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key=el.getAttribute('data-t');
+    el.textContent=t(key);
+  });
+  // Translate placeholders
+  document.querySelectorAll('[data-tp]').forEach(el=>{
+    el.setAttribute('placeholder', t(el.getAttribute('data-tp')));
+  });
+  // Re-render dynamic pages so product buttons pick up language
+  if(typeof curPage!=='undefined'){
+    if(curPage==='home' && typeof renderHome==='function') renderHome();
+    if(curPage==='products' && typeof applyFilters==='function') applyFilters();
+    if(curPage==='detail' && curProd!=null){ const p=gP(curProd); if(p) renderDetail(p); }
+    if(curPage==='cart' && typeof renderCart==='function') renderCart();
+  }
+}
+
+/* ── UTILS ── */
+const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
+function gP(id){ return GP().find(p=>String(p.id)===String(id)); }
+function GP(){ return liveProducts||P; }
+function saveCart(){localStorage.setItem('sk_cart',JSON.stringify(cart));badges()}
+function saveWish(){localStorage.setItem('sk_wish',JSON.stringify(wish));badges()}
+function saveOrders(){localStorage.setItem('sk_orders',JSON.stringify(orders))}
+async function saveOrderRemote(order){
+  if(!window.FB_DB) return;
+  try {
+    await window.FB_DB.collection('orders').doc(order.num).set(order, { merge: true });
+  } catch (err) {
+    console.error('Firestore save failed:', err);
+  }
+}
+function starsHTML(r,sz=14){return`<span style="color:#F0CF72;font-size:${sz}px;">${'★'.repeat(Math.round(r))}</span><span style="color:#ddd;font-size:${sz}px;">${'☆'.repeat(5-Math.round(r))}</span>`}
+
+function toast(msg,type='ok'){
+  const c=document.getElementById('toastEl'),t=document.createElement('div');
+  t.className='toast '+(type==='ok'?'ok':type==='err'?'err':'');
+  t.innerHTML=(type==='ok'?'✅ ':type==='err'?'❌ ':'ℹ️ ')+msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(-10px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),320)},2600);
+}
+function badges(){
+  const cc=cart.reduce((s,i)=>s+i.qty,0),wc=wish.length;
+  ['cBadge','bnCartBadge'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=cc;el.style.display=cc>0?'flex':'none'}});
+  const wb=document.getElementById('wBadge');if(wb){wb.textContent=wc;wb.style.display=wc>0?'flex':'none';}
+  ['pStatCart','pStatWish','pStatOrders'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[cc,wc,orders.length][i]});
+}
+
+/* ── ROUTING ── */
+function go(name,extra){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  if(curPage!==name)prevPage=curPage;
+  curPage=name;
+  const pg=document.getElementById('page-'+name);
+  if(pg)pg.classList.add('active');
+  const bn=document.getElementById('bn-'+name);if(bn)bn.classList.add('active');
+  const nl=document.getElementById('nl-'+name);if(nl)nl.classList.add('active');
+  window.scrollTo({top:0,behavior:'auto'});
+  if(name==='home')renderHome();
+  if(name==='categories')renderCategories();
+  if(name==='products')renderProducts(extra);
+  if(name==='cart')renderCart();
+  if(name==='checkout')renderCheckout();
+  if(name==='orders'){
+    // Fetch fresh orders immediately, then start live listener
+    fetchOrdersNow();
+    loadLiveOrders();
+    renderOrders();
+  }
+  if(name==='wishlist')renderWishlist();
+  if(name==='profile'){badges();renderProfileStrip();}
+}
+function goBack(){go(prevPage==='detail'?'home':prevPage)}
+function filter(opts){Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''},opts);go('products')}
+function doSearch(){const q=document.getElementById('searchInput').value.trim();if(!q)return;Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q});document.getElementById('searchInput').value='';go('products')}
+
+/* ── HERO CAROUSEL ── */
+function initCarousel(){
+  ['hImg0','hImg1','hImg2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.src=HERO_IMGS[i]});
+  const dotsEl=document.getElementById('heroDots');dotsEl.innerHTML='';
+  [0,1,2].forEach(i=>{const d=document.createElement('button');d.className='cdot'+(i===0?' active':'');d.onclick=()=>goTo(i);dotsEl.appendChild(d)});
+  ctimer=setInterval(()=>slide(1),4500);
+}
+function goTo(i){
+  cidx=i;
+  document.getElementById('heroSlides').style.transform=`translateX(-${i*100}%)`;
+  document.querySelectorAll('.cdot').forEach((d,j)=>d.classList.toggle('active',j===i));
+}
+function slide(d){goTo((cidx+d+3)%3)}
+
+/* ── FLASH TIMER ── */
+function startTimer(){
+  let s=9955;const el=document.getElementById('flashTimer');
+  setInterval(()=>{s--;if(s<0)s=86400;const h=String(Math.floor(s/3600)).padStart(2,'0'),m=String(Math.floor(s%3600/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');if(el)el.textContent=`⏱ Ends in ${h}:${m}:${ss}`},1000);
+}
+
+/* ── PRODUCT CARD ── */
+function pCard(p,mini=false){
+  const inW=wish.includes(p.id);
+  return`<div class="pcard${mini?'':''}" onclick="openProduct('${p.sku}')">
+    <div class="pcard-img">
+      <img src="${p.imgs[0]}" alt="${p.name}" loading="lazy"/>
+      <div class="pcard-badges">
+        ${p.disc>0?`<span class="badge-off">${p.disc}% OFF</span>`:''}
+        ${p.iN?'<span class="badge-new">NEW</span>':''}
+        ${p.bs?'<span class="badge-hot">🔥 HOT</span>':''}
+      </div>
+      <button class="wish-ico" onclick="event.stopPropagation();toggleWish('${p.id}')">${inW?'❤️':'🤍'}</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-sku">${p.sku} | ${p.fab}</div>
+      <div class="pcard-name clamp2">${p.name}</div>
+      <div class="pcard-stars">${starsHTML(p.rat)} <span>(${p.rev})</span></div>
+      <div class="pcard-prices"><span class="price-now">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span></div>
+      <button class="pcard-add" onclick="event.stopPropagation();addCart('${p.id}')">${t('btn.addcart')}</button>
+    </div>
+  </div>`;
+}
+
+/* ── HOME ── */
+function renderHome(){
+  const cg=document.getElementById('homeCatGrid');
+  if(cg)cg.innerHTML=CATS.map(c=>`<div class="cat-card" onclick="filter({cat:'${c.slug}'})"><div class="cat-img-ring"><img src="${c.img}" alt="${c.name}" loading="lazy"/><div class="cir-overlay"></div></div><div class="cat-name">${c.name}</div></div>`).join('');
+  const bs=document.getElementById('bestSellersRow');
+  if(bs)bs.innerHTML=GP().filter(p=>p.bs).map(p=>pCard(p,true)).join('');
+  
+
+  const fg = document.getElementById('featuredGrid');
+
+if (fg) {
+  fg.innerHTML = GP()
+    .filter(p => p.cat === 'cotton-sarees')
+    .map(p => pCard(p))
+    .join('');
+}
+  
+  const na=document.getElementById('newArrivalsRow');
+  if(na)na.innerHTML=GP().filter(p=>p.iN).map(p=>pCard(p,true)).join('');
+  
+  const ag=document.getElementById('homeAllGrid');
+  if(ag)ag.innerHTML=GP().slice(0,12).map(p=>pCard(p)).join('');
+}
+
+/* ── CATEGORIES PAGE ── */
+function renderCategories(){
+  document.getElementById('catsPageGrid').innerHTML=CATS.map(c=>`<div class="cat-page-card" onclick="filter({cat:'${c.slug}'})"><div class="cpc-img"><img src="${c.img}" alt="${c.name}" loading="lazy"/><div class="cpc-overlay"></div><div class="cpc-info"><div class="cpc-name">${c.name}</div><div class="cpc-count">${c.count}+ products</div></div></div></div>`).join('');
+  document.getElementById('occGrid').innerHTML=[['Wedding','💍'],['Festival','🪔'],['Casual','☀️'],['Party','🎉'],['Daily Wear','🌸'],['Religious','🕌'],['Office','💼'],['Reception','✨'],['Bridal','👰']].map(([o,e])=>`<div class="occ-item" onclick="filter({occ:'${o}'})"><div class="occ-icon">${e}</div><div class="occ-name">${o}</div></div>`).join('');
+  document.getElementById('fabChips').innerHTML=[['Cotton','#2e7d32'],['Pure Silk','#7B1C1C'],['Banarasi Silk','#e65100'],['Art Silk','#6a1b9a'],['Georgette','#1565c0'],['Net','#00695c'],['Dharmavaram Silk','#880e4f']].map(([f,c])=>`<span class="fab-chip" style="background:${c};" onclick="filter({fab:'${f}'})">${f}</span>`).join('');
+  document.getElementById('priceBtns').innerHTML=[['Under ₹500','#e8f5e9','#2e7d32',0,499],['₹500–₹1,000','#fff8e1','#f57f17',500,1000],['₹1,000–₹2,500','#e3f2fd','#1565c0',1001,2500],['₹2,500–₹5,000','#fce4ec','#c62828',2501,5000],['₹5,000–₹10,000','#f3e5f5','#6a1b9a',5001,10000],['₹10,000+','#fff8e1','#C9A84C',10001,99999]].map(([l,bg,c,mn,mx])=>`<div class="price-btn" style="background:${bg};color:${c};border-color:${c}33;" onclick="filter({min:${mn},max:${mx}})">${l}</div>`).join('');
+}
+
+/* ── PRODUCTS LIST ── */
+function buildFChips(cid,items,key){
+  document.getElementById(cid).innerHTML=items.map(v=>`<span class="fchip${afil[key]===v?' on':''}" onclick="toggleFil('${key}','${v}')">${v}</span>`).join('');
+}
+function renderProducts(opts){
+  if(opts)Object.assign(afil,opts);
+  buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');
+  buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');
+  const mi=document.getElementById('minP'),ma=document.getElementById('maxP');
+  if(mi&&afil.min)mi.value=afil.min;if(ma&&afil.max)ma.value=afil.max;
+  applyFilters();setTitle();
+}
+function setTitle(){
+  const t=document.getElementById('productsTitle');
+  if(!t)return;
+  if(afil.q)t.textContent=`Search: "${afil.q}"`;
+  else if(afil.cat){const c=CATS.find(c=>c.slug===afil.cat);t.textContent=c?c.name:'Sarees';}
+  else if(afil.bs)t.textContent='Best Sellers';
+  else if(afil.iN)t.textContent='New Arrivals';
+  else if(afil.occ)t.textContent=afil.occ+' Sarees';
+  else if(afil.fab)t.textContent=afil.fab+' Sarees';
+  else t.textContent='All Sarees';
+}
+function applyFilters(){
+  const sort=document.getElementById('sortSel')?.value||'default';
+  const mn=parseFloat(document.getElementById('minP')?.value)||0;
+  const mx=parseFloat(document.getElementById('maxP')?.value)||Infinity;
+  afil.min=mn||'';afil.max=mx===Infinity?'':mx;
+  let res=GP().filter(p=>{
+    if(afil.cat&&p.cat!==afil.cat)return false;
+    if(afil.fab&&!p.fab.toLowerCase().includes(afil.fab.toLowerCase()))return false;
+    if(afil.occ&&!p.occ.toLowerCase().includes(afil.occ.toLowerCase()))return false;
+    if(afil.bs&&!p.bs)return false;
+    if(afil.iN&&!p.iN)return false;
+    if(afil.q){const q=afil.q.toLowerCase();if(!p.name.toLowerCase().includes(q)&&!p.sku.toLowerCase().includes(q)&&!p.fab.toLowerCase().includes(q)&&!p.col.toLowerCase().includes(q))return false;}
+    if(p.price<mn)return false;
+    if(mx!==Infinity&&p.price>mx)return false;
+    return true;
+  });
+  if(sort==='price_asc')res.sort((a,b)=>a.price-b.price);
+  else if(sort==='price_desc')res.sort((a,b)=>b.price-a.price);
+  else if(sort==='rating')res.sort((a,b)=>b.rat-a.rat);
+  else if(sort==='newest')res.sort((a,b)=>b.id-a.id);
+  else res.sort((a,b)=>(b.bs?1:0)-(a.bs?1:0)||(b.rat-a.rat));
+  const cnt=document.getElementById('productsCount');
+  if(cnt)cnt.textContent=`${res.length} products found`;
+  const cont=document.getElementById('productsContainer');
+  if(!cont)return;
+  if(!res.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><div class="es-title">No products found</div><div class="es-sub">Try adjusting your filters or search terms.</div><button class="btn btn-M btn-lg" onclick="clearFilters()">Clear Filters</button></div>`;return;}
+  if(cView==='grid'){cont.innerHTML=`<div class="products-grid">${res.map(p=>pCard(p)).join('')}</div>`;}
+  else{cont.innerHTML=res.map(p=>`<div style="background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:14px;display:flex;gap:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;" onclick="openProduct('${p.sku}')"><img src="${p.imgs[0]}" style="width:100px;height:120px;border-radius:8px;flex-shrink:0;" loading="lazy" alt="${p.name}"/><div style="flex:1;min-width:0;"><div style="font-size:.64rem;color:#C9A84C;font-weight:700;">${p.sku} | ${p.fab}</div><div style="font-size:.9rem;font-weight:700;margin:4px 0 5px;">${p.name}</div><div>${starsHTML(p.rat,13)} <span style="font-size:.7rem;color:#aaa;">(${p.rev})</span></div><div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;"><span style="font-size:1.05rem;font-weight:900;color:#7B1C1C;">${fmt(p.price)}</span><span style="font-size:.78rem;color:#bbb;text-decoration:line-through;">${fmt(p.op)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-M btn-sm" onclick="event.stopPropagation();addCart('${p.id}')">Add to Cart</button><button onclick="event.stopPropagation();toggleWish('${p.id}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">${wish.includes(p.id)?'❤️':'🤍'}</button></div></div></div>`).join('');}
+}
+function toggleFil(k,v){afil[k]=afil[k]===v?'':v;buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
+function clearFilters(){Object.assign(afil,{cat:'',fab:'',occ:'',min:'',max:'',bs:false,iN:false,q:''});const mi=document.getElementById('minP'),ma=document.getElementById('maxP');if(mi)mi.value='';if(ma)ma.value='';buildFChips('fFabric',['Cotton','Pure Silk','Banarasi Silk','Art Silk','Georgette','Net','Dharmavaram Silk'],'fab');buildFChips('fOccasion',['Wedding','Festival','Casual','Party','Daily Wear','Religious','Bridal','Reception'],'occ');applyFilters()}
+function toggleFilters(){const fp=document.getElementById('filterPanel'),btn=document.getElementById('filterToggle');const open=fp.style.display==='none'||fp.style.display==='';fp.style.display=open?'block':'none';btn.classList.toggle('on',open)}
+function setView(v){cView=v;document.getElementById('vgBtn').classList.toggle('on',v==='grid');document.getElementById('vlBtn').classList.toggle('on',v==='list');applyFilters()}
+
+/* ── PRODUCT DETAIL ── */
+function openProduct(sku){
+  const p=GP().find(x=>x.sku===sku);if(!p)return;
+  curProd=p.id;dQty=1;
+  prevPage=curPage;
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
+  document.getElementById('page-detail').classList.add('active');
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  curPage='detail';
+  // Update URL so the product has its own shareable link (#product/SKU)
+  try{ history.replaceState(null,'','#product/'+sku); }catch(e){}
+  window.scrollTo({top:0,behavior:'auto'});
+  renderDetail(p);
+}
+function renderDetail(p){
+  const inW=wish.includes(p.id);
+  const revs=REVS[p.id]||[];
+  const sav=p.op-p.price;
+  document.getElementById('detailContent').innerHTML=`
+  <div class="detail-wrap">
+    <div class="detail-gallery">
+      <div class="main-img"><img id="dMainImg" src="${p.imgs[0]}" alt="${p.name}"/></div>
+      ${p.imgs.length>1?`<div class="thumb-row">${p.imgs.map((im,i)=>`<div class="thumb${i===0?' active':''}" onclick="switchImg('${im}',this)"><img src="${im}" alt=""/></div>`).join('')}</div>`:''}
+    </div>
+    <div class="detail-info">
+      <div class="di-sku">SKU: ${p.sku} · ${p.cat.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+      <h1 class="di-name">${p.name}</h1>
+      <div class="detail-rating"><div class="dr-stars">${starsHTML(p.rat,18)}</div><div class="dr-val">${p.rat}</div><div class="dr-count">(${p.rev} reviews)</div></div>
+      <div class="price-box">
+        <div class="price-row"><span class="price-main">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span>${p.disc>0?`<span class="badge-disc">${p.disc}% OFF</span>`:''}</div>
+        <div class="price-savings">🎉 You save ${fmt(sav)} on this order!</div>
+        <div class="price-incl">Inclusive of all taxes · Free delivery above ₹999</div>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-item"><div class="si-lbl">Fabric</div><div class="si-val">${p.fab}</div></div>
+        <div class="spec-item"><div class="si-lbl">Color</div><div class="si-val">${p.col}</div></div>
+        <div class="spec-item"><div class="si-lbl">Length</div><div class="si-val">${p.len}</div></div>
+        <div class="spec-item"><div class="si-lbl">Occasion</div><div class="si-val">${p.occ}</div></div>
+      </div>
+      <div style="margin-bottom:16px;"><h3 style="font-size:.85rem;font-weight:700;color:var(--M);margin-bottom:8px;">Description</h3><p style="font-size:.83rem;color:#555;line-height:1.7;">${p.desc}</p></div>
+      <div class="care-box"><h4>🧺 Care Instructions</h4><p>${p.care}</p></div>
+      <div class="delivery-strip"><span class="ds-icon">🚚</span><div><div class="ds-title">${p.price>=999?'Free Delivery':'Delivery Charge: ₹49'}</div><div class="ds-sub">Expected delivery: 3–7 business days</div></div></div>
+      <div class="qty-row"><div class="qty-ctrl"><button onclick="dQty=Math.max(1,dQty-1);document.getElementById('dQtyVal').textContent=dQty">−</button><span id="dQtyVal">1</span><button onclick="dQty++;document.getElementById('dQtyVal').textContent=dQty">+</button></div><span style="font-size:.8rem;color:var(--MUTED);">In Stock ✅</span></div>
+      <div class="cta-row">
+        <button class="btn btn-outline btn-lg" onclick="addCartN('${p.id}',dQty)">🛒 Add to Cart · கார்ட்</button>
+        <button class="btn btn-M btn-lg" onclick="addCartN('${p.id}',dQty);go('cart')">Buy Now · வாங்கு</button>
+        <button class="btn btn-${inW?'M':'outline'} btn-lg" onclick="toggleWish('${p.id}');this.textContent=wish.includes('${p.id}')?'❤️ Saved':'🤍 Wishlist'">${inW?'❤️ Saved':'🤍 Wishlist'}</button>
+      </div>
+      <button class="btn btn-wa btn-full btn-lg" onclick="orderViaWhatsApp('${p.sku}')">💬 Order via WhatsApp · வாட்ஸ்அப்</button>
+      <button onclick="shareP()" style="width:100%;margin-top:10px;padding:11px;background:var(--GP);border:1px solid var(--G);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--M);">📤 Share Product · பகிர்</button>
+    </div>
+  </div>
+  <div id="reviewSection" style="margin-top:32px;background:#fff;border-radius:12px;border:1px solid #e8e0d5;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
+    <h3 class="sec-title">⭐ Ratings & Reviews</h3>
+    <!-- Write Review Box -->
+    <div style="background:var(--GP);border:1px solid var(--G);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:.9rem;font-weight:800;color:var(--M);margin-bottom:10px;">Write a Review</div>
+      <div style="margin-bottom:10px;">
+        <span style="font-size:.78rem;color:#666;margin-right:8px;">Your Rating:</span>
+        <span id="starPicker">${[1,2,3,4,5].map(n=>`<span onclick="setReviewStar(${n})" data-star="${n}" style="cursor:pointer;font-size:1.5rem;color:#ddd;">★</span>`).join('')}</span>
+      </div>
+      <input id="revName" placeholder="Your name" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.85rem;margin-bottom:8px;"/>
+      <textarea id="revText" rows="3" placeholder="Share your experience with this saree…" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.85rem;resize:none;margin-bottom:10px;"></textarea>
+      <button class="btn btn-M btn-full" id="submitRevBtn" onclick="submitReview('${p.id}')">📝 Submit Review</button>
+    </div>
+    <!-- Reviews List -->
+    <div id="reviewsList">
+      ${revs.length?revs.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join(''):'<p style="color:#999;font-size:.85rem;text-align:center;padding:16px;">No reviews yet. Be the first to review! 🌸</p>'}
+    </div>
+  </div>`;
+  reviewRating=0;
+  loadReviews(p.id);
+}
+/* ── REVIEW / RATING SYSTEM ── */
+let reviewRating=0;
+function setReviewStar(n){
+  reviewRating=n;
+  document.querySelectorAll('#starPicker span').forEach(s=>{
+    s.style.color=(+s.dataset.star<=n)?'#F0B429':'#ddd';
+  });
+}
+async function loadReviews(pid){
+  if(!window.FB_DB)return;
+  try{
+    const snap=await window.FB_DB.collection('reviews').where('pid','==',String(pid)).get();
+    if(snap.empty)return;
+    const list=snap.docs.map(d=>d.data()).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    const base=REVS[pid]||[];
+    const all=[...list.map(r=>({n:r.name,r:r.rating,t:r.text})),...base];
+    const el=document.getElementById('reviewsList');
+    if(el)el.innerHTML=all.map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join('');
+  }catch(e){console.warn('loadReviews:',e)}
+}
+async function submitReview(pid){
+  const name=(document.getElementById('revName').value||'').trim();
+  const text=(document.getElementById('revText').value||'').trim();
+  if(!reviewRating){toast('Please select a star rating','err');return;}
+  if(!name){toast('Please enter your name','err');return;}
+  if(!text){toast('Please write your review','err');return;}
+  const btn=document.getElementById('submitRevBtn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const review={pid:String(pid),name,rating:reviewRating,text,date:new Date().toISOString()};
+  try{
+    if(window.FB_DB){
+      await window.FB_DB.collection('reviews').add(review);
+      // Update product review count in Firestore
+      const p=GP().find(x=>String(x.id)===String(pid));
+      if(p){
+        await window.FB_DB.collection('products').doc(p.id).update({
+          rev:window.firebase.firestore.FieldValue.increment(1),
+          rat:window.firebase.firestore.FieldValue.increment((reviewRating-p.rat)/(p.rev+1))
+        });
+      }
+      toast('✅ Thank you for your review!');
+      await loadReviews(pid);
+      // Reload product detail to update rating display
+      if(curProd==pid){
+        const updatedP=GP().find(x=>String(x.id)===String(pid));
+        if(updatedP)renderDetail(updatedP);
+      }
+    } else {
+      // Local fallback
+      if(!REVS[pid])REVS[pid]=[];
+      REVS[pid].unshift({n:name,r:reviewRating,t:text});
+      const el=document.getElementById('reviewsList');
+      if(el)el.innerHTML=REVS[pid].map(rv=>`<div class="review-card"><div class="rc-head"><span class="rc-name">${rv.n}</span></div><div class="rc-stars">${starsHTML(rv.r,15)}</div><div class="rc-text">${rv.t}</div></div>`).join('');
+      toast('✅ Review added!');
+    }
+    document.getElementById('revName').value='';
+    document.getElementById('revText').value='';
+    setReviewStar(0);reviewRating=0;
+  }catch(e){console.error(e);toast('Could not submit review','err');}
+  btn.disabled=false;btn.textContent='📝 Submit Review';
+}
+function switchImg(src,el){document.getElementById('dMainImg').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+function shareP(){
+  const p=gP(curProd);if(!p)return;
+  // Build a clean shareable link that opens THIS product directly using SKU
+  const link=location.origin+'/#product/'+p.sku;
+  const txt=`✨ ${p.name} ✨\n${fmt(p.price)} (was ${fmt(p.op)})\n\n🛍️ SK Sarees - Buy now:\n${link}`;
+  if(navigator.share){
+    navigator.share({title:p.name,text:txt,url:link}).catch(()=>{});
+  } else {
+    // Fallback: WhatsApp share
+    window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank');
+  }
+}
+function copyProductLink(){
+  const p=gP(curProd);if(!p)return;
+  const link=location.origin+'/#product/'+p.sku;
+  if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('🔗 Product link copied!')).catch(()=>toast('Link: '+link));}
+  else toast('Link: '+link);
+}
+
+/* ── CART ── */
+function addCart(id){addCartN(id,1)}
+function addCartN(id,qty){
+  const e=cart.find(i=>String(i.id)===String(id));
+  if(e)e.qty+=qty;else cart.push({id,qty});
+  saveCart();toast('Added to cart! 🛒');
+}
+function renderCart(){
+  const {tot,del,disc,fin}=cartTotals();
+  document.getElementById('cartTitle').textContent=`My Cart (${cart.length} items)`;
+  const strip=document.getElementById('freeDelStrip');
+  if(tot>0&&tot<999){strip.textContent=`🚚 Add ₹${(999-tot).toFixed(0)} more for FREE delivery!`;strip.style.display='block';}else strip.style.display='none';
+  const cm=document.getElementById('cartMain');
+  if(!cart.length){appliedPromo=null;cm.innerHTML=`<div class="empty-state"><div class="es-icon">🛒</div><div class="es-title">Your Cart is Empty</div><div class="es-sub">Add beautiful sarees to your cart to get started!</div><button class="btn btn-M btn-lg" onclick="go('products')">Browse Sarees</button></div>`;return;}
+  cm.innerHTML=`<div class="cart-layout">
+    <div class="cart-items-col">
+      ${cart.map(item=>{const p=gP(item.id);if(!p)return'';return`<div class="cart-item">
+        <img src="${p.imgs[0]}" alt="${p.name}" onclick="openProduct('${p.sku}')" loading="lazy"/>
+        <div class="ci-info">
+          <div class="ci-sku">${p.sku}</div>
+          <div class="ci-name clamp2">${p.name}</div>
+          <div class="ci-meta">${p.fab} · ${p.col}</div>
+          <div class="ci-row">
+            <div class="ci-qty"><button onclick="updCart('${item.id}',-1)">−</button><span>${item.qty}</span><button onclick="updCart('${item.id}',1)">+</button></div>
+            <span class="ci-price">${fmt(p.price*item.qty)}</span>
+          </div>
+          ${p.op?`<div style="font-size:.73rem;color:#bbb;text-decoration:line-through;margin-top:2px;">${fmt(p.op*item.qty)}</div>`:''}
+          <button class="ci-rm" onclick="rmCart('${item.id}')">🗑️ Remove</button>
+        </div>
+      </div>`;}).join('')}
+    </div>
+    <div class="cart-sidebar">
+      <div class="cs-box">
+        <h3>Promo Code</h3>
+        ${appliedPromo?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:10px;"><div style="font-size:.82rem;font-weight:700;color:#166534;">✅ ${appliedPromo.code} applied!</div><div style="font-size:.75rem;color:#166534;margin-top:4px;">${appliedPromo.type==='percent'?appliedPromo.value+'%':fmt(appliedPromo.value)} discount</div><button onclick="removePromo()" style="margin-top:8px;padding:6px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;">Remove Code</button></div>`:`<div class="promo-wrap"><input type="text" placeholder="Enter promo code" id="promoIn"/><button class="btn btn-G" onclick="applyPromo()">Apply</button></div>`}
+      </div>
+      <div class="cs-box">
+        <h3>Order Summary</h3>
+        <div class="cs-row"><span class="cs-lbl">Subtotal (${cart.reduce((s,i)=>s+i.qty,0)} items)</span><span class="cs-val">${fmt(tot)}</span></div>
+        <div class="cs-row"><span class="cs-lbl">Delivery</span><span class="cs-val ${del===0?'green':''}">${del===0?'FREE 🎉':fmt(del)}</span></div>
+        <div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">${disc>0?'-'+fmt(disc):'—'}</span></div>
+        <div class="cs-divider"></div>
+        <div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
+        ${disc>0?`<div style="font-size:.75rem;color:#2e7d32;font-weight:600;margin-top:6px;">🎉 You save ${fmt(disc)} on this order!</div>`:''}
+        <button class="btn btn-M btn-full btn-lg" style="margin-top:16px;" onclick="go('checkout')">Proceed to Checkout →</button>
+        <button style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:.83rem;color:#7B1C1C;font-weight:700;cursor:pointer;" onclick="go('products')">+ Continue Shopping</button>
+      </div>
+    </div>
+  </div>`;
+}
+function updCart(id,d){const item=cart.find(i=>String(i.id)===String(id));if(!item)return;item.qty=Math.max(0,item.qty+d);if(item.qty===0)cart=cart.filter(i=>String(i.id)!==String(id));saveCart();renderCart()}
+function rmCart(id){cart=cart.filter(i=>String(i.id)!==String(id));saveCart();renderCart();toast('Removed from cart')}
+let appliedPromo=null;
+function applyPromo(){
+  const code=document.getElementById('promoIn').value.trim().toUpperCase();
+  if(!code){toast('Please enter a promo code','err');return}
+  const promo=activePromos.find(p=>p.code===code&&p.enabled);
+  if(!promo){toast('Invalid or expired promo code ❌','err');return}
+  const {tot}=cartTotals();
+  if(promo.minOrder&&tot<promo.minOrder){
+    toast(`Minimum order ₹${promo.minOrder} required for this code`,'err');
+    return;
+  }
+  appliedPromo=promo;
+  const discAmt=promo.type==='percent'?Math.round(tot*promo.value/100):promo.value;
+  toast(`Promo code applied! ${promo.type==='percent'?promo.value+'%':fmt(promo.value)} discount added ✅`);
+  renderCart();
+}
+function removePromo(){
+  appliedPromo=null;
+  document.getElementById('promoIn').value='';
+  toast('Promo code removed','info');
+  renderCart();
+}
+
+/* ── WISHLIST ── */
+function toggleWish(id){const i=wish.findIndex(x=>String(x)===String(id));if(i>=0){wish.splice(i,1);toast('Removed from wishlist')}else{wish.push(id);toast('Added to wishlist! ❤️')}saveWish();renderWishlist()}
+function renderWishlist(){
+  const wc=document.getElementById('wishContent');
+  if(!wc)return;
+  if(!wish.length){wc.innerHTML=`<div class="empty-state"><div class="es-icon">🤍</div><div class="es-title">Your Wishlist is Empty</div><div class="es-sub">Save your favourite sarees here!</div><button class="btn btn-M btn-lg" onclick="go('products')">Explore Sarees</button></div>`;return;}
+  wc.innerHTML=`<div class="products-grid">${wish.map(id=>{const p=gP(id);return p?pCard(p):'';}).join('')}</div>`;
+}
+
+/* ── CHECKOUT ── */
+const STATES=['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Puducherry'];
+function renderCheckout(){payM='upiqr';ckAddr={};document.getElementById('checkoutContent').innerHTML=addrForm()}
+/* Go back from QR/other payment step to the payment method selection (keeps address) */
+function goBackToPayment(){document.getElementById('checkoutContent').innerHTML=payForm();}
+function cartTotals(){
+  const tot=cart.reduce((s,i)=>{const p=gP(i.id);return p?s+p.price*i.qty:s;},0);
+  const del=tot>=999?0:49;
+  const codCharge=payM==='cod'?20:0;
+  let disc=tot>=2000?Math.round(tot*0.05):0;
+  if(appliedPromo){
+    const promoDisc=appliedPromo.type==='percent'?Math.round(tot*appliedPromo.value/100):appliedPromo.value;
+    disc=Math.max(disc,promoDisc);
+  }
+  const fin=tot+del+codCharge-disc;
+  return{tot,del,codCharge,disc,fin};
+}
+function addrForm(){
+  const {tot,del,disc,fin}=cartTotals();
+  return`<div class="checkout-layout"><div>
+  <div class="ck-card">
+    <div class="ck-steps"><div class="ck-step-item"><div class="cs-bubble done">📍</div><span class="cs-slabel act">1. Address</span></div><span class="cs-arrow">→</span><div class="ck-step-item"><div class="cs-bubble pend">💳</div><span class="cs-slabel ina">2. Payment</span></div></div>
+    <h3>📍 Delivery Address</h3>
+    <div class="fg-row2"><div class="fg"><label>Full Name *</label><input id="aName" placeholder="Your full name" required/></div><div class="fg"><label>Phone *</label><input id="aPhone" type="tel" placeholder="10-digit mobile" required/></div></div>
+    <div class="fg"><label>Address Line 1 *</label><input id="aLine1" placeholder="House no., Street, Area" required/></div>
+    <div class="fg"><label>Landmark / Address Line 2</label><input id="aLine2" placeholder="Landmark (optional)"/></div>
+    <div class="fg-row2"><div class="fg"><label>City *</label><input id="aCity" placeholder="City" required/></div><div class="fg"><label>Pincode *</label><input id="aPin" placeholder="6-digit PIN" maxlength="6" required/></div></div>
+    <div class="fg"><label>State *</label><select id="aState"><option value="Tamil Nadu">Tamil Nadu</option>${STATES.filter(s=>s!=='Tamil Nadu').map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
+    <button class="btn btn-M btn-full btn-lg" onclick="submitAddr()">Continue to Payment →</button>
+  </div>
+  </div>
+  <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>${cart.slice(0,3).map(i=>{const p=gP(i.id);return p?`<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;"><img src="${p.imgs[0]}" style="width:50px;height:58px;border-radius:7px;" alt=""/><div style="flex:1;font-size:.8rem;font-weight:600;">${p.name}<br/><span style="color:#aaa;font-size:.7rem;">Qty: ${i.qty}</span></div><span style="font-weight:800;color:#7B1C1C;font-size:.87rem;">${fmt(p.price*i.qty)}</span></div>`:''}).join('')}${cart.length>3?`<div style="text-align:center;font-size:.73rem;color:#999;">+ ${cart.length-3} more items</div>`:''}
+  <div class="cs-divider"></div><div class="cs-row"><span class="cs-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div></div></div></div>`;
+}
+function submitAddr(){
+  const [n,ph,l1,l2,ci,pi,st]=['aName','aPhone','aLine1','aLine2','aCity','aPin','aState'].map(id=>document.getElementById(id)?.value?.trim()||'');
+  if(!n||!ph||!l1||!ci||!pi){toast('Please fill all required fields','err');return;}
+  if(ph.length<10){toast('Enter a valid 10-digit phone number','err');return;}
+  ckAddr={name:n,phone:ph,line1:l1,line2:l2,city:ci,pincode:pi,state:st};
+  // Save last-used phone/email so even guest users can fetch their orders later
+  try{
+    localStorage.setItem('sk_last_phone', ph);
+    if(curUser&&curUser.email) localStorage.setItem('sk_last_email', curUser.email);
+  }catch(e){}
+  // Refresh order listener with the new phone number
+  loadLiveOrders();
+  document.getElementById('checkoutContent').innerHTML=payForm();
+}
+function payForm(){
+  const {tot,del,disc,fin}=cartTotals();
+  return`<div class="checkout-layout"><div>
+  <div class="ck-card">
+    <div class="ck-steps"><div class="ck-step-item"><div class="cs-bubble done">✅</div><span class="cs-slabel ina">1. Address</span></div><span class="cs-arrow">→</span><div class="ck-step-item"><div class="cs-bubble done">💳</div><span class="cs-slabel act">2. Payment</span></div></div>
+    <h3>💳 Choose Payment Method</h3>
+    <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
+    ${[
+      {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay) · UPI QR குறியீடு',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
+      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false},
+      {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false}
+    ].map((pm,i)=>`<div class="pm-opt${i===0?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
+  </div>
+  </div>
+  <div class="checkout-sidebar"><div class="ck-card"><h3>Order Summary</h3>
+  <div class="cs-row"><span class="cs-lbl">Subtotal</span><span class="cs-val">${fmt(tot)}</span></div>
+  <div class="cs-row"><span class="cs-lbl">Delivery</span><span class="cs-val ${del===0?'green':''}">${del===0?'FREE':fmt(del)}</span></div>
+  ${payM==='cod'?`<div class="cs-row"><span class="cs-lbl">COD Charge</span><span class="cs-val">${fmt(codCharge)}</span></div>`:''}
+  ${disc>0?`<div class="cs-row"><span class="cs-lbl">Discount</span><span class="cs-val green">-${fmt(disc)}</span></div>`:''}
+  <div class="cs-divider"></div><div class="cs-row"><span class="cs-total-lbl">Total</span><span class="cs-total-val">${fmt(fin)}</span></div>
+  <button class="btn btn-M btn-full btn-lg" id="payActionBtn" style="margin-top:16px;" onclick="proceedPayment()">📲 Show UPI QR Code →</button>
+  <p style="text-align:center;font-size:.7rem;color:#aaa;margin-top:8px;">🔒 Your info is 100% secure</p>
+  </div></div></div>`;
+}
+function selPM(v){
+  payM=v;
+  document.querySelectorAll('.pm-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('pm-'+v).classList.add('sel');
+  const btn=document.getElementById('payActionBtn');
+  const {fin}=cartTotals();
+  if(btn){
+    if(v==='cod')btn.textContent='Place COD Order →';
+    else if(v==='whatsapp')btn.textContent='💬 Send Order on WhatsApp';
+    else if(v==='upiqr')btn.textContent='📲 Show UPI QR Code';
+    else btn.textContent='Pay '+fmt(fin)+' →';
+  }
+}
+/* Route to correct payment flow */
+function proceedPayment(){
+  if(payM==='cod') placeOrder('cod','pending');
+  else if(payM==='whatsapp') whatsappOrder();
+  else if(payM==='upiqr') showUpiQR();
+}
+/* ── WhatsApp Order ── */
+function whatsappOrder(){
+  const {tot,del,codCharge,disc,fin}=cartTotals();
+  const NL='\n';
+  const baseUrl=location.origin;
+  const items=cart.map(i=>{const p=gP(i.id);if(!p)return'';const prodLink=baseUrl+'/#product/'+p.sku;return`• ${p.name} (${p.sku}) x${i.qty} = ${fmt(p.price*i.qty)}${NL}  🔗 ${prodLink}`}).filter(Boolean).join(NL+NL);
+  const plain=`*New Order - SK Sarees*${NL}${NL}*Items:*${NL}${items}${NL}${NL}*Subtotal: ${fmt(tot)}*${NL}*Delivery: ${del===0?'FREE':fmt(del)}*${NL}${payM==='cod'?`*COD Charge: ${fmt(codCharge)}*${NL}`:''}${disc>0?`*Discount: -${fmt(disc)}*${NL}`:''}${NL}*Total: ${fmt(fin)}*${NL}${NL}*Deliver to:*${NL}${ckAddr.name}, ${ckAddr.phone}${NL}${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}${NL}${ckAddr.city}, ${ckAddr.state} - ${ckAddr.pincode}`;
+  // Save order first, then open WhatsApp with properly-encoded message
+  placeOrder('whatsapp','pending',true);
+  const url='https://wa.me/'+BIZ.whatsapp+'?text='+encodeURIComponent(plain);
+  window.open(url,'_blank');
+}
+/* ── UPI QR Code Payment ── */
+function showUpiQR(){
+  const {fin}=cartTotals();
+  const txnRef='SK'+Date.now();
+  const upiUrl=`upi://pay?pa=${encodeURIComponent(BIZ.upiId)}&pn=${encodeURIComponent(BIZ.upiName)}&am=${fin}&cu=INR&tn=${encodeURIComponent('SK Sarees Order '+txnRef)}`;
+  // Scroll to top before showing QR
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('checkoutContent').innerHTML=`
+    <div style="max-width:440px;margin:0 auto;text-align:center;">
+      <div class="ck-card" style="padding:26px 22px;">
+        <h3 style="margin-bottom:6px;">📲 Scan & Pay via UPI · UPI மூலம் பணம்</h3>
+        <p style="font-size:.82rem;color:#666;margin-bottom:16px;">Open any UPI app (GPay / PhonePe / Paytm) and scan to pay <strong style="color:var(--M)">${fmt(fin)}</strong><br/><span style="font-size:.75rem;">எந்த UPI ஆப்பையும் திறந்து QR-ஐ ஸ்கேன் செய்யவும்</span></p>
+        <div style="display:flex;justify-content:center;margin-bottom:14px;"><div id="upiQRBox" style="width:236px;height:236px;border:8px solid #fff;border-radius:16px;box-shadow:0 6px 24px rgba(180,20,90,.15);display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;">Loading QR…</div></div>
+        <div style="background:var(--GP);border:1px solid var(--G);border-radius:12px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:.72rem;color:#888;">Pay to UPI ID · UPI ஐடி</div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--M);letter-spacing:.3px;">${BIZ.upiId}</div>
+          <div style="font-size:.72rem;color:#888;margin-top:8px;">Amount · தொகை</div>
+          <div style="font-size:1.4rem;font-weight:900;color:var(--M);">${fmt(fin)}</div>
+        </div>
+        <a href="${upiUrl}" class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;">📱 Open UPI App to Pay</a>
+        <div style="background:#fff8e1;border:1px solid #ffcc70;border-radius:12px;padding:12px;font-size:.78rem;color:#8a6d00;line-height:1.6;margin-bottom:14px;text-align:left;">
+          ⚠️ <strong>After paying, tap "I've Paid" below.</strong> Your order is confirmed once we verify the payment.<br/>
+          <span style="font-size:.72rem;">பணம் செலுத்திய பிறகு "நான் பணம் செலுத்தினேன்" என்பதை அழுத்தவும்.</span>
+        </div>
+        <button class="btn btn-M btn-full btn-lg" style="margin-bottom:10px;" onclick="placeOrder('upiqr','verifying',false,'${txnRef}')">✅ I've Paid · நான் பணம் செலுத்தினேன்</button>
+        <button class="btn btn-outline btn-full" onclick="goBackToPayment()">← Change Payment · மாற்று</button>
+      </div>
+    </div>`;
+  // Render QR — try local library first, fall back to online QR image
+  setTimeout(()=>{
+    const box=document.getElementById('upiQRBox');
+    if(!box) return;
+    if(window.QRCode && typeof QRCode.toDataURL==='function'){
+      QRCode.toDataURL(upiUrl,{width:220,margin:1,color:{dark:'#B4145A',light:'#ffffff'}},function(err,url){
+        if(err||!url){ fallbackQR(); }
+        else { box.innerHTML='<img src="'+url+'" alt="UPI QR" style="width:220px;height:220px;"/>'; }
+      });
+    } else {
+      fallbackQR();
+    }
+    function fallbackQR(){
+      // Use a reliable online QR generator as fallback
+      const enc=encodeURIComponent(upiUrl);
+      box.innerHTML='<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+enc+'" alt="UPI QR" style="width:220px;height:220px;" onerror="this.parentElement.innerHTML=\'<div style=&quot;padding:20px;font-size:.8rem;color:#888;&quot;>Scan not available. Use UPI ID above or tap Open UPI App.</div>\'"/>';
+    }
+  },120);
+}
+async function placeOrder(method, payStatus, keepChatOpen, payRef){
+  method = method || payM || 'cod';
+  const {tot,del,codCharge,disc,fin}=cartTotals();
+  const num='SK'+new Date().getFullYear()+String(new Date().getMonth()+1).padStart(2,'0')+String(new Date().getDate()).padStart(2,'0')+Math.floor(Math.random()*9000+1000);
+  // Determine order status & payment status
+  let ps = payStatus || (method==='cod'?'pending':'paid');
+  let orderStatus = 'confirmed';
+  if(method==='upiqr' && ps==='verifying'){ orderStatus='payment_review'; ps='verifying'; }
+  if(method==='whatsapp'){ orderStatus='payment_review'; ps='pending'; }
+  const order={
+    id:Date.now(),
+    num,
+    items:cart.map(i=>{const p=gP(i.id);return p?{id:i.id,name:p.name,sku:p.sku,img:(p.imgs&&p.imgs[0])||'',qty:i.qty,price:p.price,total:p.price*i.qty}:null}).filter(Boolean),
+    addr:ckAddr,
+    customerName:(curUser&&curUser.displayName)||ckAddr.name||'Guest Customer',
+    customerPhone:(curUser&&curUser.phoneNumber)||ckAddr.phone||'',
+    customerEmail:(curUser&&curUser.email)||'',
+    customerUid:curUser?curUser.uid:'',
+    pm:method,
+    status:orderStatus,
+    ps:ps,
+    payRef:payRef||'',
+    tot:fin, sub:tot, del, codCharge, disc,
+    date:new Date().toISOString()
+  };
+  orders.unshift(order);saveOrders();
+  await saveOrderRemote(order);
+  cart=[];saveCart();
+  // Refresh order listener to pick up the new order
+  loadLiveOrders();
+
+  // Confirmation screen varies by payment flow
+  let statusLine, note, icon='🎉', title='Order Placed!';
+  if(method==='cod'){
+    statusLine='💵 Cash on Delivery';
+    note='Your saree will be delivered in 3–7 business days. We will notify you via WhatsApp once it\'s shipped.';
+  } else if(method==='razorpay'){
+    statusLine='✅ Payment Successful (Online)';
+    note='Payment received! Your order is confirmed and will be shipped in 3–7 business days.';
+  } else if(method==='upiqr'){
+    icon='⏳'; title='Payment Under Review';
+    statusLine='📲 UPI Payment – Awaiting Verification';
+    note='Thank you! We are verifying your UPI payment. Your order will be <strong>confirmed once we approve the payment</strong> (usually within a few minutes). You will get a WhatsApp update.';
+  } else if(method==='whatsapp'){
+    icon='💬'; title='Order Sent on WhatsApp';
+    statusLine='💬 WhatsApp Order';
+    note='We have opened WhatsApp with your order details. Please send the message to confirm. We will reply with payment & delivery details.';
+  }
+  document.getElementById('checkoutContent').innerHTML=`<div class="success-wrap">
+    <div class="success-tick">${icon}</div>
+    <h2 style="font-family:'Fraunces',serif;font-size:2rem;color:var(--M);margin-bottom:8px;">${title}</h2>
+    <p style="color:#666;margin-bottom:20px;">Thank you for shopping with SK Sarees!</p>
+    <div class="on-box"><div style="font-size:.75rem;color:#888;margin-bottom:4px;">Order Number</div><div style="font-size:1.4rem;font-weight:900;color:var(--M);">${num}</div><div style="font-size:.8rem;color:#888;margin-top:6px;">${statusLine}</div></div>
+    <p style="font-size:.85rem;color:#666;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">${note}</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-M btn-lg" onclick="go('orders')">Track My Order</button>
+      <button class="btn btn-outline btn-lg" onclick="window.location.href='https://www.sksaree.shop/'">Continue Shopping</button>
+    </div>
+  </div>`;
+}
+
+/* ── ORDERS ── */
+const STATUS={payment_review:{label:'Payment Review',icon:'⏳',cls:'sb-pending',pct:15},confirmed:{label:'Confirmed',icon:'✅',cls:'sb-confirmed',pct:25},processing:{label:'Processing',icon:'⚙️',cls:'sb-confirmed',pct:50},shipped:{label:'Shipped',icon:'🚚',cls:'sb-shipped',pct:75},delivered:{label:'Delivered',icon:'🎉',cls:'sb-delivered',pct:100},cancelled:{label:'Cancelled',icon:'❌',cls:'sb-cancelled',pct:0},pending:{label:'Placed',icon:'📋',cls:'sb-pending',pct:10}};
+function renderOrders(){
+  const oc=document.getElementById('ordersContent');
+  if(!orders.length){oc.innerHTML=`<div class="empty-state"><div class="es-icon">📦</div><div class="es-title">No Orders Yet</div><div class="es-sub">Place your first order and it will appear here!</div><button class="btn btn-M btn-lg" onclick="go('products')">Shop Now</button></div>`;return;}
+  oc.innerHTML=`<div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;"><h2 style="font-family:'Fraunces',serif;font-size:1.5rem;color:var(--M);margin:0;">My Orders</h2><button onclick="refreshOrders()" class="btn btn-outline btn-sm">🔄 Refresh</button></div><div class="orders-layout">${orders.map(ord=>{const st=STATUS[ord.status]||STATUS.pending;const dt=new Date(ord.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});const a=ord.addr||{};
+  return`<div class="order-card">
+    <div class="oc-head" onclick="toggleOB('${ord.id}')">
+      <div class="oc-meta"><div class="oc-num">Order # ${ord.num}</div><div class="oc-date">${dt}</div></div>
+      <div class="oc-right"><div class="oc-amt">${fmt(ord.tot)}</div><span class="status-badge ${st.cls}">${st.icon} ${st.label}</span></div>
+    </div>
+    ${ord.status!=='cancelled'?`<div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${st.pct}%"></div></div><div class="prog-labels">${['Placed','Confirmed','Shipped','Delivered'].map((s,i)=>`<span class="${st.pct>=(i+1)*25?'done':''}">${s}</span>`).join('')}</div>`:''}
+    <div class="oc-body" id="ob${ord.id}">
+      ${ord.items.map(it=>`<div class="oi-item"><img src="${it.img}" alt="${it.name}"/><div><div class="oi-name">${it.name}</div><div class="oi-sku">${it.sku} · Qty: ${it.qty}</div></div><span class="oi-total">${fmt(it.total)}</span></div>`).join('')}
+      <div class="addr-prev" style="margin-top:10px;"><h4>📍 Delivery Address</h4><p>${a.name}, ${a.phone}<br/>${a.line1}${a.line2?', '+a.line2:''}<br/>${a.city}, ${a.state} – ${a.pincode}</p></div>
+      <div style="font-size:.77rem;color:#888;margin-top:6px;">💳 ${ord.pm==='cod'?'Cash on Delivery':'Online Payment'} · <span style="color:${ord.ps==='paid'?'#2e7d32':'#f57f17'};font-weight:700;">${ord.ps==='paid'?'✅ Paid':'⏳ Pending'}</span></div>
+    </div>
+  </div>`;}).join('')}</div>`;
+}
+async function refreshOrders(){
+  await fetchOrdersNow();
+  loadLiveOrders();
+  renderOrders();
+  toast('Orders refreshed','info');
+}
+function toggleOB(id){const el=document.getElementById('ob'+id);if(el)el.style.display=el.style.display==='block'?'none':'block'}
+
+/* ── PROFILE ── */
+function renderProfileStrip(){
+  const s=document.getElementById('profileAuthStrip');if(!s)return;
+  if(curUser){
+    const dn=curUser.displayName||curUser.email||'SK Customer';
+    const contact=curUser.phoneNumber||curUser.email||'';
+    const method=curUser.phoneNumber?'📱 Phone':'📧 Email';
+    s.innerHTML=`<div class="user-strip"><div class="us-avatar">${method==='📱 Phone'?'📱':'📧'}</div><div><div class="us-name">${dn}</div><div class="us-phone">${contact}</div><div class="us-ver">✅ ${method} Verified</div></div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>`;
+  }else{
+    s.innerHTML=`<div class="login-cta-box"><div><div class="lc-title">🔐 Login / Sign Up</div><div class="lc-sub">Email or Phone OTP · Quick & Secure</div></div><button class="btn btn-M btn-sm" onclick="openAuth()">Login</button></div>`;
+  }
+}
+function updateProfileHeader(user){
+  const pa=document.getElementById('pAvatar'),pn=document.getElementById('pName'),pp=document.getElementById('pPhone'),pb=document.getElementById('pEditBtn');
+  if(user){
+    const dn=user.displayName||user.email||'SK Customer';
+    const contact=user.phoneNumber||user.email||'';
+    if(pa)pa.textContent=dn.slice(0,2).toUpperCase();
+    if(pn)pn.textContent=dn;
+    if(pp)pp.innerHTML=`${contact} <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.58rem;padding:2px 8px;border-radius:12px;margin-left:6px;">✅ Verified</span>`;
+    if(pb){pb.textContent='✏️ Edit Name';pb.onclick=editName;}
+  } else {
+    if(pa)pa.textContent='👤';if(pn)pn.textContent='Guest Customer';
+    if(pp)pp.textContent='Not logged in';if(pb){pb.textContent='🔐 Login / Sign Up';pb.onclick=openAuth;}
+  }
+  const hl=document.getElementById('hdrUserLabel');if(hl)hl.textContent=user?(user.displayName||'Account'):'Login';
+}
+function showAbout(){alert('SK Sarees\n\nYour trusted destination for premium quality sarees.\n\nContact: +91 78679 15699\nEmail: sk7867915699@gmail.com\nAddress: 2/130, Thoothanoor, Edanganasalai Post,\nIlampillai Via, Salem – 637502\nTamil Nadu, India 🪡')}
+
+/* ── WHATSAPP ── */
+function openWA(prod){const ph='917867915699';const msg=prod?`Hi! I'm interested in buying "${prod}" from SK Sarees. Can you help me?`:'Hi! I need help with SK Sarees. Can you assist me?';window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank')}
+
+/* ── ORDER SINGLE PRODUCT VIA WHATSAPP ── */
+function orderViaWhatsApp(sku){
+  const p=GP().find(x=>x.sku===sku);
+  if(!p)return;
+  const ph='917867915699';
+  const baseUrl=location.origin;
+  const link=baseUrl+'/#product/'+p.sku;
+  const msg=`Hi! I want to order this product from SK Sarees:\n\n*${p.name}*\nSKU: ${p.sku}\nPrice: ${fmt(p.price)}\n\nProduct Link: ${link}\n\nPlease confirm availability and delivery details.`;
+  window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+/* ── FIREBASE AUTH ── */
+function initFB(){
+  if(!FB_ON){console.warn('Firebase not configured. Fill FIREBASE_CONFIG in index.html.');return;}
+  fbAuth=firebase.auth();
+  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  fbAuth.onAuthStateChanged(user=>{
+    curUser=user;
+    updateProfileHeader(user);
+    renderProfileStrip();
+    badges();
+    // Save user contact info and load orders after login
+    if(user){
+      if(user.phoneNumber) localStorage.setItem('sk_last_phone', user.phoneNumber);
+      if(user.email) localStorage.setItem('sk_last_email', user.email);
+      // Load orders for the logged-in user
+      setTimeout(()=>{
+        fetchOrdersNow();
+        loadLiveOrders();
+        if(curPage==='orders') renderOrders();
+      }, 300);
+    }
+  });
+}
+function openAuth(){
+  if(!FB_ON){alert('Firebase not configured!\n\n1. Go to console.firebase.google.com\n2. Create a project\n3. Enable Email/Password & Phone Auth\n4. Paste config into index.html');return;}
+  if(curUser){if(confirm(`Signed in as ${curUser.displayName||curUser.email||curUser.phoneNumber}\n\nSign out?`))signOut();return;}
+  resetAuth();document.getElementById('authModal').classList.add('open');document.body.style.overflow='hidden';
+}
+function closeAuth(){document.getElementById('authModal').classList.remove('open');document.body.style.overflow='';clearInterval(resendInt)}
+function resetAuth(){
+  ['stepEmail','stepPhone','stepOTP','stepSuccess'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='auth-step'});
+  showAuthTab('email');
+  const pi=document.getElementById('phoneInput');if(pi)pi.value='';
+  const ei=document.getElementById('emailInput');if(ei)ei.value='';
+  const ps=document.getElementById('passInput');if(ps)ps.value='';
+  for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
+  confirmRes=null;const sb=document.getElementById('sendOTPBtn');if(sb)sb.disabled=true;
+}
+function showAuthTab(tab){
+  document.getElementById('stepEmail').className='auth-step'+(tab==='email'?' show':'');
+  document.getElementById('stepPhone').className='auth-step'+(tab==='phone'?' show':'');
+  const te=document.getElementById('tabEmail'),tp=document.getElementById('tabPhone');
+  if(te){te.style.color=tab==='email'?'var(--M)':'#aaa';te.style.borderBottomColor=tab==='email'?'var(--M)':'transparent';}
+  if(tp){tp.style.color=tab==='phone'?'var(--M)':'#aaa';tp.style.borderBottomColor=tab==='phone'?'var(--M)':'transparent';}
+  if(tab==='phone') setTimeout(initRecap,200);
+}
+async function emailLogin(){
+  if(!FB_ON) return;
+  const email=document.getElementById('emailInput').value.trim();
+  const pass=document.getElementById('passInput').value;
+  if(!email||!pass){toast('Enter email and password','err');return;}
+  if(pass.length<6){toast('Password must be at least 6 characters','err');return;}
+  const btn=document.getElementById('emailLoginBtn');
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div> Logging in…';
+  try{
+    let res; let isNewUser=false;
+    try{ res=await fbAuth.signInWithEmailAndPassword(email,pass); }
+    catch(e){
+      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
+        res=await fbAuth.createUserWithEmailAndPassword(email,pass);
+        isNewUser=true;
+        const nm=prompt('Welcome! Enter your name:','');
+        if(nm&&nm.trim()) await res.user.updateProfile({displayName:nm.trim()});
+        // Send email verification
+        try{
+          await res.user.sendEmailVerification();
+          toast('📧 Verification email sent! Check your inbox.','info');
+        }catch(ve){console.error('Verification email error:',ve);}
+        toast('Account created! Please verify your email. 🎉');
+      } else throw e;
+    }
+    const user=res.user;
+    const notice=document.getElementById('verifyNotice');
+    // Send verification for existing unverified users too
+    if(!isNewUser && !user.emailVerified){
+      try{
+        await user.sendEmailVerification();
+        toast('📧 Verification email sent. Check inbox for link.','info');
+      }catch(ve){console.error('sendEmailVerification error:',ve);}
+    }
+    document.getElementById('succName').textContent=`Welcome, ${user.displayName||user.email}! 🎉`;
+    if(user.emailVerified){
+      document.getElementById('succPhone').innerHTML=(user.email||'')+' <span style="color:#2e7d32;font-weight:700;">✅ Verified</span>';
+      if(notice) notice.style.display='none';
+    } else {
+      document.getElementById('succPhone').innerHTML=(user.email||'')+' <span style="color:#e65100;font-weight:700;">⏳ Not verified</span>';
+      if(notice) notice.style.display='block';
+    }
+    showStep('Success');updateProfileHeader(user);
+    toast('Login successful! 🎉');
+  } catch(e){
+    console.error(e);
+    const M={'auth/invalid-email':'Invalid email address','auth/wrong-password':'Wrong password','auth/email-already-in-use':'Email already registered. Try logging in.','auth/weak-password':'Password too weak (min 6 chars)','auth/too-many-requests':'Too many attempts. Wait a moment.','auth/network-request-failed':'Network error. Check connection.','auth/operation-not-allowed':'Email/Password login not enabled in Firebase Console → Authentication → Sign-in method.'};
+    toast(M[e.code]||'Error: '+e.message,'err');
+  }
+  btn.disabled=false;btn.innerHTML='🔐 Login / Sign Up';
+}
+async function resendVerify(){
+  if(!fbAuth||!fbAuth.currentUser){toast('Please log in first','err');return;}
+  const btn=document.getElementById('resendVerifyBtn');
+  if(btn){btn.disabled=true;btn.textContent='Sending…';}
+  try{
+    await fbAuth.currentUser.sendEmailVerification();
+    toast('📧 Verification email re-sent! Check your inbox & spam.','ok');
+  }catch(e){
+    console.error(e);
+    toast(e.code==='auth/too-many-requests'?'Please wait a bit before resending.':'Could not send: '+e.message,'err');
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔄 Resend Verification Email';}
+}
+function showStep(name){['Email','Phone','OTP','Success'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.className='auth-step'+(s===name?' show':'')})}
+function clearRecap(){
+  try{ if(rcVerifier){ rcVerifier.clear(); rcVerifier=null; } }catch(e){}
+  const c=document.getElementById('recap-container'); if(c) c.innerHTML='';
+}
+function initRecap(){
+  if(!FB_ON)return;
+  clearRecap();
+  try{
+    // Invisible reCAPTCHA works best on mobile — no checkbox needed
+    rcVerifier=new firebase.auth.RecaptchaVerifier('recap-container',{
+      size:'invisible',
+      callback:()=>{},
+      'expired-callback':()=>{ clearRecap(); initRecap(); }
+    });
+    rcVerifier.render();
+  }catch(e){console.error('recaptcha init',e)}
+}
+function validatePhone(){const ph=document.getElementById('phoneInput').value.trim();document.getElementById('sendOTPBtn').disabled=!(ph.length===10&&/^[6-9]\d{9}$/.test(ph))}
+async function sendOTP(){
+  if(!FB_ON){toast('Login not available — Firebase not configured','err');return;}
+  const ph=document.getElementById('phoneInput').value.trim();
+  if(ph.length!==10||!/^[6-9]\d{9}$/.test(ph)){toast('Enter a valid 10-digit Indian mobile number','err');return;}
+  const btn=document.getElementById('sendOTPBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Sending…';
+  try{
+    if(!rcVerifier) initRecap();
+    confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);
+    document.getElementById('otpSentTo').textContent=`Enter the 6-digit OTP sent to +91 ${ph}`;
+    showStep('OTP');startCountdown();document.getElementById('o0').focus();
+    toast('OTP sent! 📨');
+    btn.disabled=false;btn.innerHTML='Send OTP →';
+  }catch(e){
+    console.error('sendOTP',e);
+    btn.disabled=false;btn.innerHTML='Send OTP →';
+    handleFBErr(e);
+    clearRecap();initRecap();
+  }
+}
+async function resendOTP(){
+  if(!FB_ON)return;const ph=document.getElementById('phoneInput').value.trim();if(!ph)return;
+  document.getElementById('resendBtn').disabled=true;
+  try{
+    clearRecap();initRecap();
+    confirmRes=await fbAuth.signInWithPhoneNumber('+91'+ph,rcVerifier);
+    startCountdown();toast('OTP resent! 📨');
+    for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}
+    document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus();
+  }catch(e){handleFBErr(e);document.getElementById('resendBtn').disabled=false;clearRecap();initRecap();}
+}
+function startCountdown(){
+  clearInterval(resendInt);let t=60;
+  const cd=document.getElementById('countdown'),tt=document.getElementById('timerTxt'),rb=document.getElementById('resendBtn');
+  if(tt)tt.style.display='inline';if(rb){rb.style.display='none';rb.disabled=true}
+  resendInt=setInterval(()=>{t--;if(cd)cd.textContent=t+'s';if(t<=0){clearInterval(resendInt);if(tt)tt.style.display='none';if(rb){rb.style.display='inline';rb.disabled=false}}},1000);
+}
+function backToPhone(){showStep('Phone');clearInterval(resendInt);confirmRes=null;initRecap()}
+function oi(i){const b=document.getElementById('o'+i);b.value=b.value.replace(/\D/g,'').slice(-1);b.classList.toggle('filled',b.value!=='');if(b.value&&i<5)document.getElementById('o'+(i+1)).focus();checkOTP()}
+function ok(e,i){if(e.key==='Backspace'&&!document.getElementById('o'+i).value&&i>0){const p=document.getElementById('o'+(i-1));p.value='';p.classList.remove('filled');p.focus()}if(e.key==='Enter')verifyOTP()}
+function getOTP(){let s='';for(let i=0;i<6;i++)s+=document.getElementById('o'+i).value;return s}
+function checkOTP(){document.getElementById('verifyBtn').disabled=getOTP().length!==6}
+async function verifyOTP(){
+  if(!confirmRes){toast('Please request an OTP first','err');return;}
+  const otp=getOTP();if(otp.length!==6){toast('Enter all 6 digits','err');return;}
+  const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Verifying…';
+  try{const res=await confirmRes.confirm(otp);const user=res.user;clearInterval(resendInt);
+    if(!user.displayName){const nm=prompt('Welcome! Enter your name:','');if(nm&&nm.trim())await user.updateProfile({displayName:nm.trim()})}
+    document.getElementById('succName').textContent=`Welcome, ${user.displayName||'SK Sarees Customer'}! 🎉`;
+    document.getElementById('succPhone').textContent=user.phoneNumber;
+    showStep('Success');updateProfileHeader(user);toast('Login successful! Welcome to SK Sarees 🎉')}
+  catch(e){console.error(e);btn.disabled=false;btn.innerHTML='✅ Verify & Login';handleFBErr(e);const row=document.getElementById('otpRow');if(row){row.style.animation='shake .4s';setTimeout(()=>row.style.animation='',500)}for(let i=0;i<6;i++){const b=document.getElementById('o'+i);if(b){b.value='';b.classList.remove('filled')}}document.getElementById('verifyBtn').disabled=true;document.getElementById('o0').focus()}
+}
+async function signOut(){if(fbAuth){await fbAuth.signOut();toast('Signed out successfully');updateProfileHeader(null);renderProfileStrip()}}
+async function editName(){if(!curUser)return;const n=prompt('Enter your name:',curUser.displayName||'');if(n&&n.trim()&&n.trim()!==curUser.displayName){await curUser.updateProfile({displayName:n.trim()});updateProfileHeader(fbAuth.currentUser);toast('Name updated!')}}
+function handleFBErr(e){const M={'auth/invalid-phone-number':'Invalid phone number. Enter a valid 10-digit Indian number.','auth/too-many-requests':'Too many attempts. Please wait a few minutes.','auth/invalid-verification-code':'Wrong OTP. Please try again.','auth/code-expired':'OTP expired. Request a new one.','auth/network-request-failed':'Network error. Check your connection.','auth/captcha-check-failed':'reCAPTCHA failed. Please try again.','auth/operation-not-allowed':'Phone login not enabled. Enable it in Firebase Console → Authentication → Sign-in method → Phone.','auth/billing-not-enabled':'Phone auth needs Firebase Blaze plan. Use Email login instead.','auth/quota-exceeded':'SMS quota exceeded. Try later or use Email login.'};toast(M[e.code]||'Auth error: '+(e.message||e.code),'err')}
+
+/* ── AUTH MODAL BACKDROP ── */
+document.getElementById('authModal').addEventListener('click',function(e){if(e.target===this)closeAuth()});
+
+/* ── SHAKE KEYFRAME ── */
+const sk=document.createElement('style');sk.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}';document.head.appendChild(sk);
+
+
+/* ── LOAD LIVE PRODUCTS FROM FIRESTORE ── */
+function mapFsProduct(doc){
+  const d=doc.data();
+  return {
+    id:doc.id,
+    sku:d.sku||'',
+    name:d.name||'',
+    desc:d.desc||d.description||'',
+    price:Number(d.price)||0,
+    op:Number(d.originalPrice||d.op)||Math.round((Number(d.price)||0)*1.5),
+    disc:Number(d.disc||d.discountPercent)||Math.round((1-(Number(d.price)||1)/(Number(d.originalPrice||d.op)||Math.round((Number(d.price)||1)*1.5)))*100),
+    cat:d.cat||d.categorySlug||(d.category?d.category.toLowerCase().replace(/\s*&\s*/g,'-').replace(/\s+/g,'-'):'cotton-sarees'),
+    fab:d.fab||d.fabric||'Cotton',
+    col:d.col||d.color||'',
+    occ:d.occ||d.occasion||'Daily Wear',
+    len:d.len||d.length||'6.3m',
+    care:d.care||d.careInstructions||'',
+    imgs:(Array.isArray(d.imgs)&&d.imgs.length?d.imgs:(Array.isArray(d.images)&&d.images.length?d.images:(d.image?[d.image]:['https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600']))),
+    rat:Number(d.rat||d.rating)||4.5,
+    rev:Number(d.rev||d.reviewCount)||0,
+    bs:!!d.bs||!!d.bestSeller||!!d.featured,
+    iN:!!d.iN||!!d.isNew,
+    ft:!!d.ft||!!d.isFeatured,
+    _status:d.status||'Active',
+  };
+}
+function applyLiveProducts(docs){
+  // Only show Active products on the store (hide Inactive/Out of Stock if desired — keep all for now)
+  liveProducts = docs.map(mapFsProduct).filter(p=>p._status!=='Inactive');
+  console.log('🔥 Loaded '+liveProducts.length+' products from Firestore');
+  // Prune cart: remove items whose products have been deleted from Firestore
+  if(cart.length){
+    const liveIds=new Set(liveProducts.map(p=>String(p.id)));
+    const before=cart.length;
+    cart=cart.filter(i=>liveIds.has(String(i.id)));
+    if(cart.length!==before){
+      saveCart();
+      toast('Some unavailable items were removed from your cart','info');
+    }
+  }
+  if(curPage==='home') renderHome();
+  if(curPage==='products') applyFilters();
+  if(curPage==='cart') renderCart();
+  if(curPage==='detail' && curProd!=null){
+    const p=gP(curProd);
+    if(!p){ go('products'); toast('This product is no longer available','info'); }
+    else renderDetail(p);
+  }
+}
+function loadLiveProducts(){
+  if(!window.FB_DB) return;
+  // Use a plain collection listener (no orderBy) so it works even if products
+  // were seeded WITHOUT a createdAt field. We sort client-side afterwards.
+  window.FB_DB.collection('products').onSnapshot(snap=>{
+    if(snap.empty){ console.log('ℹ️ No products in Firestore yet — using default catalog.'); return; }
+    // Sort newest-first client-side (handles missing createdAt gracefully)
+    const docs=snap.docs.slice().sort((a,b)=>{
+      const ca=a.data().createdAt||'', cb=b.data().createdAt||'';
+      return String(cb).localeCompare(String(ca));
+    });
+    applyLiveProducts(docs);
+  }, err=>{
+    console.warn('Firestore products listener error:', err);
+  });
+}
+
+/* ── Load orders from Firestore for the current logged-in user ── */
+let ordersUnsub=null;
+let lastOrderId='';
+function loadLiveOrders(){
+  if(!window.FB_DB) return;
+  // Normalize phone: strip +91, spaces, dashes — so "9876543210" matches "+919876543210"
+  const normPhone=(p)=>String(p||'').replace(/[\s\-\+]/g,'').replace(/^91/,'').replace(/\D/g,'').slice(-10);
+  const getIdentifier=()=>{
+    // Use current logged-in user AND the last-used checkout phone (for guests)
+    const lastPhone=localStorage.getItem('sk_last_phone')||'';
+    const lastEmail=localStorage.getItem('sk_last_email')||'';
+    const userPhone=curUser?(curUser.phoneNumber||''):'';
+    const userEmail=curUser?(curUser.email||''):'';
+    return {
+      phone: normPhone(userPhone||lastPhone),
+      email: (userEmail||lastEmail).toLowerCase(),
+      uid: curUser?curUser.uid||'':''
+    };
+  };
+  const id=getIdentifier();
+  const currentId=JSON.stringify(id);
+  // Only re-subscribe if identifier changed
+  if(currentId===lastOrderId && ordersUnsub) return;
+  lastOrderId=currentId;
+  // Unsubscribe previous listener
+  if(ordersUnsub){ try{ordersUnsub();}catch(e){} ordersUnsub=null; }
+  if(!id || (!id.phone && !id.email && !id.uid)){
+    console.log('No identifier found, skipping orders subscription');
+    return;
+  }
+  console.log('Subscribing to orders for:', id);
+  // Listen to all orders; client filters by phone/email/uid match
+  ordersUnsub=window.FB_DB.collection('orders').onSnapshot(snap=>{
+    if(snap.empty) return;
+    const remoteOrders=snap.docs.map(d=>({docId:d.id,...d.data()})).filter(o=>{
+      const phone=normPhone(o.customerPhone);
+      const email=(o.customerEmail||'').toLowerCase();
+      const uid=o.customerUid||'';
+      return (id.phone && phone && phone===id.phone) ||
+             (id.email && email && email===id.email) ||
+             (id.uid && uid && uid===id.uid);
+    }).map(o=>({
+      id: o.docId,
+      num: o.num,
+      items: o.items || [],
+      addr: o.addr || {},
+      customerName: o.customerName || '',
+      customerPhone: o.customerPhone || '',
+      pm: o.pm,
+      status: o.status,
+      ps: o.ps,
+      payRef: o.payRef || '',
+      tot: Number(o.tot)||0,
+      sub: Number(o.sub)||0,
+      del: Number(o.del)||0,
+      disc: Number(o.disc)||0,
+      date: o.date
+    }));
+    console.log('Firestore orders received:', remoteOrders.length);
+    if(!remoteOrders.length) return;
+    // Merge: Firestore orders override local ones (by order num)
+    const localNums=new Set(orders.map(o=>o.num));
+    // Update existing local orders from Firestore (status may have changed)
+    orders=orders.map(lo=>{
+      const match=remoteOrders.find(ro=>ro.num===lo.num);
+      return match ? {...lo, status: match.status, ps: match.ps, payRef: match.payRef||lo.payRef} : lo;
+    });
+    // Add remote orders not already in local (by num)
+    remoteOrders.forEach(ro=>{ if(!localNums.has(ro.num)) orders.unshift(ro); });
+    // Sort newest first
+    orders.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    saveOrders();
+    if(curPage==='orders') renderOrders();
+    badges();
+  }, err=>{ console.warn('Orders listener error:', err); });
+}
+
+/* ── Fetch orders immediately from Firestore (for fresh data) ── */
+async function fetchOrdersNow(){
+  if(!window.FB_DB) return;
+  const normPhone=(p)=>String(p||'').replace(/[\s\-\+]/g,'').replace(/^91/,'').replace(/\D/g,'').slice(-10);
+  const lastPhone=localStorage.getItem('sk_last_phone')||'';
+  const lastEmail=localStorage.getItem('sk_last_email')||'';
+  const userPhone=curUser?(curUser.phoneNumber||''):'';
+  const userEmail=curUser?(curUser.email||''):'';
+  const id={
+    phone: normPhone(userPhone||lastPhone),
+    email: (userEmail||lastEmail).toLowerCase(),
+    uid: curUser?curUser.uid||'':''
+  };
+  if(!id.phone && !id.email && !id.uid) return;
+  
+  try{
+    console.log('Fetching orders now for:', id);
+    const snap=await window.FB_DB.collection('orders').get();
+    if(snap.empty) return;
+    const remoteOrders=snap.docs.map(d=>({docId:d.id,...d.data()})).filter(o=>{
+      const phone=normPhone(o.customerPhone);
+      const email=(o.customerEmail||'').toLowerCase();
+      const uid=o.customerUid||'';
+      return (id.phone && phone && phone===id.phone) ||
+             (id.email && email && email===id.email) ||
+             (id.uid && uid && uid===id.uid);
+    }).map(o=>({
+      id: o.docId,
+      num: o.num,
+      items: o.items || [],
+      addr: o.addr || {},
+      customerName: o.customerName || '',
+      customerPhone: o.customerPhone || '',
+      pm: o.pm,
+      status: o.status,
+      ps: o.ps,
+      payRef: o.payRef || '',
+      tot: Number(o.tot)||0,
+      sub: Number(o.sub)||0,
+      del: Number(o.del)||0,
+      disc: Number(o.disc)||0,
+      date: o.date
+    }));
+    console.log('Fetched orders:', remoteOrders.length);
+    if(!remoteOrders.length) return;
+    // Merge with local orders
+    const localNums=new Set(orders.map(o=>o.num));
+    orders=orders.map(lo=>{
+      const match=remoteOrders.find(ro=>ro.num===lo.num);
+      return match ? {...lo, status: match.status, ps: match.ps, payRef: match.payRef||lo.payRef} : lo;
+    });
+    remoteOrders.forEach(ro=>{ if(!localNums.has(ro.num)) orders.unshift(ro); });
+    orders.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    saveOrders();
+    if(curPage==='orders') renderOrders();
+    badges();
+  }catch(err){
+    console.warn('Fetch orders error:', err);
+  }
+}
+
+/* ── Open product from shared link (#product/SKU) ── */
+function openFromHash(){
+  const m=location.hash.match(/#product\/(.+)/);
+  if(m&&m[1]){
+    const sku=decodeURIComponent(m[1]);
+    // Wait a moment for products to load, then open
+    const tryOpen=(attempt)=>{
+      const p=GP().find(x=>x.sku===sku);
+      if(p){ openProduct(sku); }
+      else if(attempt<20){ setTimeout(()=>tryOpen(attempt+1),150); }
+    };
+    tryOpen(0);
+  }
+}
+window.addEventListener('hashchange',openFromHash);
+
+/* ── INIT ── */
+/* ── LOAD PROMOS ── */
+async function loadPromos(){
+  if(!FB_ON)return;
+  try{
+    const snap=await window.FB_DB.collection('promos').where('enabled','==',true).get();
+    activePromos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error('loadPromos:',e)}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  initCarousel();
+  startTimer();
+  renderHome();
+  badges();
+  initFB();
+  loadLiveProducts(); // listen for admin product updates (syncs cart + detail page)
+  loadLiveOrders();   // listen for admin order status updates
+  loadPromos();       // load active promo codes
+  openFromHash();     // open shared product link if present
+  applyLang();        // apply saved language
+});
+</script>
+</body>
+</html>
