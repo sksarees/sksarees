@@ -135,9 +135,8 @@ let activePromos = [];
 <!-- ════════════════ HEADER ════════════════ -->
 <div class="announce">
   <div class="announce-inner">
-    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>📦 COD Available · பணம் செலுத்துதல்</span><span>💬 WhatsApp: +91 78679 15699</span>
-    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>📦 COD Available · பணம் செலுத்துதல்</span><span>💬 WhatsApp: +91 78679 15699</span>
-  </div>
+    <span>🎊 Special Sale · சிறப்பு தள்ளுபடி – 50% OFF!</span><span>🚚 Free Shipping over ₹999 · இலவச டெலிவரி</span><span>🪡 New Arrivals · புதிய வரவுகள்</span><span>💫 Pure Silk · தூய பட்டு புடவைகள்</span><span>💬 WhatsApp: +91 78679 15699</span>
+
 </div>
 <header class="site-header">
   <div class="header-main">
@@ -1024,7 +1023,7 @@ function payForm(){
     <div class="addr-prev"><h4>📍 Delivering to:</h4><p>${ckAddr.name}, ${ckAddr.phone}<br/>${ckAddr.line1}${ckAddr.line2?', '+ckAddr.line2:''}<br/>${ckAddr.city}, ${ckAddr.state} – ${ckAddr.pincode}</p></div>
     ${[
       {v:'upiqr',icon:'📲',name:'UPI QR Code (Scan & Pay) · UPI QR குறியீடு',desc:'Scan QR with GPay / PhonePe / Paytm',sec:true},
-      {v:'cod',icon:'💵',name:'Cash on Delivery · பணம் செலுத்துதல்',desc:'Pay cash when your saree arrives',sec:false},
+
       {v:'whatsapp',icon:'💬',name:'Order via WhatsApp · வாட்ஸ்அப்',desc:'Confirm order & pay through WhatsApp chat',sec:false}
     ].map((pm,i)=>`<div class="pm-opt${i===0?' sel':''}" id="pm-${pm.v}" onclick="selPM('${pm.v}')"><span class="pm-icon">${pm.icon}</span><div class="pm-info"><div class="pm-name">${pm.name}</div><div class="pm-desc">${pm.desc}</div>${pm.sec?'<div class="pm-sec">🔒 100% Secure</div>':''}</div><div class="pm-radio"><div class="pm-dot"></div></div></div>`).join('')}
   </div>
