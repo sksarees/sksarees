@@ -1498,38 +1498,66 @@ let tx=0;
 document.querySelector('.hero-wrap').addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
 document.querySelector('.hero-wrap').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)slide(dx<0?1:-1)},{passive:true});
 
-/* ── FASTER FIRESTORE PRODUCTS LOADING ── */
-
-let liveProducts = [];
-let productsLoaded = false;
+/* ── LOAD LIVE PRODUCTS FROM FIRESTORE — FAST CACHE-FIRST ── */
 
 function mapFsProduct(doc) {
   const d = doc.data();
+
+  const price = Number(d.price) || 0;
+  const originalPrice = Number(d.originalPrice || d.op) || Math.round(price * 1.5);
+
   return {
     id: doc.id,
     sku: d.sku || '',
     name: d.name || '',
     desc: d.desc || d.description || '',
-    price: Number(d.price) || 0,
-    op: Number(d.originalPrice || d.op) || Math.round((Number(d.price) || 0) * 1.5),
-    disc: Number(d.disc || d.discountPercent) || 0,
-    cat: d.cat || d.categorySlug || 'cotton-sarees',
+    price,
+    op: originalPrice,
+    disc: Number(d.disc || d.discountPercent) ||
+      Math.round((1 - price / originalPrice) * 100),
+
+    cat: d.cat || d.categorySlug ||
+      (d.category
+        ? d.category.toLowerCase()
+            .replace(/\s*&\s*/g, '-')
+            .replace(/\s+/g, '-')
+        : 'cotton-sarees'),
+
     fab: d.fab || d.fabric || 'Cotton',
     col: d.col || d.color || '',
     occ: d.occ || d.occasion || 'Daily Wear',
     len: d.len || d.length || '6.3m',
-    imgs: Array.isArray(d.imgs) && d.imgs.length ? d.imgs :
-          Array.isArray(d.images) && d.images.length ? d.images :
-          d.image ? [d.image] : ['https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg'],
+    care: d.care || d.careInstructions || '',
+
+    imgs: Array.isArray(d.imgs) && d.imgs.length
+      ? d.imgs
+      : Array.isArray(d.images) && d.images.length
+        ? d.images
+        : d.image
+          ? [d.image]
+          : ['https://images.pexels.com/photos/12466121/pexels-photo-12466121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=600'],
+
     rat: Number(d.rat || d.rating) || 4.5,
     rev: Number(d.rev || d.reviewCount) || 0,
-    bs: !!d.bs || !!d.bestSeller,
+    bs: !!d.bs || !!d.bestSeller || !!d.featured,
     iN: !!d.iN || !!d.isNew,
     ft: !!d.ft || !!d.isFeatured,
-    _status: d.status || 'Active',
-    // Add timestamp for sorting if available
-    createdAt: d.createdAt || null
+    _status: d.status || 'Active'
   };
+}
+
+function getCreatedTime(doc) {
+  const createdAt = doc.data().createdAt;
+
+  // Firestore Timestamp support
+  if (createdAt && typeof createdAt.toMillis === 'function') {
+    return createdAt.toMillis();
+  }
+
+  if (createdAt instanceof Date) return createdAt.getTime();
+
+  const time = new Date(createdAt || 0).getTime();
+  return Number.isNaN(time) ? 0 : time;
 }
 
 function applyLiveProducts(docs) {
@@ -1537,75 +1565,78 @@ function applyLiveProducts(docs) {
     .map(mapFsProduct)
     .filter(p => p._status !== 'Inactive');
 
-  productsLoaded = true;
-  
-  console.log(`🚀 Fast Loaded ${liveProducts.length} products from Firestore`);
+  console.log('🔥 Loaded ' + liveProducts.length + ' products from Firestore');
 
-  // Prune cart
-  if (cart?.length) {
+  // Deleted products cart-ல் இருந்தால் மட்டும் remove செய்
+  if (cart.length) {
     const liveIds = new Set(liveProducts.map(p => String(p.id)));
     const before = cart.length;
-    cart = cart.filter(i => liveIds.has(String(i.id)));
+
+    cart = cart.filter(item => liveIds.has(String(item.id)));
+
     if (cart.length !== before) {
       saveCart();
-      toast('Some unavailable items removed', 'info');
+      toast('Some unavailable items were removed from your cart', 'info');
     }
   }
 
-  // Render pages
   if (curPage === 'home') renderHome();
   if (curPage === 'products') applyFilters();
   if (curPage === 'cart') renderCart();
-  if (curPage === 'detail' && curProd) {
+
+  if (curPage === 'detail' && curProd != null) {
     const p = gP(curProd);
-    if (!p) go('products');
-    else renderDetail(p);
+
+    if (!p) {
+      go('products');
+      toast('This product is no longer available', 'info');
+    } else {
+      renderDetail(p);
+    }
   }
 }
 
-// ==================== FAST LOADING FUNCTION ====================
-function loadLiveProducts() {
-  if (!window.FB_DB) {
-    console.warn("Firestore not initialized");
-    return;
-  }
+async function loadLiveProducts() {
+  if (!window.FB_DB) return;
 
   const productsRef = window.FB_DB.collection('products');
 
-  // Use get() first for faster initial load + then listener (Hybrid approach)
-  productsRef.get().then(snapshot => {
-    if (snapshot.empty) {
-      console.log('No products yet');
-      return;
+  // 1. Cache-ல data இருந்தால் instant-ஆ show ஆகும்
+  try {
+    const cachedSnap = await productsRef.get({ source: 'cache' });
+
+    if (!cachedSnap.empty) {
+      const cachedDocs = cachedSnap.docs
+        .slice()
+        .sort((a, b) => getCreatedTime(b) - getCreatedTime(a));
+
+      applyLiveProducts(cachedDocs);
+      console.log('⚡ Products loaded instantly from cache');
     }
+  } catch (err) {
+    // First-time visitorக்கு cache இருக்காது — ignore
+    console.log('No local Firestore cache yet.');
+  }
 
-    // Sort once (newest first)
-    const sortedDocs = snapshot.docs.sort((a, b) => {
-      const ta = a.data().createdAt?.seconds || 0;
-      const tb = b.data().createdAt?.seconds || 0;
-      return tb - ta;   // Newest first
-    });
+  // 2. Server-ல இருந்து latest products வந்ததும் refresh ஆகும்
+  productsRef.onSnapshot(
+    snap => {
+      if (snap.empty) {
+        console.log('ℹ️ No products in Firestore yet — using default catalog.');
+        return;
+      }
 
-    applyLiveProducts(sortedDocs);
-    
-  }).catch(err => {
-    console.error("Initial load error:", err);
-  });
+      const docs = snap.docs
+        .slice()
+        .sort((a, b) => getCreatedTime(b) - getCreatedTime(a));
 
-  // Real-time updates (lighter listener after first load)
-  productsRef.onSnapshot(snapshot => {
-    if (!productsLoaded) return; // First load already handled by get()
-    
-    const sortedDocs = snapshot.docs.sort((a, b) => {
-      const ta = a.data().createdAt?.seconds || 0;
-      const tb = b.data().createdAt?.seconds || 0;
-      return tb - ta;
-    });
-    
-    applyLiveProducts(sortedDocs);
-  }, err => {
-    console.warn("Listener error:", err);
-  });
+      applyLiveProducts(docs);
+      console.log('✅ Products synced from Firestore');
+    },
+    err => {
+      console.warn('Firestore products listener error:', err);
+    }
+  );
 }
 
 /* ── Load orders from Firestore for the current logged-in user ── */
