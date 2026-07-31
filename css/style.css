@@ -23,7 +23,7 @@ ul{list-style:none}
 .clamp1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 
 /* ═══════════════════════════ LAYOUT ═══════════════════════════ */
-.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.container{max-width:1200px;margin:0 auto;padding:0 10px}
 .page{display:none}.page.active{display:block}
 .pb{padding-bottom:80px}
 
@@ -128,7 +128,7 @@ ul{list-style:none}
 .cat-name{font-size:.75rem;font-weight:700;color:var(--M);line-height:1.3}
 
 /* ═══════════════════════════ PRODUCT CARD ═══════════════════════ */
-.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
 .products-grid.grid2{grid-template-columns:repeat(2,1fr)}
 .pcard{background:#fff;border-radius:var(--RAD);overflow:hidden;box-shadow:var(--SHADOW);border:1px solid var(--BORDER);transition:transform .22s,box-shadow .22s;cursor:pointer;position:relative}
 .pcard:hover{transform:translateY(-5px);box-shadow:0 10px 28px rgba(0,0,0,.12)}
