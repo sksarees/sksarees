@@ -142,10 +142,10 @@ ul{list-style:none}
 .wish-ico{position:absolute;top:9px;right:9px;z-index:2;background:#fff;border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:.95rem;cursor:pointer;transition:transform .2s}
 .wish-ico:hover{transform:scale(1.18)}
 .pcard-body{padding:11px 13px 14px}
-.pcard-sku{display:inline-flex;font-size:.62rem;color:var(--G);font-weight:700;margin-bottom:0px}
+.pcard-sku{display:inline-flex;font-size:.62rem;color:var(--G);font-weight:700;margin-left:10px}
 .pcard-name{font-size:.85rem;font-weight:600;color:var(--TXT);line-height:1.35;margin-bottom:0px}
 .pcard-stars{font-size:.72rem;color:var(--GL);margin-bottom:0px}
-.pcard-stars span{font-size:.65rem;color:#aaa;margin-left:4px}
+.pcard-stars span{font-size:.65rem;color:#aaa;margin-left:10px}
 .pcard-prices{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:0px}
 .price-now{font-size:1.05rem;font-weight:800;color:var(--M)}
 .price-old{font-size:.78rem;color:#bbb;text-decoration:line-through}
