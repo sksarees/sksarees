@@ -704,8 +704,10 @@ function pCard(p,mini=false){
       <button class="wish-ico" onclick="event.stopPropagation();toggleWish('${p.id}')">${inW?'❤️':'🤍'}</button>
     </div>
     <div class="pcard-body">
-      <div class="pcard-name clamp2">${p.name}   <div class="pcard-sku">${p.sku} | ${p.fab}</div></div>
-      <div class="pcard-prices"><span class="price-now">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span>   <div class="pcard-stars">${starsHTML(p.rat)} <span>(${p.rev})</span></div></div>
+    <div class="pcard-sku">${p.sku} | ${p.fab}</div>
+      <div class="pcard-name clamp2">${p.name}</div>
+      <div class="pcard-stars">${starsHTML(p.rat)} <span>(${p.rev})</span></div>
+      <div class="pcard-prices"><span class="price-now">${fmt(p.price)}</span><span class="price-old">${fmt(p.op)}</span></div>
       <button class="pcard-add" onclick="event.stopPropagation();addCart('${p.id}')">${t('btn.addcart')}</button>
     </div>
   </div>`;
