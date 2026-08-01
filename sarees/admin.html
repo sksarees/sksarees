@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Dashboard | SK Sarees</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Admin Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Admin Styles -->
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <span class="logo-sk">SK</span>
+                <span class="logo-text">Admin</span>
+            </div>
+            <button class="close-sidebar mobile-only" id="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <ul class="nav-links">
+            <li class="nav-item active"><a href="#"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li class="nav-item"><a href="#"><i class="fas fa-shopping-cart"></i> Orders <span class="badge">12</span></a></li>
+            <li class="nav-item"><a href="#"><i class="fas fa-box-open"></i> Products</a></li>
+            <li class="nav-item"><a href="#"><i class="fas fa-layer-group"></i> Categories</a></li>
+            <li class="nav-item"><a href="#"><i class="fas fa-users"></i> Customers</a></li>
+            <li class="nav-item"><a href="#"><i class="fas fa-star"></i> Reviews</a></li>
+            <li class="nav-item"><a href="#"><i class="fab fa-whatsapp"></i> WA Messages</a></li>
+            <li class="nav-item"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-btn" id="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-box desktop-only">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search orders, products...">
+                </div>
+            </div>
+            
+            <div class="topbar-right">
+                <button class="icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
+                <div class="admin-profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=800000&color=fff" alt="Admin">
+                    <div class="profile-info desktop-only">
+                        <span class="name">Super Admin</span>
+                        <span class="role">Owner</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Dashboard -->
+        <div class="dashboard-container">
+            <div class="page-header">
+                <h1>Overview</h1>
+                <div class="header-actions">
+                    <button class="btn btn-outline"><i class="fas fa-download"></i> Export PDF</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Total Revenue</h3>
+                        <p class="value">₹1,24,500</p>
+                        <span class="trend positive"><i class="fas fa-arrow-up"></i> 12.5% today</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f3e5f5; color: #1565c0;">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Total Orders</h3>
+                        <p class="value">156</p>
+                        <span class="trend positive"><i class="fas fa-arrow-up"></i> 8.2% this week</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fff8e1; color: #7b1fa2;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Total Customers</h3>
+                        <p class="value">1,204</p>
+                        <span class="trend positive"><i class="fas fa-arrow-up"></i> 3.1% this month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #ffebee; color: #d32f2f;">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Pending Orders</h3>
+                        <p class="value">12</p>
+                        <span class="trend negative">Needs attention</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h2>Sales Analytics (Last 7 Days)</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h2>Top Categories</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders Table -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h2>Recent Orders (Realtime)</h2>
+                    <a href="#" class="view-all">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Status (Update)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification for updates -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Update successful</span>
+    </div>
+
+    <!-- Admin Logic -->
+    <script src="admin.js"></script>
+</body>
+</html>

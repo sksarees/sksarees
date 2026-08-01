@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kanchipuram Pure Silk Bridal Saree | SK Sarees</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar desktop-only">
+        <span><i class="fas fa-truck"></i> Free Shipping Across India</span>
+        <span><i class="fas fa-shield-alt"></i> 100% Secure Payment</span>
+        <div class="top-links">
+            <a href="#">Track Order</a>
+            <a href="#">Language: EN <i class="fas fa-caret-down"></i></a>
+        </div>
+    </div>
+
+    <!-- Header / Nav -->
+    <header class="header">
+        <div class="header-main">
+            <div class="menu-btn mobile-only">
+                <i class="fas fa-bars"></i>
+            </div>
+            
+            <div class="brand">
+                <a href="index.html" class="logo">
+                    <span class="logo-sk">SK</span>
+                    <span class="logo-text">Sarees</span>
+                </a>
+            </div>
+
+            <div class="search-bar desktop-only">
+                <input type="text" placeholder="Search for Kanchipuram, Cotton, Soft Silk...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="header-actions">
+                <div class="action-icon desktop-only">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="action-icon desktop-only">
+                    <i class="far fa-user"></i>
+                </div>
+                <div class="action-icon cart-trigger" id="cart-btn">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="badge" id="cart-badge">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Search -->
+        <div class="mobile-search mobile-only">
+            <input type="text" placeholder="Search sarees...">
+            <i class="fas fa-search"></i>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="product-page-container">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> 
+                <i class="fas fa-chevron-right"></i> 
+                <a href="#">Categories</a> 
+                <i class="fas fa-chevron-right"></i> 
+                <a href="#">Silk</a> 
+                <i class="fas fa-chevron-right"></i> 
+                <span>Kanchipuram Pure Silk Bridal Saree</span>
+            </nav>
+
+            <div class="product-detail-grid">
+                <!-- Gallery Section -->
+                <div class="product-gallery">
+                    <div class="gallery-main" id="main-image-container">
+                        <div class="gallery-badges">
+                            <span class="badge-tag badge-offer">HOT</span>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1610189013444-933fb0122e23?q=80&w=1000&h=1333&fit=crop" id="main-image" alt="Kanchipuram Silk">
+                        <button class="view-360-btn"><i class="fas fa-vr-cardboard"></i> 360° View</button>
+                    </div>
+                    <div class="gallery-thumbs">
+                        <img src="https://images.unsplash.com/photo-1610189013444-933fb0122e23?q=80&w=200&h=266&fit=crop" class="thumb-img active" onclick="changeImage(this.src, this)" alt="Thumb">
+                        <img src="https://images.unsplash.com/photo-1583391733958-d25e07fac092?q=80&w=200&h=266&fit=crop" class="thumb-img" onclick="changeImage(this.src, this)" alt="Thumb">
+                        <img src="https://images.unsplash.com/photo-1605915239019-3c3d526fb517?q=80&w=200&h=266&fit=crop" class="thumb-img" onclick="changeImage(this.src, this)" alt="Thumb">
+                        <img src="https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=200&h=266&fit=crop" class="thumb-img" onclick="changeImage(this.src, this)" alt="Thumb">
+                    </div>
+                </div>
+
+                <!-- Info Section -->
+                <div class="product-info-wrapper">
+                    <h1>Kanchipuram Pure Silk Bridal Saree</h1>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="review-count">128 Reviews</span>
+                    </div>
+
+                    <div class="price-block">
+                        <span class="price-current text-maroon" style="color: var(--maroon); font-weight:700;">₹24,500</span>
+                        <span class="price-old text-muted">₹32,000</span>
+                        <span class="discount">23% OFF</span>
+                    </div>
+
+                    <div class="stock-status text-green">
+                        <i class="fas fa-check-circle"></i> In Stock (Ships in 24 hours)
+                    </div>
+
+                    <!-- Specs -->
+                    <table class="specs-table">
+                        <tr>
+                            <td>Color</td>
+                            <td>Rich Maroon & Gold</td>
+                        </tr>
+                        <tr>
+                            <td>Fabric</td>
+                            <td>Pure Kanchipuram Silk</td>
+                        </tr>
+                        <tr>
+                            <td>Length</td>
+                            <td>6.2 Meters (including blouse)</td>
+                        </tr>
+                        <tr>
+                            <td>Blouse Details</td>
+                            <td>Unstitched contrast matching blouse piece</td>
+                        </tr>
+                        <tr>
+                            <td>Weight</td>
+                            <td>Approx. 850 grams</td>
+                        </tr>
+                    </table>
+
+                    <!-- Actions -->
+                    <div class="qty-selector">
+                        <label>Quantity:</label>
+                        <div class="qty-wrap">
+                            <button onclick="changeProdQty(-1)">-</button>
+                            <input type="number" id="prod-qty" value="1" min="1" readonly>
+                            <button onclick="changeProdQty(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-outline w-100" onclick="addToCartQty('SK101')">Add to Cart</button>
+                        <button class="btn btn-buy w-100" onclick="buyNow('SK101')">Buy Now</button>
+                        <button class="btn btn-whatsapp btn-wa-order w-100" onclick="buyOnWhatsApp('SK101')"><i class="fab fa-whatsapp"></i> Order via WhatsApp</button>
+                    </div>
+
+                    <div class="extra-actions">
+                        <div class="extra-btn"><i class="far fa-heart"></i> Add to Wishlist</div>
+                        <div class="extra-btn" onclick="copyLink()"><i class="far fa-copy"></i> Copy Link</div>
+                        <div class="extra-btn"><i class="fas fa-share-alt"></i> Share</div>
+                    </div>
+
+                    <div class="delivery-features">
+                        <div class="feature-item"><i class="fas fa-shipping-fast"></i> Free Delivery</div>
+                        <div class="feature-item"><i class="fas fa-undo"></i> 7 Days Return</div>
+                        <div class="feature-item"><i class="fas fa-shield-alt"></i> Secure Payment</div>
+                        <div class="feature-item"><i class="fas fa-award"></i> Quality Checked</div>
+                    </div>
+
+                    <!-- Details Tabs -->
+                    <div class="product-tabs">
+                        <div class="tab-header">Description <i class="fas fa-chevron-down"></i></div>
+                        <div class="tab-content">
+                            Experience the epitome of traditional elegance with our authentic Handwoven Kanchipuram Pure Silk Bridal Saree. Woven by master artisans in Kanchipuram, this masterpiece features intricate Zari work in pure gold threads. Perfect for weddings, grand occasions, and festive celebrations.
+                        </div>
+                        <div class="tab-header" style="border-top:1px solid var(--border);">Care Instructions <i class="fas fa-chevron-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products Section -->
+        <section class="section-container bg-cream" style="margin-top: 40px;">
+            <div class="section-header">
+                <h2>Related Products</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="product-grid" id="related-grid">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <span class="logo-sk">SK</span>
+                    <span class="logo-text" style="color:white">Sarees</span>
+                </a>
+                <p>Traditional Elegance at Affordable Prices.</p>
+            </div>
+            <div class="footer-contact">
+                <h3>Contact Us</h3>
+                <p><i class="fab fa-whatsapp"></i> +91 98765 43210</p>
+                <p><i class="fas fa-envelope"></i> support@sksarees.in</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Overlay & Modals -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button id="close-cart"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="cart-items" id="cart-items-container"></div>
+        <div class="cart-footer">
+            <div class="cart-summary">
+                <div class="summary-row total-row">
+                    <span>Grand Total</span>
+                    <span id="cart-total">₹0</span>
+                </div>
+            </div>
+            <button class="btn btn-primary w-100" id="checkout-btn">Proceed to Checkout</button>
+        </div>
+    </div>
+    
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Express Checkout</h2>
+                <button id="close-checkout"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="checkout-form">
+                    <div class="input-group">
+                        <input type="text" id="cust-name" placeholder="Full Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="tel" id="cust-phone" placeholder="WhatsApp Number" required>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="cust-address" placeholder="Complete Delivery Address" required></textarea>
+                    </div>
+                    <div class="payment-methods">
+                        <label class="pay-option active"><input type="radio" name="payment" value="cod" checked><span class="pay-btn"><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span></label>
+                    </div>
+                    <button type="button" class="btn btn-whatsapp w-100 mt-3" id="confirm-order-btn">
+                        <i class="fab fa-whatsapp"></i> Confirm Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+    <script>
+        // Specific logic for product page
+        function changeImage(src, element) {
+            document.getElementById('main-image').src = src;
+            document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // JS zoom mock
+        const mainImgContainer = document.getElementById('main-image-container');
+        const mainImg = document.getElementById('main-image');
+        
+        mainImgContainer.addEventListener('mousemove', (e) => {
+            const rect = mainImgContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const xPercent = x / rect.width * 100;
+            const yPercent = y / rect.height * 100;
+            
+            mainImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        });
+
+        function changeProdQty(delta) {
+            const qtyInput = document.getElementById('prod-qty');
+            let val = parseInt(qtyInput.value) + delta;
+            if(val < 1) val = 1;
+            qtyInput.value = val;
+        }
+
+        function addToCartQty(id) {
+            const qty = parseInt(document.getElementById('prod-qty').value);
+            for(let i=0; i<qty; i++) {
+                addToCart(id); 
+            }
+            showToastMessage('Added to cart successfully!');
+        }
+
+        function buyNow(id) {
+            addToCartQty(id);
+            toggleCheckoutModal(true);
+        }
+
+        function buyOnWhatsApp(id) {
+            const qty = document.getElementById('prod-qty').value;
+            const prod = products.find(p => p.id === id);
+            const text = `Hi SK Sarees, I would like to order:%0A%0A*${prod.name}*%0AQuantity: ${qty}%0APrice: ₹${(prod.price * qty).toLocaleString('en-IN')}%0A%0APlease help me with the checkout process.`;
+            window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${text}`, '_blank');
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href);
+            showToastMessage('Link copied to clipboard!');
+        }
+
+        // Inject simple toast HTML
+        document.body.insertAdjacentHTML('beforeend', '<div id="p-toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity 0.3s;z-index:9999;"></div>');
+        function showToastMessage(msg) {
+            const t = document.getElementById('p-toast');
+            t.innerText = msg;
+            t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SK Sarees | Traditional Elegance at Affordable Prices</title>
+    
+    <!-- SEO & Meta Tags -->
+    <meta name="description" content="Premium Silk, Cotton, and Wedding Sarees. SK Sarees offers traditional elegance at affordable prices. Shop now for the best ethnic wear.">
+    <meta name="keywords" content="sarees, silk sarees, cotton sarees, online saree shopping, wedding sarees, SK sarees">
+    <meta name="theme-color" content="#800000">
+    <meta property="og:title" content="SK Sarees | Premium Ethnic Wear">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sksarees.in">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Schema.org for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": "SK Sarees",
+      "image": "logo.png",
+      "description": "Traditional Elegance at Affordable Prices",
+      "telephone": "+910000000000",
+      "priceRange": "₹499 - ₹25000",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Tamil Nadu",
+        "addressCountry": "IN"
+      }
+    }
+    </script>
+</head>
+<body>
+    <!-- Top Bar (Desktop) -->
+    <div class="top-bar desktop-only">
+        <span><i class="fas fa-truck"></i> Free Shipping Across India</span>
+        <span><i class="fas fa-shield-alt"></i> 100% Secure Payment</span>
+        <div class="top-links">
+            <a href="#">Track Order</a>
+            <a href="#">Language: EN <i class="fas fa-caret-down"></i></a>
+        </div>
+    </div>
+
+    <!-- Header / Nav -->
+    <header class="header">
+        <div class="header-main">
+            <div class="menu-btn mobile-only">
+                <i class="fas fa-bars"></i>
+            </div>
+            
+            <div class="brand">
+                <a href="index.html" class="logo">
+                    <span class="logo-sk">SK</span>
+                    <span class="logo-text">Sarees</span>
+                </a>
+            </div>
+
+            <div class="search-bar desktop-only">
+                <input type="text" placeholder="Search for Kanchipuram, Cotton, Soft Silk...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="header-actions">
+                <div class="action-icon desktop-only">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="action-icon desktop-only">
+                    <i class="far fa-user"></i>
+                </div>
+                <div class="action-icon cart-trigger" id="cart-btn">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="badge" id="cart-badge">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Search -->
+        <div class="mobile-search mobile-only">
+            <input type="text" placeholder="Search sarees...">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <!-- Desktop Categories Nav -->
+        <nav class="category-nav desktop-only">
+            <ul>
+                <li><a href="#" class="active">New Arrivals</a></li>
+                <li><a href="#">Kanchipuram Silk <span class="hot-badge">HOT</span></a></li>
+                <li><a href="#">Soft Silk</a></li>
+                <li><a href="#">Cotton</a></li>
+                <li><a href="#">Wedding Collection</a></li>
+                <li><a href="#">Under ₹999</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Slider Banner -->
+        <section class="hero-banner">
+            <div class="hero-content">
+                <span class="tagline">Traditional Elegance</span>
+                <h1>The Grand Festive Collection</h1>
+                <p>Authentic handwoven sarees crafted with love. Up to 40% Off.</p>
+                <button class="btn btn-primary">Shop Now <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Trust Badges -->
+        <section class="trust-bar">
+            <div class="trust-item">
+                <i class="fas fa-medal"></i>
+                <span>Premium Quality</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-shipping-fast"></i>
+                <span>Fast Delivery</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-undo"></i>
+                <span>Easy Returns</span>
+            </div>
+            <div class="trust-item">
+                <i class="fab fa-whatsapp"></i>
+                <span>24/7 Support</span>
+            </div>
+        </section>
+
+        <!-- Featured Categories (Horizontal Scroll on Mobile) -->
+        <section class="section-container">
+            <div class="section-header">
+                <h2>Shop by Category</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="category-scroll">
+                <div class="category-circle">
+                    <img src="https://images.unsplash.com/photo-1610189013444-933fb0122e23?q=80&w=200&h=200&fit=crop" alt="Silk">
+                    <span>Pure Silk</span>
+                </div>
+                <div class="category-circle">
+                    <img src="https://images.unsplash.com/photo-1583391733958-d25e07fac092?q=80&w=200&h=200&fit=crop" alt="Cotton">
+                    <span>Cotton</span>
+                </div>
+                <div class="category-circle">
+                    <img src="https://images.unsplash.com/photo-1605915239019-3c3d526fb517?q=80&w=200&h=200&fit=crop" alt="Soft Silk">
+                    <span>Soft Silk</span>
+                </div>
+                <div class="category-circle">
+                    <img src="https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=200&h=200&fit=crop" alt="Wedding">
+                    <span>Wedding</span>
+                </div>
+                <div class="category-circle">
+                    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=200&h=200&fit=crop" alt="Party Wear">
+                    <span>Party Wear</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trending Products -->
+        <section class="section-container bg-cream">
+            <div class="section-header">
+                <h2>Trending Now</h2>
+                <div class="flash-timer desktop-only">Ends in: <span id="timer">04:20:00</span></div>
+            </div>
+            <div class="product-grid" id="trending-grid">
+                <!-- Products injected via JS -->
+            </div>
+            <div class="center-btn">
+                <button class="btn btn-outline">Load More</button>
+            </div>
+        </section>
+        
+        <!-- Promotional Banner -->
+        <section class="promo-banner">
+            <div class="promo-inner">
+                <h2>Exclusive Wedding Collection</h2>
+                <p>Flat 20% off on all bridal wear. Use code: <strong>BRIDE20</strong></p>
+                <button class="btn btn-secondary">Explore Collection</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <span class="logo-sk">SK</span>
+                    <span class="logo-text" style="color:white">Sarees</span>
+                </a>
+                <p>Traditional Elegance at Affordable Prices. Discover the finest collection of authentic Indian ethnic wear.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Policies</h3>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Refund Policy</a></li>
+                    <li><a href="#">Shipping Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h3>Contact Us</h3>
+                <p><i class="fab fa-whatsapp"></i> +91 98765 43210</p>
+                <p><i class="fas fa-envelope"></i> support@sksarees.in</p>
+                <p><i class="fas fa-map-marker-alt"></i> Chennai, Tamil Nadu, India</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 SK Sarees. All Rights Reserved.</p>
+            <div class="payment-icons">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-google-pay"></i>
+                <!-- UPI Custom Icon placeholder -->
+                <span class="upi-text">UPI</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="bottom-nav mobile-only">
+        <a href="#" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-th-large"></i>
+            <span>Categories</span>
+        </a>
+        <a href="#" class="nav-item cart-trigger">
+            <div class="icon-wrap">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="badge bottom-badge">0</span>
+            </div>
+            <span>Cart</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="far fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/919876543210" class="floating-wa" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Side Cart Slide-over -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button id="close-cart"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="cart-items" id="cart-items-container">
+            <!-- Cart Items JS injected -->
+        </div>
+
+        <div class="cart-footer">
+            <div class="promo-box">
+                <input type="text" placeholder="Coupon Code">
+                <button>Apply</button>
+            </div>
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">₹0</span>
+                </div>
+                <div class="summary-row text-green">
+                    <span>Discount</span>
+                    <span id="cart-discount">-₹0</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Grand Total</span>
+                    <span id="cart-total">₹0</span>
+                </div>
+            </div>
+            <button class="btn btn-primary w-100" id="checkout-btn">Proceed to Checkout</button>
+            <p class="secure-text"><i class="fas fa-lock"></i> 100% Secure Checkout</p>
+        </div>
+    </div>
+
+    <!-- Checkout Modal (UPI & WhatsApp Flow) -->
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Express Checkout</h2>
+                <button id="close-checkout"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="checkout-form">
+                    <h3 class="form-section-title">Delivery Details</h3>
+                    <div class="input-group">
+                        <input type="text" id="cust-name" placeholder="Full Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="tel" id="cust-phone" placeholder="WhatsApp Number" required>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="cust-address" placeholder="Complete Delivery Address (with Pincode)" required></textarea>
+                    </div>
+
+                    <h3 class="form-section-title">Payment Method</h3>
+                    <div class="payment-methods">
+                        <label class="pay-option active">
+                            <input type="radio" name="payment" value="upi" checked>
+                            <span class="pay-btn"><i class="fas fa-qrcode"></i> Pay via UPI / QR</span>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="payment" value="cod">
+                            <span class="pay-btn"><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span>
+                        </label>
+                    </div>
+
+                    <div id="upi-section" class="upi-section">
+                        <p class="upi-instructions">Scan QR to pay <strong id="final-pay-amount">₹0</strong></p>
+                        <div class="qr-placeholder">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=sksarees@ybl&pn=SKSarees&am=0&cu=INR" alt="UPI QR Code" id="dynamic-qr">
+                        </div>
+                        <p class="upi-id">UPI ID: <strong>sksarees@ybl</strong> <i class="far fa-copy"></i></p>
+                    </div>
+
+                    <button type="button" class="btn btn-whatsapp w-100 mt-3" id="confirm-order-btn">
+                        <i class="fab fa-whatsapp"></i> Confirm & Send via WhatsApp
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Placeholders for actual integration) -->
+    <!-- <script type="module" src="firebase-config.js"></script> -->
+    
+    <!-- Main Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

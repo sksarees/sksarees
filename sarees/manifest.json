@@ -1,0 +1,16 @@
+{
+  "name": "SK Sarees",
+  "short_name": "SKSarees",
+  "description": "Premium Sarees & Ethnic Wear",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#800000",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/512/saree.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
