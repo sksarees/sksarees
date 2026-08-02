@@ -6,36 +6,17 @@
 <meta name="theme-color" content="#8f1d3a">
 <title>SK SAREES — Buy Silk, Cotton &amp; Wedding Sarees Online | Salem</title>
 <meta name="description" content="Buy authentic Kanchipuram silk, cotton, georgette & wedding sarees online. COD available, UPI payments, doorstep delivery. Order instantly on WhatsApp.">
-<meta property="og:title" content="SK SAREES — Buy Sarees Online in Salem, Tamil Nadu">
-<meta property="og:description" content="Kanchipuram silk, cotton & wedding sarees. UPI (GPay/PhonePe/Paytm) & COD. Free shipping above ₹999. Order on WhatsApp — fastest confirmation!">
+<meta property="og:title" content="SK SAREES — Premium Sarees Online">
+<meta property="og:description" content="Silk, Cotton & Wedding sarees. Order on WhatsApp for instant confirmation.">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="en_IN">
-<meta property="og:site_name" content="SK SAREES">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="SK SAREES — Sarees Online, Salem">
-<meta name="twitter:description" content="Silk, cotton & wedding sarees from Salem. UPI + COD, free shipping above ₹999, instant WhatsApp confirmation.">
-<!-- ============================================================
-  🎯 GOOGLE ADS / META (FACEBOOK) ADS — PASTE YOUR SNIPPETS HERE
-  1) Google Ads: create a conversion tag in ads.google.com → paste the
-     gtag('config','AW-XXXXXXX') script here.
-  2) Meta Pixel: in business.facebook.com → Events Manager → create pixel
-     → paste the <script>fbq('init','XXXXXXXXXXXX')</script> here.
-  The store already fires 'purchase' conversion events automatically
-  (see trackPurchase in store-data.js) — no code changes needed after pasting.
-============================================================ -->
-<!-- Google tag (gtag.js) example (uncomment + replace AW-XXXX with yours):
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXX"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-XXXXXXXXX');</script> -->
-<!-- Meta Pixel example (uncomment + replace with your pixel id):
-<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','XXXXXXXXXXXXX');fbq('track','PageView');</script> -->
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%238f1d3a'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23e8c66a'>🪡</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%238f1d3a'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23e8c66a'>🪡</text></svg>">
 
 <!-- ============ STORE STRUCTURED DATA (SEO) ============ -->
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"ClothingStore","name":"SK SAREES","image":"images/products/kanchipuram-silk.jpg","telephone":"+91 78679 15699","priceRange":"₹₹","currenciesAccepted":"INR","paymentAccepted":"Cash, UPI, Credit Card","address":{"@type":"PostalAddress","streetAddress":"2/130, Thoothanoor, Edanganasalai","addressLocality":"Salem","addressRegion":"Tamil Nadu","postalCode":"637502","addressCountry":"IN"},"geo":{"@type":"GeoCoordinates","latitude":11.6694,"longitude":78.1408},"openingHours":"Mo-Su 09:00-21:00","areaServed":["Salem","Tamil Nadu","India"],"sameAs":["https://www.instagram.com/sksarees_collection/","https://www.facebook.com/eske.kalekcan/","https://www.youtube.com/@sksarees_collection","https://chat.whatsapp.com/LifaKCj3msQApwxJ4N4sQ0","https://wa.me/917867915699"]}
+{"@context":"https://schema.org","@type":"ClothingStore","name":"SK SAREES","image":"images/products/kanchipuram-silk.jpg","telephone":"+91 78679 15699","address":{"@type":"PostalAddress","streetAddress":"2/130, Thoothanoor, Edanganasalai","addressLocality":"Salem","postalCode":"637502","addressCountry":"IN"},"priceRange":"₹₹"}
 </script>
-<link rel="stylesheet" href="store.css">
+
 <style>
 /* ==========================================================
    SRI SAKTHI SAREES — Mobile-first, fast-loading stylesheet
@@ -144,128 +125,6 @@ svg{display:block}
 .cat-tile::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.42));pointer-events:none}
 .cat-tile>*{position:relative;z-index:1}
 
-/* Review Form Styles */
-.rev-form {
-  max-width: 420px;
-  margin: 24px auto;
-  padding: 28px 24px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 28px rgba(128, 0, 32, 0.12);
-  border: 1px solid #f0e6e9;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-}
-
-.rf-title {
-  display: block;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #800020;
-  margin-bottom: 22px;
-  text-align: center;
-  letter-spacing: 0.3px;
-}
-
-.rev-field {
-  margin-bottom: 18px;
-}
-
-.rev-field label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #4a2c2a;
-  margin-bottom: 6px;
-}
-
-.rev-field input,
-.rev-field select,
-.rev-field textarea {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1.5px solid #e0c8ce;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: #333;
-  background: #fffafb;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.rev-field input:focus,
-.rev-field select:focus,
-.rev-field textarea:focus {
-  border-color: #800020;
-  box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.12);
-  background: #fff;
-}
-
-.rev-field textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.45;
-}
-
-.rev-field select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23800020' d='M1.4 0L6 4.6 10.6 0 12 1.4 6 7.4 0 1.4z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 36px;
-}
-
-/* Maroon Button */
-.btn-maroon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #800020, #a01a3a);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(128, 0, 32, 0.3);
-}
-
-.btn-maroon:hover {
-  background: linear-gradient(135deg, #6b001b, #8b1530);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(128, 0, 32, 0.4);
-}
-
-.btn-maroon:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(128, 0, 32, 0.3);
-}
-
-.btn-sm {
-  padding: 11px 18px;
-  font-size: 0.95rem;
-}
-
-/* Placeholder styling */
-.rev-field input::placeholder,
-.rev-field textarea::placeholder {
-  color: #b89a9e;
-  opacity: 1;
-}
-
-/* Mobile friendly */
-@media (max-width: 480px) {
-  .rev-form {
-    margin: 16px 12px;
-    padding: 22px 18px;
-  }
-}
 /* ---------- Product cards ---------- */
 .prow{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .pcard{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-sm);display:flex;flex-direction:column;border:1px solid var(--line)}
@@ -530,7 +389,7 @@ body.pdbar-on .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
 </head>
 <body>
 <!-- ============ PROMO STRIP ============ -->
-<div class="promo-strip"><span>🔥 Aadi Festival Sale — Up to 40% OFF on Silk Sarees &nbsp;•&nbsp; 🚚 Free Shipping Above ₹999 &nbsp;•&nbsp; 💵 COD Available (₹49 extra) &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>
+<div class="promo-strip"><span>🔥 Aadi Festival Sale — Up to 40% OFF on Silk Sarees &nbsp;•&nbsp; 🚚 Free Shipping All India &nbsp;•&nbsp; 💵 COD Available (₹49 extra) &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>
 
 <!-- ============ HEADER ============ -->
 <header class="topbar">
@@ -539,7 +398,7 @@ body.pdbar-on .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <a class="logo" href="#/home">
-      <span class="logo-badge"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="3" fill="#e8c66a"/><text x="12" y="16.5" text-anchor="middle" font-size="9.5" font-weight="800" fill="#70142c" font-family="Arial, sans-serif">SK</text></svg></span>
+      <span class="logo-ic">🪡</span>
       <span>SK SAREES<small>Premium Sarees • Salem</small></span>
     </a>
     <nav class="desk-nav" aria-label="Main">
@@ -548,13 +407,9 @@ body.pdbar-on .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
       <a href="products.html?cat=cotton" data-nav>Cotton</a>
       <a href="products.html?cat=wedding" data-nav>Wedding</a>
       <a href="products.html?cat=daily" data-nav>Daily Wear</a>
-      <a href="#/orders" data-nav data-i18n="myOrders">My Orders</a>
+      <a href="#/track" data-nav>Track Order</a>
     </nav>
     <div class="top-actions">
-      <span class="lang-pill" style="margin-right:4px"><select id="langSel" aria-label="Language">
-        <option value="en">EN</option><option value="ta">த</option><option value="hi">हि</option>
-        <option value="te">తె</option><option value="kn">ಕ</option><option value="ml">മ</option>
-      </select></span>
       <button class="icon-btn" id="btnAlerts" aria-label="Offer alerts">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
         <span class="bell-dot"></span>
@@ -571,27 +426,23 @@ body.pdbar-on .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
 <div class="overlay" id="overlay"></div>
 <aside class="drawer" id="drawer" aria-label="Menu">
   <div class="drawer-head">
-    <span class="logo-badge" style="background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" fill="#e8c66a"/><text x="12" y="16.5" text-anchor="middle" font-size="9.5" font-weight="800" fill="#70142c" font-family="Arial, sans-serif">SK</text></svg></span>
+    <span style="font-size:1.6rem">🪡</span>
     <div><b>SK SAREES</b><br><small style="opacity:.85;font-size:.74rem">2/130, Thoothanoor, Edanganasalai, Salem 637502</small></div>
   </div>
   <nav class="drawer-nav" id="drawerNav">
-    <a href="#/home" data-i18n="home">🏠 Home</a>
-    <a href="products.html" data-i18n="shopAll">🛍️ Shop All Sarees</a>
+    <a href="#/home">🏠 Home</a>
+    <a href="products.html">🛍️ Shop All Sarees</a>
     <div class="sub">Categories</div>
-    <a href="products.html?cat=silk" data-i18n="cat_silk">✨ Silk Sarees</a>
-    <a href="products.html?cat=cotton" data-i18n="cat_cotton">🌿 Cotton Sarees</a>
-    <a href="products.html?cat=wedding" data-i18n="cat_wedding">👰 Wedding &amp; Bridal</a>
-    <a href="products.html?cat=daily" data-i18n="cat_daily">🌤️ Daily Wear</a>
-    <a href="products.html?cat=party" data-i18n="cat_party">🎉 Party Wear</a>
-    <div class="sub" data-i18n="language">Language</div>
-    <div class="lang-pill" style="margin:2px 14px 8px"><select id="langSelDrawer">
-      <option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option>
-      <option value="te">తెలుగు</option><option value="kn">ಕನ್ನಡ</option><option value="ml">മലയാളം</option>
-    </select></div>
-    <div class="sub" data-i18n="help">Help</div>
-    <a href="#/orders" data-i18n="myOrders">📦 My Orders</a>
+    <a href="products.html?cat=silk">✨ Silk Sarees</a>
+    <a href="products.html?cat=cotton">🌿 Cotton Sarees</a>
+    <a href="products.html?cat=wedding">👰 Wedding &amp; Bridal</a>
+    <a href="products.html?cat=daily">🌤️ Daily Wear</a>
+    <a href="products.html?cat=party">🎉 Party Wear</a>
+    <div class="sub">Help</div>
+    <a href="#/track">📦 Track Your Order</a>
     <a href="#/returns">↩️ Return Policy</a>
     <a href="#/privacy">🔒 Privacy Policy</a>
+    <a href="admin.html">🛠️ Store Admin</a>
   </nav>
 </aside>
 
@@ -603,43 +454,32 @@ body.pdbar-on .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
   <div class="footer-top">
     <div class="wrap foot-grid">
       <div class="foot">
-        <h4 data-i18n="aboutUs">🪡 SK SAREES</h4>
+        <h4>🪡 SK SAREES</h4>
         <p>Premium Kanchipuram silk, cotton, georgette &amp; wedding sarees at honest prices. Family-run saree store serving customers across India since 2015.</p>
         <div class="foot-pay" style="margin-top:12px">
           <span>UPI</span><span>GPay</span><span>PhonePe</span><span>Paytm</span><span>COD</span><span>🔒 Secure</span>
         </div>
       </div>
       <div class="foot">
-        <h4 data-i18n="quickLinks">Quick Links</h4>
+        <h4>Quick Links</h4>
         <p>
           <a href="products.html">Shop All Sarees</a><br>
           <a href="products.html?cat=silk">Silk Sarees</a><br>
           <a href="products.html?cat=cotton">Cotton Sarees</a><br>
           <a href="products.html?cat=wedding">Wedding Sarees</a><br>
-          <a href="#/orders" data-i18n="myOrders">My Orders</a><br>
+          <a href="#/track">Track Order</a><br>
           <a href="#/returns">Return Policy</a><br>
           <a href="#/privacy">Privacy Policy</a>
         </p>
       </div>
       <div class="foot">
-        <h4 data-i18n="contactUs">Contact Us</h4>
+        <h4>Contact Us</h4>
         <ul class="foot-contact">
           <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>2/130, Thoothanoor,<br>Edanganasalai,<br>Salem — 637502,<br>Tamil Nadu</span></li>
           <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.5 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span><a href="tel:+917867915699">+91 78679 15699</a></span></li>
-          <li><span class="wa-em" style="font-size:16px;line-height:1">💬</span><span><a class="wa-link" href="https://chat.whatsapp.com/LifaKCj3msQApwxJ4N4sQ0" target="_blank" rel="noopener">Join WhatsApp Group</a></span></li>
+          <li><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.5 13.6c-.2.7-1.3 1.3-1.9 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-2.9-1.3-4.8-4.2-5-4.4-.1-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.3-.1.6.2.3.8 1.4 1.8 2.2 1.2 1.1 2.2 1.4 2.5 1.6.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4.1.3.1.8-.2 1.4z"/></svg><span><a class="wa-link" href="https://wa.me/917867915699" target="_blank" rel="noopener">Chat on WhatsApp</a></span></li>
         </ul>
         <p style="font-size:.76rem">⏰ Order support: 9 AM – 9 PM, all days</p>
-        <h4 style="margin-top:14px">Follow Us</h4>
-        <div class="social-row">
-          <a href="https://www.instagram.com/sksarees_collection/" target="_blank" rel="noopener" aria-label="Instagram">📸</a>
-          <a href="https://www.facebook.com/eske.kalekcan/" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
-          <a href="https://www.youtube.com/@sksarees_collection" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
-          <a href="https://chat.whatsapp.com/LifaKCj3msQApwxJ4N4sQ0" target="_blank" rel="noopener" aria-label="WhatsApp group">💬</a>
-        </div>
-        <div class="lang-pill" style="margin-top:12px"><select id="langSelFoot">
-          <option value="en">🌐 English</option><option value="ta">🌐 தமிழ்</option><option value="hi">🌐 हिन्दी</option>
-          <option value="te">🌐 తెలుగు</option><option value="kn">🌐 ಕನ್ನಡ</option><option value="ml">🌐 മലയാളം</option>
-        </select></div>
       </div>
     </div>
   </div>
@@ -648,7 +488,9 @@ body.pdbar-on .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
 
 <!-- ============ FLOATING WIDGETS ============ -->
 <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>
-<a class="wa-float" id="waFloat" href="https://wa.me/917867915699?text=Hi!%20I%20have%20a%20question%20about%20your%20sarees." target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span class="wa-em">💬</span></a>
+<a class="wa-float" id="waFloat" href="https://wa.me/917867915699?text=Hi!%20I%20have%20a%20question%20about%20your%20sarees." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.5 13.6c-.2.7-1.3 1.3-1.9 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-2.9-1.3-4.8-4.2-5-4.4-.1-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.3-.1.6.2.3.8 1.4 1.8 2.2 1.2 1.1 2.2 1.4 2.5 1.6.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4.1.3.1.8-.2 1.4z"/></svg>
+</a>
 
 <div class="toast" id="toast" role="status"></div>
 <div id="modalRoot"></div>
@@ -686,13 +528,13 @@ function router(){
   try{ window.scrollTo({ top:0, behavior:'instant' }); }catch(e){}
   closeDrawer(); StoreUI.closeModal();
   if (route === 'shop' || route === 'category'){ location.replace(route === 'shop' ? 'products.html' : 'products.html?cat=' + (parts[1] || '')); return; }
+  if (route === 'admin'){ location.replace('admin.html'); return; }
   if      (route === 'home')     renderHome();
   else if (route === 'product')  renderProduct(parts[1]);
   else if (route === 'cart')     renderCart();
   else if (route === 'checkout') renderCheckout(query);
   else if (route === 'success')  renderSuccess(parts[1]);
-  else if (route === 'orders')   renderOrdersList();
-  else if (route === 'order')    renderOrderDetails(parts[1], query);
+  else if (route === 'track')    renderTrack(query);
   else if (route === 'returns' || route === 'privacy') renderStatic(route);
   else renderHome();
   updateNav(); renderCartBadge(); renderStickyCartBar();
@@ -710,30 +552,30 @@ function renderHome(){
       <h1>Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span></h1>
       <p>Authentic Kanchipuram silk, soft cotton &amp; wedding sarees. Order in 2 minutes — pay by UPI or Cash on Delivery.</p>
       <div class="hero-ctas">
-        <a class="btn btn-gold" href="products.html">🛍️ ${t('bestSellers')}</a>
-        <a class="btn btn-wa" href="${waLink('Hi! I would like to see your saree collection & current offers.')}" target="_blank" rel="noopener">${IC.wa} ${t('orderOnWA')}</a>
+        <a class="btn btn-gold" href="products.html">🛍️ Shop Best Sellers</a>
+        <a class="btn btn-wa" href="${waLink('Hi! I would like to see your saree collection & current offers.')}" target="_blank" rel="noopener">${IC.wa} Order on WhatsApp</a>
       </div>
-      <div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> above ₹999</span><span>💵 <b>COD</b> Available</span></div>
+      <div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> Shipping</span><span>💵 <b>COD</b> Available</span></div>
     </div>
   </section>
 
   <div class="wrap">
     <section class="sec" style="margin-top:4px">
       <div class="trust-strip">
-        <div class="trust-item">${IC.truck}<span>Free Shipping<b class="t-sub">Above ₹999 • All India</b></span></div>
+        <div class="trust-item">${IC.truck}<span>Free Shipping<b class="t-sub">All over India</b></span></div>
         <div class="trust-item">${IC.ret}<span>Easy Returns<b class="t-sub">7-day replacement</b></span></div>
-        <div class="trust-item">🔒<span>Secure Payments<b class="t-sub">UPI • GPay • PhonePe</b></span></div>
-        <div class="trust-item">💬<span>Instant Support<b class="t-sub">Chat on WhatsApp</b></span></div>
+        <div class="trust-item">${IC.shield}<span>Secure Payments<b class="t-sub">UPI • GPay • PhonePe</b></span></div>
+        <div class="trust-item">${IC.wa}<span>Instant Support<b class="t-sub">Chat on WhatsApp</b></span></div>
       </div>
     </section>
 
     <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>${t('shopByCategory')}</h2><a href="products.html">${t('viewAll')}</a></div>
+      <div class="sec-head"><h2><span class="tick"></span>Shop by Category</h2><a href="products.html">View all →</a></div>
       <div class="cat-grid">${CATEGORIES.map(catTile).join('')}</div>
     </section>
 
     <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>⭐ ${t('bestSellers')}</h2><a href="products.html">${t('viewAll')}</a></div>
+      <div class="sec-head"><h2><span class="tick"></span>⭐ Best Sellers</h2><a href="products.html">View all →</a></div>
       <div class="prow">${best.map(productCard).join('')}</div>
     </section>
 
@@ -744,17 +586,17 @@ function renderHome(){
     </section>
 
     <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>✨ ${t('newArrivals')}</h2><a href="products.html">${t('viewAll')}</a></div>
+      <div class="sec-head"><h2><span class="tick"></span>✨ New Arrivals</h2><a href="products.html">View all →</a></div>
       <div class="prow">${freshList.map(productCard).join('')}</div>
     </section>
 
     <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>💬 ${t('whatCustomersSay')}</h2></div>
+      <div class="sec-head"><h2><span class="tick"></span>💬 What Our Customers Say</h2></div>
       <div class="rev-grid">${REVIEWS.map(revCard).join('')}</div>
     </section>
 
     <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>${t('howToOrder')}</h2></div>
+      <div class="sec-head"><h2><span class="tick"></span>How to Order</h2></div>
       <div class="steps">
         <div class="step"><span class="n">1</span><div><b>Choose your Saree</b><p>Browse categories or send us a photo on WhatsApp.</p></div></div>
         <div class="step"><span class="n">2</span><div><b>Order in 2 minutes</b><p>Guest checkout with UPI / COD — no login needed.</p></div></div>
@@ -763,29 +605,11 @@ function renderHome(){
     </section>
 
     <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>🏠 Why Buy From SK SAREES?</h2></div>
-      <div class="steps">
-        <div class="step"><span class="n">📍</span><div><b>Local Store — Salem</b><p>Visit us at 2/130, Thoothanoor, Edanganasalai, Salem 637502. Local pickup available!</p></div></div>
-        <div class="step"><span class="n">🪡</span><div><b>Handpicked Quality</b><p>Every saree is quality-checked before dispatch — authentic fabrics, honest prices.</p></div></div>
-        <div class="step"><span class="n">💬</span><div><b>Personal WhatsApp Care</b><p>Real human support in Tamil &amp; English — we reply within minutes, 9 AM – 9 PM.</p></div></div>
-      </div>
-    </section>
-
-    <section class="sec faq">
-      <div class="sec-head"><h2><span class="tick"></span>❓ Frequently Asked Questions</h2></div>
-      <details><summary>How do I pay? Is UPI safe?</summary><p>You can pay online via <b>UPI (GPay / PhonePe / Paytm)</b> — scan the QR or tap Pay Now — or choose <b>Cash on Delivery</b> (+₹49). UPI is 100% secure; we never see your card details.</p></details>
-      <details><summary>How long does delivery take?</summary><p>2–4 days within Tamil Nadu, 4–7 days across India. <b>Free shipping above ₹999</b> (else ₹79). You get WhatsApp updates until delivery.</p></details>
-      <details><summary>Can I exchange or return?</summary><p>Yes — <b>7-day easy replacement</b> for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.</p></details>
-      <details><summary>Will the colour match the photo?</summary><p>We photograph sarees in natural light. Colours may vary slightly due to screen settings — we send real photos on WhatsApp before dispatch if you ask.</p></details>
-      <details><summary>I live near Salem — can I pick up?</summary><p>Yes! Local customers can collect from our store at 2/130, Thoothanoor, Edanganasalai, Salem 637502 — mention it in the address and we will call you.</p></details>
-    </section>
-
-    <section class="sec">
-      <div class="sec-head"><h2><span class="tick"></span>💬 Join Our WhatsApp Group</h2></div>
+      <div class="sec-head"><h2><span class="tick"></span>🔔 Never Miss an Offer</h2></div>
       <div class="pd-block" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between">
-        <div style="max-width:46ch"><b>New arrivals &amp; festival offers — first on WhatsApp.</b>
-        <p class="muted small" style="margin-top:4px">Join 500+ customers in our group for exclusive deals before everyone else.</p></div>
-        <button class="btn btn-wa btn-sm" style="width:auto;min-width:180px" data-open-group>💬 Join WhatsApp Group</button>
+        <div style="max-width:46ch"><b>Get new arrivals &amp; festival discounts on WhatsApp.</b>
+        <p class="muted small" style="margin-top:4px">Join 500+ customers getting saree alerts before everyone else.</p></div>
+        <button class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" data-open-alerts>🔔 Subscribe for Alerts</button>
       </div>
     </section>
   </div>`;
@@ -799,10 +623,8 @@ function renderProduct(id){
   pdId = p.id; pdQty = 1;
   const off = offPct(p);
   const cat = catOf(p.cat);
-  const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id)
-    .concat(PRODUCTS.filter(x => x.cat !== p.cat && Math.abs(x.price - p.price) <= 800 && x.id !== p.id))
-    .filter((v,i,a) => a.findIndex(z => z.id === v.id) === i).slice(0,8);
-  const revs = reviewsFor(p.id).map(revCard).join('');
+  const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).slice(0,4);
+  const revs = REVIEWS.slice(0,3).map(revCard).join('');
   app.innerHTML = `
   <div class="wrap pd-wrap" style="margin-top:12px">
     <div>
@@ -826,12 +648,12 @@ function renderProduct(id){
     <div class="pd-info">
       <span class="pd-cat">${cat ? cat.emoji + ' ' + esc(cat.name) : ''}</span>
       <h1>${esc(p.name)}</h1>
-      ${starsHTML(p.rating, realReviewCount(p.id))}
+      ${starsHTML(p.rating, p.reviews)}
       <div class="pd-price"><b>${money(p.price)}</b>${p.mrp ? `<s>${money(p.mrp)}</s>` : ''}${off ? `<span class="off">${off}% OFF</span>` : ''}</div>
       <p class="muted small">MRP inclusive of all taxes • Free shipping 🚚</p>
 
       <div class="pd-chips">
-        <span class="pd-chip">${IC.truck} Free Shipping Above ₹999</span>
+        <span class="pd-chip">${IC.truck} Free Shipping</span>
         <span class="pd-chip">💵 COD Available (+₹${CONFIG.codFee})</span>
         <span class="pd-chip">${IC.ret} 7-Day Returns</span>
         <span class="pd-chip">${IC.pin} Made in India</span>
@@ -844,18 +666,11 @@ function renderProduct(id){
       <div class="pd-btns">
         <button class="btn btn-outline" data-addp>🛒 Add to Cart</button>
         <a class="btn btn-maroon" href="#/checkout?buy=${p.id}">⚡ Buy Now</a>
-        <a class="btn btn-wa btn-xl" href="${waLink(waProductMsg(p))}" target="_blank" rel="noopener">${IC.wa} Buy on WhatsApp — Instant Confirmation</a>
-      </div>
-
-      <div class="like-row">
-        <button class="like-btn ${isLiked(p.id) ? 'on' : ''}" data-like="${p.id}" aria-pressed="${isLiked(p.id)}">
-          <span class="h">${isLiked(p.id) ? '♥' : '♡'}</span> <span data-like-lbl>${isLiked(p.id) ? t('liked') : t('like')}</span>
-        </button>
-        <a class="share-btn" href="${waShare('✨ Beautiful saree at SK SAREES!\n🪡 ' + p.name + '\n💰 ' + money(p.price) + '\nOrder on WhatsApp for instant confirmation 👇', '')}" target="_blank" rel="noopener">📣 ${t('shareWA')}</a>
+        <a class="btn btn-wa btn-xl" href="${waLink(waProductMsg(p))}" target="_blank" rel="noopener"> Buy on WhatsApp — Instant Confirmation</a>
       </div>
 
       <div class="pd-block">
-        <h3>🔒 100% Safe &amp; Easy</h3>
+        <h3> 100% Safe &amp; Easy</h3>
         <p class="small muted">Pay by <b>UPI</b> (GPay / PhonePe / Paytm) or <b>Cash on Delivery</b> (+₹${CONFIG.codFee}). No account or login needed — just your name, phone &amp; address.</p>
       </div>
 
@@ -870,37 +685,15 @@ function renderProduct(id){
       </div>
 
       <div class="pd-block">
-        <h3>💬 Reviews &amp; Comments</h3>
-        <div id="revList">${revs}</div>
-        <div class="rev-form">
-          <b class="rf-title">✍️ ${t('writeReview')}</b>
-          <div class="rev-field">
-            <label for="rvName">Your Name</label>
-            <input id="rvName" placeholder="e.g. Lakshmi" maxlength="40" autocomplete="name">
-          </div>
-          <div class="rev-field">
-            <label for="rvStars">Your Rating</label>
-            <select id="rvStars" aria-label="Rating">
-              <option value="5">★★★★★ Excellent</option>
-              <option value="4">★★★★☆ Very good</option>
-              <option value="3">★★★☆☆ Good</option>
-              <option value="2">★★☆☆☆ Average</option>
-              <option value="1">★☆☆☆☆ Poor</option>
-            </select>
-          </div>
-          <div class="rev-field">
-            <label for="rvText">Your Review</label>
-            <textarea id="rvText" rows="2" placeholder="Share your experience with this saree…" maxlength="300"></textarea>
-          </div>
-          <button class="btn btn-maroon btn-sm" data-comment-submit="${p.id}">✍️ ${t('postComment')}</button>
-        </div>
+        <h3>💬 Customer Reviews</h3>
+        ${revs}
       </div>
     </div>
   </div>
 
   ${related.length ? `
   <div class="wrap sec">
-    <div class="sec-head"><h2><span class="tick"></span>${t('youMayLike') || 'You May Also Like'}</h2></div>
+    <div class="sec-head"><h2><span class="tick"></span>You May Also Like</h2></div>
     <div class="prow">${related.map(productCard).join('')}</div>
   </div>` : ''}
 
@@ -924,8 +717,7 @@ function renderStickyCartBar(){
   document.body.classList.toggle('cartbar-on', show && !onProduct);
   if (show && !onProduct){
     if (!el){ el = document.createElement('div'); el.id = 'siteCartBar'; el.className = 'site-cartbar'; document.body.appendChild(el); }
-    const shipTxt = shippingFor(cartTotal()) ? 'Shipping +' + money(CONFIG.shipFee) : 'FREE shipping';
-    el.innerHTML = `<div class="scb-info"><b>${money(cartTotal())}</b><small>${n} item${n>1?'s':''} • ${shipTxt}</small></div>
+    el.innerHTML = `<div class="scb-info"><b>${money(cartTotal())}</b><small>${n} item${n>1?'s':''} • Free shipping</small></div>
       <a class="btn btn-maroon btn-sm" href="#/checkout">Checkout</a>
       <a class="btn btn-wa btn-sm" href="${waLink(waCartMsg())}" target="_blank" rel="noopener">${IC.wa} WhatsApp</a>`;
   } else if (el){ el.remove(); }
@@ -956,13 +748,8 @@ function renderCart(){
     ${items}
     <div class="summary">
       <div class="row"><span>Items total</span><b>${money(t)}</b></div>
-      <div class="row"><span>Shipping</span><b style="color:${shippingFor(t) ? 'var(--ink)' : 'var(--green)'}">${shippingFor(t) ? money(shippingFor(t)) : 'FREE'}</b></div>
-      <div class="row total"><span>Total</span><b>${money(t + shippingFor(t))}</b></div>
-      <div class="ship-progress">${shippingFor(t)
-        ? `🚚 Add <b>${money(CONFIG.shipFreeAbove - t)}</b> more to get <b>FREE shipping</b>!`
-        : '🎉 You have <b>FREE shipping</b> — on its way!'}
-        <div class="ship-bar"><i style="width:${Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100))}%"></i></div>
-      </div>
+      <div class="row"><span>Shipping</span><b class="muted" style="color:var(--green)">FREE</b></div>
+      <div class="row total"><span>Total</span><b>${money(t)}</b></div>
       <div class="cod-note">💵 COD Available — pay <b>&nbsp;₹${CONFIG.codFee}&nbsp;</b> extra at delivery. Choose it at checkout.</div>
       <div style="display:grid;gap:10px;margin-top:14px">
         <a class="btn btn-maroon btn-xl" href="#/checkout">Proceed to Checkout →</a>
@@ -979,7 +766,7 @@ const FREE_MSG = 'FREE';
 function calcTotals(payment){
   const itemsTotal = cartTotal();
   const codFee = payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal); /* free above ₹999, else ₹79 */
+  const shipping = 0;
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping };
 }
 function renderCheckout(query){
@@ -1039,9 +826,9 @@ function coStep2(d){
   return `<div class="form-card">
     <h3>🧾 Review Your Order</h3>
     ${itemLines}
-    <div class="row"><span>Shipping</span><b style="color:${t.shipping ? 'var(--ink)' : 'var(--green)'}">${t.shipping ? money(t.shipping) : FREE_MSG}</b></div>
+    <div class="row"><span>Shipping</span><b style="color:var(--green)">${FREE_MSG}</b></div>
     ${upiPay ? '' : `<div class="row"><span>COD charges</span><b>+${money(t.codFee)}</b></div>`}
-    <div class="row total"><span>Total</span><b>${money(t.grand)}</b></div>
+    <div class="row total"><span>Total ${upiPay ? '' : '(incl. COD ₹' + CONFIG.codFee + ')'}</span><b>${money(t.grand)}</b></div>
     <div class="row"><span style="color:var(--muted);font-size:.8rem">Deliver to</span></div>
     <p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:10px;background:var(--bg)">
       <b>${esc(d.name)}</b> • ${esc(d.phone)}<br>${esc(d.address)} — ${esc(d.pincode)}</p>
@@ -1051,12 +838,10 @@ function coStep2(d){
   <div class="form-card">
     <h3>📲 Pay by UPI</h3>
     <div class="pay-amt"><b>${money(t.grand)}</b><span>payable</span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
-      <a class="upi-app-btn" href="tez://upi/pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${t.grand.toFixed(2)}&cu=INR&tn=Saree%20order&mode=02" target="_blank" rel="noopener"><span class="dot" style="background:#4285f4"></span>GPay</a>
-      <a class="upi-app-btn" href="phonepe://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${t.grand.toFixed(2)}&cu=INR&tn=Saree%20order&mode=02" target="_blank" rel="noopener"><span class="dot" style="background:#5f259f"></span>PhonePe</a>
-      <a class="upi-app-btn" href="paytmmp://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${t.grand.toFixed(2)}&cu=INR&tn=Saree%20order&mode=02" target="_blank" rel="noopener"><span class="dot" style="background:#00baf2"></span>Paytm</a>
+    <div class="upi-apps">
+      <span class="upi-app">🟢 GPay</span><span class="upi-app">🔵 PhonePe</span><span class="upi-app">🔴 Paytm</span>
+      <span class="upi-app">🏦 Any UPI App</span>
     </div>
-    <p class="small muted" style="margin:-4px 0 6px">Tap your app → pay ${money(t.grand)} directly. (If the app doesn't open, use the QR / UPI ID below.)</p>
     <div class="qr-box">
       <div id="upiQR"></div>
       <div class="upi-id">${esc(CONFIG.upiId)} <button class="copy" data-copy="${esc(CONFIG.upiId)}">Copy</button></div>
@@ -1112,11 +897,9 @@ function confirmOrderOnWhatsApp(){
   };
   Store.orders.unshift(order); Store.saveOrders();
   pushWebhook(order);
-  trackPurchase(order); /* Google Ads / Meta conversion */
   Firestore.saveOrder(order).then(ok => { if (ok) console.log('[SK SAREES] Order synced to Firestore:', order.id); });
   Store.cart = []; Store.saveCart();
   LS.set('ss_abandon', null);
-  co.step = 1; co.data = { name:'', phone:'', address:'', pincode:'', payment:'upi' }; /* fresh checkout next time */
   /* Open WhatsApp to the STORE with the full COD order — customer just taps Send */
   const msg = `Hi! I want to confirm my COD order:\n\n🪡 Order ID: ${order.id}\n👤 Name: ${order.customer.name}\n📱 Phone: ${order.customer.phone}\n🏠 Address: ${order.customer.address}, ${order.customer.pincode}\n\nItems:\n${order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n')}\n\nTotal (incl. COD ₹${CONFIG.codFee}): ${money(t.grand)}\n\nPlease confirm my order. Thank you!`;
   try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
@@ -1138,12 +921,10 @@ function placeOrder(payment){
   };
   Store.orders.unshift(order); Store.saveOrders();
   pushWebhook(order);
-  trackPurchase(order); /* Google Ads / Meta conversion */
   /* 💾 Firebase/Firestore: sync order to the cloud (best-effort, no blocking) */
   Firestore.saveOrder(order).then(ok => { if (ok) console.log('[SK SAREES] Order synced to Firestore:', order.id); });
   Store.cart = []; Store.saveCart();
   LS.set('ss_abandon', null);
-  co.step = 1; co.data = { name:'', phone:'', address:'', pincode:'', payment:'upi' }; /* fresh checkout next time */
   location.hash = '#/success/' + order.id;
 }
 function pushWebhook(order){
@@ -1156,8 +937,8 @@ function renderSuccess(id){
   const o = Store.orders.find(x => x.id === id);
   if (!o) return renderHome();
   const viaWa = parseHash().query.get('wa') === '1'; /* order confirmed on WhatsApp by customer */
-  const tot = o.totals || { itemsTotal:0, codFee:0, shipping:0, grand:0 };
-  const items = (o.items||[]).map(i => `<div class="row"><span>${esc(i.name)} ×${i.qty}</span><b>${money(i.price * i.qty)}</b></div>`).join('');
+  const t = o.totals;
+  const items = o.items.map(i => `<div class="row"><span>${esc(i.name)} ×${i.qty}</span><b>${money(i.price * i.qty)}</b></div>`).join('');
   app.innerHTML = `<div class="wrap">
     <div class="success">
       <div class="tick-big"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
@@ -1170,9 +951,9 @@ function renderSuccess(id){
 
     <div class="summary" style="margin-top:6px">
       ${items}
-      <div class="row"><span>Shipping</span><b style="color:${tot.shipping ? 'var(--ink)' : 'var(--green)'}">${tot.shipping ? money(tot.shipping) : 'FREE'}</b></div>
-      ${o.payment === 'cod' ? `<div class="row"><span>COD charges</span><b>+${money(tot.codFee)}</b></div>` : ''}
-      <div class="row total"><span>Total (${o.payment === 'upi' ? 'UPI' : 'COD'})</span><b>${money(tot.grand)}</b></div>
+      <div class="row"><span>Shipping</span><b style="color:var(--green)">${FREE_MSG}</b></div>
+      ${o.payment === 'cod' ? `<div class="row"><span>COD charges</span><b>+${money(t.codFee)}</b></div>` : ''}
+      <div class="row total"><span>Total (${o.payment === 'upi' ? 'UPI' : 'COD'})</span><b>${money(t.grand)}</b></div>
       <div class="row"><span style="color:var(--muted);font-size:.8rem">Deliver to</span></div>
       <p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:10px;background:var(--bg)">
         <b>${esc(o.customer.name)}</b> • ${esc(o.customer.phone)}<br>${esc(o.customer.address)} — ${esc(o.customer.pincode)}</p>
@@ -1180,116 +961,86 @@ function renderSuccess(id){
 
     ${viaWa ? `
     <div class="admin-card" style="border:2px solid var(--wa);background:var(--wa-soft)">
-      <h3 style="color:#0d7c3d">💬 Confirm on WhatsApp</h3>
-      <p>WhatsApp opened with your COD order (total <b>${money(tot.grand)}</b>). Just tap <b>Send</b> there — we will confirm within minutes! 🎉</p>
+      <h3 style="color:#0d7c3d">💬 Send Your Order on WhatsApp</h3>
+      <p>Your order details are ready in WhatsApp (total <b>${money(t.grand)}</b>, COD). Tap <b>Send</b> there to confirm — then we will reply within minutes! 🎉</p>
       <div style="display:grid;gap:8px">
-        <a class="btn btn-wa btn-xl" href="${waLink('Hi! I want to confirm my COD order ' + o.id + '. Please confirm.')}" target="_blank" rel="noopener">Open WhatsApp &amp; Send</a>
+        <a class="btn btn-wa btn-xl" href="${waLink('Hi! I want to confirm my COD order ' + o.id + '. Please confirm.')}" target="_blank" rel="noopener">${IC.wa} Open WhatsApp &amp; Send</a>
       </div>
     </div>` : `
     <div class="admin-card" style="border:2px solid var(--wa);background:var(--wa-soft)">
-      <h3 style="color:#0d7c3d">📲 Order Received!</h3>
-      <p>Our team will <b>confirm your order on WhatsApp</b> within a few minutes. Questions? Chat with us anytime.</p>
+      <h3 style="color:#0d7c3d">📲 Send Confirmation — Straight to Customer's WhatsApp</h3>
+      <p>WhatsApp opens with the confirmation message ready for <b>${esc(o.customer.phone)}</b>. Just press <b>Send</b> — one tap and the customer is confirmed! 🎉</p>
       <div style="display:grid;gap:8px">
-        <a class="btn btn-wa btn-xl" href="${waLink('Hi! I just placed order ' + o.id + '. Please confirm it.')}" target="_blank" rel="noopener">Chat with Us on WhatsApp</a>
+        <a class="btn btn-wa btn-xl" href="${waLink(TPL_CONFIRM(o), o.customer.phone)}" target="_blank" rel="noopener">${IC.wa} Send Confirmation to Customer Now</a>
+      </div>
+      <p class="small" id="autoConfNote" style="margin:8px 0 0;text-align:center">Auto-opening WhatsApp in <b id="autoConfSecs">3</b>… (tap the button above anytime)</p>
+    </div>
+
+    <div class="admin-card">
+      <h3>📣 Store Owner — More Actions</h3>
+      <p>Notify the store about this order, copy the text, or manage all orders in the admin panel.</p>
+      <div style="display:grid;gap:8px">
+        <a class="btn btn-outline btn-sm" href="${waLink(TPL_NOTIFY(o))}" target="_blank" rel="noopener">${IC.wa} Notify Store about this Order</a>
+        <button class="btn btn-ghost btn-sm" data-copy-tpl="${esc(TPL_CONFIRM(o))}">📋 Copy Confirmation Text</button>
+        <a class="btn btn-gold btn-sm" href="admin.html">🛠️ Open Store Admin (orders &amp; products)</a>
       </div>
     </div>`}
 
-    <div class="admin-card" style="background:var(--gold-soft);border:2px dashed #d8b24e">
-      <h3 style="color:#6b4c05">💬 Join our WhatsApp group for offers</h3>
-      <p class="small" style="color:#7a6230">Get new arrivals &amp; festival discounts first. Leave anytime.</p>
-      <a class="btn btn-wa btn-sm" href="${waLink('Hi! I just ordered ' + o.id + '. Please add me to your WhatsApp group.')}" target="_blank" rel="noopener">${IC.wa} Join Group</a>
-    </div>
     <div style="display:grid;gap:10px;margin-top:16px;grid-template-columns:1fr 1fr">
-      <a class="btn btn-maroon" href="#/order/${o.id}">👁️ ${t('orderDetails')}</a>
-      <a class="btn btn-gold" href="${waShare('🛍️ Order placed! Order ID ' + o.id + ' — SK SAREES, sarees online in Salem 🪡', '')}" target="_blank" rel="noopener">📣 ${t('shareWA')}</a>
-      <a class="btn btn-outline" href="products.html">${t('continueShopping')}</a>
+      <a class="btn btn-maroon" href="products.html">Continue Shopping</a>
       <a class="btn btn-wa" href="${waLink('Hi! I just placed order ' + o.id + '. Please confirm it.')}" target="_blank" rel="noopener">${IC.wa} Chat with Us</a>
     </div>
   </div>`;
 
+  /* 🤖 AUTO-SEND confirmation straight to the customer's WhatsApp number.
+     Opens wa.me/<customer phone> with the confirmation text pre-filled —
+     the store owner just presses Send. Runs once per order.
+     Skipped when the customer already confirmed via WhatsApp (?wa=1). */
+  if (viaWa) return;
+  const autoKey = 'ss_conf_sent_' + o.id;
+  if (!LS.get(autoKey, false)){
+    LS.set(autoKey, true);
+    const confHref = waLink(TPL_CONFIRM(o), o.customer.phone);
+    let secs = 3;
+    const timer = setInterval(() => {
+      secs--;
+      const el = document.getElementById('autoConfSecs');
+      if (el) el.textContent = secs;
+      if (secs <= 0){
+        clearInterval(timer);
+        try{ window.open(confHref, '_blank', 'noopener'); }catch(e){}
+        const note = document.getElementById('autoConfNote');
+        if (note) note.innerHTML = '📲 WhatsApp opened — press <b>Send</b> to confirm the order.';
+      }
+    }, 1000);
+  }
 }
 
 /* ============================ 7. TRACK ORDER ============================ */
-function renderOrdersList(){
-  const mine = Store.orders.slice(0, 12);
-  const cards = mine.length ? mine.map(o => `
-    <div class="order-card">
-      <div class="oc-top"><b>#${o.id}</b><span class="status-pill status-${o.status}">${esc((o.status||'placed').replace('_',' '))}</span></div>
-      <div class="oc-items">${fmtDate(o.date)} • ${money(o.totals.grand)} (${o.payment.toUpperCase()})<br>
-        ${o.dispatchedAt ? '📦 ' + t('dispatchDate') + ': ' + fmtDateDMY(o.dispatchedAt) : ''}${o.deliverBy ? ' • ETA: ' + fmtDateDMY(o.deliverBy) : ''}</div>
-      <a class="btn btn-outline btn-sm" style="margin-top:8px" href="#/order/${o.id}">👁️ ${t('orderDetails')}</a>
-    </div>`).join('')
-    : `<div class="empty"><div class="e-ic">📦</div><b>${t('myOrders')}</b>${t('noOrders')}<br><br><a class="btn btn-maroon" style="max-width:240px;margin:0 auto" href="products.html">🛍️ ${t('shopSarees')}</a></div>`;
-  app.innerHTML = `<div class="wrap page"><h1 class="page-title">📦 ${t('myOrders')}</h1>
-    ${cards}
-    <p class="small muted" style="margin-top:12px">💡 Order updates are also sent on WhatsApp. Questions? <a href="${waLink('Hi! I need help with my order.')}" target="_blank" rel="noopener" style="color:var(--wa-d);font-weight:700">Chat with us</a></p>
-  </div>`;
+function renderTrack(query){
+  let found = null;
+  if (query.get('id')) found = Store.orders.find(o => o.id.toLowerCase() === query.get('id').toLowerCase());
+  const resultHTML = found
+    ? `<div class="form-card"><h3>📦 Order #${found.id}</h3>
+        <div class="oc-items" style="margin:4px 0">${fmtDate(found.date)} • ${esc(found.customer.name)} • ${money(found.totals.grand)} (${found.payment.toUpperCase()})</div>
+        <span class="status-pill status-${found.status}">${esc(found.status.replace('_',' '))}</span>
+        <p class="small muted" style="margin-top:10px">Questions? Message us on WhatsApp with your order ID — we reply within minutes.</p>
+        <a class="btn btn-wa btn-sm" style="margin-top:10px" href="${waLink('Hi! I want to track my order ' + found.id + '.')}" target="_blank" rel="noopener">${IC.wa} Ask on WhatsApp</a>
+      </div>`
+    : (query.get('id') ? `<div class="empty"><div class="e-ic">🔍</div><b>Order not found on this device</b>Orders placed from this browser are shown here. For live tracking across devices, Firestore must be enabled.</div>` : '');
+  app.innerHTML = `<div class="wrap page"><h1 class="page-title">📦 Track Your Order</h1>
+    <form class="form-card" id="trackForm">
+      <div class="field"><label>Order ID</label><input id="trackId" placeholder="e.g. SSK1A2B3C" value="${esc(query.get('id') || '')}"></div>
+      <button class="btn btn-maroon" type="submit">Track Order</button>
+    </form>
+    ${resultHTML}
+    <div class="admin-card"><h3>🚚 Delivery Reminder (for store)</h3>
+      <p>Copy &amp; send to the customer when the courier is out for delivery:</p>
+      <button class="btn btn-outline btn-sm" data-copy-tpl="🚚 Your beautiful Saree is out for delivery! Track your order here. Thank you for shopping with us. 🪡">📋 Copy Template</button>
+    </div></div>`;
 }
 
-function orderStatusTrack(o){
-  const steps = [
-    ['placed', '🆕 ' + t('orderPlaced') || 'Placed'],
-    ['confirmed', '✅ ' + t('orderConfirmed')],
-    ['shipped', '🚚 ' + t('dispatched')],
-    ['delivered', '✔ ' + t('delivered')],
-  ];
-  const idx = steps.findIndex(s => s[0] === (o.status || 'placed'));
-  return `<div class="status-track">${steps.map((s, i) =>
-    `<span class="${i < idx ? 'done' : i === idx ? 'now' : ''}">${s[1]}</span>`).join('')}</div>`;
-}
-
-function renderOrderDetails(id, query){
-  let o = Store.orders.find(x => x.id.toLowerCase() === String(id || '').toLowerCase());
-  if (!o && Firestore.enabled()){
-    Firestore.getOrder(id).then(doc => {
-      if (doc){
-        if (!Store.orders.some(x => x.id === doc.id)){ Store.orders.unshift(doc); Store.saveOrders(); }
-        renderOrderDetails(doc.id, query);
-      }
-    });
-  }
-  if (!o){
-    app.innerHTML = `<div class="wrap page"><h1 class="page-title">${t('orderDetails')}</h1>
-      <div class="empty"><div class="e-ic">🔍</div><b>Order not found</b>Check your <a href="#/orders" style="color:var(--maroon);font-weight:700">My Orders</a> list.</div></div>`;
-    return;
-  }
-  const items = (o.items||[]).map(i => {
-    const p = byId(i.id);
-    return `<div class="od-item"><img src="${p ? p.img : 'images/products/printed-cotton.jpg'}" alt="" loading="lazy">
-      <div><b>${esc(i.name)}</b><small>${money(i.price)} × ${i.qty} = <b>${money(i.price * i.qty)}</b></small></div></div>`;
-  }).join('');
-  app.innerHTML = `<div class="wrap page">
-    <h1 class="page-title">📦 ${t('orderDetails')} — #${esc(o.id)}</h1>
-    <div class="form-card">
-      <div class="od-status"><span class="status-pill status-${o.status}">${esc((o.status||'placed').replace('_',' '))}</span>
-        <a class="btn btn-wa btn-sm" style="width:auto" href="${waShare('🎉 I ordered this saree from SK SAREES — Order ' + o.id, '')}" target="_blank" rel="noopener">📣 ${t('shareWA')}</a>
-      </div>
-      ${orderStatusTrack(o)}
-      <div class="od-items">${items}</div>
-      <table class="od-table">
-        <tr><td>${t('orderDate')}</td><td>${fmtDateDMY(o.date)} (${fmtDate(o.date)})</td></tr>
-        <tr><td>${t('totalAmount')}</td><td><b>${money((o.totals||{}).grand||0)}</b> (${o.payment.toUpperCase()}${o.payment==='cod' ? ' +₹' + CONFIG.codFee + ' COD' : ''})</td></tr>
-        <tr><td>${t('dispatchDate')}</td><td>${o.dispatchedAt ? fmtDateDMY(o.dispatchedAt) : '—'}</td></tr>
-        <tr><td>${t('expectedDelivery')}</td><td>${o.deliverBy ? fmtDateDMY(o.deliverBy) : (o.status === 'delivered' ? '✔ ' + t('delivered') : '—')}</td></tr>
-        <tr><td>Delivery to</td><td>${esc((o.customer||{}).name||'')} • ${esc((o.customer||{}).address||'')}, ${esc((o.customer||{}).pincode||'')}</td></tr>
-      </table>
-    </div>
-    <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
-      <a class="btn btn-maroon" href="products.html">🛍️ ${t('continueShopping')}</a>
-      <a class="btn btn-wa" href="${waLink('Hi! I have a question about my order ' + o.id + '.')}" target="_blank" rel="noopener">${IC.wa} ${t('askWA') || 'Ask on WhatsApp'}</a>
-    </div>
-  </div>`;
-  /* live status updates from Firestore */
-  if (Firestore.enabled()){
-    Firestore.onOrder(o.id, doc => {
-      if (doc && doc.status && doc.status !== Store.orders.find(x => x.id === o.id).status){
-        const idx = Store.orders.findIndex(x => x.id === o.id);
-        if (idx >= 0){ Store.orders[idx] = Object.assign({}, Store.orders[idx], doc); Store.saveOrders(); }
-        renderOrderDetails(o.id, query);
-      }
-    });
-  }
-}
+/* ============================ 8. STATIC PAGES ============================ */
 function renderStatic(page){
   const c = page === 'returns'
     ? { title:'↩️ Return &amp; Exchange Policy', body:`
@@ -1313,8 +1064,8 @@ function renderStatic(page){
 
 /* ============================ 9. EVENTS ============================ */
 function onDocClick(e){
-  if (e.target.id === 'grpGo'){ joinGroup(); return; }
-  const t = e.target.closest('[data-add],[data-addp],[data-qm],[data-qp],[data-cq-minus],[data-cq-plus],[data-rm],[data-cont],[data-back],[data-place],[data-pay],[data-confirm-wa],[data-copy],[data-copy-tpl],[data-open-group],[data-qv],[data-qv-close],[data-like],[data-comment-submit],[data-close],[data-lb]');
+  if (e.target.id === 'alertGo'){ subscribeAlerts(); return; }
+  const t = e.target.closest('[data-add],[data-addp],[data-qm],[data-qp],[data-cq-minus],[data-cq-plus],[data-rm],[data-cont],[data-back],[data-place],[data-pay],[data-confirm-wa],[data-copy],[data-copy-tpl],[data-open-alerts],[data-close],[data-lb]');
   if (!t) return;
   const has = k => t.dataset[k] !== undefined;
   if (has('add')){ e.preventDefault(); addToCart(t.dataset.add, 1); }
@@ -1331,22 +1082,9 @@ function onDocClick(e){
   else if (has('pay')){ e.preventDefault(); co.data.payment = t.dataset.pay; renderCheckout(parseHash().query); }
   else if (has('copy')){ e.preventDefault(); StoreUI.copyText(t.dataset.copy); }
   else if (has('copyTpl')){ e.preventDefault(); StoreUI.copyText(t.dataset.copyTpl); }
-  else if (has('openGroup')){ e.preventDefault(); openGroupModal(); }
-  else if (has('qv')){ e.preventDefault(); openQuickView(t.dataset.qv); }
-  else if (has('qvClose')){ StoreUI.closeModal(); }
-  else if (has('like')){ e.preventDefault(); toggleLike(t.dataset.like); renderProduct(pdId); }
-  else if (has('commentSubmit')){ e.preventDefault(); submitComment(t.dataset.commentSubmit); }
+  else if (has('openAlerts')){ e.preventDefault(); openAlertsModal(); }
   else if (has('close')){ StoreUI.closeModal(); }
   else if (has('lb')){ showLightbox(t.dataset.lb); }
-}
-function submitComment(pid){
-  const name = (document.getElementById('rvName') || {}).value || '';
-  const stars = (document.getElementById('rvStars') || {}).value || '5';
-  const text = (document.getElementById('rvText') || {}).value || '';
-  if (!text.trim()){ StoreUI.toast('✍️ Please write your comment first'); return; }
-  addReview(pid, name || 'Anonymous', stars, text);
-  StoreUI.toast('✅ Thank you! Your review is posted');
-  renderProduct(pid);
 }
 function validateCo1(){
   const d = co.data;
@@ -1382,33 +1120,20 @@ function openDrawer(){ document.getElementById('drawer').classList.add('show'); 
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); document.getElementById('btnMenu').setAttribute('aria-expanded','false'); }
 
 /* ============================ 10. INIT ============================ */
-function translateStatic(){
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.dataset.i18n; if (k && t(k) !== k) el.textContent = t(k);
-  });
-  ['langSel','langSelDrawer','langSelFoot'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (sel) sel.value = curLang();
-  });
-}
 function init(){
-  translateStatic();
   document.getElementById('btnMenu').addEventListener('click', openDrawer);
   document.getElementById('overlay').addEventListener('click', closeDrawer);
   document.getElementById('drawerNav').addEventListener('click', e => { if (e.target.closest('a')) closeDrawer(); });
-  document.getElementById('btnAlerts').addEventListener('click', openGroupModal);
-  ['langSel','langSelDrawer','langSelFoot'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (sel) sel.addEventListener('change', () => setLang(sel.value));
-  });
-  document.addEventListener('langchange', () => { translateStatic(); router(); });
-  /* smooth image reveal */
-  document.addEventListener('load', e => { if (e.target.tagName === 'IMG' && e.target.closest('img')) e.target.classList.add('in'); }, true);
-  document.querySelectorAll('img').forEach(im => { if (im.complete) im.classList.add('in'); });
+  document.getElementById('btnAlerts').addEventListener('click', openAlertsModal);
   document.addEventListener('click', onDocClick);
   document.addEventListener('input', onDocInput);
   window.addEventListener('hashchange', router);
   document.addEventListener('submit', e => {
+    if (e.target.id === 'trackForm'){
+      e.preventDefault();
+      const id = (document.getElementById('trackId') || {}).value || '';
+      location.hash = '#/track?id=' + encodeURIComponent(id);
+    }
   });
   if (!LS.get('ss_wa_tip', 0)){
     LS.set('ss_wa_tip', 1);
@@ -1418,13 +1143,8 @@ function init(){
   router();
   renderCartBadge();
   renderStickyCartBar();
-  Store.orders.forEach(dispatchOrder); Store.saveOrders();
-  /* pull the catalog from Firestore (fast) when the visitor has no local edits */
-  if (Firestore.enabled() && !localStorage.getItem('ss_products')){
-    ProductCloud.loadAll().then(list => { if (list && list.length){ saveProducts(list); router(); } });
-  }
-  setTimeout(() => { checkAbandon(); maybeAutoDeliver(); }, 2000);
-  setInterval(() => { checkAbandon(); maybeAutoDeliver(); }, 20000);
+  setTimeout(checkAbandon, 2000);
+  setInterval(checkAbandon, 20000);
 }
 document.addEventListener('DOMContentLoaded', init);
 
