@@ -335,10 +335,14 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .wish-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
 @media(min-width:640px){.wish-grid{grid-template-columns:repeat(4,1fr)}}
 
+/* ---------- Sync pill ---------- */
+.sync-pill{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:800;padding:5px 11px;border-radius:999px;background:var(--gold-soft);color:#6b4c05;border:1px dashed #d8b24e}
+.sync-pill.online{background:#e9f7ef;color:var(--green);border:1px solid #bfe6cf}
+
 /* ---------- Footer ---------- */
 footer{background:linear-gradient(180deg,#2b0a14,#1c060d);color:#e8cdd3;margin-top:34px;font-size:.86rem;border-top:3px solid var(--gold)}
 .footer-top{background:linear-gradient(135deg,#3d0f1e,#220810);border-bottom:1px solid rgba(255,255,255,.08)}
-.foot-grid{display:grid;gap:26px;padding:28px 0;align-items:start}
+.foot-grid{display:grid;gap:26px;padding:28px 10px;align-items:start}
 @media(min-width:760px){.foot-grid{grid-template-columns:repeat(3,1fr)}}
 .foot h4{color:var(--gold-l);font-size:.92rem;margin-bottom:10px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
 .foot p,.foot a{color:#d9b8c0;line-height:1.8;font-size:.84rem;display:inline-block}
@@ -384,3 +388,8 @@ body.cartbar-on .wa-float{bottom:calc(78px + env(safe-area-inset-bottom))}
 .empty b{color:var(--ink);font-size:1.05rem;display:block;margin-bottom:4px}
 .reveal{opacity:0;transform:translateY(14px);transition:.4s ease}
 .reveal.in{opacity:1;transform:none}
+
+/* compact review delete button */
+/* compact review delete button — small circular ✕ */
+[data-delreview]{min-height:28px!important;height:28px!important;width:28px!important;min-width:28px!important;padding:0!important;font-size:.85rem!important;line-height:1!important;border-radius:50%!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;background:#fff!important;border:1px solid var(--line)!important;color:var(--muted)!important}
+[data-delreview]:active{background:var(--maroon-soft)!important;color:var(--red)!important;transform:scale(.92)}

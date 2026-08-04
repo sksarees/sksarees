@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { font-family: var(--font-body), system-ui, sans-serif; background: #faf6f0; color: #2b2320; }
+.dark body { background: #17121a; color: #f1e6e0; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* premium focus */
+*:focus-visible { outline: 2px solid #c99a2e; outline-offset: 2px; }
+
+/* product image fade-in */
+img { background: #f1e9e0; }
+.dark img { background: #241b20; }
+
+::selection { background: #e8c66a; color: #4a0f1e; }
