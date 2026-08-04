@@ -5,461 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#8f1d3a">
 <meta name="robots" content="noindex">
-<title>Store Admin — SK SAREES</title>
-<link rel="stylesheet" href="store.css">
+<title>Store Admin — SK Sarees</title>
+<meta name="description" content="SK Sarees admin panel — orders, status, WhatsApp automation.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%238f1d3a'/%3E%3Ctext x='50' y='68' font-size='48' text-anchor='middle' fill='%23e8c66a' font-family='Georgia'%3ESK%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
 <style>
 .admin-wrap{max-width:1080px;margin:0 auto;padding:0 14px 70px}
 .admin-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 4px;flex-wrap:wrap}
-.admin-top h1{font-size:1.35rem;font-weight:800}
-.sync-pill{display:inline-flex;align-items:center;gap:7px;font-size:.74rem;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--gold-soft);color:#6b4c05;border:1px dashed #d8b24e}
+.admin-top h1{font-size:1.4rem;font-weight:800}
+.sync-pill{display:inline-flex;align-items:center;gap:7px;font-size:.74rem;font-weight:800;padding:6px 12px;border-radius:999px;background:var(--gold-soft);color:#6b4c05;border:1px dashed #d8b24e}
 .sync-pill.online{background:#e9f7ef;color:var(--green);border-color:#bfe6cf}
-.sync-pill svg{width:13px;height:13px}
-.order-grid{display:grid;gap:12px;margin-top:14px}
-.order-card{position:relative}
-.oc-btns{display:grid;gap:8px;margin-top:10px}
-.oc-btns .btn{min-height:48px}
+.admin-tabs{display:flex;gap:8px;margin:14px 0 4px}
+.admin-tab{flex:1;min-height:48px;border-radius:12px;background:#fff;border:1.5px solid var(--line);font-weight:800;font-size:.92rem}
+.admin-tab.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.filter-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
+.filter-chips::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;padding:9px 15px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-weight:800;font-size:.78rem;flex:0 0 auto}
+.filter-chip.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
 .stat-row{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
-.stat-chip{flex:1;min-width:110px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:center}
+.stat-chip{flex:1;min-width:104px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px;text-align:center}
 .stat-chip b{display:block;font-size:1.15rem;color:var(--maroon)}
-.stat-chip small{font-size:.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.stat-chip small{font-size:.66rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.order-card{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:14px;margin-bottom:12px}
+.order-card .oc-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.order-card .oc-top b{font-size:.92rem}
+.order-card .oc-items{font-size:.8rem;color:var(--muted);margin:4px 0}
+.order-card select{border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;font-size:.82rem;background:#fff;width:100%;margin-top:6px;font-weight:700}
+.oc-btns{display:grid;gap:8px;margin-top:10px}
+.oc-btns .btn{min-height:46px}
 .tpl-card{background:#fff;border:1px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-top:14px}
-.tpl-card h3{font-size:.95rem;margin-bottom:8px;display:flex;gap:7px;align-items:center}
+.tpl-card h3{font-size:.95rem;margin-bottom:8px;font-family:var(--font-body)}
 .tpl-card p{font-size:.8rem;color:#7a6230;margin-bottom:10px}
-@media(min-width:820px){.order-grid{grid-template-columns:1fr 1fr}}
+.prod-table-wrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.prod-table{width:100%;font-size:.8rem;border-collapse:collapse;min-width:560px}
+.prod-table th{text-align:left;padding:11px;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.prod-table td{padding:10px 11px;border-bottom:1px solid var(--line)}
+.prod-table tr:last-child td{border-bottom:none}
+.prod-table img{width:44px;height:34px;object-fit:cover;border-radius:7px}
+.low{color:var(--red);font-weight:800}
 </style>
 </head>
-<body>
-<!-- ============ HEADER ============ -->
-<header class="topbar">
-  <div class="wrap topbar-in">
-    <a class="logo" href="index.html">
-      <span class="logo-ic">🪡</span>
-      <span>SK SAREES<small>Store Admin Panel</small></span>
-    </a>
-    <nav class="desk-nav" aria-label="Admin">
-      <a href="index.html" data-nav>🛍️ Store</a>
-      <a href="products.html" data-nav>Products</a>
-      <a href="admin.html" data-nav class="on">📋 Admin</a>
-    </nav>
-    <div class="top-actions">
-      <a class="icon-btn" href="index.html#/cart" aria-label="Cart">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg>
-        <span class="cart-badge" id="cartBadge" hidden>0</span>
-      </a>
-    </div>
-  </div>
-</header>
-
-<main class="admin-wrap">
-  <!-- ============ TABS ============ -->
-  <div class="admin-tabs">
-    <button class="admin-tab on" id="tabOrders">📋 Orders</button>
-    <button class="admin-tab" id="tabProducts">🛍️ Products</button>
-    <button class="admin-tab" id="tabReviews">⭐ Reviews</button>
-  </div>
-
-  <!-- ============ ORDERS SECTION ============ -->
-  <div id="ordersSection">
-    <div class="admin-top">
-      <h1>📋 Orders</h1>
-      <span class="sync-pill" id="syncPill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg> <span id="syncLabel">Checking Firestore…</span></span>
-    </div>
-    <div class="filter-chips" id="orderFilters"></div>
-    <div class="stat-row" id="stats"></div>
-    <div id="orderList"></div>
-
-    <div class="tpl-card">
-      <h3>🤖 WhatsApp Automation Templates</h3>
-      <p>Tap to copy — then paste in WhatsApp. Delivery template auto-fills each order's tracking link from the order card buttons above.</p>
-      <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-        <button class="btn btn-outline btn-sm" data-copy-tpl="🎉 Thank you for your order! Your saree will be dispatched shortly and you will receive tracking updates on WhatsApp. 💐">📋 Order Confirmation Template</button>
-        <button class="btn btn-outline btn-sm" data-copy-tpl="🚚 Your beautiful Saree is out for delivery! Track your order here. Thank you for shopping with us. 🪡">📋 Delivery Reminder Template</button>
-        <button class="btn btn-outline btn-sm" data-copy-tpl="🔔 New saree arrivals & festival offers are here! Reply YES to get WhatsApp alerts for the latest collection. 🪡">📋 Restock / Festival Alert</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ PRODUCTS SECTION ============ -->
-  <div id="productsSection" hidden>
-    <div class="admin-top"><h1>🛍️ Products</h1><span class="sync-pill" id="prodSync">💾 Saved in browser</span></div>
-
-    <div class="pm-head">
-      <button class="btn btn-maroon btn-sm" id="btnAddProduct">➕ Add Product</button>
-      <button class="btn btn-outline btn-sm" id="btnBulk">📥 Bulk Upload</button>
-      <button class="btn btn-ghost btn-sm" id="btnSample">⬇ Show Sample Format</button>
-      <button class="btn btn-outline btn-sm" id="btnSyncCloud">☁️ Sync to Firestore</button>
-    </div>
-    <p class="bulk-help" id="cloudStatus" style="margin:0 0 10px"></p>
-
-    <div class="bulk-panel" id="bulkPanel" hidden>
-      <h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>
-      <p class="bulk-help">One product per line — <b>Name, Price, MRP, Category, Image URL, Badge</b> (image = full link or local path)<br>
-      Categories: <b>silk, cotton, daily, wedding, party</b> &nbsp;•&nbsp; Badge: <b>Bestseller</b> / <b>New</b> / leave blank<br>
-      You can also paste a JSON array of products.</p>
-      <textarea id="bulkText" placeholder="Soft Silk Saree — Rose Pink, 1499, 2299, silk, images/products/soft-silk.jpg, New&#10;Handloom Cotton Saree, 749, 1199, cotton, images/products/handloom-cotton.jpg, Bestseller"></textarea>
-      <button class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import Products</button>
-      <p class="bulk-help" id="bulkResult"></p>
-    </div>
-
-    <div id="productList"></div>
-  </div>
-
-  <!-- ============ REVIEWS SECTION ============ -->
-  <div id="reviewsSection" hidden>
-    <div class="admin-top"><h1>⭐ Customer Reviews</h1><span class="sync-pill">💾 From this browser + Firestore orders</span></div>
-    <p class="muted small" style="margin:4px 0 12px">Reviews are stored per customer device. Delete spam/abuse here — customers on their device won't see it anymore (their browser refreshes it).</p>
-    <div id="reviewList"></div>
-  </div>
+<body data-page="admin">
+<main id="app">
+  <div class="admin-wrap" id="adminApp"></div>
 </main>
-
-<div class="toast" id="toast" role="status"></div>
-<div id="modalRoot"></div>
-
-<script src="store-data.js"></script>
-<script>
-'use strict';
-const listEl = document.getElementById('orderList');
-const statsEl = document.getElementById('stats');
-let adminTab = 'orders';
-let orderFilter = 'all';
-
-/* ============================ ORDERS ============================ */
-function statusClass(s){ return 'status-' + (s || 'placed').replace(/\s/g,'_'); }
-function mergeOrders(fsOrders, fromLive){
-  /* Merge Firestore orders with local ones. The LOCAL status wins for orders
-     edited on this device (so admin status changes are never reverted by an
-     older Firestore snapshot). New orders from Firestore are added. */
-  const localMap = {}; Store.orders.forEach(o => localMap[o.id] = o);
-  Store.orders = fsOrders.map(f => {
-    const l = localMap[f.id];
-    if (l){
-      const merged = Object.assign({}, f, l); /* local fields (incl. status) win */
-      return merged;
-    }
-    return f;
-  }).concat(Store.orders.filter(o => !fsOrders.some(f => f.id === o.id)));
-  Store.orders.sort((a,b) => (b.date||'').localeCompare(a.date||''));
-  Store.saveOrders();
-  if (fromLive) StoreUI.toast('🔄 Synced with Firestore');
-  renderFilters(); renderOrders();
-}
-function renderFilters(){
-  const counts = { all: Store.orders.length, placed: 0, confirmed: 0, shipped: 0, delivered: 0 };
-  Store.orders.forEach(o => { const s = o.status || 'placed'; if (counts[s] !== undefined) counts[s]++; });
-  const defs = [
-    ['all', '📦 All (' + counts.all + ')'],
-    ['placed', '🆕 New (' + counts.placed + ')'],
-    ['confirmed', '✅ Confirmed (' + counts.confirmed + ')'],
-    ['shipped', '🚚 Shipped (' + counts.shipped + ')'],
-    ['delivered', '✔ Delivered (' + counts.delivered + ')'],
-  ];
-  document.getElementById('orderFilters').innerHTML = defs.map(([k, lbl]) =>
-    `<button class="filter-chip ${orderFilter === k ? 'on' : ''}" data-fchip="${k}">${lbl}</button>`).join('');
-}
-function renderOrders(){
-  const o = orderFilter === 'all' ? Store.orders : Store.orders.filter(x => (x.status || 'placed') === orderFilter);
-  statsEl.innerHTML = `
-    <div class="stat-chip"><b>${o.length}</b><small>Total</small></div>
-    <div class="stat-chip"><b>${o.filter(x => (x.status||'placed') === 'placed').length}</b><small>New</small></div>
-    <div class="stat-chip"><b>${o.filter(x => (x.status||'placed') === 'confirmed').length}</b><small>Confirmed</small></div>
-    <div class="stat-chip"><b>${o.filter(x => (x.status||'placed') === 'shipped').length}</b><small>Shipped</small></div>
-    <div class="stat-chip"><b>${o.filter(x => (x.status||'placed') === 'delivered').length}</b><small>Delivered</small></div>`;
-  if (!o.length){
-    listEl.innerHTML = '<div class="empty"><div class="e-ic">📭</div><b>No orders yet</b>Orders appear here automatically when Firestore is enabled — or check the demo below.<br><br>' +
-      '<button class="btn btn-outline btn-sm" style="max-width:280px;margin:0 auto" id="demoOrder">🧪 Add a sample order</button></div>';
-    const d = document.getElementById('demoOrder');
-    if (d) d.onclick = () => {
-      const order = {
-        id: genOrderId(), date: new Date().toISOString(),
-        items: [{ id:'kanchipuram-silk', name: byId('kanchipuram-silk').name, price: byId('kanchipuram-silk').price, qty: 1 }],
-        customer: { name:'Sample Customer', phone:'9876543210', address:'Demo address, Salem', pincode:'637502' },
-        payment:'upi', totals:{ itemsTotal:2499, codFee:0, shipping:0, grand:2499 }, status:'placed'
-      };
-      Store.orders.unshift(order); Store.saveOrders(); renderFilters(); renderOrders();
-      StoreUI.toast('Sample order added');
-    };
-    return;
-  }
-  listEl.innerHTML = '<div class="order-grid">' + o.map(orderCard).join('') + '</div>';
-}
-function orderCard(o){
-  const st = o.status || 'placed';
-  const items = (o.items||[]).map(i => esc(i.name) + ' ×' + i.qty).join(', ');
-  return `<div class="order-card">
-    <div class="oc-top"><b>#${o.id}</b><span class="status-pill ${statusClass(st)}">${esc(st.replace(/_/g,' '))}</span></div>
-    <div class="oc-items">${fmtDate(o.date || o.createdAt)} • <b>${esc((o.customer||{}).name||'')}</b> • ${esc((o.customer||{}).phone||'')}<br>
-      ${esc((o.customer||{}).address||'')}, ${esc((o.customer||{}).pincode||'')}<br>
-      ${items} • <b>${money((o.totals||{}).grand||0)}</b> (${(o.payment||'').toUpperCase()}${o.payment==='cod' ? ' +₹'+CONFIG.codFee : ''})<br>
-      ${o.dispatchedAt ? '📦 Dispatched: <b>' + fmtDateDMY(o.dispatchedAt) + '</b>' : ''}${o.deliverBy ? ' • ETA: <b>' + fmtDateDMY(o.deliverBy) + '</b>' : ''}</div>
-    <select data-status="${o.id}" aria-label="Update status">
-      <option value="placed" ${st==='placed'?'selected':''}>Placed</option>
-      <option value="confirmed" ${st==='confirmed'?'selected':''}>Confirmed</option>
-      <option value="shipped" ${st==='shipped'?'selected':''}>Shipped</option>
-      <option value="delivered" ${st==='delivered'?'selected':''}>Delivered</option>
-    </select>
-    <div class="oc-btns">
-      <a class="btn btn-wa btn-sm" href="${waLink(TPL_CONFIRM(o), (o.customer||{}).phone)}" target="_blank" rel="noopener">${IC.wa} Send Confirmation</a>
-      <a class="btn btn-outline btn-sm" href="${waLink(TPL_DELIVERY(o), (o.customer||{}).phone)}" target="_blank" rel="noopener">🚚 Send Delivery Reminder</a>
-      <button class="btn btn-ghost btn-sm" data-copy-tpl="${esc(TPL_DELIVERY(o))}">📋 Copy Delivery Text</button>
-    </div>
-  </div>`;
-}
-function updateStatus(id, status){
-  const o = Store.orders.find(x => x.id === id); if (!o) return;
-  o.status = status;
-  /* capture dispatch date + auto-deliver ETA when marked shipped */
-  if (status === 'shipped') dispatchOrder(o);
-  if (status === 'delivered'){ o.deliveredAt = o.deliveredAt || new Date().toISOString(); }
-  o._pending = true;
-  Store.saveOrders(); renderFilters(); renderOrders();
-  /* push to Firestore (with retry if it fails — e.g. slow network) */
-  const push = (attempt) => {
-    Firestore.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).then(ok => {
-      if (ok){ o._pending = false; Store.saveOrders(); StoreUI.toast('✅ Status saved (local + Firestore)'); }
-      else if (attempt < 3){ setTimeout(() => push(attempt + 1), 2500); StoreUI.toast('⏳ Syncing status…'); }
-      else { o._pending = false; Store.saveOrders(); StoreUI.toast('⚠️ Saved locally — Firestore sync failed (check rules)'); }
-    });
-  };
-  push(0);
-}
-function setSync(label, online){
-  document.getElementById('syncLabel').textContent = label;
-  document.getElementById('syncPill').classList.toggle('online', !!online);
-}
-
-/* ============================ PRODUCTS ============================ */
-function switchTab(t){
-  adminTab = t;
-  document.getElementById('tabOrders').classList.toggle('on', t === 'orders');
-  document.getElementById('tabProducts').classList.toggle('on', t === 'products');
-  document.getElementById('tabReviews').classList.toggle('on', t === 'reviews');
-  document.getElementById('ordersSection').hidden = t !== 'orders';
-  document.getElementById('productsSection').hidden = t !== 'products';
-  document.getElementById('reviewsSection').hidden = t !== 'reviews';
-  if (t === 'products') renderProducts();
-  if (t === 'reviews') renderReviews();
-}
-function renderProducts(){
-  const box = document.getElementById('productList');
-  box.innerHTML = PRODUCTS.map(p => `
-    <div class="prod-row">
-      <img src="${p.img || 'images/products/printed-cotton.jpg'}" alt="" loading="lazy">
-      <div class="pr-info"><b>${esc(p.name)}</b>
-        <small>${money(p.price)}${p.mrp && p.mrp > p.price ? ' <s>' + money(p.mrp) + '</s>' : ''} • ${catOf(p.cat) ? esc(catOf(p.cat).name) : esc(p.cat)}${p.badge ? ' • ' + esc(p.badge) : ''}</small></div>
-      <div class="pr-actions">
-        <button class="btn btn-outline" data-edit="${p.id}">✏️ Edit</button>
-        <button class="btn btn-ghost" data-del="${p.id}" aria-label="Delete">✕</button>
-      </div>
-    </div>`).join('');
-}
-function openProductModal(id){
-  const p = id ? byId(id) : null;
-  const f = p || { name:'', price:'', mrp:'', cat:'daily', badge:'', img:'', fabric:'', length:'6.3 m + blouse piece', wash:'', colors:'', desc:'' };
-  const catOpts = CATEGORIES.map(c => `<option value="${c.slug}" ${f.cat===c.slug?'selected':''}>${c.name}</option>`).join('');
-  StoreUI.openModal(`
-    <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:10px">${p ? '✏️ Edit Product' : '➕ Add New Product'}</h2>
-    <div class="form-row">
-      <div class="field"><label>Product Name *</label><input id="pmName" value="${esc(f.name)}" placeholder="Soft Silk Saree — Rose Pink"></div>
-      <div class="field"><label>Price (₹) *</label><input id="pmPrice" type="number" value="${f.price}" inputmode="numeric"></div>
-    </div>
-    <div class="form-row">
-      <div class="field"><label>MRP (₹)</label><input id="pmMrp" type="number" value="${f.mrp || ''}" inputmode="numeric"></div>
-      <div class="field"><label>Category *</label><select id="pmCat">${catOpts}</select></div>
-    </div>
-    <div class="form-row">
-      <div class="field"><label>Badge</label><select id="pmBadge"><option value="">—</option><option ${f.badge==='Bestseller'?'selected':''}>Bestseller</option><option ${f.badge==='New'?'selected':''}>New</option></select></div>
-      <div class="field"><label>Image URL / Path</label><input id="pmImg" value="${esc(f.img)}" placeholder="https://… or images/products/….jpg"></div>
-    </div>
-    <div class="form-row">
-      <div class="field"><label>Fabric</label><input id="pmFabric" value="${esc(f.fabric)}"></div>
-      <div class="field"><label>Length</label><input id="pmLength" value="${esc(f.length)}"></div>
-    </div>
-    <div class="form-row">
-      <div class="field"><label>Wash Care</label><input id="pmWash" value="${esc(f.wash)}"></div>
-      <div class="field"><label>Colours</label><input id="pmColors" value="${esc(f.colors)}"></div>
-    </div>
-    <div class="field"><label>Description</label><textarea id="pmDesc" rows="2" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;font-family:inherit;font-size:.86rem;outline:none">${esc(f.desc)}</textarea></div>
-    <button class="btn btn-maroon" id="pmSave">💾 Save Product</button>
-    <p class="small muted" style="text-align:center;margin-top:8px">Saved instantly — appears in the store &amp; products page.</p>`);
-  document.getElementById('pmSave').onclick = () => saveProductForm(id);
-}
-function saveProductForm(id){
-  const val = i => (document.getElementById(i) || {}).value || '';
-  const raw = {
-    id: id, name: val('pmName'), price: val('pmPrice'), mrp: val('pmMrp'), cat: val('pmCat'),
-    badge: val('pmBadge'), img: val('pmImg'), fabric: val('pmFabric'), length: val('pmLength'),
-    wash: val('pmWash'), colors: val('pmColors'), desc: val('pmDesc'),
-  };
-  if (!raw.name.trim() || !(+raw.price > 0)){ StoreUI.toast('⚠️ Name and Price are required'); return; }
-  const np = normalizeProduct(raw);
-  const idx = PRODUCTS.findIndex(x => x.id === np.id);
-  if (idx >= 0) PRODUCTS[idx] = np; else PRODUCTS.unshift(np);
-  saveProducts(PRODUCTS);
-  StoreUI.closeModal(); renderProducts();
-  StoreUI.toast(idx >= 0 ? '✅ Product updated' : '✅ Product added');
-}
-function deleteProduct(id){
-  if (!window.confirm('Delete this product from the store?')) return;
-  PRODUCTS = PRODUCTS.filter(p => p.id !== id);
-  saveProducts(PRODUCTS); renderProducts();
-  StoreUI.toast('🗑️ Product deleted');
-}
-
-/* ---------- Bulk upload ---------- */
-function parseBulk(text){
-  const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
-  const products = []; const errors = [];
-  lines.forEach((line, i) => {
-    line = line.trim();
-    if (line.startsWith('{') || line.startsWith('[')){
-      try{
-        const obj = JSON.parse(line);
-        if (Array.isArray(obj)) obj.forEach(p => products.push(normalizeProduct(p)));
-        else products.push(normalizeProduct(obj));
-        return;
-      }catch(e){ errors.push('Line ' + (i+1) + ': invalid JSON'); return; }
-    }
-    /* CSV: tab (Excel paste) preferred, else comma */
-    const parts = line.includes('\t') ? line.split('\t') : line.split(',').map(s => s.trim());
-    if (parts.length < 3){ errors.push('Line ' + (i+1) + ': need name, price, category'); return; }
-    products.push(normalizeProduct({
-      name: parts[0], price: parts[1], mrp: parts[2], cat: parts[3],
-      img: parts[4], badge: parts[5], fabric: parts[6],
-    }));
-  });
-  return { products, errors };
-}
-function importBulk(){
-  const res = parseBulk(document.getElementById('bulkText').value);
-  let added = 0, updated = 0;
-  res.products.forEach(np => {
-    const idx = PRODUCTS.findIndex(x => x.id === np.id);
-    if (idx >= 0){ PRODUCTS[idx] = np; updated++; } else { PRODUCTS.unshift(np); added++; }
-  });
-  const out = document.getElementById('bulkResult');
-  if (added || updated){
-    saveProducts(PRODUCTS); renderProducts();
-    out.textContent = '✅ Imported: ' + added + ' added, ' + updated + ' updated.' + (res.errors.length ? ' ⚠️ ' + res.errors.join('; ') : '');
-    StoreUI.toast('📥 ' + added + ' products imported');
-  } else {
-    out.textContent = '⚠️ No valid products found.' + (res.errors.length ? ' ' + res.errors.join('; ') : '');
-  }
-}
-
-/* ============================ REVIEWS (admin) ============================ */
-function allReviews(){
-  const map = LS.get('ss_reviews', {});
-  const out = [];
-  Object.keys(map).forEach(pid => {
-    const p = byId(pid);
-    (map[pid] || []).forEach((r, i) => out.push({ pid, pname: p ? p.name : pid, idx: i, name: r.name, rating: r.rating, text: r.text, date: r.date }));
-  });
-  /* newest first */
-  return out.sort((x, y) => (y.date || 0) - (x.date || 0));
-}
-function renderReviews(){
-  const list = allReviews();
-  const box = document.getElementById('reviewList');
-  if (!list.length){
-    box.innerHTML = '<div class="empty"><div class="e-ic">⭐</div><b>No customer reviews yet</b>Reviews left by customers on product pages will appear here for moderation.</div>';
-    return;
-  }
-  box.innerHTML = list.map(r => `
-    <div class="rev-admin-row">
-      <span class="avatar" style="background:#8f1d3a;flex:0 0 auto">${esc((r.name||'A')[0])}</span>
-      <div class="ra-info">
-        <b>${esc(r.name)}</b> <span class="stars" style="display:inline">${'★'.repeat(r.rating||5)}${'☆'.repeat(5-(r.rating||5))}</span>
-        <small>on ${esc(r.pname)} • ${r.date ? fmtDate(r.date) : ''}</small>
-        <p>${esc(r.text)}</p>
-      </div>
-      <button class="btn btn-ghost" data-delreview="${r.pid}::${r.idx}">✕</button>
-    </div>`).join('');
-}
-function deleteReview(key){
-  const [pid, idx] = key.split('::');
-  if (!window.confirm('Delete this review?')) return;
-  try{
-    const all = LS.get('ss_reviews', {});
-    if (all[pid]){ all[pid].splice(+idx, 1); if (!all[pid].length) delete all[pid]; }
-    LS.set('ss_reviews', all);
-  }catch(e){}
-  renderReviews();
-  StoreUI.toast('🗑️ Review deleted');
-}
-
-/* ============================ EVENTS ============================ */
-document.addEventListener('click', e => {
-  if (e.target.id === 'tabOrders'){ switchTab('orders'); return; }
-  if (e.target.id === 'tabProducts'){ switchTab('products'); return; }
-  if (e.target.id === 'tabReviews'){ switchTab('reviews'); return; }
-  if (e.target.id === 'btnSyncCloud'){
-    const btn = e.target; btn.textContent = '☁️ Syncing…';
-    ProductCloud.saveAll().then(res => {
-      btn.textContent = '☁️ Sync to Firestore';
-      document.getElementById('cloudStatus').textContent = res.ok
-        ? '✅ Synced ' + res.count + ' products to Firestore — store pages will load them instantly.'
-        : '⚠️ Firestore sync failed (' + (res.reason || 'not enabled') + '). Paste your Firebase config + rules.';
-      StoreUI.toast(res.ok ? '☁️ Products synced' : '⚠️ Sync failed');
-    });
-    return;
-  }
-  if (e.target.id === 'btnAddProduct'){ openProductModal(); return; }
-  if (e.target.id === 'btnBulk'){ document.getElementById('bulkPanel').hidden = !document.getElementById('bulkPanel').hidden; return; }
-  if (e.target.id === 'btnSample'){
-    document.getElementById('bulkPanel').hidden = false;
-    document.getElementById('bulkText').value =
-      'Soft Silk Saree — Rose Pink, 1499, 2299, silk, images/products/soft-silk.jpg, New\n' +
-      'Handloom Cotton Saree — Mustard, 749, 1199, cotton, images/products/handloom-cotton.jpg, Bestseller\n' +
-      'Printed Cotton Saree — Sky Blue, 649, 999, daily, images/products/printed-cotton.jpg,';
-    return;
-  }
-  if (e.target.id === 'btnImport'){ importBulk(); return; }
-  const fc = e.target.closest('[data-fchip]');
-  if (fc){ orderFilter = fc.dataset.fchip; renderFilters(); renderOrders(); return; }
-  const t = e.target.closest('[data-copy-tpl],[data-close],[data-edit],[data-del],[data-delreview]');
-  if (!t) return;
-  if (t.dataset.copyTpl !== undefined){ StoreUI.copyText(t.dataset.copyTpl); }
-  else if (t.dataset.close !== undefined){ StoreUI.closeModal(); }
-  else if (t.dataset.edit !== undefined){ openProductModal(t.dataset.edit); }
-  else if (t.dataset.del !== undefined){ deleteProduct(t.dataset.del); }
-  else if (t.dataset.delreview !== undefined){ deleteReview(t.dataset.delreview); }
-});
-document.addEventListener('change', e => {
-  if (e.target.dataset.status) updateStatus(e.target.dataset.status, e.target.value);
-});
-
-/* ============================ INIT ============================ */
-function init(){
-  renderCartBadge();
-  Store.orders.forEach(dispatchOrder); Store.saveOrders();
-  renderFilters();
-  renderOrders();
-  renderProducts();
-  renderReviews();
-  /* pull the cloud catalog once when the owner opens Products for the first time */
-  if (Firestore.enabled() && !localStorage.getItem('ss_products')){
-    ProductCloud.loadAll().then(list => {
-      if (list && list.length){
-        saveProducts(list);
-        const cs = document.getElementById('cloudStatus');
-        if (cs) cs.textContent = '☁️ Loaded ' + list.length + ' products from Firestore.';
-        renderProducts();
-      }
-    });
-  }
-  setTimeout(maybeAutoDeliver, 1500);
-  setInterval(maybeAutoDeliver, 30000); /* auto Delivered N days after dispatch */
-  if (Firestore.enabled()){
-    Firestore.onOrders((list, usingLocal) => {
-      if (usingLocal) setSync('Firestore unavailable — local mode', false);
-      else            setSync('Live: Firestore connected', true);
-      mergeOrders(list, !usingLocal);
-    });
-  } else {
-    setSync('Firestore not configured — local only', false);
-  }
-}
-document.addEventListener('DOMContentLoaded', init);
-</script>
+<script src="data.js"></script>
+<script src="app-admin.js"></script>
 </body>
 </html>
