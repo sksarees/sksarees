@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8f1d3a">
+<meta name="robots" content="noindex">
+<title>Store Admin — SK Sarees</title>
+<meta name="description" content="SK Sarees admin panel — orders, status, WhatsApp automation.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%238f1d3a'/%3E%3Ctext x='50' y='68' font-size='48' text-anchor='middle' fill='%23e8c66a' font-family='Georgia'%3ESK%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<style>
+.admin-wrap{max-width:1080px;margin:0 auto;padding:0 14px 70px}
+.admin-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 4px;flex-wrap:wrap}
+.admin-top h1{font-size:1.4rem;font-weight:800}
+.sync-pill{display:inline-flex;align-items:center;gap:7px;font-size:.74rem;font-weight:800;padding:6px 12px;border-radius:999px;background:var(--gold-soft);color:#6b4c05;border:1px dashed #d8b24e}
+.sync-pill.online{background:#e9f7ef;color:var(--green);border-color:#bfe6cf}
+.admin-tabs{display:flex;gap:8px;margin:14px 0 4px}
+.admin-tab{flex:1;min-height:48px;border-radius:12px;background:#fff;border:1.5px solid var(--line);font-weight:800;font-size:.92rem}
+.admin-tab.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.filter-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
+.filter-chips::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;padding:9px 15px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-weight:800;font-size:.78rem;flex:0 0 auto}
+.filter-chip.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.stat-row{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
+.stat-chip{flex:1;min-width:104px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px;text-align:center}
+.stat-chip b{display:block;font-size:1.15rem;color:var(--maroon)}
+.stat-chip small{font-size:.66rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.order-card{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:14px;margin-bottom:12px}
+.order-card .oc-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.order-card .oc-top b{font-size:.92rem}
+.order-card .oc-items{font-size:.8rem;color:var(--muted);margin:4px 0}
+.order-card select{border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;font-size:.82rem;background:#fff;width:100%;margin-top:6px;font-weight:700}
+.oc-btns{display:grid;gap:8px;margin-top:10px}
+.oc-btns .btn{min-height:46px}
+.tpl-card{background:#fff;border:1px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-top:14px}
+.tpl-card h3{font-size:.95rem;margin-bottom:8px;font-family:var(--font-body)}
+.tpl-card p{font-size:.8rem;color:#7a6230;margin-bottom:10px}
+.prod-table-wrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.prod-table{width:100%;font-size:.8rem;border-collapse:collapse;min-width:560px}
+.prod-table th{text-align:left;padding:11px;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.prod-table td{padding:10px 11px;border-bottom:1px solid var(--line)}
+.prod-table tr:last-child td{border-bottom:none}
+.prod-table img{width:44px;height:34px;object-fit:cover;border-radius:7px}
+.low{color:var(--red);font-weight:800}
+</style>
+</head>
+<body data-page="admin">
+<main id="app">
+  <div class="admin-wrap" id="adminApp"></div>
+</main>
+<script src="data.js"></script>
+<script src="app-admin.js"></script>
+</body>
+</html>
