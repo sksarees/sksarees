@@ -7,8 +7,8 @@
   --maroon:#8f1d3a; --maroon-d:#70142c; --maroon-deep:#4a0f1e; --maroon-soft:#fdf1f4;
   --gold:#c99a2e; --gold-l:#e8c66a; --gold-soft:#fdf6e3;
   --wa:#25d366; --wa-d:#1da851; --wa-soft:#e8f9ee;
-  --bg:#faf5ef; --card:#fff; --ink:#2b2320; --muted:#8a7a72;
-  --line:#f0e4d6; --green:#1d8a4e; --red:#d0342c;
+  --bg:#ffffff; --card:#fff; --ink:#2b2320; --muted:#8a7a72;
+  --line:#efe3d0; --green:#1d8a4e; --red:#d0342c;
   --r:16px; --r-sm:11px;
   --sh:0 8px 26px rgba(90,30,20,.10); --sh-sm:0 2px 10px rgba(90,30,20,.07);
   --font-body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans","Noto Sans Tamil",Helvetica,Arial,sans-serif;
@@ -28,6 +28,9 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 
 /* ---------- Buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:13px 20px;border-radius:13px;font-weight:800;font-size:1rem;transition:transform .12s,box-shadow .12s,opacity .15s;text-align:center;width:100%;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none}
+/* ⚡ Buy Now — bright orange (most-liked buy color in Indian e-commerce) */
+.btn-buy{background:linear-gradient(135deg,#ff9a1f,#f26a1b);color:#fff;border:0;box-shadow:0 6px 18px rgba(242,106,27,.35)}
+.btn-buy:active{transform:scale(.97);box-shadow:0 3px 10px rgba(242,106,27,.3)}
 .btn:active{transform:scale(.97)}
 .btn[disabled]{opacity:.5;pointer-events:none}
 .btn-sm{min-height:42px;padding:9px 14px;font-size:.88rem;border-radius:10px}

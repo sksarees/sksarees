@@ -11,9 +11,9 @@ const CONFIG = {
   waDisplay : '78679 15699',
   upiId     : 'sk7867915699-1@oksbi',
   upiName   : 'SK SAREES',
-  codFee    : 49,
+  codFee    : 70,
   shipFreeAbove : 999,
-  shipFee       : 49,
+  shipFee       : 30,
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
   dispatchHours : 24,                // dispatch within 24-48h
   etaTn         : [2, 4],            // delivery days within Tamil Nadu
@@ -245,6 +245,21 @@ const fmtDate = iso => new Date(iso).toLocaleDateString('en-IN', { day:'numeric'
 const validPhone = p => /^[6-9]\d{9}$/.test(String(p).trim());
 let orderSeq = (() => { try{ return +localStorage.getItem('sk_order_seq') || 1000; }catch(e){ return 1000; } })();
 function genOrderId(){ orderSeq += 1; try{ localStorage.setItem('sk_order_seq', String(orderSeq)); }catch(e){} return 'SK' + orderSeq; }
+/* Each device gets a unique ID — orders are stamped with it so the user's
+   "My Orders" page can always show ONLY this device's orders. */
+function deviceId(){
+  try{
+    let id = localStorage.getItem('sk_device_id');
+    if (!id){ id = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); localStorage.setItem('sk_device_id', id); }
+    return id;
+  }catch(e){ return 'd' + Math.random().toString(36).slice(2, 8); }
+}
+/* Orders that belong to THIS device: stamped with my device id, or legacy
+   orders placed before stamping (no device field, but only ever local). */
+function myOrders(){
+  const my = deviceId();
+  return Store.orders.filter(o => !o.device || o.device === my);
+}
 const offPct = p => p.mrp > p.price ? Math.round((1 - p.price / p.mrp) * 100) : 0;
 const byId = id => {
   if (!id) return undefined;
@@ -299,8 +314,8 @@ const REVIEWS = [
   { name:'Anitha V.', place:'Salem', avatar:'#7a4fb0', rating:5, text:'Local pickup saved me delivery time. The owner patiently showed options on a video call. Highly recommended!' },
 ];
 const FAQ = [
-  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (+₹49). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within 24–48 hours. Delivery: 2–4 days within Tamil Nadu, 4–7 days across India. Free shipping above ₹999 (else ₹49).' },
+  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (+₹70). UPI is 100% secure — we never see your card details.' },
+  { q:'How long does delivery take?', a:'We dispatch within 24–48 hours. Delivery: 2–4 days within Tamil Nadu, 4–7 days across India. Free shipping above ₹999 (else ₹30).' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get ₹50 off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -386,7 +401,7 @@ function waCartMsg(){
 }
 const TPL_CONFIRM = o => `🎉 Order Confirmed!\n\nHi ${o.customer.name}, your order ${o.id} (${money(o.totals.grand)}) has been confirmed ✅\nExpected delivery: ${o.totals.eta}\nWe will update you on WhatsApp once it is dispatched.\n\nThank you for shopping with SK SAREES! 🪡`;
 const TPL_DELIVERY = o => `🚚 Your beautiful Saree is out for delivery!\n\nExpected delivery: ${o.totals.eta}\nTrack your order: ${location.origin}/orders.html?id=${o.id}\n\nThank you for shopping with SK SAREES. 🪡`;
-const TPL_NOTIFY = o => `🆕 New Order — please confirm!\n\nOrder ID: ${o.id}\nCustomer: ${o.customer.name}\nPhone: ${o.customer.phone}\nAddress: ${o.customer.address}, ${o.customer.pincode}\nPayment: ${o.payment === 'upi' ? 'UPI' : 'COD (+₹49)'}\nTotal: ${money(o.totals.grand)}\nETA: ${o.totals.eta}\n\nItems:\n${o.items.map(i => `• ${i.name} ×${i.qty} — ${money(i.price*i.qty)}`).join('\n')}`;
+const TPL_NOTIFY = o => `🆕 New Order — please confirm!\n\nOrder ID: ${o.id}\nCustomer: ${o.customer.name}\nPhone: ${o.customer.phone}\nAddress: ${o.customer.address}, ${o.customer.pincode}\nPayment: ${o.payment === 'upi' ? 'UPI' : 'COD (+₹' + CONFIG.codFee + ')'}\nTotal: ${money(o.totals.grand)}\nETA: ${o.totals.eta}\n\nItems:\n${o.items.map(i => `• ${i.name} ×${i.qty} — ${money(i.price*i.qty)}`).join('\n')}`;
 
 /* ============================ 9. UPI ============================ */
 function upiLink(amount, note){
@@ -706,19 +721,9 @@ const Sync = {
   },
   _pullCloudNow(){
     if (!FS.enabled()) return;
-    FS.listenOrders(list => {
-      if (!list || !list.length) return;
-      const localMap = {}; Store.orders.forEach(o => localMap[o.id] = o);
-      Store.orders = list.map(f => Object.assign({}, f, localMap[f.id] || {}))
-        .concat(Store.orders.filter(o => !list.some(x => x.id === o.id)));
-      Store.orders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-      Store.saveOrders();
-      /* re-render current page lists if they exist */
-      try{
-        if (typeof renderOrdersList === 'function' && document.getElementById('orderList')) renderOrdersList();
-        if (typeof renderStats === 'function') renderStats();
-      }catch(e){}
-    });
+    /* NOTE: cloud ORDERS are handled ONLY by the admin page (runtime fsOrders).
+       They are NEVER written into Store.orders / sk_orders, so a customer's
+       "My Orders" page can only ever show orders placed on that device. */
     /* products from Firestore → merge into data.js catalog (BOTH show) */
     FS._getDb().then(db => {
       if (!db) return;
@@ -931,7 +936,7 @@ function injectChrome(){
     const f = document.createElement('div'); f.id = 'siteFooter';
     document.body.appendChild(f);
   }
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 Aadi Festival Sale — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹49) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 Aadi Festival Sale — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   document.body.insertAdjacentHTML('beforeend', `
     <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>

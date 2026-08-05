@@ -269,8 +269,8 @@ function renderProduct(){
         '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div></div>' +
         '<div class="pd-btns">' +
-          '<button type="button" class="btn btn-maroon btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>' +
-          '<a class="btn btn-gold btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>' +
+          '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>' +
+          '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>' +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Reviews &amp; Comments</h3>' + revs +
@@ -286,7 +286,7 @@ function renderProduct(){
     (related.length ? '<div class="wrap sec"><div class="sec-head"><h2><span class="tick"></span>✨ You May Also Like</h2></div><div class="prow">' + related.map(cardHTML).join('') + '</div></div>' : '') +
     '<div class="sticky-bar">' +
       '<div class="sb-price"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
-      '<a class="btn btn-outline" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">Buy Now</a>' +
+      '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>' +
       '<button type="button" class="btn btn-maroon" data-add="' + p.id + '">Add</button>' +
       '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">💬</a>' +
     '</div>';
@@ -348,15 +348,17 @@ function renderCartPage(){
 let co = { step: 1, data: { name:'', phone:'', address:'', pincode:'', payment:'upi' } };
 function renderCheckoutPage(){
   const app = document.getElementById('app'); if (!app) return;
-  /* prefill from saved profile — but keep any current co.data values */
+  /* prefill order: what you last typed (draft) → saved profile → empty */
   const profile = Store.profile || {};
+  const draft = loadCoDraft() || {};
   co.data = Object.assign({}, co.data, {
-    name: co.data.name || profile.name || '',
-    phone: co.data.phone || profile.phone || '',
-    address: co.data.address || profile.address || '',
-    pincode: co.data.pincode || profile.pincode || '',
-    payment: co.data.payment || 'upi',
+    name: co.data.name || draft.name || profile.name || '',
+    phone: co.data.phone || draft.phone || profile.phone || '',
+    address: co.data.address || draft.address || profile.address || '',
+    pincode: co.data.pincode || draft.pincode || profile.pincode || '',
+    payment: co.data.payment || draft.payment || 'upi',
   });
+  saveCoDraft();
   const buy = new URLSearchParams(location.search).get('buy');
   if (buy && !Store.cart.some(i => i.id === buy)) addToCart(buy, 1);
   if (!Store.cart.length){
@@ -458,54 +460,79 @@ function coValid(){
   if (!ok) toast('⚠️ Please fill all details correctly');
   return ok;
 }
+/* cart item → safe product ref (never crashes if product was deleted) */
+function safeItem(i){
+  const p = byId(i.id) || {};
+  return { id: i.id, name: p.name || i.name || 'Saree', price: +(p.price != null ? p.price : i.price) || 0, qty: i.qty || 1 };
+}
+/* remember the typed checkout details so they return on the next visit */
+function saveCoDraft(){
+  try{ localStorage.setItem('sk_co_draft', JSON.stringify(co.data)); }catch(e){}
+  try{ sessionStorage.setItem('sk_co_draft', JSON.stringify(co.data)); }catch(e){}
+}
+function loadCoDraft(){
+  let d = {};
+  try{ const v = localStorage.getItem('sk_co_draft'); if (v) d = JSON.parse(v) || {}; }catch(e){}
+  try{ const v = sessionStorage.getItem('sk_co_draft'); if (v && !d.name) d = JSON.parse(v) || {}; }catch(e){}
+  return d;
+}
 function doPlaceOrder(payment){
-  const d = co.data;
-  if (!coValid()) return;
-  const t = coTotals();
-  const order = {
-    id: genOrderId(), date: new Date().toISOString(),
-    items: Store.cart.map(i => ({ id: i.id, name: byId(i.id).name, price: byId(i.id).price, qty: i.qty })),
-    customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
-    payment, totals: t, status: payment === 'upi' ? 'confirmed' : 'placed',
-  };
-  Store.orders.unshift(order); Store.saveOrders();
-  if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
-  Store.profile = { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() };
-  Store.saveProfile();
-  Store.cart = []; Store.saveCart();
-  co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
-  renderOrderComplete(order, false);
+  try{
+    const d = co.data;
+    if (!coValid()) return;
+    const t = coTotals();
+    const order = {
+      id: genOrderId(), date: new Date().toISOString(),
+      items: Store.cart.map(safeItem),
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
+      payment, totals: t, status: payment === 'upi' ? 'confirmed' : 'placed',
+      device: deviceId(),
+    };
+    Store.orders.unshift(order); Store.saveOrders();
+    if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
+    Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
+    Store.saveProfile();
+    Store.cart = []; Store.saveCart();
+    co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
+    saveCoDraft();
+    renderOrderComplete(order, false);
+  }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment, totals: coTotals(), status:'placed' }, false); }catch(e){} }
 }
 function doWaOrder(){
-  const d = co.data;
-  if (!coValid()) return;
-  const t = coTotals();
-  const order = {
-    id: genOrderId(), date: new Date().toISOString(),
-    items: Store.cart.map(i => ({ id: i.id, name: byId(i.id).name, price: byId(i.id).price, qty: i.qty })),
-    customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
-    payment: 'cod', totals: t, status: 'placed',
-  };
-  Store.orders.unshift(order); Store.saveOrders();
-  if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
-  Store.profile = { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() };
-  Store.saveProfile();
-  Store.cart = []; Store.saveCart();
-  co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
-  const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
-    '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
-    '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
-    order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
-    '\n\nTotal (incl. COD ₹' + CONFIG.codFee + '): ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
-  try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
-  renderOrderComplete(order, true);
+  try{
+    const d = co.data;
+    if (!coValid()) return;
+    const t = coTotals();
+    const order = {
+      id: genOrderId(), date: new Date().toISOString(),
+      items: Store.cart.map(safeItem),
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
+      payment: 'cod', totals: t, status: 'placed',
+      device: deviceId(),
+    };
+    Store.orders.unshift(order); Store.saveOrders();
+    if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
+    Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
+    Store.saveProfile();
+    Store.cart = []; Store.saveCart();
+    co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
+    saveCoDraft();
+    const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
+      '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
+      '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
+      order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
+      '\n\nTotal (incl. COD ₹' + CONFIG.codFee + '): ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
+    try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
+    renderOrderComplete(order, true);
+  }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
 }
 function renderOrderComplete(o, viaWa){
   const app = document.getElementById('app'); if (!app) return;
   const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, grand:0, eta:'' };
   const items = (o.items || []).map(i => '<div style="display:flex;justify-content:space-between;font-size:.84rem;padding:6px 0;border-bottom:1px dashed var(--line)"><span>' + esc(i.name) + ' ×' + i.qty + '</span><b>' + money(i.price * i.qty) + '</b></div>').join('');
-  const cards = Store.orders.length
-    ? Store.orders.map(od => '<div class="order-card"><div class="oc-top"><b>#' + od.id + '</b><span class="status-pill status-' + od.status + '">' + esc((od.status || 'placed').replace('_', ' ')) + '</span></div>' +
+  const mine = myOrders();
+  const cards = mine.length
+    ? mine.map(od => '<div class="order-card"><div class="oc-top"><b>#' + od.id + '</b><span class="status-pill status-' + od.status + '">' + esc((od.status || 'placed').replace('_', ' ')) + '</span></div>' +
         '<div class="oc-items">' + fmtDate(od.date) + ' • ' + money((od.totals || {}).grand || 0) + ' (' + (od.payment || '').toUpperCase() + ')</div>' +
         '<a class="btn btn-outline btn-sm" style="margin-top:8px" href="orders.html?id=' + encodeURIComponent(od.id) + '&data=' + encodeURIComponent(JSON.stringify(od)) + '">👁️ View Details</a></div>').join('')
     : '<div class="empty"><div class="e-ic">📦</div><b>No orders yet</b></div>';
@@ -652,7 +679,8 @@ function showDetail(o){
 }
 function renderOrderList(){
   const wrap = document.getElementById('orderList'); if (!wrap) return;
-  const list = orderFilter === 'all' ? Store.orders : Store.orders.filter(o => (o.status || 'placed') === orderFilter);
+  const mine = myOrders();
+  const list = orderFilter === 'all' ? mine : mine.filter(o => (o.status || 'placed') === orderFilter);
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="e-ic">📦</div><b>No orders yet</b>Place your first saree order and track it here!<br><br><a class="btn btn-maroon" style="max-width:240px;margin:0 auto" href="shop.html">🛍️ Shop Sarees</a></div>';
     const mo = document.getElementById('moreOrders'); if (mo) mo.style.display = 'none';
@@ -674,7 +702,7 @@ function renderOrderList(){
   }
 }
 function trackById(id){
-  const local = Store.orders.find(o => o.id.toLowerCase() === String(id).toLowerCase());
+  const local = myOrders().find(o => o.id.toLowerCase() === String(id).toLowerCase());
   if (local){ openDetailId = local.id; showDetail(local); return; }
   if (FS.enabled()){
     const wrap = document.getElementById('trackDetail'); if (wrap) wrap.innerHTML = '<div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Checking cloud…</b></div>';
@@ -749,11 +777,12 @@ document.addEventListener('click', function(e){
   if (!a) return;
   const href = a.getAttribute('href');
   if (!href || href.includes('orders=') || href.includes('data=') || href.includes('placed=')) return;
-  if (!Store.orders.length) return;
-  /* build a compact list payload */
+  const mine = myOrders();
+  if (!mine.length) return;
+  /* build a compact list payload (only this device's orders) */
   let payload = '';
   try{
-    const slim = Store.orders.slice(0, 6).map(o => ({ id:o.id, date:o.date, items:o.items, customer:o.customer, payment:o.payment, totals:o.totals, status:o.status }));
+    const slim = mine.slice(0, 6).map(o => ({ id:o.id, date:o.date, items:o.items, customer:o.customer, payment:o.payment, totals:o.totals, status:o.status }));
     const json = JSON.stringify(slim);
     if (json.length <= 6000) payload = '?orders=' + encodeURIComponent(json);
   }catch(err){ payload = ''; }
@@ -831,4 +860,6 @@ document.addEventListener('input', function(e){
   else if (e.target.id === 'coPhone') co.data.phone = e.target.value;
   else if (e.target.id === 'coAddr') co.data.address = e.target.value;
   else if (e.target.id === 'coPin') co.data.pincode = e.target.value;
+  else return;
+  saveCoDraft();   /* remember address/name/phone as the user types */
 });

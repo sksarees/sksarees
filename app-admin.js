@@ -78,13 +78,12 @@ function renderAdmin(){
     FS.onStatus = (st) => {
       if (pill) pill.textContent = st === 'on' ? '🟢 Cloud sync on' : '💾 Saved on device';
     };
+    /* Cloud orders stay in a RUNTIME list (fsOrders) — they are NEVER written
+       into Store.orders / sk_orders, so the admin device's own "My Orders"
+       page still shows only this device's orders. Admin view merges both. */
     FS.listenOrders(list => {
-      if (!list || !list.length) return;
-      const localMap = {}; Store.orders.forEach(o => localMap[o.id] = o);
-      Store.orders = list.map(f => Object.assign({}, f, localMap[f.id] || {}))
-        .concat(Store.orders.filter(o => !list.some(x => x.id === o.id)));
-      Store.orders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-      Store.saveOrders();
+      fsOrders = list && list.length ? list : [];
+      fsOrders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
     });
     FS.listenReviews(list => { fsReviews = list || []; if (adminTab === 'reviews') renderReviews(); });
@@ -137,9 +136,19 @@ function renderDashboard(){
       '4. Manage products (add / bulk) and moderate reviews.</p></div>';
 }
 
+/* Admin merged view = this device's orders + cloud orders (runtime only) */
+function adminAllOrders(){
+  const localMap = {};
+  Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; });
+  const merged = (fsOrders || []).map(f => Object.assign({}, f, localMap[f.id] || {}))
+    .concat(Store.orders.filter(o => o && o.id && !(fsOrders || []).some(x => x.id === o.id)));
+  merged.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return merged;
+}
 function renderFilters(){
-  const counts = { all: Store.orders.length, placed: 0, confirmed: 0, shipped: 0, delivered: 0 };
-  Store.orders.forEach(o => { const s = o.status || 'placed'; if (counts[s] !== undefined) counts[s]++; });
+  const all = adminAllOrders();
+  const counts = { all: all.length, placed: 0, confirmed: 0, shipped: 0, delivered: 0 };
+  all.forEach(o => { const s = o.status || 'placed'; if (counts[s] !== undefined) counts[s]++; });
   const defs = [
     ['all', '📦 All (' + counts.all + ')'], ['placed', '🆕 New (' + counts.placed + ')'],
     ['confirmed', '✅ Confirmed (' + counts.confirmed + ')'], ['shipped', '🚚 Shipped (' + counts.shipped + ')'],
@@ -159,7 +168,8 @@ function renderFilters(){
 
 function renderOrderList(){
   const wrap = document.getElementById('orderList'); if (!wrap) return;
-  const list = orderFilter === 'all' ? Store.orders : Store.orders.filter(o => (o.status || 'placed') === orderFilter);
+  const all = adminAllOrders();
+  const list = orderFilter === 'all' ? all : all.filter(o => (o.status || 'placed') === orderFilter);
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="e-ic">📭</div><b>No orders here yet</b></div>';
     return;
@@ -334,6 +344,7 @@ function openEditProduct(id){
 
 /* ============================ REVIEWS ============================ */
 let fsReviews = [];
+let fsOrders = [];   /* cloud orders — runtime ONLY, never saved to sk_orders */
 function renderReviews(){
   const list = [];
   try{
