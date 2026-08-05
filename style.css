@@ -140,8 +140,7 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .pcard{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-sm);display:flex;flex-direction:column;border:1px solid var(--line);transition:transform .18s,box-shadow .18s}
 @media(min-width:960px){.pcard:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(90,30,20,.14)}}
 .pcard-img{position:relative;display:block;aspect-ratio:4/3;overflow:hidden;background:#f4ede4}
-.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s,opacity .4s;opacity:0}
-.pcard-img img.in{opacity:1}
+.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;opacity:1}
 .pcard-img:active img{transform:scale(1.06)}
 .pcard .badge{position:absolute;top:9px;left:9px;z-index:2;background:var(--maroon);color:#fff;font-size:.64rem;font-weight:800;padding:4px 9px;border-radius:999px;letter-spacing:.4px;text-transform:uppercase}
 .pcard .badge.gold{background:linear-gradient(135deg,#e8c66a,var(--gold));color:#4a3200}
@@ -219,11 +218,25 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 
 /* ---------- Product detail ---------- */
 .pd-gal{position:relative;background:#fff;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
-.pd-gal .main img{width:100%;aspect-ratio:4/3;object-fit:cover}
-.pd-thumbs{display:flex;gap:8px;margin-top:10px}
-.pd-thumbs button{width:70px;height:54px;border-radius:10px;overflow:hidden;border:2px solid transparent;background:#fff}
+/* BIG main photo — never cropped, as large as the screen allows */
+.pd-gal .main{display:flex;align-items:center;justify-content:center;background:#faf7f2;min-height:360px;cursor:zoom-in}
+.pd-gal .main img{max-width:100%;max-height:560px;width:auto;height:auto;object-fit:contain}
+.pd-thumbs{display:flex;gap:8px;margin-top:10px;padding:10px 10px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pd-thumbs button{width:72px;height:56px;flex:0 0 auto;border-radius:10px;overflow:hidden;border:2px solid var(--line);background:#fff;cursor:pointer}
 .pd-thumbs button.on{border-color:var(--maroon)}
 .pd-thumbs img{width:100%;height:100%;object-fit:cover}
+/* ❤️ Like button — floating on the product photo */
+.pd-heart{position:absolute;top:10px;right:10px;z-index:6}
+.heart-btn{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(60,20,20,.18);font-size:1.25rem;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.heart-btn:active{transform:scale(.92)}
+/* ❤️ small heart on shop cards */
+.card-heart{position:absolute;top:8px;right:8px;z-index:5;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.95);box-shadow:0 2px 8px rgba(60,20,20,.16);font-size:1.05rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.card-heart.on{background:#fff0f3}
+/* full-screen photo zoom */
+.img-zoom{position:fixed;inset:0;z-index:90;background:rgba(20,8,8,.93);display:flex;align-items:center;justify-content:center;padding:18px}
+.img-zoom img{max-width:100%;max-height:92vh;border-radius:12px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.img-zoom-back{position:absolute;inset:0;cursor:zoom-out}
+.img-zoom-x{position:absolute;top:14px;right:14px;z-index:2;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:1.2rem;cursor:pointer}
 .pd-info{padding:16px 2px 90px}
 .pd-cat{font-size:.74rem;color:var(--maroon);font-weight:800;text-transform:uppercase;letter-spacing:1.2px}
 .pd-info h1{font-size:1.35rem;font-weight:800;margin:6px 0 8px;font-family:var(--font-display)}
@@ -276,7 +289,7 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 
 /* ---------- Forms / checkout ---------- */
 .page{padding:10px 0 60px}
-.page h1{font-size:1.4rem;font-weight:800;margin-bottom:14px;font-family:var(--font-display)}
+.page h1{font-size:1.6rem;font-weight:800;margin:6px 0 16px;font-family:var(--font-display);color:var(--maroon);letter-spacing:.2px}
 .form-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
 .form-card h3{font-size:1rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:var(--font-body)}
 .field{margin-bottom:12px}

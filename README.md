@@ -32,7 +32,7 @@ The `app.js` and `app-admin.js` were **fully rewritten from scratch** (no leftov
 |---|---|
 | `index.html` | Home — hero slider, flash-sale countdown, 17 categories, best sellers, new arrivals, today's deals, why-us + brand story, real reviews, FAQ, WhatsApp group join |
 | `shop.html` | **Infinite scroll** — 72 sarees load in batches (12 at a time) as you scroll, plus manual "Load More" button · search · voice search · fabric filter · price slider · 6 sort modes |
-| `product.html?id=…` | Product page — **no image popup** (photo click goes straight to the product page; thumbnails switch the main photo) · price/MRP/discount · fabric & details table · **fast delivery + on-time promise card (LATE50 ₹50 off if late)** · Add to Cart with qty · Buy Now · WhatsApp order · wishlist · share · reviews + comment box · related products · sticky mobile buy bar · **auto-loads products from Firestore if not found locally** |
+| `product.html?id=…` | Product page — **BIG photo** (never cropped, tap to full-screen zoom) · **thumbnail strip** (multiple photos from Firestore `images`/`imgs` arrays, tap to switch) · **❤️ Like button** on photo + on every shop card (wishlist) · price/MRP/discount · fabric & details table · **fast delivery + on-time promise card (LATE50 ₹50 off if late)** · big **🛒 Add to Cart** + **⚡ Buy Now** + WhatsApp order buttons · reviews + comment box · related products · sticky mobile buy bar · **auto-loads products from Firestore if not found locally** |
 | `cart.html` | Cart with qty controls, **free-shipping progress bar (≥₹999)**, COD ₹49 note, WhatsApp order |
 | `checkout.html` | 2-step guest checkout — UPI QR + **one-tap GPay / PhonePe / Paytm app buttons**, generic "Pay Now" deep link + UPI ID copy, **COD +₹49 auto**, **fast delivery ETA shown**, WhatsApp confirm for COD, success modal with order ID |
 | `orders.html` | My Orders — **pagination (first 10 + "Load More Orders ↓")**, filter chips (All/New/Confirmed/Dispatched/Delivered), **status tracker** (saved on device), dispatch date + ETA, **fast inline View Order Details toggle**, track by Order ID (inline, no reload), success screen after placing an order |
@@ -43,14 +43,17 @@ The `app.js` and `app-admin.js` were **fully rewritten from scratch** (no leftov
 ## ✨ What's New in This Redesign
 
 - **Premium luxury theme** — maroon/gold/white/black, Playfair Display serif headings, gradient hero, gold-tick section titles, hover-lift cards
-- **No popup on product image click** — images navigate to the product page (thumbnails switch the photo)
+- **No popup on product IMAGE in shop cards** — card images navigate straight to the product page (no lightbox on cards)
+- **Product photo zoom** — on the product page, tapping the big photo opens a full-screen zoom (tap ✕ or outside to close); thumbnails switch the photo instantly
 - **Infinite scroll** on the shop page — products keep loading as you scroll (72 products, 12 per batch)
 - **Fast delivery + on-time promise** — dispatch in 24–48h, 2–4 days (TN) / 4–7 days (India), ETA shown on product/cart/checkout/orders, **late = ₹50 off (code LATE50)**
 - **COD +₹49** automatic, shown clearly everywhere
 - **Online payment** — live UPI QR + Pay Now deep link + **one-tap GPay / PhonePe / Paytm app buttons** (each opens its own app with the order amount pre-filled)
+- **Shipping ₹49** — flat shipping is now **₹49** (free above ₹999), shown on cart/checkout/orders automatically. **COD is +₹49** extra at delivery (unchanged, shown everywhere)
 - **72 products** (base catalog × colour variants) covering 17 categories
 - **Orders saved on device** — placed orders appear instantly in My Orders & the admin panel; auto-Delivered 7 days after dispatch
-- **English + தமிழ்** language switch
+- **English + தமிழ்** language switch (moved to Profile page only — the header dropdown was removed for a cleaner look)
+- **Clear page titles** — every page shows a bold maroon page heading (Shop All Sarees · Your Cart · My Orders · My Profile · Secure Checkout…)
 - **Original rating counts** — colour variants show the original saree's review count (no fake reduced numbers); product page shows honest star rating + real customer reviews
 - **Category tiles with real photos** — each category shows a representative saree image
 - **Order success — NO popup** — a clean inline success screen appears right on the checkout page (Order ID, items, total, ETA, Track + Continue buttons). No popups anywhere.
@@ -58,22 +61,25 @@ The `app.js` and `app-admin.js` were **fully rewritten from scratch** (no leftov
 - **Auto-SKU** — every product gets a SKU automatically (`SKS-<CATEGORY>-<number>`, e.g. `SKS-KAN-001`), shown on the product page & admin
 - **Products in data.js + admin-added** — base catalog from `data.js`, plus products you add via the admin (saved on device); images load from public URLs
 - **Full order detail** — tap "View Order Details" to see each product with image, quantity, price breakdown, dispatch date, expected delivery, address & share
-## 📸 Product Images — 3-step fallback (never broken)
+## 📸 Product Images — LOCAL-FIRST (never broken)
 
-Product photos load from **public URLs** built from `CONFIG.imageBase` (default `https://sksaree.shop/`). If a photo fails to load, the page **automatically falls back** to the **local `images/products/` copy** (shipped in this folder), and only then to a branded "SK Sarees" placeholder. So you will **never see a broken image icon** — even offline or in sandboxed previews.
+Product photos are **local-first**: every catalog image points at **`images/products/…`** inside the site folder, which ships with the repo (10 photos from `sksaree-images-backup.zip`). This means images show on **any static host and in live previews with zero setup** — no CDN dependency.
 
-**To serve real photos (recommended):**
-1. Your saree photos are saved in **`sksaree-images-backup.zip`** (in the workspace root) — extract it. The `images/products/` folder with all 10 photos already ships inside `sksaree/`, so the site works standalone.
-2. (Optional) Upload the `images/` folder to your CDN too, so `https://sksaree.shop/images/products/kanchipuram-silk.jpg` resolves — the primary path.
-3. If you use a different host/CDN, change `imageBase` in `data.js` (top of file) to that root URL — all products, category tiles and order images update automatically.
+- Firestore products may carry their own remote URLs (e.g. Blogger). If any image fails to load, the page **automatically falls back** to the **local `images/products/` copy**, then to a branded "SK Sarees" placeholder — so you will **never see a broken image icon**.
+- `CONFIG.imageBase` is kept for future CDN use — if you later upload the photos to `https://sksaree.shop/images/products/…`, you can flip the `img()` helper (top of `data.js`) to use it as the primary source.
 
-> 👉 You can also set individual public URLs in the admin Add/Bulk product forms.
+**Setup (already done):**
+1. `images/products/` with all 10 photos ships inside `sksaree/` — the site works standalone.
+2. (Optional) Upload the `images/` folder to your hosting root too — same relative path works everywhere.
+3. Category tiles, product cards, product page main photo **and thumbnails** all use the same local images.
+
+> 👉 You can also set individual public URLs in the admin Add/Bulk product forms (those keep the fallback chain).
 
 ## 🔁 Unified Sync — localStorage + Firestore on EVERY page
 
 A single `Sync` layer makes **all pages** (index, shop, product, cart, checkout, orders, profile, admin) save to **both** local storage (multi-tier: localStorage → sessionStorage → memory) **and** Firestore, and pull cloud data back on load:
 
-- **Orders** — saved locally + Firestore; listed on orders.html & admin; status updates push to Firestore.
+- **Orders — device isolation** — a customer's `orders.html` shows **only the orders placed on that device** (local storage); cloud orders are **never** merged into the customer view. The **admin** page is the only place that merges **everyone's** orders from Firestore (live listener).
 - **Reviews** — saved locally + Firestore; admin ⭐ Reviews merges both and deletes from both; delete button is compact.
 - **Products** — base catalog from `data.js` **plus** products synced to the Firestore `products` collection are merged (both show); admin adds appear everywhere; the merged list is cached to localStorage (`sk_products_cloud`) so cloud products load instantly on every visit, no network needed.
 - **Write-light by design** — orders push to Firestore **once each** (`sk_orders_synced`), products push **only on admin edit**, collections seed **once per device** (`sk_seed_done`), and live order listeners run **only on orders.html & admin** — so the Firestore free tier (50k reads / 20k writes per day) is never burned by ordinary page views.
