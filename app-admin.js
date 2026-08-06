@@ -57,6 +57,7 @@ function renderAdmin(){
       '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
       '<button type="button" class="admin-tab" id="tabProducts">🛍️ Products</button>' +
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
+      '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
       '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
     '</div>' +
     '<div id="tabBody"></div>' +
@@ -71,6 +72,7 @@ function renderAdmin(){
   document.getElementById('tabProducts').addEventListener('click', () => switchTab('products'));
   document.getElementById('tabReviews').addEventListener('click', () => switchTab('reviews'));
   document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboard'));
+  document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
   /* Firestore: quiet status + live orders/reviews */
   if (FS.enabled()){
@@ -100,7 +102,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -109,6 +111,7 @@ function switchTab(t){
     if (t === 'orders'){ renderFilters(); renderOrderList(); }
     else if (t === 'products') renderProducts();
     else if (t === 'reviews') renderReviews();
+    else if (t === 'coupons') renderCoupons();
     else if (t === 'dashboard') renderDashboard();
   }catch(e){ body.innerHTML = '<div class="empty"><div class="e-ic">⚠️</div><b>Could not load</b></div>'; }
 }
@@ -197,7 +200,7 @@ function orderCard(o){
   const c = o.customer || {}; const t = o.totals || {};
   return '<div class="order-card">' +
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace(/_/g, ' ')) + '</span></div>' +
-    '<div class="oc-items">' + fmtDate(o.date || o.createdAt) + ' • <b>' + esc(c.name || '') + '</b> • ' + esc(c.phone || '') + '<br>' +
+    '<div class="oc-items">' + fmtDT(o.date || o.createdAt) + ' • <b>' + esc(c.name || '') + '</b> • ' + esc(c.phone || '') + '<br>' +
       esc(c.address || '') + ', ' + esc(c.pincode || '') + '<br>' + items + ' • <b>' + money(t.grand || 0) + '</b> (' + (o.payment || '').toUpperCase() + ')</div>' +
     '<select data-status="' + o.id + '">' +
       '<option value="placed"' + (st === 'placed' ? ' selected' : '') + '>Placed</option>' +
@@ -377,6 +380,64 @@ function openEditProduct(id){
   });
 }
 
+/* ============================ COUPONS ============================ */
+function renderCoupons(){
+  const list = getCoupons();
+  document.getElementById('tabBody').innerHTML =
+    '<div class="form-card"><h3>🎟️ Create Coupon</h3>' +
+      '<div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
+        '<div class="field"><label>Code *</label><input id="cpCode" placeholder="e.g. PONGAL50" style="text-transform:uppercase"></div>' +
+        '<div class="field"><label>Type</label><select id="cpType"><option value="flat">₹ Flat off</option><option value="percent">% Percent off</option></select></div>' +
+      '</div>' +
+      '<div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
+        '<div class="field"><label>Value *</label><input id="cpValue" type="number" placeholder="e.g. 50 or 10"></div>' +
+        '<div class="field"><label>Min cart (₹)</label><input id="cpMin" type="number" placeholder="0"></div>' +
+      '</div>' +
+      '<div class="field"><label>Label (shown to customers)</label><input id="cpLabel" placeholder="Pongal offer — ₹50 off"></div>' +
+      '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:700;margin-bottom:10px"><input type="checkbox" id="cpActive" checked style="width:18px;height:18px"> Active</label>' +
+      '<button type="button" class="btn btn-maroon" id="cpSave">💾 Create Coupon</button></div>' +
+    '<div class="form-card"><h3>📋 All Coupons</h3><div id="cpList"></div></div>';
+  document.getElementById('cpSave').addEventListener('click', () => {
+    const code = (document.getElementById('cpCode').value || '').trim().toUpperCase();
+    const value = +document.getElementById('cpValue').value;
+    if (!code || !(value > 0)){ toast('⚠️ Code and Value required'); return; }
+    const coupons = getCoupons().filter(c => String(c.code).trim().toUpperCase() !== code);
+    coupons.unshift({
+      code, type: document.getElementById('cpType').value,
+      value, min: Math.max(0, +document.getElementById('cpMin').value || 0),
+      label: document.getElementById('cpLabel').value.trim() || (code + ' offer'),
+      active: document.getElementById('cpActive').checked,
+    });
+    saveCoupons(coupons);
+    renderCoupons();
+    toast('✅ Coupon ' + code + ' created');
+  });
+  renderCouponList();
+}
+function renderCouponList(){
+  const wrap = document.getElementById('cpList'); if (!wrap) return;
+  const list = getCoupons();
+  if (!list.length){ wrap.innerHTML = '<p class="small muted">No coupons yet — create one above.</p>'; return; }
+  wrap.innerHTML = list.map((c, i) =>
+    '<div class="order-card" style="padding:12px">' +
+      '<div class="oc-top"><b style="letter-spacing:1px">🎟️ ' + esc(c.code) + '</b>' +
+      '<span class="status-pill ' + (c.active ? 'status-delivered' : 'status-placed') + '">' + (c.active ? 'Active' : 'Inactive') + '</span></div>' +
+      '<div class="oc-items">' + esc(c.label || '') + '<br>' +
+        (c.type === 'percent' ? c.value + '% off' : '₹' + c.value + ' off') +
+        (c.min ? ' • min ₹' + c.min : ' • no minimum') + '</div>' +
+      '<div class="oc-btns">' +
+        '<button type="button" class="btn btn-outline btn-sm" data-cp-toggle="' + i + '">' + (c.active ? '⏸️ Deactivate' : '▶️ Activate') + '</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-cp-del="' + i + '">🗑️ Delete</button>' +
+      '</div></div>').join('');
+}
+function couponAct(i, del){
+  let list = getCoupons();
+  if (del){ list.splice(i, 1); toast('🗑️ Coupon deleted'); }
+  else { list[i].active = !list[i].active; toast(list[i].active ? '▶️ Activated' : '⏸️ Deactivated'); }
+  saveCoupons(list);
+  renderCouponList();
+}
+
 /* ============================ REVIEWS ============================ */
 let fsReviews = [];
 let fsOrders = [];   /* cloud orders — runtime ONLY, never saved to sk_orders */
@@ -458,4 +519,12 @@ document.addEventListener('click', e => {
   }
   const delr = e.target.closest('[data-delreview]');
   if (delr){ deleteReview(delr.dataset.delreview); }
+  /* coupon toggle / delete */
+  const cpt = e.target.closest('[data-cp-toggle]');
+  if (cpt){ couponAct(+cpt.dataset.cpToggle, false); return; }
+  const cpd = e.target.closest('[data-cp-del]');
+  if (cpd){
+    if (!confirm('Delete this coupon?')) return;
+    couponAct(+cpd.dataset.cpDel, true);
+  }
 });

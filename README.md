@@ -2,6 +2,14 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 🎟️ Coupons · ⏰ Order Time · 🚀 SEO
+
+- **🎟️ Coupons (user)** — cart & checkout have a coupon input: type a code (e.g. `AADI10`, `CART50`, `LATE50`), tap Apply, and the discount shows in cart, checkout review, and the success page + saved order totals.
+- **🎟️ Coupons (admin)** — new **🎟️ Coupons tab** in admin: create (code / ₹flat or % / value / min cart / active), activate/deactivate, delete. Saved on device; customers can use them instantly.
+- **⏰ Order date + time (AM/PM)** — order cards, order details, admin cards and success page now show date **and** time, e.g. `6 Aug 2026, 3:05 PM`.
+- **🚀 SEO package** — every page injects **JSON-LD schema** (LocalBusiness on all pages, WebSite + FAQPage on home, Product + Offer + AggregateRating on product pages). Meta titles/descriptions improved on shop/cart/checkout/index. Full keyword list, blog topics, GBP & WhatsApp tips in **`seo-package.md`** (contains a ready-to-paste SEO prompt for ChatGPT/Claude/Grok).
+- **🖼️ Hero banner** — now an inline `<img class="hero-bg">` (same loading path as product images) so it shows reliably in every preview, with a maroon gradient overlay for readability.
+
 ## 🛒 Business Features
 
 - **Product ID == SKU** — every product's ID and SKU are the same auto-increment value (`SK20001`, `SK20002`, …). **Bulk upload** increments them automatically per line (never collides with the built-in catalog).

@@ -283,6 +283,14 @@ function normalizeProduct(raw){
 const money = n => '₹' + Number(n).toLocaleString('en-IN');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+/* Date + time with AM/PM, e.g. "6 Aug 2026, 3:05 PM" */
+const fmtDT = iso => {
+  const d = new Date(iso); if (isNaN(d.getTime())) return '';
+  const date = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  let h = d.getHours(), m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+  return date + ', ' + h + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+};
 const validPhone = p => /^[6-9]\d{9}$/.test(String(p).trim());
 /* Order ID = ORD-<MMDD>-<HHMMSS>-<3 random digits>  e.g. ORD-0805-104537-372
    (seconds + random + duplicate check → guaranteed unique) */
@@ -554,6 +562,32 @@ document.addEventListener('click', function(e){
   const c = e.target.closest('[data-cr-close]');
   if (c){ const d = document.getElementById('cartRecovery'); if (d) d.remove(); try{ localStorage.setItem('sk_cart_banner_closed','1'); }catch(e2){} }
 });
+
+/* ============================ 9c. COUPONS ============================
+   Default coupons + admin-created ones (sk_coupons overrides the defaults).
+   Types: flat (₹ off) or percent (% off). min = minimum cart total. */
+function defaultCoupons(){
+  return [
+    { code:'AADI10', type:'percent', value:10, min:999, active:true, label:'Aadi Festival — 10% off' },
+    { code:'CART50', type:'flat',    value:50, min:0,   active:true, label:'Forgot cart — ₹50 off' },
+    { code:'LATE50', type:'flat',    value:50, min:0,   active:true, label:'Late delivery — ₹50 off' },
+  ];
+}
+function getCoupons(){
+  try{ const c = JSON.parse(localStorage.getItem('sk_coupons')); if (Array.isArray(c) && c.length) return c; }catch(e){}
+  return defaultCoupons();
+}
+function saveCoupons(list){ try{ localStorage.setItem('sk_coupons', JSON.stringify(list || [])); }catch(e){} }
+function couponFor(code){
+  if (!code) return null;
+  const s = String(code).trim().toUpperCase();
+  return getCoupons().find(c => c && String(c.code).trim().toUpperCase() === s && c.active) || null;
+}
+function couponDiscount(code, total){
+  const c = couponFor(code); if (!c) return 0;
+  if (c.min && total < +c.min) return 0;
+  return c.type === 'percent' ? Math.round(total * (+c.value || 0) / 100) : (+c.value || 0);
+}
 
 /* ============================ 10. TOAST / MODAL ============================ */
 let toastT;
@@ -1057,7 +1091,47 @@ function renderFooter(){
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
+/* ============================ 15. SEO — JSON-LD schema ============================
+   Injects structured data on every page (LocalBusiness), product pages
+   (Product), and the home page (FAQ + WebSite). Helps Google show rich results. */
+function seoInject(){
+  try{
+    if (document.getElementById('ld-seo')) return;
+    const page = (document.body && document.body.dataset.page) || '';
+    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    const ld = [];
+    /* LocalBusiness (all pages) */
+    ld.push({
+      '@context':'https://schema.org','@type':'LocalBusiness','@id': base + '#business',
+      name:'SK Sarees', image: base + 'images/hero-banner.jpg',
+      url: location.origin + '/', telephone:'+917867915699',
+      address:{ '@type':'PostalAddress', streetAddress:'2/130, Thoothanoor, Edanganasalai', addressLocality:'Salem', addressRegion:'Tamil Nadu', postalCode:'637502', addressCountry:'IN' },
+      geo:{ '@type':'GeoCoordinates', latitude:11.6694, longitude:78.1408 },
+      openingHours:'Mo-Su 09:00-21:00', priceRange:'₹₹',
+      sameAs:[ CONFIG.social.instagram, CONFIG.social.facebook, CONFIG.social.youtube, CONFIG.waGroup ],
+    });
+    /* WebSite + FAQ (home) */
+    if (page === 'home'){
+      ld.push({ '@context':'https://schema.org','@type':'WebSite', name:CONFIG.storeName, url:location.origin + '/', potentialAction:{ '@type':'SearchAction', target: base + 'shop.html?cat={search_term_string}', 'query-input':'required name=search_term_string' } });
+      ld.push({ '@context':'https://schema.org','@type':'FAQPage', mainEntity: FAQ.map(f => ({ '@type':'Question', name:f.q, acceptedAnswer:{ '@type':'Answer', text:f.a } })) });
+    }
+    /* Product (product pages) */
+    if (page === 'product'){
+      const id = new URLSearchParams(location.search).get('id');
+      const p = byId(id);
+      if (p) ld.push({ '@context':'https://schema.org','@type':'Product', name:p.name, image:p.img, sku:p.sku || p.id, brand:{ '@type':'Brand', name:CONFIG.storeName },
+        offers:{ '@type':'Offer', priceCurrency:'INR', price:p.price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: location.href, itemCondition:'https://schema.org/NewCondition' },
+        aggregateRating: p.reviews ? { '@type':'AggregateRating', ratingValue:p.rating || 4.5, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
+    }
+    const sc = document.createElement('script');
+    sc.type = 'application/ld+json'; sc.id = 'ld-seo';
+    sc.textContent = JSON.stringify(ld.filter(Boolean));
+    document.head.appendChild(sc);
+  }catch(e){}
+}
+
 function injectChrome(){
+  try{ seoInject(); }catch(e){}
   if (!document.getElementById('siteHeader')){
     const h = document.createElement('div'); h.id = 'siteHeader';
     document.body.insertBefore(h, document.getElementById('app') || document.body.firstChild);

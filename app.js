@@ -65,7 +65,7 @@ function renderHome(){
   const fresh = PRODUCTS.filter(p => p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => offPct(p) >= 35).slice(0, 4);
   app.innerHTML =
-    '<section class="hero"><div class="hero-in">' +
+    '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 Aadi Festival Sale — Up to 40% OFF</span>' +
       '<h1>Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span></h1>' +
       '<p>Authentic Kanchipuram silk, soft cotton &amp; wedding sarees. Order in 2 minutes — pay by UPI or Cash on Delivery.</p>' +
@@ -371,6 +371,8 @@ function renderCartPage(){
     return;
   }
   const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
+  const disc = couponDiscount(co.data.coupon, t);
+  const coup = couponFor(co.data.coupon);
   app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' +
     '<div>' + Store.cart.map(i => {
       const p = byId(i.id); if (!p) return '';
@@ -384,9 +386,14 @@ function renderCartPage(){
         '<button type="button" class="rm" data-rm="' + p.id + '" aria-label="Remove">✕</button></div>';
     }).join('') + '</div>' +
     '<div class="summary">' +
+      '<div class="coupon-box"><div style="display:flex;gap:8px">' +
+        '<input id="cartCoupon" placeholder="Coupon code (e.g. AADI10)" value="' + esc(co.data.coupon || '') + '" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.85rem;background:#fff;outline:none;text-transform:uppercase">' +
+        '<button type="button" class="btn btn-outline btn-sm" id="cartCouponBtn" style="min-height:44px">Apply</button>' +
+      '</div>' + (coup && disc > 0 ? '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">🎟️ Coupon <b>' + esc(coup.code) + '</b> applied — ₹' + disc + ' off!</p>' : (co.data.coupon ? '<p class="small muted" style="margin-top:6px">Coupon not valid for this cart</p>' : '')) + '</div>' +
       '<div class="row"><span>Items total</span><b>' + money(t) + '</b></div>' +
+      (disc > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(disc) + '</b></div>' : '') +
       '<div class="row"><span>Shipping</span><b style="color:' + (sh ? 'inherit' : 'var(--green)') + '">' + (sh ? money(sh) : 'FREE') + '</b></div>' +
-      '<div class="row total"><span>Total</span><b>' + money(t + sh) + '</b></div>' +
+      '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc) + sh) + '</b></div>' +
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
@@ -399,7 +406,7 @@ function renderCartPage(){
 }
 
 /* ============================ CHECKOUT ============================ */
-let co = { step: 1, data: { name:'', phone:'', address:'', pincode:'', payment:'upi' } };
+let co = { step: 1, data: { name:'', phone:'', address:'', pincode:'', payment:'upi', coupon:'' } };
 function renderCheckoutPage(){
   const app = document.getElementById('app'); if (!app) return;
   /* prefill order: what you last typed (draft) → saved profile → empty */
@@ -426,7 +433,9 @@ function coTotals(){
   const itemsTotal = cartTotal();
   const codFee = co.data.payment === 'cod' ? CONFIG.codFee : 0;
   const shipping = shippingFor(itemsTotal, co.data.pincode, cartCount());
-  return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
+  const discount = couponDiscount(co.data.coupon, itemsTotal);
+  const grand = Math.max(0, itemsTotal - discount) + codFee + shipping;
+  return { itemsTotal, codFee, shipping, discount, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
@@ -444,6 +453,7 @@ function drawCo(){
         '<div class="field"><label>WhatsApp / Mobile <span class="req">*</span></label><input id="coPhone" value="' + esc(d.phone) + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
         '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area, city…">' + esc(d.address) + '</textarea></div>' +
         '<div class="field"><label>PIN Code <span class="req">*</span></label><input id="coPin" value="' + esc(d.pincode) + '" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"></div>' +
+        '<div class="field"><label>🎟️ Coupon Code (optional)</label><input id="coCoupon" value="' + esc(d.coupon || '') + '" placeholder="e.g. AADI10" style="text-transform:uppercase"></div>' +
       '</div>' +
       '<div class="form-card"><h3>💳 Payment Method</h3><div class="pay-grid">' +
         '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>UPI — Pay Online</b><small>GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
@@ -458,6 +468,7 @@ function drawCo(){
     const upiPay = d.payment === 'upi';
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card"><h3>🧾 Review Your Order</h3>' + itemLines +
+        (t.discount > 0 ? '<div class="row"><span>Coupon discount (' + esc(co.data.coupon) + ')</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
         '<div class="row"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
         (upiPay ? '' : '<div class="row"><span>COD charges</span><b>+' + money(t.codFee) + '</b></div>') +
         '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
@@ -584,12 +595,12 @@ function doWaOrder(){
 }
 function renderOrderComplete(o, viaWa){
   const app = document.getElementById('app'); if (!app) return;
-  const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, grand:0, eta:'' };
+  const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, discount:0, grand:0, eta:'' };
   const items = (o.items || []).map(i => '<div style="display:flex;justify-content:space-between;font-size:.84rem;padding:6px 0;border-bottom:1px dashed var(--line)"><span>' + esc(i.name) + ' ×' + i.qty + '</span><b>' + money(i.price * i.qty) + '</b></div>').join('');
   const mine = myOrders();
   const cards = mine.length
     ? mine.map(od => '<div class="order-card"><div class="oc-top"><b>#' + od.id + '</b><span class="status-pill status-' + od.status + '">' + esc((od.status || 'placed').replace('_', ' ')) + '</span></div>' +
-        '<div class="oc-items">' + fmtDate(od.date) + ' • ' + money((od.totals || {}).grand || 0) + ' (' + (od.payment || '').toUpperCase() + ')</div>' +
+        '<div class="oc-items">' + fmtDT(od.date) + ' • ' + money((od.totals || {}).grand || 0) + ' (' + (od.payment || '').toUpperCase() + ')</div>' +
         '<a class="btn btn-outline btn-sm" style="margin-top:8px" href="orders.html?id=' + encodeURIComponent(od.id) + '&data=' + encodeURIComponent(JSON.stringify(od)) + '">👁️ View Details</a></div>').join('')
     : '<div class="empty"><div class="e-ic">📦</div><b>No orders yet</b></div>';
   app.innerHTML = '<div class="wrap page">' +
@@ -599,6 +610,7 @@ function renderOrderComplete(o, viaWa){
       '<p class="muted small" style="max-width:46ch;margin:8px auto 0">Our team will confirm your order on WhatsApp within minutes. Keep your phone handy! 📱</p>' +
     '</div>' +
     '<div class="summary" style="margin-top:6px">' + items +
+      (t.discount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Coupon discount</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
       '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
       (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>Total (' + (o.payment || 'upi').toUpperCase() + ')</span><b>' + money(t.grand) + '</b></div>' +
@@ -692,7 +704,7 @@ function orderCard(o){
   const st = o.status || 'placed';
   return '<div class="order-card">' +
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace('_', ' ')) + '</span></div>' +
-    '<div class="oc-items">' + fmtDate(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 12–24h') + '</div>' +
+    '<div class="oc-items">' + fmtDT(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 12–24h') + '</div>' +
     statusTrack(o) +
     '<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button></div>';
 }
@@ -717,7 +729,7 @@ function showDetail(o){
   wrap.innerHTML = '<div class="form-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
     '<h3 style="margin:0">📦 Order #' + esc(o.id) + '</h3>' +
     '<button type="button" class="btn btn-ghost btn-sm" data-close-detail style="min-height:32px">✕ Close</button></div>' +
-    '<div class="oc-items" style="margin:4px 0">' + fmtDate(o.date) + ' • ' + esc((o.customer || {}).name || '') + ' • ' + money(t.grand) + ' (' + (o.payment || '').toUpperCase() + ')</div>' +
+    '<div class="oc-items" style="margin:4px 0">' + fmtDT(o.date) + ' • ' + esc((o.customer || {}).name || '') + ' • ' + money(t.grand) + ' (' + (o.payment || '').toUpperCase() + ')</div>' +
     '<span class="status-pill status-' + o.status + '">' + esc((o.status || 'placed').replace('_', ' ')) + '</span>' +
     statusTrack(o) +
     '<div style="margin-top:12px">' + items + '</div>' +
@@ -858,6 +870,19 @@ document.addEventListener('click', function(e){
   if (cqp){ const it = Store.cart.find(i => i.id === cqp.dataset.cqp); if (it){ setCartQty(it.id, it.qty + 1); renderCartPage(); } return; }
   const rm = e.target.closest('[data-rm]');
   if (rm){ e.preventDefault(); removeFromCart(rm.dataset.rm); renderCartPage(); return; }
+  /* coupon apply (cart) */
+  if (e.target.id === 'cartCouponBtn'){
+    e.preventDefault();
+    const v = document.getElementById('cartCoupon') ? document.getElementById('cartCoupon').value.trim() : '';
+    co.data.coupon = v;
+    saveCoDraft();
+    const c = couponFor(v);
+    if (!c){ toast('❌ Invalid or expired coupon'); }
+    else if (c.min && cartTotal() < +c.min){ toast('⚠️ Use this coupon above ₹' + c.min); }
+    else { toast('🎟️ Coupon ' + c.code + ' applied!'); }
+    renderCartPage();
+    return;
+  }
   /* checkout */
   const cont = e.target.closest('[data-cont]');
   if (cont){ e.preventDefault(); if (coValid()){ co.step = 2; drawCo(); } return; }
@@ -940,6 +965,7 @@ document.addEventListener('input', function(e){
   else if (e.target.id === 'coPhone') co.data.phone = e.target.value;
   else if (e.target.id === 'coAddr') co.data.address = e.target.value;
   else if (e.target.id === 'coPin') co.data.pincode = e.target.value;
+  else if (e.target.id === 'coCoupon') co.data.coupon = e.target.value.toUpperCase().trim();
   else return;
-  saveCoDraft();   /* remember address/name/phone as the user types */
+  saveCoDraft();   /* remember address/name/phone/coupon as the user types */
 });
