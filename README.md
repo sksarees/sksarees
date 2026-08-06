@@ -2,6 +2,19 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 🎬 Videos · Stock Urgency · Extras
+
+- **🎬 Video catalog** — a "Video Catalog" section on the home page embeds YouTube videos (config: `CONFIG.videos` in `data.js` — replace the sample IDs with your own store videos).
+- **📹 Product videos** — optional YouTube video per product: add the URL in **Admin → Products → Add / Edit → "Video URL (YouTube)"**; the product page embeds it under the gallery.
+- **🖼️ Gallery swipe + zoom** — product photos swipe left/right on mobile (👈👉 hint) and tap for full-screen zoom; thumbnails switch photos.
+- **🖼️ Hero banner image** — home hero now has a real photo background (`images/hero-banner.jpg`, generated) with a maroon overlay.
+- **⭐ Google reviews** — "Rate us on Google" link (your `g.page/r/CSQ5w7DqPWbXEAE/review`) on the home reviews section and in the footer social row (`CONFIG.googleReview`).
+- **🔥 Low stock urgency** — stock ≤ 5 shows "🔥 Only N left — order soon!" on shop cards and the product page.
+- **😞 Out of stock** — out-of-stock products stay **visible** (never hidden) on shop & product pages with an "Out of Stock" badge, disabled Add-to-Cart/Buy-Now, but WhatsApp order still available; `addToCart` blocks adding them.
+- **SKU / Product ID** — auto-increment `SK` + 5 digits (`SK10001`, `SK10002`, …). Catalog SKUs are sequential; admin-added products get the next number automatically.
+- **Order confirm → scroll to top** — after placing an order the success message renders and the page scrolls smoothly to the top.
+- **Layout tweaks** — `.offchip` discount chip moved to the **left** (top-left, below the badge); footer `.foot-grid` uses `grid-auto-flow: column`.
+
 ## 📱 Installable App (PWA)
 
 The site is **installable as an app**: `manifest.webmanifest` + `icons/icon-192.png` + `icons/icon-512.png` are linked on **every page** (plus apple-touch-icon for iPhone). On Android Chrome / iPhone Safari, users get **"Add to Home Screen / Install App"** and the store opens full-screen like a native app. No service worker needed for a basic installable static site.
@@ -55,7 +68,7 @@ The `app.js` and `app-admin.js` were **fully rewritten from scratch** (no leftov
 - **No popup on product IMAGE in shop cards** — card images navigate straight to the product page (no lightbox on cards)
 - **Product photo zoom** — on the product page, tapping the big photo opens a full-screen zoom (tap ✕ or outside to close); thumbnails switch the photo instantly
 - **Infinite scroll** on the shop page — products keep loading as you scroll (72 products, 12 per batch)
-- **Fast delivery + on-time promise** — dispatch in 24–48h, 2–4 days (TN) / 4–7 days (India), ETA shown on product/cart/checkout/orders, **late = ₹50 off (code LATE50)**
+- **Fast delivery + on-time promise** — dispatch in 12–24h (COD 24–48h), delivery 2–3 days (TN) / 3–4 days (Andhra-Karnataka) / 5–7 days (other states), ETA shown on product/cart/checkout/orders, **late = ₹50 off (code LATE50)**
 - **COD +₹70** automatic, shown clearly everywhere
 - **Online payment** — live UPI QR + Pay Now deep link + **one-tap GPay / PhonePe / Paytm app buttons** (each opens its own app with the order amount pre-filled)
 - **Shipping ₹30** — flat shipping is now **₹30** (free above ₹999), shown on cart/checkout/orders automatically. **COD is +₹70** extra at delivery, shown everywhere (FAQ, promo strip, cart, checkout, WhatsApp templates)
@@ -67,7 +80,10 @@ The `app.js` and `app-admin.js` were **fully rewritten from scratch** (no leftov
 - **Category tiles with real photos** — each category shows a representative saree image
 - **Order success — NO popup** — a clean inline success screen appears right on the checkout page (Order ID, items, total, ETA, Track + Continue buttons). No popups anywhere.
 - **Order ID = #SK + numbers** — e.g. `SK1001`, `SK1002`… sequential, easy to read over WhatsApp
-- **Auto-SKU** — every product gets a SKU automatically (`SKS-<CATEGORY>-<number>`, e.g. `SKS-KAN-001`), shown on the product page & admin
+- **Auto-SKU** — every product gets a SKU automatically (`#SK-<MMDD>-<3 digits>`, e.g. `#SK-0805-129` — date-based + stable per product), shown on the product page & admin
+- **Order ID** — `ORD-<MMDD>-<HHMMSS>-<3 digits>` (e.g. `ORD-0805-104537-372`) — date, time and 3 random digits, guaranteed unique
+- **Dispatch 12–24 hrs** (COD: 24–48 hrs)
+- **Delivery by state** — Tamil Nadu **2–3 days** (shipping ₹30) · Andhra & Karnataka **3–4 days** (₹40) · other states **5–7 days** (₹60) · **COD = 5–7 days** everywhere · free shipping above ₹999
 - **Products in data.js + admin-added** — base catalog from `data.js`, plus products you add via the admin (saved on device); images load from public URLs
 - **Full order detail** — tap "View Order Details" to see each product with image, quantity, price breakdown, dispatch date, expected delivery, address & share
 ## 📸 Product Images — LOCAL-FIRST (never broken)

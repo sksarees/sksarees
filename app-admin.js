@@ -279,6 +279,7 @@ function openAddProduct(){
       '<div class="field"><label>Category *</label><select id="apCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Badge</label><select id="apBadge"><option value="">—</option><option>Bestseller</option><option>New</option><option>Sale</option><option>Limited Stock</option></select></div></div>' +
     '<div class="field"><label>Image URL</label><input id="apImg" placeholder="https://…"></div>' +
+    '<div class="field"><label>Video URL (YouTube — optional)</label><input id="apVideo" placeholder="https://youtube.com/watch?v=…"></div>' +
     '<div class="field"><label>Stock</label><input id="apStock" type="number" value="10"></div>' +
     '<button type="button" class="btn btn-maroon" id="apSave">💾 Add Product</button>');
   document.getElementById('apSave').addEventListener('click', () => {
@@ -289,6 +290,7 @@ function openAddProduct(){
       name, price, mrp: document.getElementById('apMrp').value,
       cat: document.getElementById('apCat').value, badge: document.getElementById('apBadge').value,
       img: document.getElementById('apImg').value, stock: +document.getElementById('apStock').value || 10,
+      video: document.getElementById('apVideo').value,
     });
     PRODUCTS.unshift(np); saveProducts(PRODUCTS);
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
@@ -321,6 +323,7 @@ function openEditProduct(id){
       '<div class="field"><label>Stock</label><input id="epStock" type="number" value="' + p.stock + '"></div></div>' +
     '<div class="field"><label>Badge</label><select id="epBadge"><option value=""' + (!p.badge ? ' selected' : '') + '>—</option><option' + (p.badge === 'Bestseller' ? ' selected' : '') + '>Bestseller</option><option' + (p.badge === 'New' ? ' selected' : '') + '>New</option><option' + (p.badge === 'Sale' ? ' selected' : '') + '>Sale</option><option' + (p.badge === 'Limited Stock' ? ' selected' : '') + '>Limited Stock</option></select></div>' +
     '<div class="field"><label>Image URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
+    '<div class="field"><label>Video URL (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
     '<button type="button" class="btn btn-maroon" id="epSave">💾 Save Changes</button>');
   document.getElementById('epSave').addEventListener('click', () => {
     const name = document.getElementById('epName').value.trim();
@@ -335,6 +338,7 @@ function openEditProduct(id){
         stock: Math.max(0, +document.getElementById('epStock').value || 0),
         badge: document.getElementById('epBadge').value,
         img: document.getElementById('epImg').value || PRODUCTS[idx].img,
+        video: ytId(document.getElementById('epVideo').value),
       });
       saveProducts(PRODUCTS);
       closeModal(); renderProdBody(); toast('✅ Product updated');

@@ -34,20 +34,25 @@ function starsHTML(p){
 }
 function cardHTML(p){
   const off = offPct(p);
-  const badgeCls = p.badge === 'New' ? 'gold' : p.badge === 'Limited Stock' ? 'red' : p.badge === 'Sale' ? 'green' : '';
+  const out = (p.stock != null && p.stock <= 0);
+  const low = !out && p.stock <= 5;
+  const badgeCls = out ? 'red' : p.badge === 'New' ? 'gold' : p.badge === 'Limited Stock' ? 'red' : p.badge === 'Sale' ? 'green' : '';
   return '<article class="pcard">' +
     '<a class="pcard-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
       '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async" width="800" height="600">' +
-      (p.badge ? '<span class="badge ' + badgeCls + '">' + esc(p.badge) + '</span>' : '') +
-      (off ? '<span class="offchip">-' + off + '%</span>' : '') +
+      (out ? '<span class="badge red">Out of Stock</span>' : (p.badge ? '<span class="badge ' + badgeCls + '">' + esc(p.badge) + '</span>' : '')) +
+      (off && !out ? '<span class="offchip">-' + off + '%</span>' : '') +
       '<span class="card-heart' + (Store.wish.includes(p.id) ? ' on' : '') + '" data-wish="' + p.id + '" role="button" aria-label="Save to wishlist" title="Save to wishlist">' + (Store.wish.includes(p.id) ? '❤️' : '🤍') + '</span>' +
     '</a>' +
     '<div class="pcard-body">' +
       '<h3><a href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(p.name) + '</a></h3>' +
       starsHTML(p) +
-      '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+      '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+      (low ? '<div class="lowchip">🔥 Only <b>' + p.stock + '</b> left — order soon!</div>' : (out ? '<div class="lowchip out">😞 Out of stock — ask on WhatsApp for next batch</div>' : '')) +
       '<div class="p-actions">' +
-        '<button type="button" class="btn btn-outline" data-add="' + p.id + '">Add to Cart</button>' +
+        (out
+          ? '<button type="button" class="btn" disabled style="opacity:.55">Out of Stock</button>'
+          : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">Add to Cart</button>') +
         '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">💬</a>' +
       '</div>' +
     '</div></article>';
@@ -85,12 +90,19 @@ function renderHome(){
         '<div class="prow">' + fresh.map(cardHTML).join('') + '</div></section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 Today\'s Deals</h2><a href="shop.html">View all →</a></div>' +
         '<div class="prow">' + deals.map(cardHTML).join('') + '</div></section>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎬 Video Catalog</h2>' +
+        '<a href="' + esc(CONFIG.social.youtube) + '" target="_blank" rel="noopener">Watch on YouTube →</a></div>' +
+        '<div class="video-grid">' + CONFIG.videos.map(v =>
+          '<div class="video-card"><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(v.id) + '?rel=0" title="' + esc(v.title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
+          '<b>' + esc(v.title) + '</b></div>').join('') + '</div></section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 What Our Customers Say</h2></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
           '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
           '<div><b>' + esc(r.name) + '</b><small>' + esc(r.place) + ' • Customer review ⭐</small></div></div>' +
           '<div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div><p>' + esc(r.text) + '</p></div>'
-        ).join('') + '</div></section>' +
+        ).join('') + '</div>' +
+        '<div style="text-align:center;margin-top:16px"><a class="btn btn-outline" style="max-width:320px;margin:0 auto" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Rate us on Google — share your experience!</a></div>' +
+        '</section>' +
       '<section class="sec faq"><div class="sec-head"><h2><span class="tick"></span>❓ FAQ</h2></div>' +
         FAQ.map(f => '<details><summary>' + esc(f.q) + '</summary><p>' + esc(f.a) + '</p></details>').join('') + '</section>' +
     '</div>';
@@ -239,15 +251,22 @@ function renderProduct(){
   const uniq = []; gal.forEach(u => { if (u && uniq.indexOf(u) === -1) uniq.push(u); });
   const gallery = uniq.length ? uniq : [img('printed-cotton.jpg')];
   const liked = Store.wish.includes(p.id);
+  const out = p.stock != null && p.stock <= 0;
+  const low = !out && p.stock <= 5;
   const thumbs = gallery.map((u, i) => '<button type="button" class="pd-thumb' + (i === 0 ? ' on' : '') + '" data-thumb="' + i + '" aria-label="Photo ' + (i + 1) + '"><img src="' + esc(u) + '" alt="" loading="lazy"></button>').join('');
+  const vidBlock = p.video
+    ? '<div class="pd-video"><h3>🎬 Product Video</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>'
+    : '';
   app.innerHTML =
     '<div class="wrap pd-wrap" style="margin-top:12px">' +
       '<div>' +
         '<div class="pd-gal">' +
           '<div class="pd-heart"><button type="button" class="heart-btn' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist" title="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button></div>' +
           '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '"></div>' +
+          '<div class="pd-swipe-hint">👈 👉 swipe to see all photos</div>' +
           '<div class="pd-thumbs">' + thumbs + '</div>' +
         '</div>' +
+        vidBlock +
         '<div class="pd-block" style="margin-top:12px"><h3>🔍 Fabric &amp; Details</h3><table>' +
           '<tr><td>Fabric</td><td>' + esc(p.fabric) + '</td></tr>' +
           '<tr><td>Colour</td><td>' + esc(p.color) + '</td></tr>' +
@@ -263,14 +282,21 @@ function renderProduct(){
         '<span class="pd-cat">' + (cat ? cat.emoji + ' ' + esc(cat.name) : '') + '</span>' +
         '<h1>' + esc(p.name) + '</h1>' +
         starsHTML(p) +
-        '<div class="pd-price"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        '<div class="pd-price"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        (out
+          ? '<div class="lowchip out" style="margin:6px 0">😞 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
+          : low
+            ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
+            : '') +
         '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping</p>' +
         '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
         '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div></div>' +
         '<div class="pd-btns">' +
-          '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>' +
-          '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>' +
+          (out
+            ? '<button type="button" class="btn btn-xl" disabled style="opacity:.6">😞 Out of Stock</button>'
+            : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
+          (out ? '' : '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Reviews &amp; Comments</h3>' + revs +
@@ -294,6 +320,23 @@ function renderProduct(){
   /* qty buttons */
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); }));
+  /* 👈👉 swipe the gallery to switch photos (mobile) */
+  const mainBox = document.getElementById('pdMain');
+  if (mainBox){
+    let sx = null;
+    mainBox.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+    mainBox.addEventListener('touchend', e => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      sx = null;
+      if (Math.abs(dx) < 40) return;
+      const thumbs = Array.from(document.querySelectorAll('[data-thumb]'));
+      if (!thumbs.length) return;
+      const cur = thumbs.findIndex(b => b.classList.contains('on'));
+      const next = dx < 0 ? Math.min(cur + 1, thumbs.length - 1) : Math.max(cur - 1, 0);
+      if (next !== cur && thumbs[next]) thumbs[next].click();
+    }, { passive: true });
+  }
   /* comment */
   document.querySelectorAll('[data-comment]').forEach(b => b.addEventListener('click', () => {
     const name = (document.getElementById('rvName') || {}).value || '';
@@ -337,6 +380,7 @@ function renderCartPage(){
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
+      '<p class="small muted" style="margin-top:8px">🚚 Shipping by state: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others · <b>FREE above ₹999</b> — calculated at checkout.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener">💬 Order on WhatsApp Instead</a>' +
@@ -371,8 +415,8 @@ function renderCheckoutPage(){
 function coTotals(){
   const itemsTotal = cartTotal();
   const codFee = co.data.payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal);
-  return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate().text };
+  const shipping = shippingFor(itemsTotal, co.data.pincode);
+  return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
@@ -496,6 +540,7 @@ function doPlaceOrder(payment){
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     renderOrderComplete(order, false);
+    try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment, totals: coTotals(), status:'placed' }, false); }catch(e){} }
 }
 function doWaOrder(){
@@ -524,6 +569,7 @@ function doWaOrder(){
       '\n\nTotal (incl. COD ₹' + CONFIG.codFee + '): ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     renderOrderComplete(order, true);
+    try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
 }
 function renderOrderComplete(o, viaWa){
@@ -546,7 +592,7 @@ function renderOrderComplete(o, viaWa){
       '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
       (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>Total (' + (o.payment || 'upi').toUpperCase() + ')</span><b>' + money(t.grand) + '</b></div>' +
-      '<div class="small muted" style="text-align:center;margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 24–48h') + '</div></div>' +
+      '<div class="small muted" style="text-align:center;margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '</div></div>' +
     '<div style="display:grid;gap:10px;margin-top:16px;grid-template-columns:1fr 1fr">' +
       '<a class="btn btn-maroon" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 Track This Order</a>' +
       '<a class="btn btn-gold" href="orders.html">📋 All My Orders</a>' +
@@ -636,7 +682,7 @@ function orderCard(o){
   const st = o.status || 'placed';
   return '<div class="order-card">' +
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace('_', ' ')) + '</span></div>' +
-    '<div class="oc-items">' + fmtDate(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 24–48h') + '</div>' +
+    '<div class="oc-items">' + fmtDate(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 12–24h') + '</div>' +
     statusTrack(o) +
     '<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button></div>';
 }
@@ -671,7 +717,7 @@ function showDetail(o){
       (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div style="display:flex;justify-content:space-between;font-weight:800;font-size:.95rem;padding:6px 0;border-top:2px dashed var(--line);margin-top:4px"><span>Total</span><b style="color:var(--maroon)">' + money(t.grand) + '</b></div>' +
     '</div>' +
-    '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 24–48h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
+    '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
     '<div style="display:grid;gap:8px;margin-top:12px;grid-template-columns:1fr 1fr">' +
       '<a class="btn btn-wa btn-sm" href="' + waLink('Hi! I want to track my order ' + o.id + '.') + '" target="_blank" rel="noopener">💬 Ask on WhatsApp</a>' +
       '<a class="btn btn-outline btn-sm" href="shop.html">🛍️ Shop More</a>' +

@@ -376,7 +376,7 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 footer{background:linear-gradient(180deg,#2b0a14,#1c060d);color:#e8cdd3;margin-top:34px;font-size:.86rem;border-top:3px solid var(--gold)}
 .footer-top{background:linear-gradient(135deg,#3d0f1e,#220810);border-bottom:1px solid rgba(255,255,255,.08)}
 .foot-grid{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:26px;padding:28px 10px;align-items:start}
-@media(max-width:640px){.foot-grid{grid-auto-flow:column;grid-auto-columns:auto}}
+@media(max-width:640px){.foot-grid{grid-auto-flow:row;grid-auto-columns:auto}}
 .foot h4{color:var(--gold-l);font-size:.92rem;margin-bottom:10px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
 .foot p,.foot a{color:#d9b8c0;line-height:1.8;font-size:.84rem;display:inline-block}
 .foot a:hover{color:var(--gold-l);text-decoration:underline}

@@ -15,10 +15,16 @@ const CONFIG = {
   shipFreeAbove : 999,
   shipFee       : 30,
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
-  dispatchHours : 24,                // dispatch within 24-48h
-  etaTn         : [2, 4],            // delivery days within Tamil Nadu
-  etaIndia      : [4, 7],            // delivery days across India
+  dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get ₹50 off your next order (code LATE50).',
+  googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
+  /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
+     own store videos: e.g. { title:'My Silk Collection', id:'VIDEO_ID_11CHARS' } */
+  videos : [
+    { title:'The Making of Kanjeevaram Sarees', id:'OWv0uzHelqE' },
+    { title:'Cotton Silk Saree Draping', id:'X8RuLsrjMm4' },
+    { title:'Beginner Saree Draping Tutorial', id:'yKaY_CI-aXE' },
+  ],
   waGroup   : 'https://chat.whatsapp.com/LifaKCj3msQApwxJ4N4sQ0',
   /* 📸 PRODUCT IMAGES: LOCAL-FIRST — the photos ship inside the site folder
      (images/products/) so they always show, no CDN needed. `imageBase` is kept
@@ -32,6 +38,22 @@ const CONFIG = {
     youtube   : 'https://www.youtube.com/@sksarees_collection',
   },
 };
+
+/* ============================ 2. DELIVERY ZONES (by PIN code) ============================ */
+const ZONES = {
+  tn:        { name:'Tamil Nadu',         ship: 30, days: [2, 3] },
+  andra:     { name:'Andhra / Telangana', ship: 40, days: [3, 4] },
+  karnataka: { name:'Karnataka',          ship: 40, days: [3, 4] },
+  other:     { name:'Other states',       ship: 60, days: [5, 7] },
+};
+/* Which zone a PIN code belongs to (empty/unknown → Tamil Nadu default) */
+function deliveryZone(pincode){
+  const p = String(pincode || '').replace(/\D/g, '');
+  if (/^6[0-4]/.test(p)) return 'tn';        /* 60x–64x = Tamil Nadu */
+  if (/^5[0-3]/.test(p)) return 'andra';     /* 50x–53x = Andhra/Telangana */
+  if (/^5[6-9]/.test(p)) return 'karnataka'; /* 56x–59x = Karnataka */
+  return 'other';
+}
 
 /* ============================ 3. CATEGORIES (16) ============================ */
 const CATEGORIES = [
@@ -75,6 +97,14 @@ const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent
   '<text x="400" y="345" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" letter-spacing="6" fill="#fff" opacity="0.95">SAREES &#8226; SALEM</text>' +
   '<text x="400" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#e8c66a" opacity="0.9">Image coming soon</text>' +
   '</svg>');
+/* Extract a YouTube video ID from a URL (or pass a raw 11-char ID through) */
+function ytId(u){
+  const s = String(u || '').trim();
+  if (!s) return '';
+  if (/^[\w-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : '';
+}
 /* Clean image value: some sources store markdown [url](url) or arrays */
 function cleanImg(u){
   if (!u) return img('printed-cotton.jpg');
@@ -149,12 +179,8 @@ let PRODUCTS = (() => {
       }));
     });
   });
-  /* auto-SKU for every product */
-  const catCounts = {};
-  built = built.map(p => {
-    catCounts[p.cat] = (catCounts[p.cat] || 0) + 1;
-    return Object.assign({}, p, { sku: p.sku || ('SKS-' + p.cat.slice(0,3).toUpperCase() + '-' + String(catCounts[p.cat]).padStart(3,'0')) });
-  });
+  /* auto-SKU for every catalog product: SK + 5 digits, sequential (SK10001…) */
+  built = built.map((p, i) => Object.assign({}, p, { sku: p.sku || ('SK' + String(10000 + i + 1)) }));
   /* 1. Admin edits (sk_products) override the base catalog */
   try{
     const custom = JSON.parse(localStorage.getItem('sk_products'));
@@ -218,7 +244,7 @@ function normalizeProduct(raw){
     : String(raw.col || raw.color || 'Multi').split('/').map(x => x.trim()).filter(Boolean);
   return {
     id: String(raw.id || raw.sku || genProductId(raw.name)).trim(),
-    sku: String(raw.sku || ('SKS-' + cat.slice(0,3).toUpperCase() + '-' + String(catCount + 1).padStart(3,'0'))).trim(),
+    sku: String(raw.sku || skuGen(raw.id || raw.name || 'p')).trim(),
     name: String(raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     rating: Math.min(5, Math.max(1, +raw.rating || +raw.rat || 4.5)),
@@ -232,9 +258,10 @@ function normalizeProduct(raw){
     length: String(raw.length || raw.len || '6.3 m + blouse').trim(),
     weight: String(raw.weight || '450 g').trim(),
     wash: String(raw.wash || raw.care || 'Dry clean recommended').trim(),
-    stock: Math.max(0, +raw.stock || 10),
+    stock: (function(){ const s = +raw.stock; return Number.isFinite(s) ? Math.max(0, Math.round(s)) : 10; })(),
     colors: colors.length ? colors : ['Multi'],
     desc: String(raw.desc || 'Beautiful handpicked saree from our collection.').trim(),
+    video: ytId(raw.video || raw.videoUrl || ''),
   };
 }
 
@@ -243,8 +270,40 @@ const money = n => '₹' + Number(n).toLocaleString('en-IN');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
 const validPhone = p => /^[6-9]\d{9}$/.test(String(p).trim());
-let orderSeq = (() => { try{ return +localStorage.getItem('sk_order_seq') || 1000; }catch(e){ return 1000; } })();
-function genOrderId(){ orderSeq += 1; try{ localStorage.setItem('sk_order_seq', String(orderSeq)); }catch(e){} return 'SK' + orderSeq; }
+/* Order ID = ORD-<MMDD>-<HHMMSS>-<3 random digits>  e.g. ORD-0805-104537-372
+   (seconds + random + duplicate check → guaranteed unique) */
+function genOrderId(){
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  for (let i = 0; i < 10; i++){
+    const rnd = String(Math.floor(100 + Math.random() * 900));
+    const id = 'ORD-' + mm + dd + '-' + hh + mi + ss + '-' + rnd;
+    try{
+      const exists = typeof Store !== 'undefined' && Store.orders && Store.orders.some(o => o && o.id === id);
+      if (!exists) return id;
+    }catch(e){ return id; }
+  }
+  return 'ORD-' + mm + dd + '-' + hh + mi + ss + '-' + String(Date.now()).slice(-3);
+}
+/* Auto-increment SKU/Product ID counter → SK + 5 digits (SK10001, SK10002, …) */
+let skuSeq = (() => { try{ return +localStorage.getItem('sk_sku_seq') || 10000; }catch(e){ return 10000; } })();
+function nextSku(){
+  skuSeq += 1;
+  try{ localStorage.setItem('sk_sku_seq', String(skuSeq)); }catch(e){}
+  return 'SK' + String(skuSeq).padStart(5, '0');
+}
+/* Product ID for new/admin-added products = auto-increment SK number */
+function genProductId(name){ return nextSku(); }
+/* Stable fallback SKU (Firestore products without sku) — SK + 5 digits from id hash */
+function skuGen(id){
+  let h = 0; const s = String(id || 'p');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return 'SK' + String(10000 + (h % 90000));
+}
 /* Each device gets a unique ID — orders are stamped with it so the user's
    "My Orders" page can always show ONLY this device's orders. */
 function deviceId(){
@@ -271,16 +330,25 @@ const byId = id => {
 const catOf = slug => CATEGORIES.find(c => c.slug === slug);
 const catImage = slug => { const p = PRODUCTS.find(x => x.cat === slug && x.img); return p ? p.img : img('kanchipuram-silk.jpg'); };
 const realReviewCount = id => { try{ return (LS.get('sk_reviews_' + id, [])).length; }catch(e){ return 0; } };
-const shippingFor = total => total >= CONFIG.shipFreeAbove ? 0 : CONFIG.shipFee;
+/* Shipping fee by zone: TN ₹30 · Andhra/Karnataka ₹40 · other ₹60 · free ≥ ₹999 */
+const shippingFor = (total, pincode) => total >= CONFIG.shipFreeAbove ? 0 : (ZONES[deliveryZone(pincode)] || ZONES.tn).ship;
 
-/* Delivery estimate — dates + promise */
-function deliveryEstimate(){
+/* Delivery estimate — zone + payment aware.
+   Dispatch: 12–24h (COD: 24–48h).
+   Days: TN 2–3 · Andhra/Karnataka 3–4 · others 5–7 · COD (any zone) 5–7. */
+function deliveryEstimate(pincode, payment){
   const now = new Date();
   const add = d => { const x = new Date(now); x.setDate(x.getDate() + d); return x; };
-  const [a, b] = CONFIG.etaTn;
+  const zone = ZONES[deliveryZone(pincode)] || ZONES.tn;
+  const cod = payment === 'cod';
+  const days = cod ? ZONES.other.days : zone.days;         /* COD → 5–7 everywhere */
+  const dispatch = cod ? '24–48 hrs' : '12–24 hrs';
+  const a = days[0], b = days[1];
   return {
-    from: add(2 + a), to: add(2 + b),
-    text: 'Dispatch in 24–48 hrs • Delivery ' + add(2 + a).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ' – ' + add(2 + b).toLocaleDateString('en-IN',{day:'numeric',month:'short'}),
+    zone: zone.name,
+    from: add(1 + a), to: add(1 + b),
+    text: 'Dispatch in ' + dispatch + ' • Delivery ' + add(1 + a).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ' – ' + add(1 + b).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) +
+      (zone.name !== 'Tamil Nadu' || cod ? ' (' + (cod ? 'COD' : zone.name) + ')' : ''),
   };
 }
 
@@ -315,7 +383,7 @@ const REVIEWS = [
 ];
 const FAQ = [
   { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (+₹70). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within 24–48 hours. Delivery: 2–4 days within Tamil Nadu, 4–7 days across India. Free shipping above ₹999 (else ₹30).' },
+  { q:'How long does delivery take?', a:'We dispatch within 12–24 hours (COD orders: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹999 (else ₹30 / ₹40 / ₹60 by state).' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get ₹50 off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -344,6 +412,7 @@ const Store = {
 function cartTotal(){ return Store.cart.reduce((s,i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0); }
 function addToCart(id, qty = 1){
   const p = byId(id); if (!p) return;
+  if (p.stock != null && p.stock <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
   const ex = Store.cart.find(i => i.id === id);
   if (ex) ex.qty = Math.min(ex.qty + qty, 10); else Store.cart.push({ id, qty });
   Store.saveCart();
@@ -419,11 +488,11 @@ function upiAppLink(app, amount, note){
   if (app === 'paytm')   return 'paytmmp://pay?' + base;
   return 'upi://pay?' + base + '&mode=02';
 }
-function calcTotals(payment){
+function calcTotals(payment, pincode){
   const itemsTotal = cartTotal();
   const codFee = payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal);
-  return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate().text };
+  const shipping = shippingFor(itemsTotal, pincode);
+  return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
 }
 
 /* ============================ 10. TOAST / MODAL ============================ */
@@ -896,6 +965,7 @@ function renderFooter(){
           <a href="${CONFIG.social.facebook}" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
           <a href="${CONFIG.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
           <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp group">💬</a>
+          <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us on Google">⭐</a>
         </div>
       </div>
       <div class="foot">
