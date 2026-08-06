@@ -95,6 +95,15 @@ function renderHome(){
         '<div class="video-grid">' + CONFIG.videos.map(v =>
           '<div class="video-card"><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(v.id) + '?rel=0" title="' + esc(v.title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
           '<b>' + esc(v.title) + '</b></div>').join('') + '</div></section>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access</h2>' +
+        '<a href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">Join WhatsApp Group →</a></div>' +
+        '<div class="fest-grid">' + FESTIVALS.map(f =>
+          '<a class="fest-tile" href="shop.html?cat=' + f.slug + '"><span class="fest-emoji">' + f.emoji + '</span>' +
+          '<b>' + esc(f.name) + '</b><small>' + esc(f.tag) + '</small><span class="fest-blurb">' + esc(f.blurb) + '</span></a>'
+        ).join('') +
+        '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
+          '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
+        '</div></section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 What Our Customers Say</h2></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
           '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
@@ -113,7 +122,8 @@ let shopState = { cat: '', q: '', fabric: '', max: 3000, sort: 'newest', shown: 
 function renderShop(){
   const app = document.getElementById('app'); if (!app) return;
   const params = new URLSearchParams(location.search);
-  if (params.get('cat')) shopState.cat = params.get('cat');
+  const cq = params.get('cat');
+  if (cq && CATEGORIES.some(c => c.slug === cq)) shopState.cat = cq;  /* ignore unknown/festival slugs */
   app.innerHTML =
     '<div class="wrap page">' +
       '<h1>🛍️ Shop All Sarees</h1>' +
@@ -294,7 +304,7 @@ function renderProduct(){
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div></div>' +
         '<div class="pd-btns">' +
           (out
-            ? '<button type="button" class="btn btn-xl" disabled style="opacity:.6">😞 Out of Stock</button>'
+            ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
           (out ? '' : '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 Buy on WhatsApp — Instant Confirmation</a>' +
@@ -360,7 +370,7 @@ function renderCartPage(){
       '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
     return;
   }
-  const t = cartTotal(), sh = shippingFor(t), short = Math.max(0, CONFIG.shipFreeAbove - t);
+  const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
   app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' +
     '<div>' + Store.cart.map(i => {
       const p = byId(i.id); if (!p) return '';
@@ -380,7 +390,7 @@ function renderCartPage(){
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
-      '<p class="small muted" style="margin-top:8px">🚚 Shipping by state: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others · <b>FREE above ₹999</b> — calculated at checkout.</p>' +
+      '<p class="small muted" style="margin-top:8px">🚚 Shipping per saree: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others (' + n + ' saree' + (n > 1 ? 's' : '') + ' = <b>' + money(sh) + '</b>) · <b>FREE above ₹999</b>.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener">💬 Order on WhatsApp Instead</a>' +
@@ -415,7 +425,7 @@ function renderCheckoutPage(){
 function coTotals(){
   const itemsTotal = cartTotal();
   const codFee = co.data.payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal, co.data.pincode);
+  const shipping = shippingFor(itemsTotal, co.data.pincode, cartCount());
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
 function drawCo(){
@@ -889,6 +899,30 @@ document.addEventListener('click', function(e){
     ov.innerHTML = '<div class="img-zoom-back" data-zoom-close></div><img src="' + esc(src) + '" alt="' + esc(document.getElementById('pdMainImg').alt || '') + '"><button type="button" class="img-zoom-x" data-zoom-close aria-label="Close">✕</button>';
     document.body.appendChild(ov);
     document.body.style.overflow = 'hidden';
+    return;
+  }
+  /* 🔔 Notify Me when back in stock (out-of-stock products) */
+  const nt = e.target.closest('[data-notify]');
+  if (nt){
+    e.preventDefault();
+    const p = byId(nt.dataset.notify);
+    if (!p) return;
+    openModal('<h2 style="font-size:1.1rem;font-weight:800;margin-bottom:8px">🔔 Notify Me — ' + esc(p.name) + '</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">This saree is out of stock. Give us your WhatsApp number — we will message you the moment it is back.</p>' +
+      '<div class="field"><label>WhatsApp / Mobile *</label><input id="ntPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
+      '<button type="button" class="btn btn-maroon" id="ntSave" style="margin-top:8px">🔔 Notify Me</button>');
+    document.getElementById('ntSave').addEventListener('click', () => {
+      const ph = document.getElementById('ntPhone').value.trim();
+      if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
+      /* store locally + open WhatsApp to the store with the request */
+      let list = [];
+      try{ list = JSON.parse(localStorage.getItem('sk_notify') || '[]'); }catch(e){}
+      list.push({ id: p.id, name: p.name, phone: ph, date: Date.now() });
+      try{ localStorage.setItem('sk_notify', JSON.stringify(list.slice(-100))); }catch(e){}
+      closeModal();
+      toast('✅ We will notify you on WhatsApp!');
+      try{ window.open(waLink('🔔 Please notify me when this saree is back in stock:\n\n🪡 ' + p.name + '\n(SKU: ' + p.sku + ')\n📱 My number: ' + ph + '\n\nPlease WhatsApp me when available. Thank you!'), '_blank', 'noopener'); }catch(e2){}
+    });
     return;
   }
   /* close the zoom overlay */

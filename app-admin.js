@@ -136,6 +136,8 @@ function renderDashboard(){
       '4. Manage products (add / bulk) and moderate reviews.</p></div>';
 }
 
+let orderSearch = '';   /* Orders tab: search query (id / customer / phone) */
+
 /* Admin merged view = this device's orders + cloud orders (runtime only) */
 function adminAllOrders(){
   const localMap = {};
@@ -155,10 +157,12 @@ function renderFilters(){
     ['delivered', '✔ Delivered (' + counts.delivered + ')'],
   ];
   document.getElementById('tabBody').innerHTML =
+    '<input id="orderSearch" type="search" placeholder="🔍 Search orders — ID, customer name, phone…" autocomplete="off" value="' + esc(orderSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="filter-chips">' + defs.map(([k, l]) =>
       '<button type="button" class="filter-chip ' + (orderFilter === k ? 'on' : '') + '" data-of="' + k + '">' + l + '</button>').join('') + '</div>' +
     '<div id="orderList" style="margin-top:10px"></div>' +
     '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="moreOrders" style="width:auto;min-width:200px">Load More Orders ↓</button></div>';
+  document.getElementById('orderSearch').addEventListener('input', e => { orderSearch = e.target.value; orderPage = 1; renderOrderList(); });
   document.querySelectorAll('[data-of]').forEach(b => b.addEventListener('click', () => {
     orderFilter = b.dataset.of; orderPage = 1;
     document.querySelectorAll('[data-of]').forEach(x => x.classList.toggle('on', x === b));
@@ -168,7 +172,11 @@ function renderFilters(){
 
 function renderOrderList(){
   const wrap = document.getElementById('orderList'); if (!wrap) return;
-  const all = adminAllOrders();
+  let all = adminAllOrders();
+  if (orderSearch){
+    const q = orderSearch.toLowerCase();
+    all = all.filter(o => String((o.id || '') + ' ' + ((o.customer || {}).name || '') + ' ' + ((o.customer || {}).phone || '')).toLowerCase().includes(q));
+  }
   const list = orderFilter === 'all' ? all : all.filter(o => (o.status || 'placed') === orderFilter);
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="e-ic">📭</div><b>No orders here yet</b></div>';
@@ -221,6 +229,7 @@ function renderProducts(){
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Upload</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
     '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
@@ -229,7 +238,7 @@ function renderProducts(){
       '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, soft-silk, https://…, New" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:90px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import</button>' +
       '<p class="small" id="bulkResult" style="margin-top:8px"></p></div>' +
-    '<div class="prod-table-wrap"><table class="prod-table"><thead><tr><th>Photo</th><th>Product</th><th>Price</th><th>Stock</th><th>Badge</th><th></th></tr></thead><tbody id="prodBody"></tbody></table></div>' +
+    '<div class="prod-table-wrap"><table class="prod-table"><thead><tr><th style="width:38px"><input type="checkbox" id="prodSelAll" title="Select all"></th><th>Photo</th><th>Product</th><th>Price</th><th>Stock</th><th>Badge</th><th></th></tr></thead><tbody id="prodBody"></tbody></table></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap">' +
       '<p class="small muted" id="prodCount" style="margin:0"></p>' +
       '<button type="button" class="btn btn-outline btn-sm" id="moreProds" style="display:none">Load More Products ↓</button>' +
@@ -239,6 +248,19 @@ function renderProducts(){
   document.getElementById('btnBulk').addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
   document.getElementById('btnImport').addEventListener('click', importBulk);
   document.getElementById('prodSearch').addEventListener('input', e => { prodSearch = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('btnDelSel').addEventListener('click', () => {
+    const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
+    if (!sel.length){ toast('⚠️ Select products first'); return; }
+    if (!confirm('Delete ' + sel.length + ' selected product(s)?')) return;
+    PRODUCTS = PRODUCTS.filter(p => !sel.includes(p.id));
+    saveProducts(PRODUCTS); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
+  });
+  /* select-all checkbox in the table header */
+  const selAll = document.getElementById('prodSelAll');
+  if (selAll) selAll.addEventListener('change', () => {
+    document.querySelectorAll('.prod-sel').forEach(cb => cb.checked = selAll.checked);
+    updateDelSelCount();
+  });
 }
 /* filter by the search box (name, SKU, category, colour) */
 function filteredProds(){
@@ -252,7 +274,8 @@ function renderProdBody(){
   const list = filteredProds();
   const visible = list.slice(0, prodPage * PROD_PAGE_SIZE);
   tbody.innerHTML = visible.map(p =>
-    '<tr><td><img src="' + esc(p.img) + '" alt="" loading="lazy"></td>' +
+    '<tr><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"></td>' +
+    '<td><img src="' + esc(p.img) + '" alt="" loading="lazy"></td>' +
     '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + '</small></td>' +
     '<td>' + money(p.price) + '</td>' +
     '<td class="' + (p.stock <= 5 ? 'low' : '') + '">' + (p.stock <= 5 ? '🔥 ' + p.stock : p.stock) + '</td>' +
@@ -267,6 +290,14 @@ function renderProdBody(){
   }
   const cl = document.getElementById('prodCount');
   if (cl) cl.textContent = list.length + ' product' + (list.length === 1 ? '' : 's') + (prodSearch ? ' • filtered' : '') + ' • showing ' + visible.length;
+  /* keep select-all + count in sync */
+  const selAll = document.getElementById('prodSelAll');
+  if (selAll) selAll.checked = visible.length > 0 && document.querySelectorAll('.prod-sel:checked').length === visible.length;
+  updateDelSelCount();
+}
+function updateDelSelCount(){
+  const c = document.getElementById('delSelCount');
+  if (c) c.textContent = document.querySelectorAll('.prod-sel:checked').length;
 }
 function openAddProduct(){
   const catOpts = CATEGORIES.map(c => '<option value="' + c.slug + '">' + c.name + '</option>').join('');
@@ -411,6 +442,7 @@ function deleteReview(key){
 /* ============================ EVENTS ============================ */
 document.addEventListener('change', e => {
   if (e.target.dataset.status) updateStatus(e.target.dataset.status, e.target.value);
+  if (e.target.classList && e.target.classList.contains('prod-sel')) updateDelSelCount();
 });
 document.addEventListener('click', e => {
   const copy = e.target.closest('[data-copy]');

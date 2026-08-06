@@ -13,7 +13,10 @@ const CONFIG = {
   upiName   : 'SK SAREES',
   codFee    : 70,
   shipFreeAbove : 999,
+  /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
+     1 saree TN ₹30 · 2 sarees ₹60 · 3 sarees ₹90 (per unit × qty). */
   shipFee       : 30,
+  cartCoupon    : { code:'CART50', off:50, label:'Forgot your cart? Get ₹50 off!' },
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
   dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get ₹50 off your next order (code LATE50).',
@@ -46,6 +49,14 @@ const ZONES = {
   karnataka: { name:'Karnataka',          ship: 40, days: [3, 4] },
   other:     { name:'Other states',       ship: 60, days: [5, 7] },
 };
+/* ============================ 2b. FESTIVAL CALENDAR + EARLY ACCESS ============================ */
+const FESTIVALS = [
+  { slug:'aadi',     emoji:'🌾', name:'Aadi Sale',        tag:'Now live',  blurb:'Aadi month specials — up to 40% off' },
+  { slug:'pongal',   emoji:'🌅', name:'Pongal Collection', tag:'Coming',   blurb:'Harvest season silks & cottons' },
+  { slug:'diwali',   emoji:'🪔', name:'Diwali Special',    tag:'Coming',   blurb:'Festive lights & gold-zari sarees' },
+  { slug:'wedding',  emoji:'💍', name:'Wedding Season',    tag:'Early access', blurb:'Bridal & family wedding sarees' },
+];
+
 /* Which zone a PIN code belongs to (empty/unknown → Tamil Nadu default) */
 function deliveryZone(pincode){
   const p = String(pincode || '').replace(/\D/g, '');
@@ -138,24 +149,24 @@ const IMG = {
   org: img('organza.jpg'), lin: img('linen.jpg'),
 };
 const BASE = [
-  { id:'kanchipuram-red', name:'Kanchipuram Pure Silk — Red & Gold Zari', cat:'kanchipuram', price:2499, mrp:3999, rating:4.8, reviews:132, badge:'Bestseller', img:IMG.kan, fabric:'Pure Kanchipuram silk with gold zari', color:'Red / Maroon / Green', border:'Gold temple border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'620 g', wash:'Dry clean only', stock:12, colors:['Red','Maroon','Green'], desc:'Authentic Kanchipuram silk with rich gold zari — heavy, glossy, the pride of Tamil Nadu weaving.' },
-  { id:'banarasi-purple', name:'Banarasi Silk — Royal Purple & Gold', cat:'silk', price:1899, mrp:2999, rating:4.7, reviews:98, badge:'Sale', img:IMG.ban, fabric:'Banarasi silk, kadhwa weave', color:'Purple / Maroon / Teal', border:'Intricate gold border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'540 g', wash:'Dry clean only', stock:8, colors:['Purple','Maroon','Teal'], desc:'Classic Banarasi weave with intricate gold paisley motifs — rich sheen for grand celebrations.' },
-  { id:'soft-silk-rose', name:'Soft Silk — Rose Pink Golden Border', cat:'soft-silk', price:1499, mrp:2299, rating:4.6, reviews:64, badge:'New', img:IMG.soft, fabric:'Soft silk (light, skin-friendly)', color:'Rose Pink / Lavender / Sky Blue', border:'Delicate golden border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'480 g', wash:'Dry clean recommended', stock:20, colors:['Rose Pink','Lavender','Sky Blue'], desc:'Feather-light soft silk that drapes beautifully — comfortable all-day wear.' },
-  { id:'cotton-silk-emerald', name:'Cotton Silk — Emerald Green Temple', cat:'cotton', price:999, mrp:1599, rating:4.7, reviews:156, badge:'Bestseller', img:IMG.cot, fabric:'Cotton silk blend', color:'Emerald / Maroon / Navy', border:'Temple design border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'450 g', wash:'Gentle hand wash', stock:30, colors:['Emerald','Maroon','Navy'], desc:'Perfect mix of cotton comfort and silk sheen with classic temple border.' },
-  { id:'handloom-mustard', name:'Handloom Cotton — Mustard & Teal', cat:'cotton', price:749, mrp:1199, rating:4.8, reviews:210, badge:'Bestseller', img:IMG.hand, fabric:'100% handloom cotton', color:'Mustard / Teal / Indigo', border:'Traditional checks', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'420 g', wash:'Machine wash (mild)', stock:45, colors:['Mustard','Teal','Indigo'], desc:'Our most-loved handloom weave — soft, breathable, gets softer with every wash.' },
-  { id:'printed-sky', name:'Printed Cotton — Sky Blue Floral', cat:'printed', price:649, mrp:999, rating:4.5, reviews:187, badge:'', img:IMG.prn, fabric:'Pure cotton, printed', color:'Sky Blue / Pink / Mint', border:'Contrast border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'400 g', wash:'Machine wash', stock:60, colors:['Sky Blue','Pink','Mint'], desc:'Lightweight daily-wear cotton with a fresh floral print.' },
-  { id:'georgette-turquoise', name:'Georgette — Turquoise Sequin Border', cat:'georgette', price:899, mrp:1499, rating:4.6, reviews:74, badge:'Sale', img:IMG.geo, fabric:'Georgette with sequin border', color:'Turquoise / Peach / Lavender', border:'Shimmering sequin border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'380 g', wash:'Dry clean only', stock:18, colors:['Turquoise','Peach','Lavender'], desc:'Flow-y georgette with shimmering sequin border — drapes elegantly.' },
-  { id:'party-navy', name:'Party Wear — Navy Blue Sequins', cat:'party', price:1299, mrp:2199, rating:4.7, reviews:85, badge:'Bestseller', img:IMG.party, fabric:'Georgette, sequin & zari embroidery', color:'Navy / Black / Wine', border:'All-over gold sequins', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'500 g', wash:'Dry clean only', stock:10, colors:['Navy','Black','Wine'], desc:'Designer party wear with all-over gold sequin embroidery.' },
-  { id:'organza-lavender', name:'Organza — Lavender Pearl Accents', cat:'designer', price:1099, mrp:1799, rating:4.5, reviews:41, badge:'New', img:IMG.org, fabric:'Organza with golden threadwork', color:'Lavender / White / Peach', border:'Pearl & gold accents', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'360 g', wash:'Dry clean only', stock:14, colors:['Lavender','White','Peach'], desc:'Airy organza with delicate golden threadwork and pearl accents.' },
-  { id:'linen-beige', name:'Linen — Beige Brown Stripe', cat:'office', price:849, mrp:1399, rating:4.6, reviews:58, badge:'', img:IMG.lin, fabric:'Pure linen', color:'Beige / Grey / Sage', border:'Subtle stripe', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'390 g', wash:'Gentle machine wash', stock:22, colors:['Beige','Grey','Sage'], desc:'Breathable pure linen — crisp, minimal and effortlessly elegant.' },
-  { id:'kanchipuram-peacock', name:'Kanchipuram Soft Silk — Peacock Green', cat:'kanchipuram', price:2199, mrp:3499, rating:4.7, reviews:47, badge:'New', img:IMG.kan, fabric:'Kanchipuram soft silk', color:'Peacock Green / Blue', border:'Gold zari contrast', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'560 g', wash:'Dry clean only', stock:9, colors:['Peacock Green','Blue'], desc:'Lighter Kanchipuram soft silk with striking peacock-green body.' },
-  { id:'fancy-net', name:'Fancy Net — Champagne Stone Work', cat:'fancy', price:1199, mrp:1999, rating:4.5, reviews:33, badge:'Limited Stock', img:IMG.geo, fabric:'Net with stone & sequin work', color:'Champagne / Rose Gold', border:'Stone embellished', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'410 g', wash:'Dry clean only', stock:4, colors:['Champagne','Rose Gold'], desc:'Trendy net saree with delicate stone work — modern glam.' },
-  { id:'half-saree-red', name:'Traditional Half Saree Set — Red & Gold', cat:'half-saree', price:1799, mrp:2799, rating:4.6, reviews:29, badge:'New', img:IMG.kan, fabric:'Silk blend two-piece', color:'Red / Maroon', border:'Gold zari borders', blouse:'Full set included', length:'2 pc set', weight:'700 g', wash:'Dry clean only', stock:7, colors:['Red','Maroon'], desc:'Traditional pavadai-davani style half saree set — a cherished Tamil tradition.' },
-  { id:'kids-lehenga', name:'Kids Silk Lehenga Set — Pink & Gold', cat:'kids', price:1199, mrp:1899, rating:4.8, reviews:52, badge:'Bestseller', img:IMG.soft, fabric:'Soft silk, comfort fit', color:'Pink / Peach', border:'Gold lace', blouse:'Lehenga + blouse set', length:'Kids 4-12', weight:'350 g', wash:'Dry clean recommended', stock:16, colors:['Pink','Peach'], desc:'Adorable silk lehenga sets — soft, comfortable and party-ready.' },
-  { id:'men-dhoti', name:'Pure Cotton Men Dhoti — Gold Border', cat:'men-dhoti', price:499, mrp:799, rating:4.7, reviews:121, badge:'Bestseller', img:IMG.hand, fabric:'100% pure cotton', color:'White / Cream', border:'Gold zari option', blouse:'—', length:'4 m', weight:'320 g', wash:'Machine wash', stock:40, colors:['White','Cream'], desc:'Soft pure-cotton dhotis with optional gold zari border.' },
-  { id:'blouse-material', name:'Designer Blouse Material — Zari Contrast', cat:'blouse', price:599, mrp:999, rating:4.6, reviews:66, badge:'', img:IMG.ban, fabric:'Matching saree fabric', color:'Multiple options', border:'Zari contrast', blouse:'1.5 m blouse piece', length:'1.5 m', weight:'150 g', wash:'As per fabric', stock:50, colors:['Gold','Antique'], desc:'Premium blouse pieces matched to our saree shades.' },
-  { id:'zari-border', name:'Gold Zari Border & Accessory Pack', cat:'accessories', price:299, mrp:499, rating:4.5, reviews:84, badge:'Sale', img:IMG.ban, fabric:'Zari border + pins', color:'Gold / Antique', border:'—', blouse:'—', length:'Pack of 3', weight:'90 g', wash:'Store dry', stock:35, colors:['Gold','Antique'], desc:'Handy gold zari border strips and pins for quick draping.' },
-  { id:'daily-printed', name:'Daily Wear Printed Cotton — Mint', cat:'daily', price:549, mrp:899, rating:4.5, reviews:143, badge:'', img:IMG.prn, fabric:'Pure cotton, printed', color:'Mint / Yellow / Blue', border:'Simple border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'390 g', wash:'Machine wash', stock:55, colors:['Mint','Yellow','Blue'], desc:'Cool and comfy everyday cotton with a cheerful print.' },
+  { id:'kanchipuram-red', name:'Kanchipuram Pure Silk — Red & Gold Zari', cat:'kanchipuram', price:2499, mrp:3999, rating:4.8, reviews:132, badge:'Bestseller', img:IMG.kan, fabric:'Semi silk with gold zari', color:'Red / Maroon / Green', border:'Gold temple border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:12, colors:['Red','Maroon','Green'], desc:'Semi silk with rich gold zari — heavy, glossy, the pride of Tamil Nadu weaving.' },
+  { id:'banarasi-purple', name:'Banarasi Silk — Royal Purple & Gold', cat:'silk', price:1899, mrp:2999, rating:4.7, reviews:98, badge:'Sale', img:IMG.ban, fabric:'Semi silk, kadhwa weave', color:'Purple / Maroon / Teal', border:'Intricate gold border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:8, colors:['Purple','Maroon','Teal'], desc:'Classic semi-silk weave with intricate gold paisley motifs — rich sheen for grand celebrations.' },
+  { id:'soft-silk-rose', name:'Soft Silk — Rose Pink Golden Border', cat:'soft-silk', price:1499, mrp:2299, rating:4.6, reviews:64, badge:'New', img:IMG.soft, fabric:'Semi silk (light, skin-friendly)', color:'Rose Pink / Lavender / Sky Blue', border:'Delicate golden border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:20, colors:['Rose Pink','Lavender','Sky Blue'], desc:'Feather-light soft silk that drapes beautifully — comfortable all-day wear.' },
+  { id:'cotton-silk-emerald', name:'Cotton Silk — Emerald Green Temple', cat:'cotton', price:999, mrp:1599, rating:4.7, reviews:156, badge:'Bestseller', img:IMG.cot, fabric:'Cotton silk blend', color:'Emerald / Maroon / Navy', border:'Temple design border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:30, colors:['Emerald','Maroon','Navy'], desc:'Perfect mix of cotton comfort and silk sheen with classic temple border.' },
+  { id:'handloom-mustard', name:'Handloom Cotton — Mustard & Teal', cat:'cotton', price:749, mrp:1199, rating:4.8, reviews:210, badge:'Bestseller', img:IMG.hand, fabric:'100% handloom cotton', color:'Mustard / Teal / Indigo', border:'Traditional checks', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:45, colors:['Mustard','Teal','Indigo'], desc:'Our most-loved handloom weave — soft, breathable, gets softer with every wash.' },
+  { id:'printed-sky', name:'Printed Cotton — Sky Blue Floral', cat:'printed', price:649, mrp:999, rating:4.5, reviews:187, badge:'', img:IMG.prn, fabric:'Pure cotton, printed', color:'Sky Blue / Pink / Mint', border:'Contrast border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Machine wash', stock:60, colors:['Sky Blue','Pink','Mint'], desc:'Lightweight daily-wear cotton with a fresh floral print.' },
+  { id:'georgette-turquoise', name:'Georgette — Turquoise Sequin Border', cat:'georgette', price:899, mrp:1499, rating:4.6, reviews:74, badge:'Sale', img:IMG.geo, fabric:'Georgette with sequin border', color:'Turquoise / Peach / Lavender', border:'Shimmering sequin border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:18, colors:['Turquoise','Peach','Lavender'], desc:'Flow-y georgette with shimmering sequin border — drapes elegantly.' },
+  { id:'party-navy', name:'Party Wear — Navy Blue Sequins', cat:'party', price:1299, mrp:2199, rating:4.7, reviews:85, badge:'Bestseller', img:IMG.party, fabric:'Georgette, sequin & zari embroidery', color:'Navy / Black / Wine', border:'All-over gold sequins', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:10, colors:['Navy','Black','Wine'], desc:'Designer party wear with all-over gold sequin embroidery.' },
+  { id:'organza-lavender', name:'Organza — Lavender Pearl Accents', cat:'designer', price:1099, mrp:1799, rating:4.5, reviews:41, badge:'New', img:IMG.org, fabric:'Organza with golden threadwork', color:'Lavender / White / Peach', border:'Pearl & gold accents', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:14, colors:['Lavender','White','Peach'], desc:'Airy organza with delicate golden threadwork and pearl accents.' },
+  { id:'linen-beige', name:'Linen — Beige Brown Stripe', cat:'office', price:849, mrp:1399, rating:4.6, reviews:58, badge:'', img:IMG.lin, fabric:'Pure linen', color:'Beige / Grey / Sage', border:'Subtle stripe', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Gentle machine wash', stock:22, colors:['Beige','Grey','Sage'], desc:'Breathable pure linen — crisp, minimal and effortlessly elegant.' },
+  { id:'kanchipuram-peacock', name:'Kanchipuram Soft Silk — Peacock Green', cat:'kanchipuram', price:2199, mrp:3499, rating:4.7, reviews:47, badge:'New', img:IMG.kan, fabric:'Semi silk', color:'Peacock Green / Blue', border:'Gold zari contrast', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:9, colors:['Peacock Green','Blue'], desc:'Lighter Kanchipuram soft silk with striking peacock-green body.' },
+  { id:'fancy-net', name:'Fancy Net — Champagne Stone Work', cat:'fancy', price:1199, mrp:1999, rating:4.5, reviews:33, badge:'Limited Stock', img:IMG.geo, fabric:'Net with stone & sequin work', color:'Champagne / Rose Gold', border:'Stone embellished', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Normal wash', stock:4, colors:['Champagne','Rose Gold'], desc:'Trendy net saree with delicate stone work — modern glam.' },
+  { id:'half-saree-red', name:'Traditional Half Saree Set — Red & Gold', cat:'half-saree', price:1799, mrp:2799, rating:4.6, reviews:29, badge:'New', img:IMG.kan, fabric:'Silk blend two-piece', color:'Red / Maroon', border:'Gold zari borders', blouse:'Full set included', length:'2 pc set', weight:'approx 800 g', wash:'Normal wash', stock:7, colors:['Red','Maroon'], desc:'Traditional pavadai-davani style half saree set — a cherished Tamil tradition.' },
+  { id:'kids-lehenga', name:'Kids Silk Lehenga Set — Pink & Gold', cat:'kids', price:1199, mrp:1899, rating:4.8, reviews:52, badge:'Bestseller', img:IMG.soft, fabric:'Soft silk, comfort fit', color:'Pink / Peach', border:'Gold lace', blouse:'Lehenga + blouse set', length:'Kids 4-12', weight:'approx 800 g', wash:'Normal wash', stock:16, colors:['Pink','Peach'], desc:'Adorable silk lehenga sets — soft, comfortable and party-ready.' },
+  { id:'men-dhoti', name:'Pure Cotton Men Dhoti — Gold Border', cat:'men-dhoti', price:499, mrp:799, rating:4.7, reviews:121, badge:'Bestseller', img:IMG.hand, fabric:'100% pure cotton', color:'White / Cream', border:'Gold zari option', blouse:'—', length:'4 m', weight:'approx 800 g', wash:'Machine wash', stock:40, colors:['White','Cream'], desc:'Soft pure-cotton dhotis with optional gold zari border.' },
+  { id:'blouse-material', name:'Designer Blouse Material — Zari Contrast', cat:'blouse', price:599, mrp:999, rating:4.6, reviews:66, badge:'', img:IMG.ban, fabric:'Matching saree fabric', color:'Multiple options', border:'Zari contrast', blouse:'1.5 m blouse piece', length:'1.5 m', weight:'approx 800 g', wash:'As per fabric', stock:50, colors:['Gold','Antique'], desc:'Premium blouse pieces matched to our saree shades.' },
+  { id:'zari-border', name:'Gold Zari Border & Accessory Pack', cat:'accessories', price:299, mrp:499, rating:4.5, reviews:84, badge:'Sale', img:IMG.ban, fabric:'Zari border + pins', color:'Gold / Antique', border:'—', blouse:'—', length:'Pack of 3', weight:'approx 800 g', wash:'Store dry', stock:35, colors:['Gold','Antique'], desc:'Handy gold zari border strips and pins for quick draping.' },
+  { id:'daily-printed', name:'Daily Wear Printed Cotton — Mint', cat:'daily', price:549, mrp:899, rating:4.5, reviews:143, badge:'', img:IMG.prn, fabric:'Pure cotton, printed', color:'Mint / Yellow / Blue', border:'Simple border', blouse:'Blouse piece included', length:'6.3 m + blouse', weight:'approx 800 g', wash:'Machine wash', stock:55, colors:['Mint','Yellow','Blue'], desc:'Cool and comfy everyday cotton with a cheerful print.' },
 ];
 /* Colour variants — multiplies the catalog so infinite scroll feels endless */
 const VARIANTS = [
@@ -242,9 +253,12 @@ function normalizeProduct(raw){
   const colors = Array.isArray(raw.colors) && raw.colors.length
     ? raw.colors
     : String(raw.col || raw.color || 'Multi').split('/').map(x => x.trim()).filter(Boolean);
+  /* PRODUCT ID == SKU (same value). If only one is given, the other copies it;
+     if neither, a fresh auto-increment SK+5 number is used for BOTH. */
+  const pid = String(raw.id || raw.sku || genProductId(raw.name || '')).trim();
   return {
-    id: String(raw.id || raw.sku || genProductId(raw.name)).trim(),
-    sku: String(raw.sku || skuGen(raw.id || raw.name || 'p')).trim(),
+    id: pid,
+    sku: String(raw.sku || pid).trim(),
     name: String(raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     rating: Math.min(5, Math.max(1, +raw.rating || +raw.rat || 4.5)),
@@ -256,8 +270,8 @@ function normalizeProduct(raw){
     border: String(raw.border || '—').trim(),
     blouse: String(raw.blouse || 'Blouse piece included').trim(),
     length: String(raw.length || raw.len || '6.3 m + blouse').trim(),
-    weight: String(raw.weight || '450 g').trim(),
-    wash: String(raw.wash || raw.care || 'Dry clean recommended').trim(),
+    weight: String(raw.weight || 'approx 800 g').trim(),
+    wash: String(raw.wash || raw.care || 'Normal wash').trim(),
     stock: (function(){ const s = +raw.stock; return Number.isFinite(s) ? Math.max(0, Math.round(s)) : 10; })(),
     colors: colors.length ? colors : ['Multi'],
     desc: String(raw.desc || 'Beautiful handpicked saree from our collection.').trim(),
@@ -289,8 +303,9 @@ function genOrderId(){
   }
   return 'ORD-' + mm + dd + '-' + hh + mi + ss + '-' + String(Date.now()).slice(-3);
 }
-/* Auto-increment SKU/Product ID counter → SK + 5 digits (SK10001, SK10002, …) */
-let skuSeq = (() => { try{ return +localStorage.getItem('sk_sku_seq') || 10000; }catch(e){ return 10000; } })();
+/* Auto-increment SKU/Product ID counter → SK + 5 digits.
+   Starts at 20000 so it never collides with the built-in catalog (SK10001+). */
+let skuSeq = (() => { try{ return +localStorage.getItem('sk_sku_seq') || 20000; }catch(e){ return 20000; } })();
 function nextSku(){
   skuSeq += 1;
   try{ localStorage.setItem('sk_sku_seq', String(skuSeq)); }catch(e){}
@@ -330,8 +345,14 @@ const byId = id => {
 const catOf = slug => CATEGORIES.find(c => c.slug === slug);
 const catImage = slug => { const p = PRODUCTS.find(x => x.cat === slug && x.img); return p ? p.img : img('kanchipuram-silk.jpg'); };
 const realReviewCount = id => { try{ return (LS.get('sk_reviews_' + id, [])).length; }catch(e){ return 0; } };
-/* Shipping fee by zone: TN ₹30 · Andhra/Karnataka ₹40 · other ₹60 · free ≥ ₹999 */
-const shippingFor = (total, pincode) => total >= CONFIG.shipFreeAbove ? 0 : (ZONES[deliveryZone(pincode)] || ZONES.tn).ship;
+/* Shipping = zone fee × number of sarees (1 saree TN ₹30, 2 sarees ₹60, …).
+   Free above ₹999. Falls back to 1 unit when no count given. */
+const cartCount = () => Store.cart.reduce((s, i) => s + (i.qty || 1), 0);
+const shippingFor = (total, pincode, qty) => {
+  if (total >= CONFIG.shipFreeAbove) return 0;
+  const fee = (ZONES[deliveryZone(pincode)] || ZONES.tn).ship;
+  return fee * Math.max(1, +qty || cartCount() || 1);
+};
 
 /* Delivery estimate — zone + payment aware.
    Dispatch: 12–24h (COD: 24–48h).
@@ -404,7 +425,11 @@ const Store = {
   orders: LS.get('sk_orders', []),
   wish  : LS.get('sk_wish', []),
   profile: LS.get('sk_profile', { name:'', phone:'', address:'', pincode:'' }),
-  saveCart(){ LS.set('sk_cart', this.cart); renderCartBadge(); renderCartBar(); if (FS.enabled()) Sync.pushCloud(); },
+  saveCart(){
+    LS.set('sk_cart', this.cart);
+    try{ if (this.cart.length) localStorage.setItem('sk_cart_time', String(Date.now())); else localStorage.removeItem('sk_cart_time'); }catch(e){}
+    renderCartBadge(); renderCartBar(); if (FS.enabled()) Sync.pushCloud();
+  },
   saveOrders(){ LS.set('sk_orders', this.orders); }, /* no pushCloud here (avoids FS listener loop) */
   saveWish(){ LS.set('sk_wish', this.wish); },
   saveProfile(){ LS.set('sk_profile', this.profile); },
@@ -464,8 +489,8 @@ function waProductMsg(p){ return `Hi! I want to order this Saree:\n\n🪡 ${p.na
 function waCartMsg(){
   let m = 'Hi! I want to place this order:\n';
   Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n• ${p.name} ×${i.qty} — ${money(p.price * i.qty)}`; });
-  const t = cartTotal(); const sh = shippingFor(t);
-  m += `\n\nTotal: ${money(t + sh)}${sh ? ' (incl. ₹' + sh + ' shipping)' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
+  const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
+  m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
   return m;
 }
 const TPL_CONFIRM = o => `🎉 Order Confirmed!\n\nHi ${o.customer.name}, your order ${o.id} (${money(o.totals.grand)}) has been confirmed ✅\nExpected delivery: ${o.totals.eta}\nWe will update you on WhatsApp once it is dispatched.\n\nThank you for shopping with SK SAREES! 🪡`;
@@ -494,6 +519,41 @@ function calcTotals(payment, pincode){
   const shipping = shippingFor(itemsTotal, pincode);
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
 }
+
+/* ============================ 9b. ABANDONED CART RECOVERY ============================
+   If a visitor leaves items in the cart for 30+ minutes, show a gentle reminder
+   banner with a discount coupon + WhatsApp / SMS buttons to bring them back. */
+function abandonedCartBanner(){
+  try{
+    const page = (document.body && document.body.dataset.page) || '';
+    if (page === 'cart' || page === 'checkout' || page === 'orders') return;
+    if (!Store.cart.length) return;
+    const t0 = +(localStorage.getItem('sk_cart_time') || 0);
+    if (!t0 || Date.now() - t0 < 30 * 60 * 1000) return;   /* only after 30 min */
+    if (localStorage.getItem('sk_cart_banner_closed')) return;
+    if (document.getElementById('cartRecovery')) return;
+    const items = Store.cart.map(i => { const p = byId(i.id); return p ? '• ' + p.name + ' ×' + i.qty : ''; }).filter(Boolean).join('\n');
+    const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items +
+      '\n\nUse coupon ' + CONFIG.cartCoupon.code + ' for ₹' + CONFIG.cartCoupon.off + ' off — offer valid today! 🎉';
+    const div = document.createElement('div');
+    div.id = 'cartRecovery';
+    div.className = 'cart-recovery';
+    div.innerHTML = '<button type="button" class="cr-x" data-cr-close aria-label="Close">✕</button>' +
+      '<b>🧺 ' + CONFIG.cartCoupon.label + '</b>' +
+      '<span>Coupon <b>' + CONFIG.cartCoupon.code + '</b> = ₹' + CONFIG.cartCoupon.off + ' off on your next order.</span>' +
+      '<div class="cr-btns">' +
+        '<a class="btn btn-wa btn-sm" href="' + waLink(msg) + '" target="_blank" rel="noopener">💬 WhatsApp Reminder</a>' +
+        '<a class="btn btn-outline btn-sm" href="sms:+91' + CONFIG.waNumber + '?body=' + encodeURIComponent(msg) + '">📱 SMS Reminder</a>' +
+        '<a class="btn btn-gold btn-sm" href="cart.html">🛒 Complete Order</a>' +
+      '</div>';
+    document.body.appendChild(div);
+    setTimeout(() => div.classList.add('show'), 600);
+  }catch(e){}
+}
+document.addEventListener('click', function(e){
+  const c = e.target.closest('[data-cr-close]');
+  if (c){ const d = document.getElementById('cartRecovery'); if (d) d.remove(); try{ localStorage.setItem('sk_cart_banner_closed','1'); }catch(e2){} }
+});
 
 /* ============================ 10. TOAST / MODAL ============================ */
 let toastT;
@@ -1013,6 +1073,7 @@ function injectChrome(){
     <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span>💬</span></a>
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);
+  try{ abandonedCartBanner(); }catch(e){}
   if (!LS.get('sk_wa_tip', 0)){
     LS.set('sk_wa_tip', 1);
     setTimeout(() => { const b = document.getElementById('waBubble'); if (b) b.classList.add('show'); }, 2200);

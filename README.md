@@ -2,6 +2,17 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 🛒 Business Features
+
+- **Product ID == SKU** — every product's ID and SKU are the same auto-increment value (`SK20001`, `SK20002`, …). **Bulk upload** increments them automatically per line (never collides with the built-in catalog).
+- **🚚 Per-saree courier** — shipping = zone fee × number of sarees: 1 saree TN ₹30 → 2 sarees ₹60 → 3 sarees ₹90; Andhra/Karnataka ₹40 each, other states ₹60 each; free above ₹999.
+- **🧵 Semi-silk only** — all silks are labelled **Semi silk** (no "pure silk" claims); wash care is **Normal wash**; saree weight shown as **approx 800 g**.
+- **🔍 Admin order search** — search any order by ID, customer name or phone.
+- **🗑️ Multi-delete products** — admin Products tab: checkboxes (select-all in header), live "Delete Selected (N)" count, one tap deletes all chosen.
+- **🧺 Abandoned Cart Recovery** — if a visitor leaves items for 30+ min, a banner appears with coupon **CART50 (₹50 off)** + **WhatsApp** and **SMS** reminder buttons + "Complete Order" link (dismissible once).
+- **📅 Festival Calendar + Early Access** — home section for Aadi, Pongal, Diwali & Wedding season with tiles + an **Early Access** tile linking to the WhatsApp group (members see new collections first).
+- **🔔 Notify Me** — out-of-stock products keep a **Notify Me** button: customer enters their number, it's saved locally and a WhatsApp request is sent to the store owner so you can notify them when stock returns.
+
 ## 🎬 Videos · Stock Urgency · Extras
 
 - **🎬 Video catalog** — a "Video Catalog" section on the home page embeds YouTube videos (config: `CONFIG.videos` in `data.js` — replace the sample IDs with your own store videos).
