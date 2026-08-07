@@ -503,10 +503,13 @@ function waLink(text, num = CONFIG.waNumber){
   if (/^[6-9]\d{9}$/.test(n)) n = '91' + n;
   return 'https://wa.me/' + n + '?text=' + encodeURIComponent(text);
 }
+/* absolute product page URL */
+function productUrl(p){
+  try{ return location.origin + location.pathname.replace(/[^/]*$/, '') + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){ return 'product.html?id=' + encodeURIComponent(p.id); }
+}
 function waProductMsg(p){
   /* absolute product URL so the customer can tap & see the saree */
-  let url = '';
-  try{ url = location.origin + location.pathname.replace(/[^/]*$/, '') + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){}
+  const url = productUrl(p);
   return `Hi! I want to order this Saree:\n\n🪡 ${p.name}\n💰 Price: ${money(p.price)}\n🔗 ${url}\n\nIs it available? Please confirm.`;
 }
 function waCartMsg(){
@@ -584,12 +587,14 @@ document.addEventListener('click', function(e){
 
 /* ============================ 9c. COUPONS ============================
    Default coupons + admin-created ones (sk_coupons overrides the defaults).
-   Types: flat (₹ off) or percent (% off). min = minimum cart total. */
+   Types: flat (₹ off) or percent (% off). min = minimum cart total.
+   maxUses = usage limit (per store) · expiry = YYYY-MM-DD end date (optional).
+   Usage is tracked in sk_coupon_used (a map code → count). */
 function defaultCoupons(){
   return [
-    { code:'AADI10', type:'percent', value:10, min:999, active:true, label:'Aadi Festival — 10% off' },
-    { code:'CART50', type:'flat',    value:50, min:0,   active:true, label:'Forgot cart — ₹50 off' },
-    { code:'LATE50', type:'flat',    value:50, min:0,   active:true, label:'Late delivery — ₹50 off' },
+    { code:'AADI10', type:'percent', value:10, min:999, active:true, label:'Aadi Festival — 10% off', maxUses:0, expiry:'' },
+    { code:'CART50', type:'flat',    value:50, min:0,   active:true, label:'Forgot cart — ₹50 off', maxUses:0, expiry:'' },
+    { code:'LATE50', type:'flat',    value:50, min:0,   active:true, label:'Late delivery — ₹50 off', maxUses:0, expiry:'' },
   ];
 }
 function getCoupons(){
@@ -597,10 +602,36 @@ function getCoupons(){
   return defaultCoupons();
 }
 function saveCoupons(list){ try{ localStorage.setItem('sk_coupons', JSON.stringify(list || [])); }catch(e){} }
+function couponUsedCount(code){
+  try{ const m = JSON.parse(localStorage.getItem('sk_coupon_used') || '{}'); return +m[String(code).trim().toUpperCase()] || 0; }catch(e){ return 0; }
+}
+function couponRemaining(c){
+  if (!c) return 0;
+  if (c.maxUses == null || !(+c.maxUses)) return Infinity;
+  return Math.max(0, (+c.maxUses) - couponUsedCount(c.code));
+}
+function couponExpired(c){
+  if (!c || !c.expiry) return false;
+  const e = new Date(c.expiry); if (isNaN(e.getTime())) return false;
+  return e < new Date(new Date().toDateString());   /* expired before today */
+}
 function couponFor(code){
   if (!code) return null;
   const s = String(code).trim().toUpperCase();
-  return getCoupons().find(c => c && String(c.code).trim().toUpperCase() === s && c.active) || null;
+  const c = getCoupons().find(x => x && String(x.code).trim().toUpperCase() === s && x.active);
+  if (!c) return null;
+  if (couponExpired(c)) return null;               /* expired */
+  if (couponRemaining(c) === 0) return null;       /* usage limit reached */
+  return c;
+}
+function useCoupon(code){
+  const s = String(code || '').trim().toUpperCase();
+  if (!s) return;
+  try{
+    const m = JSON.parse(localStorage.getItem('sk_coupon_used') || '{}');
+    m[s] = (+m[s] || 0) + 1;
+    localStorage.setItem('sk_coupon_used', JSON.stringify(m));
+  }catch(e){}
 }
 function couponDiscount(code, total){
   const c = couponFor(code); if (!c) return 0;
@@ -1247,7 +1278,7 @@ function renderFooter(){
           <a href="orders.html">${t('myOrders')}</a><br>
           <a href="profile.html">${t('profile')}</a><br>
           <a href="#" data-i18n-faq>❓ FAQ</a><br>
-          <a href="admin.html" style="color:#7be6a4">🛠️ Store Admin</a>
+          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 Join WhatsApp Group</a>
         </p>
       </div>
       <div class="foot">

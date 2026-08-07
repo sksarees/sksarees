@@ -228,12 +228,22 @@ function orderCard(o){
 }
 
 function updateStatus(id, status){
-  const o = Store.orders.find(x => x.id === id); if (!o) return;
+  /* find in cloud orders (fsOrders) OR device orders (Store.orders) */
+  const fi = (fsOrders || []).findIndex(x => x.id === id);
+  const o = fi >= 0 ? fsOrders[fi] : Store.orders.find(x => x.id === id);
+  if (!o) return;
   o.status = status;
   if (status === 'shipped') dispatchOrder(o);
   if (status === 'delivered') o.deliveredAt = o.deliveredAt || new Date().toISOString();
-  Store.saveOrders();
-  if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+  if (fi >= 0){
+    /* cloud order → update Firestore ONLY (never pollute sk_orders) */
+    fsOrders[fi] = o;
+    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+  } else {
+    /* device order → local + Firestore */
+    Store.saveOrders();
+    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+  }
   toast('✅ ' + id + ' → ' + status);
   orderPage = 1;
   renderFilters(); renderOrderList();
@@ -422,6 +432,10 @@ function renderCoupons(){
         '<div class="field"><label>Value *</label><input id="cpValue" type="number" placeholder="e.g. 50 or 10"></div>' +
         '<div class="field"><label>Min cart (₹)</label><input id="cpMin" type="number" placeholder="0"></div>' +
       '</div>' +
+      '<div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
+        '<div class="field"><label>Max uses (0 = unlimited)</label><input id="cpMax" type="number" placeholder="e.g. 100"></div>' +
+        '<div class="field"><label>Expiry date (optional)</label><input id="cpExpiry" type="date"></div>' +
+      '</div>' +
       '<div class="field"><label>Label (shown to customers)</label><input id="cpLabel" placeholder="Pongal offer — ₹50 off"></div>' +
       '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:700;margin-bottom:10px"><input type="checkbox" id="cpActive" checked style="width:18px;height:18px"> Active</label>' +
       '<button type="button" class="btn btn-maroon" id="cpSave">💾 Create Coupon</button></div>' +
@@ -436,6 +450,8 @@ function renderCoupons(){
       value, min: Math.max(0, +document.getElementById('cpMin').value || 0),
       label: document.getElementById('cpLabel').value.trim() || (code + ' offer'),
       active: document.getElementById('cpActive').checked,
+      maxUses: Math.max(0, +document.getElementById('cpMax').value || 0),
+      expiry: document.getElementById('cpExpiry').value || '',
     });
     saveCoupons(coupons);
     renderCoupons();
@@ -453,7 +469,9 @@ function renderCouponList(){
       '<span class="status-pill ' + (c.active ? 'status-delivered' : 'status-placed') + '">' + (c.active ? 'Active' : 'Inactive') + '</span></div>' +
       '<div class="oc-items">' + esc(c.label || '') + '<br>' +
         (c.type === 'percent' ? c.value + '% off' : '₹' + c.value + ' off') +
-        (c.min ? ' • min ₹' + c.min : ' • no minimum') + '</div>' +
+        (c.min ? ' • min ₹' + c.min : ' • no minimum') +
+        (c.expiry ? ' • till ' + esc(c.expiry) : ' • no expiry') +
+        (c.maxUses ? ' • ' + couponRemaining(c) + '/' + c.maxUses + ' uses left' : ' • unlimited') + '</div>' +
       '<div class="oc-btns">' +
         '<button type="button" class="btn btn-outline btn-sm" data-cp-toggle="' + i + '">' + (c.active ? '⏸️ Deactivate' : '▶️ Activate') + '</button>' +
         '<button type="button" class="btn btn-ghost btn-sm" data-cp-del="' + i + '">🗑️ Delete</button>' +
@@ -506,7 +524,8 @@ function maGenerate(){
   const price = money(p.price);
   const mrp = p.mrp ? money(p.mrp) : '';
   const headline = p.name + (off ? ' — ' + off + '% OFF' : '');
-  const primary = `💜 ${p.name}\n\n✨ Price: ${price}${mrp ? ' (MRP ' + mrp + ')' : ''}\n${off ? '🔥 Save ' + off + '% today!' : ''}\n🚚 Fast dispatch 12–24h • Free shipping ₹999+\n💵 COD available • UPI (GPay/PhonePe/Paytm)\n\n${coupon ? '🎟️ Use coupon ' + coupon + ' for extra discount!\n' : ''}👉 Order on WhatsApp: wa.me/91' + CONFIG.waNumber + '\n🔗 ${link}`;
+  const waNum = /^[6-9]\d{9}$/.test(String(CONFIG.waNumber).replace(/\D/g, '')) ? '91' + String(CONFIG.waNumber).replace(/\D/g, '') : String(CONFIG.waNumber).replace(/\D/g, '');
+  const primary = `💜 ${p.name}\n\n✨ Price: ${price}${mrp ? ' (MRP ' + mrp + ')' : ''}\n${off ? '🔥 Save ' + off + '% today!' : ''}\n🚚 Fast dispatch 12–24h • Free shipping ₹999+\n💵 COD available • UPI (GPay/PhonePe/Paytm)\n\n${coupon ? '🎟️ Use coupon ' + coupon + ' for extra discount!\n' : ''}👉 Order on WhatsApp: wa.me/${waNum}\n🔗 ${link}`;
   out.style.display = 'block';
   out.innerHTML =
     '<h3 style="font-size:1rem;font-weight:800;margin-bottom:6px">✅ Ad ready — copy &amp; paste</h3>' +
@@ -525,10 +544,18 @@ function maGenerate(){
 
 /* ============================ PUSH NOTIFICATIONS ============================ */
 let fsAbandoned = [];
+let pushPage = 1;                 /* abandoned carts pagination */
+const PUSH_PAGE_SIZE = 10;
+function allAbandoned(){
+  const localRec = (function(){ try{ const r = JSON.parse(localStorage.getItem('sk_abandoned') || 'null'); return r ? [r] : []; }catch(e){ return []; } })();
+  let all = (fsAbandoned || []).concat(localRec.filter(r => r && !(fsAbandoned || []).some(f => f.device === r.device)));
+  /* newest first */
+  all.sort((a, b) => ((b.time || 0) - (a.time || 0)) || (b.t || 0) - (a.t || 0));
+  return all;
+}
 function renderPush(){
   const body = document.getElementById('tabBody');
-  const localRec = (function(){ try{ const r = JSON.parse(localStorage.getItem('sk_abandoned') || 'null'); return r ? [r] : []; }catch(e){ return []; } })();
-  const all = (fsAbandoned || []).concat(localRec.filter(r => r && !(fsAbandoned || []).some(f => f.device === r.device)));
+  const all = allAbandoned();
   body.innerHTML =
     '<div class="form-card"><h3>📣 Push Notifications</h3>' +
       '<p class="small muted">Send abandoned-cart &amp; offer reminders straight to customers\' phones (needs HTTPS). ' +
@@ -541,7 +568,8 @@ function renderPush(){
         '<button type="button" class="btn btn-outline btn-sm" id="vkTest" style="width:auto">🔔 Test on My Device</button>' +
       '</div>' +
       '<p class="small" id="vkMsg" style="margin-top:6px"></p></div>' +
-    '<div class="form-card"><h3>🧺 Abandoned Carts</h3><div id="abList"></div></div>';
+    '<div class="form-card"><h3>🧺 Abandoned Carts <span class="muted small">(' + all.length + ')</span></h3><div id="abList"></div>' +
+    '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="moreAb" style="width:auto;min-width:200px;display:none">Load More Carts ↓</button></div></div>';
   document.getElementById('vkSave').addEventListener('click', () => {
     saveVapidPrivate(document.getElementById('vkPriv').value.trim());
     document.getElementById('vkMsg').innerHTML = '<b style="color:var(--green)">✅ Key saved</b>';
@@ -560,8 +588,14 @@ function renderPush(){
 }
 function renderAbandonedList(list){
   const wrap = document.getElementById('abList'); if (!wrap) return;
-  if (!list.length){ wrap.innerHTML = '<p class="small muted">No abandoned carts yet — visitors who leave items 30+ min will appear here.</p>'; return; }
-  wrap.innerHTML = list.map((r, i) => {
+  if (!list.length){
+    wrap.innerHTML = '<p class="small muted">No abandoned carts yet — visitors who leave items 30+ min will appear here.</p>';
+    const mo = document.getElementById('moreAb'); if (mo) mo.style.display = 'none';
+    return;
+  }
+  /* first 10 (newest) + Load More */
+  const visible = list.slice(0, pushPage * PUSH_PAGE_SIZE);
+  wrap.innerHTML = visible.map((r, i) => {
     const items = (r.items || []).map(it => esc(it.name) + ' ×' + it.qty).join(', ');
     const when = r.time ? fmtDT(r.time) : '—';
     const hasSub = !!(r.sub && r.sub.endpoint);
@@ -575,10 +609,15 @@ function renderAbandonedList(list){
         '<a class="btn btn-outline btn-sm" href="sms:+91' + CONFIG.waNumber + '?body=' + encodeURIComponent(msg) + '" style="width:auto">📱 SMS</a>' +
       '</div></div>';
   }).join('');
+  const mo = document.getElementById('moreAb');
+  if (mo){
+    const hasMore = pushPage * PUSH_PAGE_SIZE < list.length;
+    mo.style.display = hasMore ? 'inline-flex' : 'none';
+    mo.onclick = () => { pushPage++; renderAbandonedList(list); };
+  }
 }
 async function sendPushTo(i){
-  const localRec = (function(){ try{ return JSON.parse(localStorage.getItem('sk_abandoned') || 'null'); }catch(e){ return null; } })();
-  const all = (fsAbandoned || []).concat(localRec ? [localRec] : []);
+  const all = allAbandoned();
   const r = all[i]; if (!r) return;
   const items = (r.items || []).map(it => esc(it.name) + ' ×' + it.qty).join(', ');
   const payload = JSON.stringify({ title: '🧺 Your saree cart is waiting!', body: items + ' — use coupon CART50 for ₹50 off.', url: './cart.html' });

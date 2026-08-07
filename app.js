@@ -310,6 +310,11 @@ function renderProduct(){
           (out ? '' : '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
+        '<div class="pd-share">' +
+          '<button type="button" class="btn btn-outline btn-sm" data-share-wa="' + esc(p.id) + '">💬 WhatsApp Share (family/group)</button>' +
+          '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Photo → WhatsApp Status</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
+        '</div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Reviews &amp; Comments</h3>' + revs +
           '<div class="rev-form" style="background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:13px;margin-top:12px;display:grid;gap:9px">' +
             '<b>✍️ Write a review</b>' +
@@ -365,6 +370,36 @@ function renderProduct(){
   }));
 }
 
+/* ============================ SHARE (WhatsApp family/group + Status) ============================ */
+/* share the product to ANY WhatsApp chat / family group — user picks the recipient */
+function shareWaProduct(p){
+  if (!p) return;
+  const msg = waProductMsg(p) + '\n\n👉 Share with your family & friends — let them see this saree too!';
+  try{ window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+}
+/* share the saree PHOTO to WhatsApp Status (mobile: image → long-press → WhatsApp → My Status) */
+async function shareProductStatus(p){
+  if (!p) return;
+  const imgUrl = p.img || ((p.images || [])[0]);
+  if (!imgUrl){ toast('⚠️ No photo to share'); return; }
+  /* try the Web Share API with the actual image file (mobile status picker) */
+  try{
+    if (navigator.canShare){
+      const blob = await fetch(imgUrl).then(r => r.blob()).catch(() => null);
+      if (blob){
+        const file = new File([blob], 'saree.jpg', { type: (blob.type || 'image/jpeg') });
+        if (navigator.canShare({ files: [file] })){
+          await navigator.share({ files: [file], title: p.name, text: p.name + ' — SK Sarees' });
+          return;
+        }
+      }
+    }
+  }catch(e){ /* user cancelled or API failed — fall through */ }
+  /* fallback: open the photo full-size → long-press → Share → WhatsApp Status */
+  try{ window.open(imgUrl, '_blank'); }catch(e){}
+  toast('📸 Photo opened — long-press it → Share → WhatsApp Status');
+}
+
 /* ============================ CART ============================ */
 function renderCartPage(){
   const app = document.getElementById('app'); if (!app) return;
@@ -392,7 +427,10 @@ function renderCartPage(){
       '<div class="coupon-box"><div style="display:flex;gap:8px">' +
         '<input id="cartCoupon" placeholder="Coupon code (e.g. AADI10)" value="' + esc(co.data.coupon || '') + '" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.85rem;background:#fff;outline:none;text-transform:uppercase">' +
         '<button type="button" class="btn btn-outline btn-sm" id="cartCouponBtn" style="min-height:44px">Apply</button>' +
-      '</div>' + (coup && disc > 0 ? '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">🎟️ Coupon <b>' + esc(coup.code) + '</b> applied — ₹' + disc + ' off!</p>' : (co.data.coupon ? '<p class="small muted" style="margin-top:6px">Coupon not valid for this cart</p>' : '')) + '</div>' +
+      '</div>' + (coup && disc > 0 ? '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">🎟️ Coupon <b>' + esc(coup.code) + '</b> applied — ₹' + disc + ' off!' +
+        (coup.expiry ? ' <span class="muted">(valid till ' + esc(coup.expiry) + ')</span>' : '') +
+        (couponRemaining(coup) !== Infinity ? ' <span class="muted">(' + couponRemaining(coup) + ' uses left)</span>' : '') +
+        '</p>' : (co.data.coupon ? '<p class="small muted" style="margin-top:6px">Coupon invalid, expired or fully used</p>' : '')) + '</div>' +
       '<div class="row"><span>Items total</span><b>' + money(t) + '</b></div>' +
       (disc > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(disc) + '</b></div>' : '') +
       '<div class="row"><span>Shipping</span><b style="color:' + (sh ? 'inherit' : 'var(--green)') + '">' + (sh ? money(sh) : 'FREE') + '</b></div>' +
@@ -564,6 +602,7 @@ function doPlaceOrder(payment){
     Store.cart = []; Store.saveCart();
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
+    if (co.data.coupon) useCoupon(co.data.coupon);   /* count coupon usage */
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
     fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
     renderOrderComplete(order, false);
@@ -595,6 +634,7 @@ function doWaOrder(){
       order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
       '\n\nTotal (incl. COD ₹' + CONFIG.codFee + '): ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
+    if (co.data.coupon) useCoupon(co.data.coupon);   /* count coupon usage */
     renderOrderComplete(order, true);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
@@ -917,9 +957,9 @@ document.addEventListener('click', function(e){
     co.data.coupon = v;
     saveCoDraft();
     const c = couponFor(v);
-    if (!c){ toast('❌ Invalid or expired coupon'); }
+    if (!c){ toast('❌ Invalid, expired or fully used coupon'); }
     else if (c.min && cartTotal() < +c.min){ toast('⚠️ Use this coupon above ₹' + c.min); }
-    else { toast('🎟️ Coupon ' + c.code + ' applied!'); }
+    else { toast('🎟️ Coupon ' + c.code + ' applied!' + (couponExpired(c) ? '' : (c.expiry ? ' (valid till ' + c.expiry + ')' : ''))); }
     renderCartPage();
     return;
   }
@@ -944,6 +984,15 @@ document.addEventListener('click', function(e){
   /* ❤️ wishlist toggle (cards + product page) — must stop the card link nav */
   const wish = e.target.closest('[data-wish]');
   if (wish){ e.preventDefault(); toggleWish(wish.dataset.wish); return; }
+  /* 📤 share product on WhatsApp (family/group) */
+  const sw = e.target.closest('[data-share-wa]');
+  if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
+  /* 📸 share saree photo on WhatsApp status */
+  const ss = e.target.closest('[data-share-status]');
+  if (ss){ e.preventDefault(); shareProductStatus(byId(ss.dataset.shareStatus)); return; }
+  /* 🔗 copy product link */
+  const clk = e.target.closest('[data-copy-link]');
+  if (clk){ e.preventDefault(); copyText(clk.dataset.copyLink); return; }
   /* product gallery: tap a thumbnail → switch the big photo */
   const thumb = e.target.closest('[data-thumb]');
   if (thumb){

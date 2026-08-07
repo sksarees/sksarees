@@ -2,6 +2,15 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 🛠️ Admin & Conversion Fixes (latest)
+
+- **Admin status fixed for cloud orders** — changing status (Confirmed/Shipped/Delivered) now works for **both** device orders and Firestore orders. Cloud status updates push to Firestore and are never written into the device's own `sk_orders`.
+- **Ad generator fixed** — ad text no longer shows literal `+ CONFIG.waNumber +`; it shows the real WhatsApp number correctly (`wa.me/917867915699`, no double-91).
+- **Abandoned carts** — newest first, **first 10 shown**, "Load More Carts ↓" for older 10.
+- **Footer** — removed the "🛠️ Store Admin" quick link (replaced with "💬 Join WhatsApp Group"); admin is reached directly via `admin.html`.
+- **Coupons got usage limits + expiry** — admin create form has **Max uses (0 = unlimited)** and **Expiry date**; usage is counted on every order (`sk_coupon_used`); expired/exhausted coupons are rejected automatically; cart & admin show "uses left" and "valid till".
+- **📤 Product sharing** — product page share row: **💬 WhatsApp Share (family/group)** opens the WhatsApp contact/group picker with the product link; **📸 Photo → WhatsApp Status** shares the photo file (Web Share API on mobile; fallback opens the image for long-press → WhatsApp → My Status); **🔗 Copy Link**. Great for word-of-mouth reach.
+
 ## 🖼️ Multi-Image Products
 
 Admin **Add / Edit product** now has **🖼️ Main Image + ➕ Extra Image 1 + ➕ Extra Image 2** fields. The product page gallery shows all photos as thumbnails (with 👈👉 swipe + tap-to-zoom). Firestore products keep working too — their `images`/`imgs` arrays merge with `img2`/`img3`.

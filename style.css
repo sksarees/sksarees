@@ -158,6 +158,10 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .match-reason{font-size:.72rem;color:var(--maroon);font-weight:700;background:var(--maroon-soft);border-radius:8px;padding:5px 8px;margin:6px 0 8px}
 /* stock urgency chip on cards */
 .lowchip{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:800;color:var(--red);background:#fdecec;border:1px solid #f5c6c6;border-radius:999px;padding:5px 10px;margin:6px 0 8px;width:fit-content}
+/* share buttons under product actions */
+.pd-share{display:grid;gap:8px;grid-template-columns:1fr 1fr;margin-top:10px}
+.pd-share .btn{min-height:42px;padding:9px 10px;font-size:.8rem;width:100%}
+.pd-share .btn:last-child{grid-column:1/-1}
 .lowchip.out{color:var(--muted);background:#f2f2f2;border-color:var(--line)}
 .pcard .wish{position:absolute;bottom:8px;right:8px;z-index:3;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 3px 10px rgba(0,0,0,.2)}
 .pcard .wish.on{color:var(--red)}
