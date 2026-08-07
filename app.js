@@ -245,6 +245,7 @@ function renderProduct(){
   }
   const off = offPct(p), cat = catOf(p.cat);
   const eta = deliveryEstimate();
+  try{ if (window.REC) REC.trackView(p.id); }catch(e){}
   const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
   const revs = userRevs.length
@@ -319,7 +320,7 @@ function renderProduct(){
           '</div></div>' +
       '</div>' +
     '</div>' +
-    (related.length ? '<div class="wrap sec"><div class="sec-head"><h2><span class="tick"></span>✨ You May Also Like</h2></div><div class="prow">' + related.map(cardHTML).join('') + '</div></div>' : '') +
+    '<div class="wrap" id="recSection"></div>' +
     '<div class="sticky-bar">' +
       '<div class="sb-price"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
       '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>' +
@@ -327,6 +328,8 @@ function renderProduct(){
       '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">💬</a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
+  /* AI-style similar-saree recommendations */
+  try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
   /* qty buttons */
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); }));
@@ -553,6 +556,7 @@ function doPlaceOrder(payment){
       payment, totals: t, status: payment === 'upi' ? 'confirmed' : 'placed',
       device: deviceId(),
     };
+    const orderCount = order.items.reduce((s, i) => s + (i.qty || 1), 0);
     Store.orders.unshift(order); Store.saveOrders();
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
@@ -560,6 +564,8 @@ function doPlaceOrder(payment){
     Store.cart = []; Store.saveCart();
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
+    fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
+    fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
     renderOrderComplete(order, false);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment, totals: coTotals(), status:'placed' }, false); }catch(e){} }
@@ -779,6 +785,17 @@ function trackById(id){
 }
 
 /* ============================ PROFILE ============================ */
+function notifyStatusLabel(){
+  try{ if (!('Notification' in window)) return '🔕 Notifications Not Supported'; return Notification.permission === 'granted' ? '🔔 Notifications On' : '🔔 Enable Notifications'; }catch(e){ return '🔔 Enable Notifications'; }
+}
+function notifyStatusNote(){
+  try{
+    if (!('Notification' in window)) return 'This browser does not support notifications.';
+    if (Notification.permission === 'granted') return 'You will get order updates, offers & cart reminders here.';
+    if (Notification.permission === 'denied') return 'Notifications blocked — allow them in browser settings to get alerts.';
+    return 'Needs HTTPS. Tap to allow order status & cart reminders.';
+  }catch(e){ return ''; }
+}
 function renderProfilePage(){
   const app = document.getElementById('app'); if (!app) return;
   const p = Store.profile || {};
@@ -791,6 +808,10 @@ function renderProfilePage(){
       '<button type="button" class="btn btn-maroon" id="pfSave">💾 Save Details</button>' +
       '<p class="small muted" style="margin-top:8px">🔒 Stored only on your device.</p>' +
     '</div>' +
+    '<div class="form-card"><h3>🔔 Push Notifications</h3>' +
+      '<p class="small muted" style="margin-bottom:10px">Get notified about order status, festival offers &amp; if you leave items in your cart.</p>' +
+      '<button type="button" class="btn btn-maroon" id="pfNotify">' + notifyStatusLabel() + '</button>' +
+      '<p class="small muted" id="notifyNote" style="margin-top:8px">' + notifyStatusNote() + '</p></div>' +
     '<div class="form-card"><h3>❤️ My Wishlist</h3><div class="wish-grid" id="wishGrid"></div></div>' +
     '<div class="form-card"><h3>🌐 Language</h3><select id="pfLang" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px">' +
       '<option value="en"' + (lang === 'en' ? ' selected' : '') + '>English</option>' +
@@ -808,6 +829,25 @@ function renderProfilePage(){
     toast('✅ Details saved');
   });
   document.getElementById('pfLang').addEventListener('change', e => setLang(e.target.value));
+  /* push notification opt-in */
+  const nBtn = document.getElementById('pfNotify');
+  if (nBtn) nBtn.addEventListener('click', async () => {
+    try{
+      if (!('Notification' in window)){
+        toast('⚠️ Notifications not supported on this browser'); return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted'){
+        const sub = await subscribePush();
+        toast(sub ? '✅ Notifications enabled!' : '✅ Notifications enabled (offline)');
+        nBtn.textContent = '🔔 Notifications On';
+        const note = document.getElementById('notifyNote');
+        if (note) note.textContent = 'You will get order updates, offers & cart reminders here.';
+      } else {
+        toast('⚠️ Please allow notifications in browser settings');
+      }
+    }catch(e){ toast('⚠️ Could not enable — use HTTPS or browser settings'); }
+  });
   const list = Store.wish.map(byId).filter(Boolean);
   document.getElementById('wishGrid').innerHTML = list.length
     ? list.map(p => '<div class="pcard"><a class="pcard-img" href="product.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(p.img) + '" alt="" loading="lazy"></a>' +

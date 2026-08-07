@@ -2,6 +2,48 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 🖼️ Multi-Image Products
+
+Admin **Add / Edit product** now has **🖼️ Main Image + ➕ Extra Image 1 + ➕ Extra Image 2** fields. The product page gallery shows all photos as thumbnails (with 👈👉 swipe + tap-to-zoom). Firestore products keep working too — their `images`/`imgs` arrays merge with `img2`/`img3`.
+
+## 📣 Meta Ads — Admin "Ad Builder"
+
+Admin → **📣 Meta Ads** tab: pick a product (or browse the catalog) → **Generate Ad** → get a ready-to-paste **headline + primary text** (price, discount, shipping, COD, coupon, WhatsApp button) with a **tracking link** (`product.html?id=…?coupon=…`). One-tap buttons: **Copy Ad Text**, **Send to my WhatsApp**, **Share on Facebook**, plus quick links to **Meta Ads Manager / Events Manager / Business Suite** and a suggested starter budget. Works with the installed Meta Pixel (AddToCart/InitiateCheckout/Purchase are tracked automatically).
+
+## 📈 Google Analytics (gtag.js)
+
+**gtag.js** (GA4, ID `G-J1W5VVY48L`) loads on every page — page views, sessions, and (via the events already wired) purchases flow into Google Analytics. Edit the ID in `data.js` (`GOOGLE TAG` block) if your property changes.
+
+## 🧠 Similar Saree Recommender (AI-style)
+
+- **`rec.js`** — a full recommendation engine that runs client-side (works on any static host, zero backend):
+  - **Content-based**: weighted attribute similarity — fabric (30) > colour (20) > design (15) > occasion (15) > price (10) > work-type (10), with complementary-colour bonuses (red↔gold…).
+  - **Cold-start safe**: attributes are extracted from name/desc/fabric/colour keywords, so brand-new or Firestore-only products get recommendations instantly.
+  - **Collaborative boost**: view history (`sk_viewed`) + order popularity nudge personalization over time.
+  - **Fast**: attributes memoized, fabric/colour/occasion buckets narrow candidates to ~40 before scoring; results cached per product (TTL 24h) and invalidated on admin saves.
+- **Product page** shows **"✨ Similar Sarees"** — 8 cards with image, price, **% match chip**, a short **reason** ("Same kanjivaram fabric…"), Add-to-Cart & WhatsApp.
+- Full production guide (architecture, schema, Python scikit-learn + sentence-transformers, Node.js, LLM prompt, caching plan) in **`recommendation-system.md`**.
+
+## 📈 Meta Pixel (Facebook Ads)
+
+The **Meta Pixel** (ID `1017916097675955`) loads on **every page** with automatic events for ad campaigns:
+- **PageView** — each page load (plus noscript fallback image)
+- **AddToCart** — when a saree is added to the cart (content_ids, name, value, INR)
+- **InitiateCheckout** — when an order is placed (value, currency, num_items)
+- **Purchase** — order placed (value, currency, num_items, content_ids) — fires for UPI & COD
+
+Edit the Pixel ID in `data.js` (`META PIXEL` block, `fbq('init', …)`) if you change it. Verify in **Meta Events Manager → Test Events**.
+
+## 📣 Push Notifications (admin → customers)
+
+- **Admin "📣 Push" tab** — lists **abandoned carts** (customers who left items 30+ min) with item details, phone, and per-cart buttons: **📣 Send Push**, **💬 WhatsApp reminder**, **📱 SMS reminder**.
+- **Customers subscribe once** — Profile → "🔔 Enable Notifications" (or automatic after adding to cart). Their PushSubscription is saved (device-local + Firestore `pushsubs`), and abandoned-cart records are saved to Firestore `abandoned` so the admin sees them.
+- **Web Push protocol implemented in pure browser JS** — VAPID-signed JWT (ES256) + ECDH + HKDF + AES-128-GCM (`aes128gcm`). Verified end-to-end with a decrypt round-trip test (catches malformed records).
+- **Service worker** (`sw.js`) shows notifications even when the site is closed; tapping opens the cart.
+- **Local notifications** — when a visitor returns with an abandoned cart, a browser notification fires immediately (works without a push service).
+- **Requirements**: HTTPS (browsers require it for service workers + push). Test your device in **Admin → Push → "Test on My Device"**. If the push service blocks browser POSTs (some providers), use the WhatsApp/SMS buttons instead — the admin shows a clear message.
+- **VAPID keys** — public key built into the site; private key editable in **Admin → Push** (default keypair works out of the box).
+
 ## 🎟️ Coupons · ⏰ Order Time · 🚀 SEO
 
 - **🎟️ Coupons (user)** — cart & checkout have a coupon input: type a code (e.g. `AADI10`, `CART50`, `LATE50`), tap Apply, and the discount shows in cart, checkout review, and the success page + saved order totals.

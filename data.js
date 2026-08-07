@@ -223,6 +223,7 @@ let PRODUCTS = (() => {
 function saveProducts(list){
   PRODUCTS = list;
   LS.set('sk_products', list);
+  try{ if (window.REC) REC.invalidate(); }catch(e){}   /* recompute similarity on change */
   if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }  /* admin edits only */
 }
 function resetProducts(){ PRODUCTS = (() => { let built = BASE.map(b => Object.assign({}, b)); BASE.forEach(b => { VARIANTS.slice(0,3).forEach((v,i)=>{ built.push(Object.assign({}, b, { id: b.id + '-v' + (i+1), name: b.name.replace(/—[^-]*$/, '— ' + v.color), color: v.color + ' variant', price: Math.round(b.price * (1 - v.off/100)), mrp: b.mrp, rating: b.rating, reviews: b.reviews, stock: Math.max(2, b.stock - i*4), badge: b.badge === 'Bestseller' ? '' : b.badge })); }); }); return built; })(); try{ localStorage.removeItem('sk_products'); }catch(e){} }
@@ -247,6 +248,13 @@ function normalizeProduct(raw){
   let catCount = 0;
   try{ catCount = PRODUCTS.filter(p => p.cat === cat).length; }catch(e){ catCount = 0; }
   const imgUrl = cleanImg(raw.img || raw.image || (raw.images && raw.images[0]) || (raw.imgs && raw.imgs[0]));
+  /* admin extra images (img2, img3) + any raw arrays → product gallery */
+  let extraImgs = [];
+  try{
+    const arr = Array.isArray(raw.images) ? raw.images : Array.isArray(raw.imgs) ? raw.imgs : [];
+    arr.forEach(u => { if (!u) return; const c = cleanImg(u); if (c && c !== imgUrl && extraImgs.indexOf(c) === -1) extraImgs.push(c); });
+    [raw.img2, raw.img3, raw.img4].forEach(u => { if (!u) return; const c = cleanImg(u); if (c && c !== imgUrl && extraImgs.indexOf(c) === -1) extraImgs.push(c); });
+  }catch(e){}
   /* badge: explicit, else from featured/discount */
   let badge = ['Bestseller','New','Sale','Limited Stock'].includes(raw.badge) ? raw.badge : '';
   if (!badge){ if (raw.featured || raw.ft) badge = 'Bestseller'; else if ((+raw.disc || 0) >= 40) badge = 'Sale'; }
@@ -265,6 +273,7 @@ function normalizeProduct(raw){
     reviews: Math.max(0, +raw.reviews || +raw.rev || 0),
     badge,
     img: imgUrl,
+    images: extraImgs.length ? [imgUrl].concat(extraImgs) : (imgUrl ? [imgUrl] : []),
     fabric: String(raw.fabric || raw.fab || 'Premium fabric').trim(),
     color: colors.join(' / ') || 'Multi',
     border: String(raw.border || '—').trim(),
@@ -450,6 +459,7 @@ function addToCart(id, qty = 1){
   if (ex) ex.qty = Math.min(ex.qty + qty, 10); else Store.cart.push({ id, qty });
   Store.saveCart();
   toast('✅ Added to cart');
+  fbqSafe('AddToCart', Object.assign(fbqId(id), { value: p.price * qty, currency: 'INR', quantity: qty }));
 }
 /* ❤️ Like / wishlist toggle — works on product page & shop cards */
 function toggleWish(id){
@@ -493,10 +503,15 @@ function waLink(text, num = CONFIG.waNumber){
   if (/^[6-9]\d{9}$/.test(n)) n = '91' + n;
   return 'https://wa.me/' + n + '?text=' + encodeURIComponent(text);
 }
-function waProductMsg(p){ return `Hi! I want to order this Saree:\n\n🪡 ${p.name}\n💰 Price: ${money(p.price)}\n\nIs it available? Please confirm.`; }
+function waProductMsg(p){
+  /* absolute product URL so the customer can tap & see the saree */
+  let url = '';
+  try{ url = location.origin + location.pathname.replace(/[^/]*$/, '') + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){}
+  return `Hi! I want to order this Saree:\n\n🪡 ${p.name}\n💰 Price: ${money(p.price)}\n🔗 ${url}\n\nIs it available? Please confirm.`;
+}
 function waCartMsg(){
   let m = 'Hi! I want to place this order:\n';
-  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n• ${p.name} ×${i.qty} — ${money(p.price * i.qty)}`; });
+  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n• ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n  🔗 ${location.origin}${location.pathname.replace(/[^/]*$/, '')}product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
   m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
   return m;
@@ -536,10 +551,14 @@ function abandonedCartBanner(){
     const page = (document.body && document.body.dataset.page) || '';
     if (page === 'cart' || page === 'checkout' || page === 'orders') return;
     if (!Store.cart.length) return;
+    /* save the abandoned-cart record (local + Firestore) so admin can push */
+    try{ saveAbandonedRecord(); }catch(e){}
     const t0 = +(localStorage.getItem('sk_cart_time') || 0);
     if (!t0 || Date.now() - t0 < 30 * 60 * 1000) return;   /* only after 30 min */
     if (localStorage.getItem('sk_cart_banner_closed')) return;
     if (document.getElementById('cartRecovery')) return;
+    /* also fire a browser push/local notification */
+    try{ notifyLocal('🧺 Your cart is waiting!', CONFIG.cartCoupon.label + ' Use coupon ' + CONFIG.cartCoupon.code, 'cart.html'); }catch(e){}
     const items = Store.cart.map(i => { const p = byId(i.id); return p ? '• ' + p.name + ' ×' + i.qty : ''; }).filter(Boolean).join('\n');
     const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items +
       '\n\nUse coupon ' + CONFIG.cartCoupon.code + ' for ₹' + CONFIG.cartCoupon.off + ' off — offer valid today! 🎉';
@@ -587,6 +606,163 @@ function couponDiscount(code, total){
   const c = couponFor(code); if (!c) return 0;
   if (c.min && total < +c.min) return 0;
   return c.type === 'percent' ? Math.round(total * (+c.value || 0) / 100) : (+c.value || 0);
+}
+
+/* ============================ 9d. WEB PUSH NOTIFICATIONS ============================
+   Push notifications for customers (order status, offers, abandoned cart) and
+   an admin panel to send them. Works on HTTPS only (browsers require it).
+   · Customers subscribe once → their PushSubscription is saved (device-local +
+     Firestore pushsubs collection) so the admin can reach them.
+   · Admin "📣 Push" tab lists abandoned carts + sends push reminders using the
+     Web Push protocol (VAPID-signed, E2E-encrypted) straight from the browser. */
+const VAPID_PUBLIC = 'BIbNKuIOEHTqp7idmQMi7cvHUSQqhipFPP9wiaH0YnUbRiBapYGLppgH883GunMKRw0dY1q6gA9tfNFF7yN7Vds';
+const VAPID_PRIVATE_DEFAULT = '1P4YzC3VLgeImxWZXqgKpniZ3mxCVtHYMTTVBuIXk5Q'; /* change in Admin → Push */
+
+function vapidPrivate(){
+  try{ return localStorage.getItem('sk_vapid_private') || VAPID_PRIVATE_DEFAULT; }catch(e){ return VAPID_PRIVATE_DEFAULT; }
+}
+function saveVapidPrivate(k){ try{ localStorage.setItem('sk_vapid_private', k); }catch(e){} }
+
+/* ---- subscribe the current browser (needs HTTPS + permission) ---- */
+async function subscribePush(){
+  try{
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+    const reg = await navigator.serviceWorker.register('sw.js');
+    await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_PUBLIC) });
+    /* save locally + Firestore */
+    try{ localStorage.setItem('sk_pushsub', JSON.stringify(sub.toJSON())); }catch(e){}
+    try{
+      if (FS.enabled()){
+        const db = await FS._getDb();
+        if (db){
+          db.collection('pushsubs').doc(deviceId()).set({ device: deviceId(), sub: sub.toJSON(), phone: (Store.profile||{}).phone || '', updatedAt: Date.now() }, { merge: true }).catch(()=>{});
+        }
+      }
+    }catch(e){}
+    return sub;
+  }catch(e){ return null; }
+}
+function urlB64ToUint8(b64){
+  const pad = b64.replace(/=+$/, '');
+  const raw = atob(pad.replace(/-/g, '+').replace(/_/g, '/'));
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+/* ---- local (in-app) notification — works even without a push service ---- */
+function notifyLocal(title, body, url){
+  try{
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    const n = new Notification(title, { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'sk-sarees' });
+    n.onclick = function(){ try{ window.focus(); if (url) location.href = url; n.close(); }catch(e){} };
+  }catch(e){}
+}
+/* ---- Web Push sender (works from the admin page; pure browser crypto) ----
+   Builds the VAPID JWT (ES256), ECDH shared secret, AES-128-GCM payload and
+   POSTs it to the subscription endpoint — the Web Push protocol. */
+async function webPushSend(subJson, payload){
+  const sub = typeof subJson === 'string' ? JSON.parse(subJson) : subJson;
+  if (!sub || !sub.endpoint || !sub.keys) throw new Error('No subscription');
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  /* 1) VAPID JWT (ES256) signed with the private key */
+  const jwtB64 = s => btoa(String(s)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const header = jwtB64(JSON.stringify({ typ: 'JWT', alg: 'ES256' }));
+  const now = Math.floor(Date.now() / 1000);
+  const payloadB64 = jwtB64(JSON.stringify({ aud: new URL(sub.endpoint).origin, exp: now + 3600, sub: 'mailto:sk7867915699@example.com' }));
+  const toSign = header + '.' + payloadB64;
+
+  const privJwk = { crv: 'P-256', kty: 'EC', x: await b64ToJwkPart(VAPID_PUBLIC, 1), y: await b64ToJwkPart(VAPID_PUBLIC, 2), d: await b64ToJwkPart(vapidPrivate(), 3) };
+  const privKey = await crypto.subtle.importKey('jwk', privJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privKey, enc.encode(toSign));
+  const sigB64 = jwtB64(dec.decode(sig));
+  const authorization = 'vapid t=' + toSign + '.' + sigB64 + ', k=' + VAPID_PUBLIC;
+
+  /* 2) ECDH shared secret from the subscription's p256dh */
+  const p256dhJwk = { crv: 'P-256', kty: 'EC', x: await b64ToJwkPart(sub.keys.p256dh, 1), y: await b64ToJwkPart(sub.keys.p256dh, 2), ext: true };
+  const pubKey = await crypto.subtle.importKey('jwk', p256dhJwk, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const ephPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const ephPubRaw = new Uint8Array(await crypto.subtle.exportKey('raw', ephPair.publicKey)); /* ArrayBuffer → Uint8Array */
+  const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: pubKey }, ephPair.privateKey, 256));
+
+  /* 3) HKDF to derive the encryption key + nonce (RFC 8291) */
+  const auth = await b64ToRaw(sub.keys.auth);
+  const ikm = new Uint8Array(32); ikm.set(new Uint8Array(shared), 0);
+  const keyInfo = new Uint8Array([...new TextEncoder().encode('WebPush: info\x00'), ...new Uint8Array(ephPubRaw), ...new Uint8Array(await b64ToRaw(sub.keys.p256dh))]);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const prk = await hkdf(ikm, auth, new Uint8Array(0), 32);
+  const cek = await hkdf(prk, salt, new TextEncoder().encode('Content-Encoding: aes128gcm\x00'), 16);
+  const nonce = await hkdf(prk, salt, new TextEncoder().encode('Content-Encoding: nonce\x00'), 12);
+
+  /* 4) AES-128-GCM encrypt the payload */
+  const aesKey = await crypto.subtle.importKey('raw', cek, { name: 'AES-GCM' }, false, ['encrypt']);
+  const data = enc.encode(payload);
+  const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce, tagLength: 128, additionalData: keyInfo }, aesKey, data);
+  const cipherBytes = new Uint8Array(cipher);
+
+  /* 5) Assemble aes128gcm record: header(86 bytes) + ciphertext+tag */
+  const record = new Uint8Array(86 + cipherBytes.length);
+  record[0] = 16;                                  /* salt length */
+  record.set(salt, 1);
+  record.set([0, 0], 17);                          /* rs = 0 */
+  record.set([ephPubRaw.length], 19);              /* idlen = public key length (65) */
+  record.set(ephPubRaw, 20);                       /* public key (65) */
+  record[85] = 0;                                  /* padding len */
+  record.set(cipherBytes, 86);
+
+  /* 6) POST to the push service */
+  const res = await fetch(sub.endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/octet-stream', 'TTL': '86400', 'Authorization': authorization, 'Content-Encoding': 'aes128gcm' },
+    body: record,
+  });
+  if (!res.ok && res.status !== 201 && res.status !== 202){ throw new Error('Push service error ' + res.status); }
+  return true;
+}
+/* HKDF (RFC 5869) with WebCrypto */
+async function hkdf(ikm, salt, info, len){
+  const key = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, key, len * 8);
+  return new Uint8Array(bits);
+}
+/* helpers to convert URL-safe base64 → JWK parts / raw bytes */
+function b64urlToBytes(s){
+  const pad = String(s).replace(/=+$/, '');
+  const raw = atob(pad.replace(/-/g, '+').replace(/_/g, '/'));
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+async function b64ToJwkPart(s, part){
+  /* part 1 = x, 2 = y, 3 = d (private scalar). Public keys are 65-byte
+     uncompressed points (0x04 + x + y) — skip the marker byte. */
+  const bytes = b64urlToBytes(s);
+  const off = (bytes.length === 65 && bytes[0] === 4) ? 1 : 0;
+  const slice = part === 1 ? bytes.subarray(off, off + 32)
+              : part === 2 ? bytes.subarray(off + 32, off + 64)
+              : bytes.subarray(bytes.length - 32);
+  const b64 = btoa(String.fromCharCode.apply(null, slice)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return b64;
+}
+async function b64ToRaw(s){ return b64urlToBytes(s); }
+
+/* ---- abandoned-cart record (local + Firestore) so admin can push ---- */
+function saveAbandonedRecord(){
+  try{
+    if (!Store.cart.length) return;
+    const items = Store.cart.map(i => { const p = byId(i.id); return { id: i.id, name: p ? p.name : 'Saree', qty: i.qty, price: p ? p.price : 0 }; });
+    const rec = { device: deviceId(), items, total: cartTotal(), phone: (Store.profile||{}).phone || (co && co.data ? co.data.phone : '') || '', time: Date.now(), sub: (function(){ try{ return JSON.parse(localStorage.getItem('sk_pushsub') || 'null'); }catch(e){ return null; } })() };
+    try{ localStorage.setItem('sk_abandoned', JSON.stringify(rec)); }catch(e){}
+    try{
+      if (FS.enabled()){
+        FS._getDb().then(db => { if (db) db.collection('abandoned').doc(deviceId()).set(rec, { merge: true }).catch(()=>{}); }).catch(()=>{});
+      }
+    }catch(e){}
+  }catch(e){}
 }
 
 /* ============================ 10. TOAST / MODAL ============================ */
@@ -1091,6 +1267,61 @@ function renderFooter(){
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
+/* ============================ GOOGLE TAG (gtag.js / GA4) ============================
+   Loads on EVERY page. Analytics ID: G-J1W5VVY48L
+   Replace the ID below if your GA4 property changes. */
+(function(){
+  try{
+    if (window.__gtagDone) return;
+    window.__gtagDone = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-J1W5VVY48L';
+    (document.head || document.documentElement).appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-J1W5VVY48L');
+  }catch(e){}
+})();
+function gtagSafe(ev, data){
+  try{ if (window.gtag) window.gtag('event', ev, data || {}); }catch(e){}
+}
+
+/* ============================ META PIXEL (Facebook Ads) ============================
+   Loads on EVERY page. Standard events fire automatically:
+   PageView (each page) · AddToCart · InitiateCheckout · Purchase
+   Replace the Pixel ID below (1017916097675955) with your own if it changes. */
+(function(){
+  try{
+    if (window.__metaPixelDone) return;
+    window.__metaPixelDone = true;
+    /* load the fbevents script */
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    (document.head || document.documentElement).appendChild(s);
+    /* init */
+    window.fbq = window.fbq || function(){ (window.fbq.q = window.fbq.q || []).push(arguments); };
+    window.fbq('init', '1017916097675955');
+    window.fbq('track', 'PageView');
+    /* noscript fallback */
+    const img = document.createElement('img');
+    img.height = 1; img.width = 1; img.style.display = 'none';
+    img.src = 'https://www.facebook.com/tr?id=1017916097675955&ev=PageView&noscript=1';
+    (document.body || document.documentElement).appendChild(img);
+  }catch(e){}
+})();
+function fbqSafe(ev, data){
+  try{ if (window.fbq) window.fbq('track', ev, data || {}); }catch(e){}
+}
+function fbqId(id){
+  try{
+    const p = byId(id);
+    return { content_ids: [String(id)], content_name: p ? p.name : id, content_category: p ? (p.cat || '') : '', content_type: 'product' };
+  }catch(e){ return { content_ids: [String(id)], content_type: 'product' }; }
+}
+
 /* ============================ 15. SEO — JSON-LD schema ============================
    Injects structured data on every page (LocalBusiness), product pages
    (Product), and the home page (FAQ + WebSite). Helps Google show rich results. */
@@ -1132,6 +1363,10 @@ function seoInject(){
 
 function injectChrome(){
   try{ seoInject(); }catch(e){}
+  /* register the push service worker (HTTPS only; harmless fallback otherwise) */
+  try{
+    if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }catch(e){}
   if (!document.getElementById('siteHeader')){
     const h = document.createElement('div'); h.id = 'siteHeader';
     document.body.insertBefore(h, document.getElementById('app') || document.body.firstChild);

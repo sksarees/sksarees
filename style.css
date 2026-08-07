@@ -153,6 +153,9 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .pcard .offchip{position:absolute;top:9px;left:9px;z-index:2;background:rgba(255,255,255,.95);color:var(--green);font-size:.66rem;font-weight:800;padding:4px 8px;border-radius:999px}
 /* if a badge is also present (top-left), push the discount chip below it */
 .pcard .badge ~ .offchip{top:38px}
+/* AI-style similar saree match chip + reason */
+.match-chip{position:absolute;bottom:8px;left:8px;z-index:4;background:rgba(143,29,58,.94);color:#fff;font-size:.64rem;font-weight:800;padding:4px 8px;border-radius:999px;letter-spacing:.3px}
+.match-reason{font-size:.72rem;color:var(--maroon);font-weight:700;background:var(--maroon-soft);border-radius:8px;padding:5px 8px;margin:6px 0 8px}
 /* stock urgency chip on cards */
 .lowchip{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:800;color:var(--red);background:#fdecec;border:1px solid #f5c6c6;border-radius:999px;padding:5px 10px;margin:6px 0 8px;width:fit-content}
 .lowchip.out{color:var(--muted);background:#f2f2f2;border-color:var(--line)}

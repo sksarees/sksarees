@@ -57,6 +57,8 @@ function renderAdmin(){
       '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
       '<button type="button" class="admin-tab" id="tabProducts">🛍️ Products</button>' +
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
+      '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
+      '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
       '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
       '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
     '</div>' +
@@ -73,6 +75,8 @@ function renderAdmin(){
   document.getElementById('tabReviews').addEventListener('click', () => switchTab('reviews'));
   document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboard'));
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
+  document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
+  document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
   /* Firestore: quiet status + live orders/reviews */
   if (FS.enabled()){
@@ -89,6 +93,13 @@ function renderAdmin(){
       if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
     });
     FS.listenReviews(list => { fsReviews = list || []; if (adminTab === 'reviews') renderReviews(); });
+    FS._getDb().then(db => {
+      if (!db) return;
+      db.collection('abandoned').onSnapshot(snap => {
+        const l = []; snap.forEach(x => l.push(Object.assign({}, x.data(), { device: x.id })));
+        fsAbandoned = l; if (adminTab === 'push') renderPush();
+      }, () => {});
+    }).catch(() => {});
     FS._getDb().catch(() => {});
   }
   const seedBtn = document.getElementById('seedDb');
@@ -102,7 +113,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -112,6 +123,8 @@ function switchTab(t){
     else if (t === 'products') renderProducts();
     else if (t === 'reviews') renderReviews();
     else if (t === 'coupons') renderCoupons();
+    else if (t === 'push') renderPush();
+    else if (t === 'metaads') renderMetaAds();
     else if (t === 'dashboard') renderDashboard();
   }catch(e){ body.innerHTML = '<div class="empty"><div class="e-ic">⚠️</div><b>Could not load</b></div>'; }
 }
@@ -312,7 +325,9 @@ function openAddProduct(){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       '<div class="field"><label>Category *</label><select id="apCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Badge</label><select id="apBadge"><option value="">—</option><option>Bestseller</option><option>New</option><option>Sale</option><option>Limited Stock</option></select></div></div>' +
-    '<div class="field"><label>Image URL</label><input id="apImg" placeholder="https://…"></div>' +
+    '<div class="field"><label>🖼️ Main Image URL *</label><input id="apImg" placeholder="https://…"></div>' +
+    '<div class="field"><label>➕ Extra Image 1 (optional — gallery thumbnail)</label><input id="apImg2" placeholder="https://…"></div>' +
+    '<div class="field"><label>➕ Extra Image 2 (optional — gallery thumbnail)</label><input id="apImg3" placeholder="https://…"></div>' +
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="apVideo" placeholder="https://youtube.com/watch?v=…"></div>' +
     '<div class="field"><label>Stock</label><input id="apStock" type="number" value="10"></div>' +
     '<button type="button" class="btn btn-maroon" id="apSave">💾 Add Product</button>');
@@ -325,6 +340,8 @@ function openAddProduct(){
       cat: document.getElementById('apCat').value, badge: document.getElementById('apBadge').value,
       img: document.getElementById('apImg').value, stock: +document.getElementById('apStock').value || 10,
       video: document.getElementById('apVideo').value,
+      img2: document.getElementById('apImg2').value,
+      img3: document.getElementById('apImg3').value,
     });
     PRODUCTS.unshift(np); saveProducts(PRODUCTS);
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
@@ -356,7 +373,9 @@ function openEditProduct(id){
       '<div class="field"><label>Category</label><select id="epCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Stock</label><input id="epStock" type="number" value="' + p.stock + '"></div></div>' +
     '<div class="field"><label>Badge</label><select id="epBadge"><option value=""' + (!p.badge ? ' selected' : '') + '>—</option><option' + (p.badge === 'Bestseller' ? ' selected' : '') + '>Bestseller</option><option' + (p.badge === 'New' ? ' selected' : '') + '>New</option><option' + (p.badge === 'Sale' ? ' selected' : '') + '>Sale</option><option' + (p.badge === 'Limited Stock' ? ' selected' : '') + '>Limited Stock</option></select></div>' +
-    '<div class="field"><label>Image URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
+    '<div class="field"><label>🖼️ Main Image URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
+    '<div class="field"><label>➕ Extra Image 1</label><input id="epImg2" value="' + esc((p.images || [])[1] || '') + '" placeholder="https://…"></div>' +
+    '<div class="field"><label>➕ Extra Image 2</label><input id="epImg3" value="' + esc((p.images || [])[2] || '') + '" placeholder="https://…"></div>' +
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
     '<button type="button" class="btn btn-maroon" id="epSave">💾 Save Changes</button>');
   document.getElementById('epSave').addEventListener('click', () => {
@@ -372,8 +391,18 @@ function openEditProduct(id){
         stock: Math.max(0, +document.getElementById('epStock').value || 0),
         badge: document.getElementById('epBadge').value,
         img: document.getElementById('epImg').value || PRODUCTS[idx].img,
+        img2: document.getElementById('epImg2').value,
+        img3: document.getElementById('epImg3').value,
         video: ytId(document.getElementById('epVideo').value),
       });
+      /* rebuild the gallery array from main + extra images */
+      try{
+        const imgs = [];
+        [PRODUCTS[idx].img, PRODUCTS[idx].img2, PRODUCTS[idx].img3].forEach(u => {
+          const c = cleanImg(u); if (c && imgs.indexOf(c) === -1) imgs.push(c);
+        });
+        PRODUCTS[idx].images = imgs;
+      }catch(e){}
       saveProducts(PRODUCTS);
       closeModal(); renderProdBody(); toast('✅ Product updated');
     }
@@ -436,6 +465,130 @@ function couponAct(i, del){
   else { list[i].active = !list[i].active; toast(list[i].active ? '▶️ Activated' : '⏸️ Deactivated'); }
   saveCoupons(list);
   renderCouponList();
+}
+
+/* ============================ META ADS RUNNER ============================
+   Creates ready-to-paste ad campaigns from your product catalog:
+   · pick a product (or let it auto-pick best sellers)
+   · generates ad headline / primary text / CTA + tracking link
+   · copy buttons + WhatsApp/Telegram share + open Meta Ads Manager
+   · optional discount code to sweeten the ad */
+function renderMetaAds(){
+  const body = document.getElementById('tabBody');
+  const picks = PRODUCTS.slice(0, 60);
+  const opt = id => '<option value="' + esc(id) + '">' + esc(byId(id) ? byId(id).name : id) + ' — ' + money(byId(id) ? byId(id).price : 0) + '</option>';
+  body.innerHTML =
+    '<div class="form-card"><h3>📣 Meta Ads — Ad Builder</h3>' +
+      '<p class="small muted">Pick a saree → we write the ad for you → copy it into Meta Ads Manager (or share on WhatsApp). Every ad carries a <b>tracking link</b> so you can see clicks &amp; orders.</p>' +
+      '<div class="field"><label>1️⃣ Choose product</label><select id="maProd" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px">' +
+        picks.map(p => opt(p.id)).join('') + '</select></div>' +
+      '<div class="field"><label>2️⃣ Discount coupon (optional)</label><input id="maCoupon" placeholder="e.g. AADI10 — leave empty for none" style="text-transform:uppercase"></div>' +
+      '<button type="button" class="btn btn-maroon" id="maGen" style="margin-top:4px">✨ Generate Ad</button></div>' +
+    '<div class="form-card" id="maOut" style="display:none"></div>' +
+    '<div class="form-card"><h3>📊 Quick actions</h3>' +
+      '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
+        '<a class="btn btn-outline btn-sm" href="https://www.facebook.com/adsmanager" target="_blank" rel="noopener">🖥️ Open Meta Ads Manager</a>' +
+        '<a class="btn btn-outline btn-sm" href="https://business.facebook.com/events_manager" target="_blank" rel="noopener">📈 Events Manager (Pixel)</a>' +
+        '<a class="btn btn-outline btn-sm" href="https://business.facebook.com" target="_blank" rel="noopener">🏢 Business Suite</a>' +
+        '<a class="btn btn-outline btn-sm" href="' + waLink('Hi! I am promoting my saree store on Meta ads — any tips for our area? 😊') + '" target="_blank" rel="noopener">💬 Ad tips on WhatsApp</a>' +
+      '</div>' +
+      '<p class="small muted" style="margin-top:10px">💡 <b>Tip:</b> the Meta Pixel is already installed — ads will automatically track AddToCart, InitiateCheckout &amp; Purchase. Start with ₹100–₹300/day targeting Tamil Nadu &amp; Karnataka, women 25–50.</p></div>';
+  document.getElementById('maGen').addEventListener('click', maGenerate);
+}
+function maGenerate(){
+  const out = document.getElementById('maOut'); if (!out) return;
+  const id = document.getElementById('maProd').value;
+  const p = byId(id); if (!p) return;
+  const coupon = document.getElementById('maCoupon').value.trim().toUpperCase();
+  const page = location.origin + location.pathname.replace(/[^/]*$/, '');
+  const link = page + 'product.html?id=' + encodeURIComponent(p.id) + (coupon ? '?coupon=' + coupon : '');
+  const off = offPct(p);
+  const price = money(p.price);
+  const mrp = p.mrp ? money(p.mrp) : '';
+  const headline = p.name + (off ? ' — ' + off + '% OFF' : '');
+  const primary = `💜 ${p.name}\n\n✨ Price: ${price}${mrp ? ' (MRP ' + mrp + ')' : ''}\n${off ? '🔥 Save ' + off + '% today!' : ''}\n🚚 Fast dispatch 12–24h • Free shipping ₹999+\n💵 COD available • UPI (GPay/PhonePe/Paytm)\n\n${coupon ? '🎟️ Use coupon ' + coupon + ' for extra discount!\n' : ''}👉 Order on WhatsApp: wa.me/91' + CONFIG.waNumber + '\n🔗 ${link}`;
+  out.style.display = 'block';
+  out.innerHTML =
+    '<h3 style="font-size:1rem;font-weight:800;margin-bottom:6px">✅ Ad ready — copy &amp; paste</h3>' +
+    '<div style="display:grid;gap:8px;margin-bottom:10px">' +
+      '<div><label class="small muted" style="font-weight:800">Headline</label><textarea id="maHead" rows="1" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.85rem;background:#fff;outline:none">' + esc(headline) + '</textarea></div>' +
+      '<div><label class="small muted" style="font-weight:800">Primary text</label><textarea id="maBody" rows="7" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.82rem;background:#fff;outline:none">' + esc(primary) + '</textarea></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button type="button" class="btn btn-outline btn-sm" data-copy="' + esc(primary) + '" style="width:auto">📋 Copy Ad Text</button>' +
+      '<a class="btn btn-wa btn-sm" href="' + waLink('Please promote my saree: ' + headline + ' — ' + link) + '" target="_blank" rel="noopener" style="width:auto">💬 Send to my WhatsApp</a>' +
+      '<a class="btn btn-gold btn-sm" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(link) + '" target="_blank" rel="noopener" style="width:auto">📤 Share on Facebook</a>' +
+    '</div>' +
+    '<p class="small muted" style="margin-top:10px">🔗 Tracking link: <b style="word-break:break-all">' + esc(link) + '</b> <button type="button" class="btn btn-ghost btn-sm" data-copy="' + esc(link) + '" style="width:auto;min-height:28px;padding:3px 10px">Copy</button></p>' +
+    '<p class="small muted">📷 Ad image: use <b>' + esc(p.img) + '</b> (or any of the ' + ((p.images || []).length) + ' product photos).</p>';
+}
+
+/* ============================ PUSH NOTIFICATIONS ============================ */
+let fsAbandoned = [];
+function renderPush(){
+  const body = document.getElementById('tabBody');
+  const localRec = (function(){ try{ const r = JSON.parse(localStorage.getItem('sk_abandoned') || 'null'); return r ? [r] : []; }catch(e){ return []; } })();
+  const all = (fsAbandoned || []).concat(localRec.filter(r => r && !(fsAbandoned || []).some(f => f.device === r.device)));
+  body.innerHTML =
+    '<div class="form-card"><h3>📣 Push Notifications</h3>' +
+      '<p class="small muted">Send abandoned-cart &amp; offer reminders straight to customers\' phones (needs HTTPS). ' +
+      'Subscribed visitors appear below when they leave items 30+ min.</p></div>' +
+    '<div class="form-card"><h3>🔑 Push Keys (VAPID)</h3>' +
+      '<p class="small muted">Public key is built into the site. Private key is used to sign pushes — only this browser needs it.</p>' +
+      '<textarea id="vkPriv" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;font-size:.72rem;background:#fff;outline:none;min-height:46px;font-family:monospace">' + esc(vapidPrivate()) + '</textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-outline btn-sm" id="vkSave" style="width:auto">💾 Save Key</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="vkTest" style="width:auto">🔔 Test on My Device</button>' +
+      '</div>' +
+      '<p class="small" id="vkMsg" style="margin-top:6px"></p></div>' +
+    '<div class="form-card"><h3>🧺 Abandoned Carts</h3><div id="abList"></div></div>';
+  document.getElementById('vkSave').addEventListener('click', () => {
+    saveVapidPrivate(document.getElementById('vkPriv').value.trim());
+    document.getElementById('vkMsg').innerHTML = '<b style="color:var(--green)">✅ Key saved</b>';
+  });
+  document.getElementById('vkTest').addEventListener('click', async () => {
+    const msg = document.getElementById('vkMsg');
+    try{
+      saveVapidPrivate(document.getElementById('vkPriv').value.trim());
+      const sub = await subscribePush();
+      if (!sub){ msg.innerHTML = '<b style="color:var(--red)">⚠️ Not subscribed — allow notifications & use HTTPS</b>'; return; }
+      await webPushSend(sub.toJSON(), JSON.stringify({ title: '🪡 SK Sarees', body: 'Push notifications work! You can now send cart reminders.', url: './cart.html' }));
+      msg.innerHTML = '<b style="color:var(--green)">✅ Push sent to your device!</b>';
+    }catch(e){ msg.innerHTML = '<b style="color:var(--red)">⚠️ Push service blocked from browser (' + esc(String(e.message||e).slice(0,80)) + ')</b> — use HTTPS, or send via WhatsApp instead.'; }
+  });
+  renderAbandonedList(all);
+}
+function renderAbandonedList(list){
+  const wrap = document.getElementById('abList'); if (!wrap) return;
+  if (!list.length){ wrap.innerHTML = '<p class="small muted">No abandoned carts yet — visitors who leave items 30+ min will appear here.</p>'; return; }
+  wrap.innerHTML = list.map((r, i) => {
+    const items = (r.items || []).map(it => esc(it.name) + ' ×' + it.qty).join(', ');
+    const when = r.time ? fmtDT(r.time) : '—';
+    const hasSub = !!(r.sub && r.sub.endpoint);
+    const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items + '\n\nUse coupon CART50 for ₹50 off — offer valid today! 🎉';
+    return '<div class="order-card">' +
+      '<div class="oc-top"><b>🧺 Abandoned cart</b><span class="status-pill ' + (hasSub ? 'status-delivered' : 'status-placed') + '">' + (hasSub ? '🔔 Push ready' : 'No push sub') + '</span></div>' +
+      '<div class="oc-items">' + when + (r.phone ? ' • 📱 ' + esc(r.phone) : '') + '<br>' + items + '<br><b>' + money(r.total || 0) + '</b></div>' +
+      '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-maroon btn-sm" data-pushsend="' + i + '" ' + (hasSub ? '' : 'disabled style="opacity:.5"') + '>📣 Send Push</button>' +
+        '<a class="btn btn-wa btn-sm" href="' + waLink(msg) + '" target="_blank" rel="noopener" style="width:auto">💬 WhatsApp</a>' +
+        '<a class="btn btn-outline btn-sm" href="sms:+91' + CONFIG.waNumber + '?body=' + encodeURIComponent(msg) + '" style="width:auto">📱 SMS</a>' +
+      '</div></div>';
+  }).join('');
+}
+async function sendPushTo(i){
+  const localRec = (function(){ try{ return JSON.parse(localStorage.getItem('sk_abandoned') || 'null'); }catch(e){ return null; } })();
+  const all = (fsAbandoned || []).concat(localRec ? [localRec] : []);
+  const r = all[i]; if (!r) return;
+  const items = (r.items || []).map(it => esc(it.name) + ' ×' + it.qty).join(', ');
+  const payload = JSON.stringify({ title: '🧺 Your saree cart is waiting!', body: items + ' — use coupon CART50 for ₹50 off.', url: './cart.html' });
+  try{
+    if (!(r.sub && r.sub.endpoint)) throw new Error('No push subscription');
+    await webPushSend(r.sub, payload);
+    toast('📣 Push sent!');
+  }catch(e){
+    toast('⚠️ Could not send push — ' + String(e.message || e).slice(0, 40));
+  }
 }
 
 /* ============================ REVIEWS ============================ */
@@ -519,6 +672,9 @@ document.addEventListener('click', e => {
   }
   const delr = e.target.closest('[data-delreview]');
   if (delr){ deleteReview(delr.dataset.delreview); }
+  /* send push to an abandoned cart */
+  const ps = e.target.closest('[data-pushsend]');
+  if (ps){ sendPushTo(+ps.dataset.pushsend); return; }
   /* coupon toggle / delete */
   const cpt = e.target.closest('[data-cp-toggle]');
   if (cpt){ couponAct(+cpt.dataset.cpToggle, false); return; }
