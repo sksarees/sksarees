@@ -834,6 +834,49 @@ function renderOrdersPage(){
     const o = Store.orders.find(x => x.id === placedId);
     if (o) setTimeout(() => renderOrderComplete(o, q.get('wa') === '1'), 300);
   }
+  /* ---- LIVE STATUS: when the ADMIN changes an order status in Firestore,
+     this customer's page updates INSTANTLY (no refresh). Only this device's
+     orders are merged, so isolation is preserved. ---- */
+  if (FS.enabled()){
+    const myDev = deviceId();
+    let prevStatuses = {};
+    Store.orders.forEach(o => { prevStatuses[o.id] = o.status; });
+    FS.listenOrders(list => {
+      if (!list || !list.length) return;
+      let changed = false;
+      list.forEach(f => {
+        if (!f || !f.id) return;
+        const localIdx = Store.orders.findIndex(x => x.id === f.id);
+        if (localIdx >= 0){
+          const prev = Store.orders[localIdx].status;
+          Store.orders[localIdx] = Object.assign({}, Store.orders[localIdx], {
+            status: f.status || Store.orders[localIdx].status,
+            updatedAt: f.updatedAt, deliverBy: f.deliverBy,
+            dispatchedAt: f.dispatchedAt, deliveredAt: f.deliveredAt,
+            totals: f.totals || Store.orders[localIdx].totals,
+          });
+          if (prev !== Store.orders[localIdx].status){
+            changed = true;
+            /* toast the status change to the customer */
+            try{ toast('📦 Order ' + f.id + ' → ' + String(Store.orders[localIdx].status || '').replace('_',' ')); }catch(e){}
+          }
+        } else if (f.device === myDev && f.status){
+          /* this device's cloud order not in local list yet — add it */
+          Store.orders.unshift(f);
+          changed = true;
+        }
+      });
+      if (changed){
+        Store.saveOrders();
+        renderOrderList();
+        /* refresh the open detail (if any) so its status-track updates too */
+        if (openDetailId){
+          const o = Store.orders.find(x => x.id === openDetailId);
+          if (o) showDetail(o);
+        }
+      }
+    });
+  }
 }
 function statusTrack(o){
   const st = o.status || 'placed';
@@ -912,7 +955,24 @@ function renderOrderList(){
 }
 function trackById(id){
   const local = myOrders().find(o => o.id.toLowerCase() === String(id).toLowerCase());
-  if (local){ openDetailId = local.id; showDetail(local); return; }
+  if (local){
+    openDetailId = local.id; showDetail(local);
+    /* live: if the admin updates this order's status, refresh the detail */
+    if (FS.enabled()){
+      FS.listenOrder(local.id, doc => {
+        if (!doc) return;
+        const i = Store.orders.findIndex(x => x.id === local.id);
+        if (i >= 0){
+          const prev = Store.orders[i].status;
+          Store.orders[i] = Object.assign({}, Store.orders[i], { status: doc.status || prev, deliverBy: doc.deliverBy, dispatchedAt: doc.dispatchedAt, deliveredAt: doc.deliveredAt });
+          Store.saveOrders();
+          if (openDetailId === local.id) showDetail(Store.orders[i]);
+          if (prev !== Store.orders[i].status){ try{ toast('📦 Order ' + local.id + ' → ' + String(Store.orders[i].status || '').replace('_',' ')); }catch(e){} }
+        }
+      });
+    }
+    return;
+  }
   if (FS.enabled()){
     const wrap = document.getElementById('trackDetail'); if (wrap) wrap.innerHTML = '<div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Checking cloud…</b></div>';
     FS.getOrder(id).then(doc => { if (doc){ openDetailId = doc.id || id; showDetail(doc); } else { openDetailId = null; showDetail(null); } });

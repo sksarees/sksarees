@@ -12,6 +12,17 @@ Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page
 - **WhatsApp logo icon** — every WhatsApp button (buy, share, cart, floating chat, admin templates) now shows the **official WhatsApp SVG logo** instead of the 💬 emoji.
 - **Engaging prefilled WhatsApp messages** — product/cart/share messages are friendlier and point customers to the website (www.sksaree.shop), so reach grows.
 
+## 🔴 Live Order Status (admin → customer, instant)
+
+When the **admin changes an order status** (Confirmed / Shipped / Delivered / Payment Pending), the **customer's open `orders.html` page updates instantly** — no refresh needed:
+
+- A live Firestore listener on the customer page merges **only this device's orders** (isolation is preserved — other customers' orders never appear).
+- The order card pill + status-track change immediately, and the **open detail view** refreshes too (via `listenOrder`).
+- A toast shows the change ("📦 Order ORD-… → shipped") so the customer notices.
+- The **track-by-ID** detail also live-updates if the admin changes the status while the customer is viewing it.
+
+**Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
+
 ## 💰 Reseller / Share & Earn program (full loop)
 
 - **Index banner** — "Share & Earn — Reseller Program" on the home page: customers get **₹50 off** with coupon **`SHARE50`**; resellers earn **₹50 margin per order** (`CONFIG.resellerMargin`).
