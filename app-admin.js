@@ -42,6 +42,7 @@ function renderLogin(){
 let adminTab = 'orders';
 let orderFilter = 'all';
 let orderPage = 1;
+let orderSearch = '';   /* Orders tab: search query (id / customer / phone) */
 const ORDER_PAGE_SIZE = 10;
 let prodSearch = '';         /* Products tab: search query */
 let prodPage = 1;            /* Products tab: pagination */
@@ -60,6 +61,7 @@ function renderAdmin(){
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
       '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
       '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
+      '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Feed</button>' +
       '<button type="button" class="admin-tab" id="tabResellers">💰 Resellers</button>' +
       '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
       '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
@@ -78,6 +80,7 @@ function renderAdmin(){
   document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboard'));
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
+  document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
   document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
   document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
@@ -120,7 +123,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabResellers','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabResellers','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -131,6 +134,7 @@ function switchTab(t){
     else if (t === 'reviews') renderReviews();
     else if (t === 'coupons') renderCoupons();
     else if (t === 'resellers') renderResellers();
+    else if (t === 'feed') renderFeed();
     else if (t === 'push') renderPush();
     else if (t === 'metaads') renderMetaAds();
     else if (t === 'dashboard') renderDashboard();
@@ -138,32 +142,71 @@ function switchTab(t){
 }
 
 function renderDashboard(){
-  const o = Store.orders;
-  const sales = o.reduce((s, x) => s + ((x.totals || {}).grand || 0), 0);
+  const all = adminAllOrders();
+  const o = all;
+  const sales = o.reduce((s2, x) => s2 + ((x.totals || {}).grand || 0), 0);
+  const dayMap = {}; const weekMap = {};
+  o.forEach(x => {
+    const d = new Date(x.date || x.createdAt || 0);
+    if (isNaN(d.getTime())) return;
+    const dayKey = d.toISOString().slice(0, 10);
+    dayMap[dayKey] = (dayMap[dayKey] || 0) + ((x.totals || {}).grand || 0);
+    const wk = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d - wk) / 864e5) + wk.getDay() + 1) / 7);
+    const wkKey = d.getFullYear() + '-W' + String(weekNo).padStart(2, '0');
+    weekMap[wkKey] = (weekMap[wkKey] || 0) + ((x.totals || {}).grand || 0);
+  });
+  const dayKeys = Object.keys(dayMap).sort().slice(-14);
+  const weekKeys = Object.keys(weekMap).sort().slice(-8);
+  const barChart = (keys, map) => {
+    const vals = keys.map(k => map[k] || 0);
+    const max = Math.max.apply(null, vals.concat([1]));
+    return '<div style="display:flex;align-items:flex-end;gap:6px;height:130px;padding-top:8px">' + keys.map((k, i) => {
+      const h = Math.max(3, Math.round((vals[i] / max) * 110));
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0"><div style="width:100%;background:linear-gradient(180deg,var(--maroon),var(--maroon-d));border-radius:6px 6px 0 0;height:' + h + 'px" title="' + esc(k) + ': ' + money(vals[i]) + '"></div><span style="font-size:.58rem;color:var(--muted);white-space:nowrap;overflow:hidden;max-width:100%">' + esc(k.slice(5)) + '</span></div>';
+    }).join('') + '</div>';
+  };
+  const prodMap = {};
+  o.forEach(x => (x.items || []).forEach(i => {
+    prodMap[i.id] = prodMap[i.id] || { name: i.name, qty: 0, rev: 0 };
+    prodMap[i.id].qty += (i.qty || 1);
+    prodMap[i.id].rev += ((i.price || 0) * (i.qty || 1));
+  }));
+  const topProds = Object.values(prodMap).sort((a, b) => b.rev - a.rev).slice(0, 8);
+  const rsMap = {};
+  o.forEach(x => { if (x.reseller && x.reseller.code){ rsMap[x.reseller.code] = rsMap[x.reseller.code] || { name: x.reseller.name, phone: x.reseller.phone, orders: 0, margin: 0 }; rsMap[x.reseller.code].orders += 1; rsMap[x.reseller.code].margin += (x.margin || 0); } });
+  const topRs = Object.values(rsMap).sort((a, b) => b.margin - a.margin).slice(0, 8);
   document.getElementById('tabBody').innerHTML =
     '<div class="stat-row">' +
-      '<div class="stat-chip"><b>' + o.length + '</b><small>Total</small></div>' +
+      '<div class="stat-chip"><b>' + o.length + '</b><small>Orders</small></div>' +
+      '<div class="stat-chip"><b>₹' + sales.toLocaleString('en-IN') + '</b><small>Sales</small></div>' +
       '<div class="stat-chip"><b>' + o.filter(x => (x.status || 'placed') === 'placed').length + '</b><small>New</small></div>' +
+      '<div class="stat-chip"><b>' + o.filter(x => (x.status || 'placed') === 'pending').length + '</b><small>Pending</small></div>' +
       '<div class="stat-chip"><b>' + o.filter(x => (x.status || 'placed') === 'confirmed').length + '</b><small>Confirmed</small></div>' +
       '<div class="stat-chip"><b>' + o.filter(x => (x.status || 'placed') === 'shipped').length + '</b><small>Shipped</small></div>' +
       '<div class="stat-chip"><b>' + o.filter(x => (x.status || 'placed') === 'delivered').length + '</b><small>Delivered</small></div>' +
-      '<div class="stat-chip"><b>₹' + sales.toLocaleString('en-IN') + '</b><small>Sales</small></div>' +
+    '</div>' +
+    '<div class="form-card" style="margin-top:14px"><h3>📈 Revenue — last 14 days</h3>' + barChart(dayKeys, dayMap) + '</div>' +
+    '<div class="form-card" style="margin-top:14px"><h3>📊 Revenue — last 8 weeks</h3>' + barChart(weekKeys, weekMap) + '</div>' +
+    '<div style="display:grid;gap:14px;grid-template-columns:1fr;margin-top:14px">' +
+      '<div class="form-card"><h3>🏆 Top Products</h3>' + (topProds.length
+        ? topProds.map((p, i) => '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:7px 0;border-bottom:1px dashed var(--line)"><span><b>' + (i + 1) + '.</b> ' + esc(p.name) + ' <span class="muted">×' + p.qty + '</span></span><b>' + money(p.rev) + '</b></div>').join('')
+        : '<p class="small muted">No sales yet.</p>') + '</div>' +
+      '<div class="form-card"><h3>💰 Best Resellers</h3>' + (topRs.length
+        ? topRs.map((r, i) => '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:7px 0;border-bottom:1px dashed var(--line)"><span><b>' + (i + 1) + '.</b> ' + esc(r.name) + ' <span class="muted">' + esc(r.phone) + ' • ' + r.orders + ' orders</span></span><b style="color:var(--green)">' + money(r.margin) + '</b></div>').join('')
+        : '<p class="small muted">No reseller sales yet.</p>') + '</div>' +
     '</div>' +
     '<div class="form-card" style="margin-top:14px"><h3>🗄️ Firestore Collections</h3>' +
-      '<p class="small muted">Collections in your project: <b>admins • cart • categories • customers • inventory • orders • products • promos • reviews • settings</b></p>' +
+      '<p class="small muted">Collections in your project: <b>admins • cart • categories • counters • customers • inventory • orders • products • promos • reviews • resellers • settings</b></p>' +
       '<button type="button" class="btn btn-outline btn-sm" id="seedDb" style="width:auto;min-width:200px;margin-top:8px">🛠️ Setup / Sync Database</button>' +
       '<p class="small" id="seedMsg" style="margin-top:6px"></p></div>' +
     '<div class="form-card" style="margin-top:14px"><h3>ℹ️ How to run the store</h3>' +
       '<p class="small muted">1. Orders placed on this device appear here instantly (local + Firestore sync).<br>' +
       '2. Update status → WhatsApp the customer confirmation / delivery reminder.<br>' +
       '3. When shipped, dispatch date + ETA (7 days) auto-capture; auto-Delivered after ETA.<br>' +
-      '4. Manage products (add / bulk) and moderate reviews.</p></div>';
+      '4. Manage products (add / bulk / XML feed), coupons, resellers &amp; reviews.</p></div>';
 }
 
-let orderSearch = '';   /* Orders tab: search query (id / customer / phone) */
-
-/* Admin merged view = this device's orders + cloud orders (runtime only).
-   Shows the LAST 30 DAYS only (auto-delete policy). */
 function adminAllOrders(){
   const localMap = {};
   Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; });
@@ -550,6 +593,57 @@ function maGenerate(){
     '</div>' +
     '<p class="small muted" style="margin-top:10px">🔗 Tracking link: <b style="word-break:break-all">' + esc(link) + '</b> <button type="button" class="btn btn-ghost btn-sm" data-copy="' + esc(link) + '" style="width:auto;min-height:28px;padding:3px 10px">Copy</button></p>' +
     '<p class="small muted">📷 Ad image: use <b>' + esc(p.img) + '</b> (or any of the ' + ((p.images || []).length) + ' product photos).</p>';
+}
+
+/* ============================ CATALOG FEED (Facebook/Instagram Shopping XML) ============================ */
+function feedXml(){
+  const escX = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n<channel>\n<title>SK Sarees Catalog</title>\n<link>' + escX(location.origin + '/') + '</link>\n<description>Saree catalog for Facebook & Instagram Shopping</description>\n';
+  PRODUCTS.slice(0, 500).forEach(p => {
+    const imgAbs = /^https?:/.test(p.img) ? p.img : (location.origin + '/' + p.img.replace(/^\.?\//,''));
+    xml += '<item>\n' +
+      '<g:id>' + escX(p.id) + '</g:id>\n' +
+      '<g:title>' + escX(p.name) + '</g:title>\n' +
+      '<g:description>' + escX((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' — ' + p.color) + '</g:description>\n' +
+      '<g:link>' + escX(base + 'product.html?id=' + encodeURIComponent(p.id)) + '</g:link>\n' +
+      '<g:image_link>' + escX(imgAbs) + '</g:image_link>\n' +
+      '<g:availability>' + ((p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock') + '</g:availability>\n' +
+      '<g:price>' + p.price + ' INR</g:price>\n' +
+      (p.mrp && p.mrp > p.price ? '<g:sale_price>' + p.price + ' INR</g:sale_price>\n<g:price>' + p.mrp + ' INR</g:price>\n' : '') +
+      '<g:condition>new</g:condition>\n' +
+      '<g:brand>SK Sarees</g:brand>\n' +
+      '<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>\n' +
+      '<g:product_type>' + escX(p.cat || 'Sarees') + '</g:product_type>\n' +
+      '<g:identifier_exists>no</g:identifier_exists>\n' +
+      '</item>\n';
+  });
+  xml += '</channel>\n</rss>';
+  return xml;
+}
+function renderFeed(){
+  const body = document.getElementById('tabBody');
+  const count = PRODUCTS.length;
+  body.innerHTML =
+    '<div class="form-card"><h3>📦 Catalog Feed — Facebook / Instagram Shopping</h3>' +
+      '<p class="small muted">Generate the product XML feed, upload it to your hosting root as <b>products-feed.xml</b>, then connect it in Meta Commerce Manager (Catalog → Data source → Product feed). This lets customers <b>tag &amp; buy sarees directly on Instagram/Facebook</b>.</p>' +
+      '<p class="small" style="margin-top:6px">Currently <b>' + count + '</b> products will be in the feed.</p>' +
+      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:220px">⬇️ Download products-feed.xml</button>' +
+        '<button type="button" class="btn btn-outline" id="feedCopy" style="width:auto;min-width:200px">📋 Copy XML</button>' +
+      '</div>' +
+      '<p class="small muted" id="feedNote" style="margin-top:8px">1. Download → 2. Upload to your host (same folder as index.html) → 3. Meta Commerce Manager → add feed URL <b>' + esc(location.origin + '/products-feed.xml') + '</b>.</p></div>' +
+    '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>';
+  document.getElementById('feedDownload').addEventListener('click', () => {
+    const blob = new Blob([feedXml()], { type: 'application/xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'products-feed.xml';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('✅ products-feed.xml downloaded (' + count + ' products)');
+  });
+  document.getElementById('feedCopy').addEventListener('click', () => { copyText(feedXml()); });
 }
 
 /* ============================ RESELLERS (Share & Earn) ============================

@@ -120,7 +120,47 @@
             </div>
           </div>
         </div>
-        <p class="small muted" style="margin-top:10px">💡 Tip: share the product page link (e.g. <b>product.html?id=…&amp;ref=YOURCODE</b>) — orders get tracked to you automatically.</p>
+        <p class="small muted" style="margin-top:10px">💡 Tip: <b>?ref=YOURCODE works on EVERY page</b> — product page (<b>product.html?id=…&amp;ref=YOURCODE</b>), shop, even the home page. Any order placed after visiting your link is tracked to you automatically.</p>
+      </div>
+    </section>
+
+    <!-- ============ SEND TO YOUR CUSTOMER (prefilled) ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>📲 Send to Your Customer — Ready Message</h2></div>
+      <div class="form-card">
+        <p class="small muted" style="margin-bottom:8px">This is the message you send to <b>your customer</b> — it carries your code + the ₹50-off coupon. Just pick a saree link, paste it below, copy &amp; send. 🎯</p>
+        <textarea id="custMsg" rows="7" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px;font-size:.85rem;background:#fff;outline:none;font-family:inherit">🛍️ Hi! I found this beautiful saree on SK Sarees 🪡
+
+✨ Saree name & price here
+
+🎟️ Use my coupon code SHARE50 to get ₹50 OFF!
+🚚 Free shipping above ₹999 • COD available
+📲 Order link: PASTE_SAREE_LINK_WITH_REF
+
+Order through my link — I will help you choose the best one! 😊</textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button type="button" class="btn btn-maroon btn-sm" id="custCopy" style="width:auto;min-width:160px">📋 Copy Message</button>
+          <a class="btn btn-wa btn-sm" id="custWa" href="#" target="_blank" rel="noopener" style="width:auto;min-width:160px">💬 Send on WhatsApp</a>
+          <button type="button" class="btn btn-outline btn-sm" id="custInsert" style="width:auto;min-width:160px">🔗 Paste My Share Link</button>
+        </div>
+        <p class="small muted" id="custNote" style="margin-top:8px"></p>
+      </div>
+    </section>
+
+    <!-- ============ தமிழில் (local tone) ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>🇮🇳 தமிழில் — Share &amp; Earn</h2></div>
+      <div class="pd-block">
+        <p style="line-height:1.9;color:#4a3f38;font-size:.9rem">
+          <b>💰 சேலை படத்தை பார்த்தீங்களா? Share பண்ணுங்க, Margin சம்பாதிங்க!</b><br><br>
+          உங்க friends &amp; family-க்கு நல்ல சேலை படங்களை WhatsApp-ல அனுப்புங்க. அவங்க அந்த link-ல இருந்து order பண்ணா, <b>ஒவ்வொரு order-க்கும் உங்களுக்கு ₹50 margin</b> கிடைக்கும்! 💸<br><br>
+          🎟️ உங்க customers-க்கு <b>SHARE50</b> coupon code — <b>₹50 discount</b>!<br>
+          🚚 ₹999+ இருந்தா FREE shipping • 💵 COD available<br>
+          📱 Order எடுக்க 2 நிமிடம் மட்டும்தான்!<br><br>
+          <b>எப்படி?</b> மேலே உங்க பேரு + number குடுங்க → உங்க personal code கிடைக்கும் → எந்த product page-லயும் <b>?ref=உங்கCODE</b> சேர்த்து share பண்ணுங்க → order வந்தா margin நம்ம admin panel-ல record ஆகி, <b>GPay-ல உங்களுக்கு அனுப்புவோம்</b>! ✅<br><br>
+          <b>பணம் எப்படி வரும்?</b> Admin panel-ல உங்க பேரு, number, எத்தனை order, எவ்வளவு margin — எல்லாம் தெரியும். நீங்க GPay number குடுத்தா commission உடனே அனுப்புவோம். 🪡💛<br><br>
+          இன்னும் யோசனையா? <a href="https://wa.me/917867915699?text=Hi!%20Share%20%26%20Earn%20pattri%20Tamil%20la%20sollunga%20%F0%9F%99%8F" target="_blank" rel="noopener" style="color:var(--maroon);font-weight:800">WhatsApp-ல கேளுங்க!</a>
+        </p>
       </div>
     </section>
 
@@ -193,8 +233,9 @@ Turn your WhatsApp into income today! 😍
       document.getElementById('rsLink').value = link;
       document.getElementById('rsResult').style.display = 'block';
       document.getElementById('rsWa').setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(
-        '🪡 Hi! I am a SK Sarees reseller 🎉\n\nMy code: ' + r.code + '\nShop sarees & get ₹50 off with coupon SHARE50!\n\n👉 ' + link));
+        '🪡 Hi! I am a SK Sarees reseller 🎉\n\nMy code: ' + r.code + '\nShop sarees & get ₹50 off with coupon SHARE50!\n\n👉 ' + link + '\n\n(உங்களுக்கு இந்த link வேணா, எந்த சேலை படத்தோட ?ref=' + r.code + ' சேர்த்து அனுப்புங்க — உங்களுக்கு ₹50 margin கிடைக்கும்!)'));
       toast('✅ Reseller registered: ' + r.code);
+      if (window.refreshCustNote) window.refreshCustNote();
     });
     const copy = document.getElementById('rsCopy');
     if (copy) copy.addEventListener('click', () => {
@@ -204,6 +245,43 @@ Turn your WhatsApp into income today! 😍
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).catch(()=>{});
       toast('✅ Link copied!');
     });
+  }catch(e){}
+})();
+/* customer message: insert my share link + copy + send on WhatsApp */
+(function(){
+  try{
+    const insert = document.getElementById('custInsert');
+    const copy = document.getElementById('custCopy');
+    const wa = document.getElementById('custWa');
+    const ta = document.getElementById('custMsg');
+    const note = document.getElementById('custNote');
+    const refreshCustNote = () => {
+      if (!note) return;
+      const mine = myResellerCode();
+      note.textContent = mine
+        ? '✅ Your code: ' + mine + ' — use the "Paste My Share Link" button, or paste any product link with ?ref=' + mine + '.'
+        : '💡 Register above (Get My Share Link) first — then your code auto-fills here.';
+    };
+    refreshCustNote();
+    window.refreshCustNote = refreshCustNote;
+    if (insert && ta){
+      insert.addEventListener('click', () => {
+        /* read the reseller code AT CLICK TIME (they may join on this page) */
+        const mine = myResellerCode();
+        let link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html';
+        if (mine) link += '?ref=' + encodeURIComponent(mine);
+        ta.value = '🛍️ Hi! I found this beautiful saree on SK Sarees 🪡\n\n✨ Saree name & price here\n\n🎟️ Use my coupon code SHARE50 to get ₹50 OFF!\n🚚 Free shipping above ₹999 • COD available\n📲 Order link: ' + link + '\n\nOrder through my link — I will help you choose the best one! 😊';
+        refreshCustNote();
+        toast('✅ Share link inserted — edit & send!');
+      });
+    }
+    if (copy && ta) copy.addEventListener('click', () => {
+      ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).catch(()=>{});
+      toast('✅ Customer message copied!');
+    });
+    if (wa && ta) wa.setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(ta.value));
   }catch(e){}
 })();
 </script>

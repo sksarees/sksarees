@@ -15,6 +15,7 @@ function init(){
   try{ purgeOldOrders(90); }catch(e){}   /* user sees only last 90 days of orders */
   try{ setTimeout(maybeAutoDeliver, 2000); setInterval(maybeAutoDeliver, 30000); }catch(e){}
   try{ Sync.run(); }catch(e){}
+  try{ setTimeout(showPriceDrops, 3500); }catch(e){}   /* wishlist price-drop alert */
   const page = document.body.dataset.page;
   try{
     if (page === 'home') renderHome();
@@ -25,6 +26,7 @@ function init(){
     else if (page === 'orders') renderOrdersPage();
     else if (page === 'profile') renderProfilePage();
   }catch(e){ console.warn('page render error', e); }
+  try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
 }
 document.addEventListener('DOMContentLoaded', init);
 
@@ -68,15 +70,15 @@ function renderHome(){
   const deals = PRODUCTS.filter(p => offPct(p) >= 35).slice(0, 4);
   app.innerHTML =
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
-      '<span class="hero-chip">🔥 Aadi Festival Sale — Up to 40% OFF</span>' +
-      '<h1>Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span></h1>' +
-      '<p>Authentic Kanchipuram silk, soft cotton &amp; wedding sarees. Order in 2 minutes — pay by UPI or Cash on Delivery.</p>' +
+      '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
+      '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
+      '<p>' + (lang === 'ta' ? t('heroSub') : 'Authentic Kanchipuram silk, soft cotton &amp; wedding sarees. Order in 2 minutes — pay by UPI or Cash on Delivery.') + '</p>' +
       '<div class="hero-ctas">' +
-        '<a class="btn btn-gold" href="shop.html">🛍️ Shop Best Sellers</a>' +
+        '<a class="btn btn-gold" href="shop.html">🛍️ ' + (lang === 'ta' ? t('shopBest') : 'Shop Best Sellers') + '</a>' +
         '<a class="btn btn-wa" href="' + waLink('Hi! I would like to see your saree collection & current offers.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp</a>' +
       '</div>' +
-      '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> above ₹999</span><span>💵 <b>COD</b> Available</span><span>⏱ <b>Fast</b> Delivery</span></div>' +
-      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search by saree name, SKU or colour…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
+      '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>👥 <b id="statV">0</b> Visitors</span><span>📦 <b id="statO">0</b> Orders</span><span>🚚 <b>Free</b> above ₹999</span></div>' +
+      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 ' + (lang === 'ta' ? t('searchHero') : 'Search by saree name, SKU or colour…') + '" autocomplete="off"><button type="submit" class="btn btn-gold">' + (lang === 'ta' ? t('search') : 'Search') + '</button></form>' +
     '</div></section>' +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
@@ -85,7 +87,7 @@ function renderHome(){
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
     '<div class="wrap">' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>Shop by Category</h2><a href="shop.html">View all →</a></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
           const count = PRODUCTS.filter(p => p.cat === c.slug).length;
           return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
@@ -93,11 +95,11 @@ function renderHome(){
             '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
             '<span class="ct-count">' + count + ' designs • ' + c.blurb + '</span></div></a>';
         }).join('') + '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ Best Sellers</h2><a href="shop.html">View all →</a></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ ' + (lang === 'ta' ? t('bestSellers') : 'Best Sellers') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="prow">' + best.map(cardHTML).join('') + '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ New Arrivals</h2><a href="shop.html">View all →</a></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ ' + (lang === 'ta' ? t('newIn') : 'New Arrivals') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="prow">' + fresh.map(cardHTML).join('') + '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 Today\'s Deals</h2><a href="shop.html">View all →</a></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 ' + (lang === 'ta' ? t('deals') : 'Today\'s Deals') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="prow">' + deals.map(cardHTML).join('') + '</div></section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎬 Video Catalog</h2>' +
         '<a href="' + esc(CONFIG.social.youtube) + '" target="_blank" rel="noopener">Watch on YouTube →</a></div>' +
@@ -113,7 +115,7 @@ function renderHome(){
         '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
           '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
         '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 What Our Customers Say</h2></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 ' + (lang === 'ta' ? t('reviews') : 'What Our Customers Say') + '</h2></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
           '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
           '<div><b>' + esc(r.name) + '</b><small>' + esc(r.place) + ' • Customer review ⭐</small></div></div>' +
@@ -130,9 +132,10 @@ function renderHome(){
         '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:180px" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Write a Review</a>' +
         '<button type="button" class="btn btn-outline btn-sm" id="showMapBtn" style="width:auto;min-width:180px">📍 Show Store on Map</button>' +
         '</div><div id="gmapBox" style="margin-top:10px;display:none"></div></div></div></section>' +
-      '<section class="sec faq"><div class="sec-head"><h2><span class="tick"></span>❓ FAQ</h2></div>' +
+      '<section class="sec faq"><div class="sec-head"><h2><span class="tick"></span>❓ ' + (lang === 'ta' ? t('faq') : 'FAQ') + '</h2></div>' +
         FAQ.map(f => '<details><summary>' + esc(f.q) + '</summary><p>' + esc(f.a) + '</p></details>').join('') + '</section>' +
     '</div>';
+  try{ renderStatsText(); }catch(e){}   /* hero counters */
   /* Google map loads only when the user taps "Show Store on Map" (fast + light) */
   try{
     const mb = document.getElementById('showMapBtn');
@@ -246,8 +249,9 @@ function renderProduct(){
   const id = new URLSearchParams(location.search).get('id');
   let p = byId(id);
   if (!p){
-    /* Not in the local catalog yet — try Firestore before showing "not found".
-       The product may exist in the cloud (Firestore products collection). */
+    /* Not in the local catalog yet — try Firestore (pull + one-time get) before
+       showing "not found". The product may exist in the cloud. */
+    window.__pdTry = (window.__pdTry || 0) + 1;
     let done = false;
     const finish = (prod, msg) => {
       if (done) return; done = true;
@@ -262,24 +266,37 @@ function renderProduct(){
           '<button type="button" class="btn btn-outline" onclick="renderProduct()">🔄 Try Again</button></div></div></div>';
       }
     };
+    /* keep showing "Loading product…" while we fetch the catalog from Firestore */
     app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b>' +
-      '<span class="muted small">Checking our collection</span></div></div>';
+      '<span class="muted small">Fetching our saree collection from the cloud — hang on! 🌸</span></div></div>';
     if (FS.enabled()){
+      /* 1) pull all active Firestore products first (also re-renders when done) */
+      try{ Sync.pullProducts(); }catch(e){}
+      /* 2) one-time get by id/sku */
       FS.getProduct(id).then(doc => {
         if (doc){
           try{ finish(normalizeProduct(doc)); }
           catch(err){ finish(null); }
         } else {
-          finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
+          /* retry a couple of times before giving up (slow cloud) */
+          if (window.__pdTry < 3){
+            setTimeout(() => { if (!done) renderProduct(); }, 1200);
+          } else {
+            finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
+          }
         }
-      }).catch(() => finish(null));
-      /* safety: never leave the spinner hanging if the cloud is slow/offline */
-      setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 5000);
+      }).catch(() => {
+        if (window.__pdTry < 3){ setTimeout(() => { if (!done) renderProduct(); }, 1200); }
+        else finish(null, 'Cloud sync is not responding right now — please check your internet and try again.');
+      });
+      /* safety: never leave the spinner hanging */
+      setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 9000);
     } else {
       finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
     }
     return;
   }
+  window.__pdTry = 0;
   const off = offPct(p), cat = catOf(p.cat);
   const eta = deliveryEstimate();
   try{ if (window.REC) REC.trackView(p.id); }catch(e){}
@@ -356,6 +373,16 @@ function renderProduct(){
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
+        '<div class="earn-box" id="earnBox">' +
+          '<b>💰 Share &amp; Earn ₹' + (CONFIG.resellerMargin || 50) + '</b>' +
+          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ₹' + (CONFIG.resellerMargin || 50) + ' margin</b>! Your customers also get <b>₹50 off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
+          '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
+            '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ₹' + (CONFIG.resellerMargin || 50) + '</button>' +
+            '<button type="button" class="btn btn-outline btn-sm" id="earnCopy" style="flex:1;min-width:130px">📋 Copy Share Link</button>' +
+            '<a class="btn btn-ghost btn-sm" id="earnCode" href="share-earn.html" style="flex:1;min-width:130px">🔗 Get My Code</a>' +
+          '</div>' +
+          '<p class="small muted" id="earnNote" style="margin-top:6px"></p>' +
+        '</div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Reviews &amp; Comments</h3>' + revs +
           '<div class="rev-form" style="background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:13px;margin-top:12px;display:grid;gap:9px">' +
             '<b>✍️ Write a review</b>' +
@@ -376,6 +403,24 @@ function renderProduct(){
   document.title = p.name + ' — SK Sarees';
   /* AI-style similar-saree recommendations */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
+  /* 💰 Share & Earn box under the product */
+  try{
+    const earnWa = document.getElementById('earnWa');
+    const earnCopy = document.getElementById('earnCopy');
+    const note = document.getElementById('earnNote');
+    const mine = myResellerCode();
+    if (earnWa) earnWa.addEventListener('click', () => shareWaProduct(p));
+    if (earnCopy) earnCopy.addEventListener('click', () => { copyText(shareUrl(p)); });
+    if (note){
+      if (mine){
+        note.innerHTML = '✅ Your reseller code: <b>' + esc(mine) + '</b> — your share links carry <b>?ref=' + esc(mine) + '</b> on every page.';
+        const codeLink = document.getElementById('earnCode');
+        if (codeLink) codeLink.textContent = '🔗 My Code: ' + esc(mine);
+      } else {
+        note.innerHTML = '🔗 No code yet? Tap <b>Get My Code</b> (30 seconds) — then every share you send earns you ₹' + (CONFIG.resellerMargin || 50) + '!';
+      }
+    }
+  }catch(e){}
   /* qty buttons — auto-update the total amount EVERYWHERE (main + sticky bar)
      and pass the qty along when using "Buy Now" (main + mobile floating bar) */
   const qtyRefresh = () => {
@@ -492,11 +537,15 @@ function renderCartPage(){
         '</p>' : (co.data.coupon ? '<p class="small muted" style="margin-top:6px">Coupon invalid, expired or fully used</p>' : '')) + '</div>' +
       '<div class="row"><span>Items total</span><b>' + money(t) + '</b></div>' +
       (disc > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(disc) + '</b></div>' : '') +
+      (n >= (CONFIG.bundleCount || 2) ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(CONFIG.bundleOff || 0) + '</b></div>' : '') +
       '<div class="row"><span>Shipping</span><b style="color:' + (sh ? 'inherit' : 'var(--green)') + '">' + (sh ? money(sh) : 'FREE') + '</b></div>' +
       '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc) + sh) + '</b></div>' +
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
+      (n < (CONFIG.bundleCount || 2)
+        ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
+        : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
       '<p class="small muted" style="margin-top:8px">🚚 Shipping per saree: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others (' + n + ' saree' + (n > 1 ? 's' : '') + ' = <b>' + money(sh) + '</b>) · <b>FREE above ₹999</b>.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
@@ -536,8 +585,10 @@ function coTotals(){
   const codFee = co.data.payment === 'cod' ? CONFIG.codFee : 0;
   const shipping = shippingFor(itemsTotal, co.data.pincode, cartCount());
   const discount = couponDiscount(co.data.coupon, itemsTotal);
-  const grand = Math.max(0, itemsTotal - discount) + codFee + shipping;
-  return { itemsTotal, codFee, shipping, discount, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
+  const bundle = bundleDiscount();               /* buy 2+ → ₹50 off */
+  const totalDisc = discount + bundle;
+  const grand = Math.max(0, itemsTotal - totalDisc) + codFee + shipping;
+  return { itemsTotal, codFee, shipping, discount, bundle, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
@@ -575,6 +626,7 @@ function drawCo(){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card"><h3>🧾 Review Your Order</h3>' + itemLines +
         (t.discount > 0 ? '<div class="row"><span>Coupon discount (' + esc(co.data.coupon) + ')</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
+        (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(t.bundle) + '</b></div>' : '') +
         '<div class="row"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
         (upiPay ? '' : '<div class="row"><span>COD booking (pay now)</span><b>+' + money(booking) + '</b></div>') +
         '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
@@ -675,6 +727,7 @@ function doPlaceOrder(payment){
     const orderCount = order.items.reduce((s, i) => s + (i.qty || 1), 0);
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
+    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     Store.saveProfile();
@@ -708,6 +761,7 @@ function doWaOrder(){
     const couponUsed = d.coupon || '';
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
+    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     Store.saveProfile();
@@ -750,6 +804,7 @@ function renderOrderComplete(o, viaWa){
     '</div>' +
     '<div class="summary" style="margin-top:6px">' + items +
       (t.discount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Coupon discount</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
+      (t.bundle > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>🎁 Bundle deal</span><b style="color:var(--green)">−' + money(t.bundle) + '</b></div>' : '') +
       '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
       (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>Total (' + (o.payment || 'upi').toUpperCase() + ')</span><b>' + money(t.grand) + '</b></div>' +

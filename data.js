@@ -5,6 +5,7 @@
 'use strict';
 
 /* ============================ 1. CONFIG ============================ */
+const SVG_WA = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
 const CONFIG = {
   storeName : 'SK SAREES',
   waNumber  : '917867915699',
@@ -18,6 +19,10 @@ const CONFIG = {
   shipFee       : 30,
   cartCoupon    : { code:'CART50', off:50, label:'Forgot your cart? Get ₹50 off!' },
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
+  /* 🛒 bundle deal: buy 2+ sarees → ₹50 off */
+  bundleCount : 2, bundleOff : 50,
+  /* 🌙 dark mode default */
+  darkDefault : false,
   dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
   /* 💰 Reseller / Share & Earn program: margin paid per order + promo coupon */
   resellerMargin : 50,               // ₹ margin the reseller earns per confirmed order
@@ -117,9 +122,32 @@ const CATEGORIES = [
    (images/products/), so they show on any hosting and in previews with zero
    setup. Firestore products may still use their own remote URLs; the global
    error-fallback below converts any failed image → local copy → placeholder. */
-const img = file => 'images/products/' + file;
-/* Local copy fallback target (same folder) */
-const imgLocal = file => 'images/products/' + file;
+/* WebP support probe (auto, once) */
+let __webpOk = null;
+function webpOk(){
+  if (__webpOk !== null) return __webpOk;
+  try{
+    if (typeof window === 'undefined' || !window.Image) return false;
+    const im = new Image();
+    im.src = 'data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=';
+    __webpOk = im.width === 2 || im.height === 2;
+    if (!__webpOk){ /* some engines resolve lazily */ setTimeout(()=>{ __webpOk = (im.width === 2 || im.height === 2); }, 300); }
+  }catch(e){ __webpOk = false; }
+  return __webpOk === true;
+}
+/* product image URL — uses .webp when the browser supports it (faster), else .jpg */
+const img = file => {
+  const base = 'images/products/';
+  const clean = String(file || '').replace(/^.*[\/]/, '');
+  if (webpOk()){ const w = base + clean.replace(/\.jpe?g$/i, '.webp'); return w; }
+  return base + clean;
+};
+/* local fallback: try the original extension first, then the other format */
+const imgLocal = file => {
+  const clean = String(file || '').replace(/^.*[\/]/, '');
+  if (/^[^/]*$/.test(clean)) return 'images/products/' + clean;
+  return clean;
+};
 /* Branded placeholder — used only when BOTH remote and local copies fail
    (e.g. offline preview). Never shows a broken image icon. */
 const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
@@ -157,8 +185,14 @@ try{
     const cur = String(el.src);
     if (cur === IMG_PLACEHOLDER || cur.indexOf('data:image/svg+xml') === 0) return;
     const n = +(el.dataset.fbk || 0);
-    if (n >= 1){ el.src = IMG_PLACEHOLDER; return; }
-    el.dataset.fbk = '1';
+    if (n >= 2){ el.src = IMG_PLACEHOLDER; return; }
+    el.dataset.fbk = String(n + 1);
+    /* .webp failed → try the .jpg twin, then placeholder */
+    if (cur.indexOf('.webp') !== -1){
+      const m = cur.match(/\/images\/products\/([^/?#]+)\.webp/);
+      el.src = m ? 'images/products/' + m[1] + '.jpg' : IMG_PLACEHOLDER;
+      return;
+    }
     const m = cur.match(/\/images\/products\/([^/?#]+)/);
     el.src = m ? imgLocal(m[1]) : IMG_PLACEHOLDER;
   }, true);
@@ -195,10 +229,28 @@ const VARIANTS = [
   { color:'Emerald', off:0 }, { color:'Royal Blue', off:5 }, { color:'Wine', off:8 },
   { color:'Peacock', off:4 }, { color:'Champagne', off:10 }, { color:'Sage', off:6 },
 ];
+/* sample/demo product id check (old demo catalog) — used to keep caches clean */
+function isSampleId(id){
+  try{
+    if (BASE.some(b => b.id === id)) return true;
+    return /-v[123]$/.test(String(id)) && BASE.some(b => id.indexOf(b.id) === 0);
+  }catch(e){ return false; }
+}
 let PRODUCTS = (() => {
   /* 📦 CATALOG SOURCE: real products come from the ADMIN (sk_products) and
      FIRESTORE (sk_products_cloud cache). The demo BASE catalog in data.js is
      REMOVED — enable it only for tests with window.__KEEP_BASE = true. */
+  /* SAMPLE/DEMO product ids (from the old demo catalog) are always filtered
+     out of local caches so ONLY real Firestore products ever show. */
+  const SAMPLE_IDS = (function(){
+    const set = {};
+    try{
+      BASE.forEach(b => { set[b.id] = 1; });
+      BASE.forEach(b => { for (let i = 1; i <= 3; i++) set[b.id + '-v' + i] = 1; });
+    }catch(e){}
+    return set;
+  })();
+  const notSample = p => p && p.id && !SAMPLE_IDS[p.id];
   let built = [];
   if (window.__KEEP_BASE){
     built = BASE.map(b => Object.assign({}, b));
@@ -220,7 +272,7 @@ let PRODUCTS = (() => {
     /* auto-SKU for every catalog product: SK + 5 digits, sequential (SK10001…) */
     built = built.map((p, i) => Object.assign({}, p, { sku: p.sku || ('SK' + String(10000 + i + 1)) }));
   }
-  /* 1. Admin edits (sk_products) override everything */
+  /* 1. Admin edits (sk_products) override everything — sample ids removed */
   try{
     const custom = JSON.parse(localStorage.getItem('sk_products'));
     if (Array.isArray(custom) && custom.length){
@@ -228,25 +280,27 @@ let PRODUCTS = (() => {
       try{
         const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
         if (Array.isArray(cached) && cached.length){
-          cached.forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
+          cached.filter(notSample).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
         }
       }catch(e){}
-      return custom;
+      return custom.filter(notSample);
     }
   }catch(e){}
-  /* 2. Cached Firestore products merge silently into the base catalog —
-     so cloud-only products appear instantly on every visit, no network needed */
+  /* 2. Cached Firestore products merge silently — so cloud-only products
+     appear instantly on every visit, no network needed (samples filtered) */
   try{
     const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
     if (Array.isArray(cached) && cached.length){
-      cached.forEach(cp => {
+      cached.filter(notSample).forEach(cp => {
         const np = normalizeProduct(cp);
         const i = built.findIndex(x => x.id === np.id);
         if (i >= 0) built[i] = np; else built.unshift(np);
       });
     }
   }catch(e){}
-  return built;
+  /* when tests enable __KEEP_BASE, keep the demo catalog as-is; in production
+     only real (non-sample) products from admin/Firestore caches are shown */
+  return window.__KEEP_BASE ? built : built.filter(notSample);
 })();
 function saveProducts(list){
   PRODUCTS = list;
@@ -607,8 +661,9 @@ function productUrl(p){
   try{ return location.origin + location.pathname.replace(/[^/]*$/, '') + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){ return 'product.html?id=' + encodeURIComponent(p.id); }
 }
 function waProductMsg(p){
-  /* absolute product URL so the customer can tap & see the saree */
-  const url = productUrl(p);
+  /* absolute product URL so the customer can tap & see the saree;
+     if the sharer is a reseller the link carries ?ref=CODE (any page) */
+  const url = shareUrl(p);
   const off = offPct(p);
   return `🪡 Hi! I found this beautiful saree on SK Sarees 🛍️\n\n✨ ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n📱 Order in 2 minutes — COD & UPI available, fast delivery!\n👉 ${url}\n\nIs it available? Please confirm 😊`;
 }
@@ -766,6 +821,7 @@ function addReseller(name, phone){
   const r = { code: makeResellerCode(name, ph), name: String(name || '').trim(), phone: ph, date: Date.now(), orders: 0, margin: 0 };
   list.push(r);
   saveResellers(list);
+  try{ localStorage.setItem('sk_my_reseller', r.code); }catch(e){}   /* this device is a reseller now */
   try{
     if (FS.enabled()){ FS._getDb().then(db => { if (db) db.collection('resellers').doc(r.code).set(r, { merge: true }).catch(()=>{}); }).catch(()=>{}); }
   }catch(e){}
@@ -775,6 +831,17 @@ function resellerByCode(code){
   if (!code) return null;
   const s = String(code).trim().toUpperCase();
   return getResellers().find(r => String(r.code).trim().toUpperCase() === s) || null;
+}
+/* the reseller's OWN code (this visitor registered as a reseller) */
+function myResellerCode(){
+  try{ const c = localStorage.getItem('sk_my_reseller'); return c || ''; }catch(e){ return ''; }
+}
+/* product share URL that carries the reseller's ?ref= on ANY page */
+function shareUrl(p){
+  const base = productUrl(p);
+  const mine = myResellerCode();
+  if (mine) return base + (base.indexOf('?') === -1 ? '?' : '&') + 'ref=' + encodeURIComponent(mine);
+  return base;
 }
 /* capture ?ref= from the URL on any page (used by orders placed later) */
 function readRef(){
@@ -977,6 +1044,101 @@ function saveAbandonedRecord(){
   }catch(e){}
 }
 
+/* ============================ 9f. VISITOR + ORDER COUNTERS ============================
+   · Visitors: bumped once per device on first visit; Firestore increments a
+     shared counter (counters/site) so the total grows across all devices.
+   · Orders: local orders + cloud orders (best effort, updates live).
+   Shown in the hero trust strip and the footer. */
+const Stats = {
+  visitors: 0,
+  orders: 0,
+  init(){
+    try{ this.visitors = +(localStorage.getItem('sk_visitors') || 0); }catch(e){}
+    try{
+      if (!localStorage.getItem('sk_visitor_done')){
+        localStorage.setItem('sk_visitor_done', '1');
+        this.visitors += 1;
+        try{ localStorage.setItem('sk_visitors', String(this.visitors)); }catch(e){}
+        try{
+          if (FS.enabled()){
+            FS._getDb().then(db => {
+              if (!db) return;
+              db.collection('counters').doc('site').set({ visitors: window.firebase.firestore.FieldValue.increment(1), updatedAt: Date.now() }, { merge: true }).catch(() => {});
+            }).catch(() => {});
+          }
+        }catch(e){}
+      }
+    }catch(e){}
+    this.refreshOrders();
+    /* live cloud totals (when Firestore is on) */
+    try{
+      if (FS.enabled()){
+        FS._getDb().then(db => {
+          if (!db) return;
+          db.collection('counters').doc('site').onSnapshot(snap => {
+            if (!snap.exists) return;
+            const d = snap.data() || {};
+            if (d.visitors) this.visitors = d.visitors;
+            if (d.orders) this.orders = d.orders;
+            renderStatsText();
+          }, () => {});
+          db.collection('orders').get().then(snap => { this.orders = (snap.size || 0) + Store.orders.length; renderStatsText(); }).catch(() => {});
+        }).catch(() => {});
+      }
+    }catch(e){}
+  },
+  refreshOrders(){
+    try{ this.orders = Store.orders.length; }catch(e){}
+    try{ if (typeof fsOrders !== 'undefined' && fsOrders) this.orders = Store.orders.length + fsOrders.length; }catch(e){}
+  },
+  text(){ return '👥 ' + (this.visitors || 0).toLocaleString('en-IN') + '+ visitors · 📦 ' + (this.orders || 0).toLocaleString('en-IN') + '+ orders'; }
+};
+function renderStatsText(){
+  try{
+    const v = document.getElementById('statV'); if (v) v.textContent = (Stats.visitors || 0).toLocaleString('en-IN');
+    const o = document.getElementById('statO'); if (o) o.textContent = (Stats.orders || 0).toLocaleString('en-IN');
+    const t = document.getElementById('siteStats'); if (t) t.textContent = '👥 ' + (Stats.visitors || 0).toLocaleString('en-IN') + '+ visitors · 📦 ' + (Stats.orders || 0).toLocaleString('en-IN') + '+ orders';
+  }catch(e){}
+}
+
+/* ============================ 9g. BUNDLE + PRICE-DROP ALERTS ============================ */
+/* 🛒 bundle deal: buy N+ sarees → ₹off (auto-applied at checkout) */
+function bundleDiscount(){
+  try{
+    const n = cartCount();
+    if (n >= (CONFIG.bundleCount || 2)) return CONFIG.bundleOff || 0;
+  }catch(e){}
+  return 0;
+}
+/* 💸 wishlist price-drop alerts: remember prices, alert when a price drops */
+function trackWishPrices(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('sk_wish_prices') || '{}');
+    const drops = [];
+    Store.wish.forEach(id => {
+      const p = byId(id); if (!p) return;
+      const prev = saved[id];
+      if (prev && prev > p.price && prev - p.price >= 20){
+        drops.push({ id, name: p.name, from: prev, to: p.price, img: p.img });
+      }
+      saved[id] = p.price;
+    });
+    localStorage.setItem('sk_wish_prices', JSON.stringify(saved));
+    return drops;
+  }catch(e){ return []; }
+}
+function showPriceDrops(){
+  try{
+    const drops = trackWishPrices();
+    if (!drops.length) return;
+    let list = '';
+    drops.forEach(d => { list += '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><img src="' + esc(d.img) + '" style="width:54px;height:42px;object-fit:cover;border-radius:8px"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(d.name) + '</b><br><small><s>' + money(d.from) + '</s> <b style="color:var(--green)">' + money(d.to) + '</b> 🔥 Price dropped!</small></div><a class="btn btn-outline btn-sm" style="width:auto;min-height:34px;padding:6px 10px" href="product.html?id=' + encodeURIComponent(d.id) + '">View</a></div>'; });
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">💸 Price Drop Alert!</h2>' +
+      '<p class="small muted" style="margin-bottom:4px">Your wishlist sarees are cheaper now:</p>' + list +
+      '<a class="btn btn-maroon" style="margin-top:10px" href="shop.html">🛍️ Shop More Deals</a>');
+  }catch(e){}
+}
+
 /* ============================ 10. TOAST / MODAL ============================ */
 let toastT;
 function toast(msg){
@@ -1001,12 +1163,47 @@ function closeModal(){
 
 /* ============================ 11. LANGS (en + ta + core hi/kn/te) ============================ */
 const LANGS = {
-  en: { home:'Home', shop:'Shop', cart:'Your Cart', checkout:'Checkout', myOrders:'My Orders', profile:'Profile', shopAll:'Shop All Sarees', addToCart:'Add to Cart', buyNow:'Buy Now', orderOnWA:'Order on WhatsApp', viewAll:'View all →', bestSellers:'Best Sellers', newArrivals:'New Arrivals', todaysDeals:'Today\'s Deals', flashSale:'Flash Sale', shopByCategory:'Shop by Category', trending:'Trending Collection', joinGroup:'Join Our WhatsApp Group', language:'Language', contactUs:'Contact Us', quickLinks:'Quick Links', aboutUs:'About Us', orderDetails:'Order Details', continueShopping:'Continue Shopping', payOnline:'Pay Online (UPI)', freeShip:'Free Shipping', placeOrder:'Place Order', confirmWA:'Confirm on WhatsApp', all:'All', search:'Search sarees, fabric, colour…', sort:'Sort', filter:'Filter', price:'Max Price', loadMore:'Loading more sarees…', noResults:'No sarees found', inStock:'In stock', outStock:'Out of stock' },
-  ta: { home:'முகப்பு', shop:'கடை', cart:'உங்கள் வண்டி', checkout:'செலுத்துதல்', myOrders:'எனது ஆர்டர்கள்', profile:'சுயவிவரம்', shopAll:'அனைத்து சேலைகள்', addToCart:'வண்டியில் சேர்', buyNow:'இப்போது வாங்க', orderOnWA:'வாட்ஸ்அப்பில் ஆர்டர்', viewAll:'அனைத்தும் →', bestSellers:'சிறந்த விற்பனை', newArrivals:'புதிய வரவுகள்', todaysDeals:'இன்றைய சலுகைகள்', flashSale:'ஃபிளாஷ் சேல்', shopByCategory:'வகைப்படி வாங்குங்கள்', trending:'டிரெண்டிங் தொகுப்பு', joinGroup:'வாட்ஸ்அப் குழுவில் சேர', language:'மொழி', contactUs:'தொடர்பு', quickLinks:'விரைவு இணைப்புகள்', aboutUs:'எங்களை பற்றி', orderDetails:'ஆர்டர் விவரம்', continueShopping:'தொடர்ந்து வாங்குங்கள்', payOnline:'ஆன்லைனில் செலுத்துங்கள் (UPI)', freeShip:'இலவச டெலிவரி', placeOrder:'ஆர்டர் செய்யுங்கள்', confirmWA:'வாட்ஸ்அப்பில் உறுதி செய்', all:'அனைத்தும்', search:'சேலைகள், துணி, நிறம் தேடுங்கள்…', sort:'வரிசை', filter:'வடிகட்டு', price:'அதிகபட்ச விலை', loadMore:'மேலும் சேலைகள்…', noResults:'சேலைகள் இல்லை', inStock:'கையிருப்பில் உள்ளது', outStock:'கையிருப்பில் இல்லை' },
+  en: { home:'Home', shop:'Shop', cart:'Your Cart', checkout:'Checkout', myOrders:'My Orders', profile:'Profile', shopAll:'Shop All Sarees', addToCart:'Add to Cart', buyNow:'Buy Now', orderOnWA:'Order on WhatsApp', viewAll:'View all →', bestSellers:'Best Sellers', newArrivals:'New Arrivals', todaysDeals:"Today's Deals", flashSale:'Flash Sale', shopByCategory:'Shop by Category', trending:'Trending Collection', joinGroup:'Join Our WhatsApp Group', language:'Language', contactUs:'Contact Us', quickLinks:'Quick Links', aboutUs:'About Us', orderDetails:'Order Details', continueShopping:'Continue Shopping', payOnline:'Pay Online (UPI)', freeShip:'Free Shipping', placeOrder:'Place Order', confirmWA:'Confirm on WhatsApp', all:'All', search:'Search sarees, fabric, colour…', sort:'Sort', filter:'Filter', price:'Max Price', loadMore:'Loading more sarees…', noResults:'No sarees found', inStock:'In stock', outStock:'Out of stock' },
+  ta: {
+    home:'முகப்பு', shop:'கடை', cart:'உங்கள் வண்டி', checkout:'செலுத்துதல்', myOrders:'எனது ஆர்டர்கள்', profile:'சுயவிவரம்',
+    shopAll:'அனைத்து சேலைகள்', addToCart:'வண்டியில் சேர்', buyNow:'இப்போது வாங்க', orderOnWA:'வாட்ஸ்அப்பில் ஆர்டர்',
+    viewAll:'அனைத்தும் →', bestSellers:'சிறந்த விற்பனை', newArrivals:'புதிய வரவுகள்', todaysDeals:'இன்றைய சலுகைகள்',
+    flashSale:'ஃபிளாஷ் சேல்', shopByCategory:'வகைப்படி வாங்குங்கள்', trending:'டிரெண்டிங் தொகுப்பு',
+    joinGroup:'வாட்ஸ்அப் குழுவில் சேர', language:'மொழி', contactUs:'தொடர்பு', quickLinks:'விரைவு இணைப்புகள்',
+    aboutUs:'எங்களை பற்றி', orderDetails:'ஆர்டர் விவரம்', continueShopping:'தொடர்ந்து வாங்குங்கள்',
+    payOnline:'ஆன்லைனில் செலுத்துங்கள் (UPI)', freeShip:'இலவச டெலிவரி', placeOrder:'ஆர்டர் செய்யுங்கள்',
+    confirmWA:'வாட்ஸ்அப்பில் உறுதி செய்', all:'அனைத்தும்', search:'சேலைகள், துணி, நிறம் தேடுங்கள்…', sort:'வரிசை',
+    filter:'வடிகட்டு', price:'அதிகபட்ச விலை', loadMore:'மேலும் சேலைகள்…', noResults:'சேலைகள் இல்லை',
+    inStock:'கையிருப்பில் உள்ளது', outStock:'கையிருப்பில் இல்லை',
+    /* extra UI (hero, sections, buttons) */
+    heroTitle1:'அழகான சேலைகள்', heroTitle2:'உங்க வீட்டு வாசல் வரை டெலிவரி!',
+    heroSub:'கஞ்சிபுரம் பட்டு, காட்டன், ஜார்ஜெட் & திருமண சேலைகள். 2 நிமிடத்துல ஆர்டர் — UPI அல்லது COD.',
+    shopBest:'சிறந்த விற்பனை சேலைகள்', newIn:'புதிய வரவுகள்', deals:'இன்றைய சலுகைகள்',
+    categories:'வகைப்படி வாங்குங்கள்', whyUs:'ஏன் SK Sarees?', reviews:'வாடிக்கையாளர் கருத்துகள்',
+    faq:'அடிக்கடி கேட்கப்படும் கேள்விகள்', videoCat:'வீடியோ கேட்டலாக்', festival:'பண்டிகை காலண்டர்',
+    shareEarn:'பகிர்ந்து சம்பாதியுங்கள்', resellerTag:'ரீசெல்லர் திட்டம் — ஒவ்வொரு விற்பனைக்கும் ₹' ,
+    googleRev:'Google மதிப்புரைகள்', whatsappGroup:'வாட்ஸ்அப் குழுவில் சேர',
+    searchHero:'சேலை பெயர், SKU அல்லது நிறம் தேடுங்கள்…', search:'தேடு',
+    freeShipAbove:'₹999க்கு மேல் இலவச டெலிவரி', cod:'காஷ் ஆன் டெலிவரி',
+  },
 };
 let lang = LS.get('sk_lang', 'en');
 const t = k => (LANGS[lang] && LANGS[lang][k]) || LANGS.en[k] || k;
 function setLang(l){ lang = LANGS[l] ? l : 'en'; LS.set('sk_lang', lang); location.reload(); }
+/* 🌙 dark mode */
+let darkMode = (function(){ try{ const v = LS.get('sk_dark', null); if (v === '1' || v === true) return true; if (v === '0' || v === false) return false; return !!CONFIG.darkDefault; }catch(e){ return false; } })();
+function applyDark(){
+  try{ document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light'); }catch(e){}
+  try{
+    const b = document.getElementById('darkBtn');
+    if (b) b.textContent = darkMode ? '☀️ Light' : '🌙 Dark';
+  }catch(e){}
+}
+function toggleDark(){
+  darkMode = !darkMode;
+  try{ LS.set('sk_dark', darkMode ? '1' : '0'); }catch(e){}
+  applyDark();
+}
 
 /* ============================ 12. FIRESTORE (ORDERS + REVIEWS only) ============================
    Clean & simple: optional cloud sync for orders & reviews.
@@ -1240,6 +1437,7 @@ const Sync = {
           const d = x.data() || {};
           d.id = d.id || d.sku || x.id;
           if (d.status && String(d.status).toLowerCase() !== 'active') return;
+          if (isSampleId(d.id)) return;   /* never re-add demo products */
           cloud.push(d);
         });
         if (!cloud.length) return;
@@ -1284,6 +1482,7 @@ const Sync = {
           const d = x.data() || {};
           d.id = d.id || d.sku || x.id;          /* use Firestore doc id as fallback */
           if (d.status && String(d.status).toLowerCase() !== 'active') return; /* only Active */
+          if (isSampleId(d.id)) return;   /* never re-add demo products */
           cloud.push(d);
         });
         if (!cloud.length) return;
@@ -1329,7 +1528,7 @@ window.refreshCloudProducts = function(){ try{ Sync.pullProducts(); }catch(e){} 
    admins · cart · categories · customers · inventory · orders · products ·
    promos · reviews · settings
    Each collection gets a seed document so it exists (and your rules apply). */
-const FS_COLLECTIONS = ['admins','cart','categories','customers','inventory','orders','products','promos','reviews','settings'];
+const FS_COLLECTIONS = ['admins','cart','categories','counters','customers','inventory','orders','products','promos','reviews','settings'];
 function seedFirestoreCollections(){
   if (!FS.enabled()) return;
   if (window.__seedDone) return;       /* in-page guard (prevents write loops) */
@@ -1346,6 +1545,8 @@ function seedFirestoreCollections(){
       codFee: CONFIG.codFee, shipFreeAbove: CONFIG.shipFreeAbove, shipFee: CONFIG.shipFee,
       updatedAt: now,
     }, { merge: true }).catch(() => {});
+    /* counters: visitors + orders */
+    db.collection('counters').doc('site').set({ visitors: 1, orders: 0, updatedAt: now }, { merge: true }).catch(() => {});
     /* admins: seed admin */
     db.collection('admins').doc('owner').set({
       name: 'Store Owner', phone: CONFIG.waDisplay, role: 'owner', updatedAt: now,
@@ -1407,6 +1608,7 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
+        <button type="button" class="icon-btn" id="darkBtn" aria-label="Dark mode" style="border:0;background:none;color:var(--ink)">🌙</button>
         <a class="icon-btn" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
       </div>
@@ -1426,6 +1628,7 @@ function renderHeader(){
       <div class="sub">Help</div>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="share-earn.html">💰 Share &amp; Earn</a>
+      <a href="blog.html">📖 Blog</a>
       <a href="#" data-faq>❓ FAQ</a>
     </nav>
   </aside>`;
@@ -1461,6 +1664,7 @@ function renderFooter(){
           <a href="profile.html">${t('profile')}</a><br>
           <a href="#" data-i18n-faq>❓ FAQ</a><br>
           <a href="share-earn.html">💰 Share &amp; Earn</a><br>
+          <a href="blog.html">📖 Blog</a><br>
           <a href="${CONFIG.waGroup}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Join WhatsApp Group</a>
         </p>
       </div>
@@ -1474,7 +1678,7 @@ function renderFooter(){
         <p style="font-size:.76rem">⏰ Order support: 9 AM – 9 PM, all days</p>
       </div>
     </div></div>
-    <div class="foot-bottom wrap">© 2026 SK Sarees, Salem. All rights reserved. &nbsp;•&nbsp; Made with ❤️ in Tamil Nadu</div>
+    <div class="foot-bottom wrap">© 2026 SK Sarees, Salem. All rights reserved. &nbsp;•&nbsp; Made with ❤️ in Tamil Nadu<br><span id="siteStats" style="font-size:.72rem;opacity:.85;margin-top:4px;display:block"></span></div>
   </footer>`;
   const fq = f.querySelector('[data-i18n-faq]');
   if (fq) fq.addEventListener('click', e => { e.preventDefault(); if (typeof window.scrollToFaq === 'function') window.scrollToFaq(); });
@@ -1577,6 +1781,7 @@ function seoInject(){
 
 function injectChrome(){
   try{ seoInject(); }catch(e){}
+  try{ Stats.init(); renderStatsText(); }catch(e){}
   /* register the push service worker (HTTPS only; harmless fallback otherwise) */
   try{
     if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -1592,6 +1797,12 @@ function injectChrome(){
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
   document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
+  try{ applyDark(); }catch(e){}          /* dark mode */
+  try{
+    const db = document.getElementById('darkBtn');
+    if (db) db.addEventListener('click', toggleDark);
+  }catch(e){}
+  try{ renderStatsText(); }catch(e){}   /* fill footer stats after chrome renders */
   document.body.insertAdjacentHTML('beforeend', `
     <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>
     <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span></a>

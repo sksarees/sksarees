@@ -23,6 +23,33 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 
 **Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
 
+## 🚀 Big Feature Pack (all implemented)
+
+1. **📦 Catalog Feed XML** — Admin → **📦 Catalog Feed** tab: download `products-feed.xml` (Facebook/Instagram Shopping format: id, title, description, price, sale_price, image_link, availability, brand, google_product_category…). Upload it to your host, connect in Meta Commerce Manager, and customers can **tag & buy sarees on Instagram/Facebook**. Static `products-feed.xml` also included.
+2. **💸 Wishlist price-drop alert** — prices are tracked; when a wishlist saree's price drops ₹20+, a **"Price Drop Alert!"** popup shows the new price with a View button.
+3. **🎁 Bundle deal** — buy **2+ sarees → ₹50 off automatically** at checkout (config: `CONFIG.bundleCount` / `bundleOff`). Shown on cart, checkout review & success page.
+4. **🇮🇳 Full Tamil UI** — expanded Tamil dictionary + translated hero, section headings, nav, footer & promo strip (toggle in Profile → Language).
+5. **📖 Blog** — `blog.html` with 10 SEO topic cards + 2 full sample articles (Kanchipuram vs Semi-Silk, draping guide), linked from footer & drawer.
+6. **⭐ Google Reviews section** — already live: "Write a Review" + lazy "Show Store on Map".
+7. **📈 Admin sales dashboard** — **revenue bar charts (last 14 days + 8 weeks)**, **🏆 Top Products** report, **💰 Best Resellers** ranking, plus order/sales stat chips.
+8. **🖼️ WebP images (auto)** — all product photos + hero have `.webp` twins; the site serves WebP when supported and falls back to `.jpg` (faster loading on mobile).
+9. **🌙 Dark mode** — 🌙/☀️ toggle in the header (saved per device), full dark theme.
+
+## 👥 Visitor & Order Counters
+
+- **Visitor counter** — bumped once per device on first visit; Firestore increments a shared `counters/site` doc so the total grows across all devices. Shown in the hero trust strip ("👥 N Visitors") and the footer ("👥 N+ visitors · 📦 N+ orders").
+- **Order counter** — reflects local orders + cloud orders, updates live (also right after a customer places an order).
+- Admin dashboard can see the same totals in Firestore `counters/site`.
+
+## 🔗 Reseller ref on EVERY page + catalog cleanup
+
+- **`?ref=CODE` works on ALL pages** — product page, shop, home, anywhere. A visitor who lands via a reseller link is tracked (sessionStorage), so their order credits the reseller even if they browse around first.
+- **Reseller shares carry their code automatically** — once a reseller registers (`sk_my_reseller` set), every product WhatsApp message and share link auto-appends `?ref=CODE` (`shareUrl()`), so "share a product → friend buys → you earn" works from any page.
+- **Product page "Share & Earn ₹50" box** — under every saree: share-on-WhatsApp (with your ref), copy share link, "Get My Code" → `share-earn.html`; shows your code once registered.
+- **Sample products fully removed** — the demo catalog ids are filtered out of the admin cache, the Firestore cache, and every Firestore pull, so **only your real Firestore products** ever show.
+- **"Loading product…" while fetching** — when a product isn't local yet, the product page shows "Loading product… Fetching our saree collection from the cloud" and retries a few times before ever showing "Product not found".
+- **Share & Earn page** — now has a **Tamil section** ("தமிழில் — Share & Earn", casual local tone) and a **"Send to Your Customer"** prefilled message (carries SHARE50 + your `?ref=` link) with Copy / Send on WhatsApp / Paste-My-Link buttons.
+
 ## 💰 Reseller / Share & Earn program (full loop)
 
 - **Index banner** — "Share & Earn — Reseller Program" on the home page: customers get **₹50 off** with coupon **`SHARE50`**; resellers earn **₹50 margin per order** (`CONFIG.resellerMargin`).
