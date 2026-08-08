@@ -10,7 +10,9 @@
 function init(){
   try{ injectChrome(); }catch(e){ console.warn(e); }
   try{ renderCartBadge(); renderCartBar(); }catch(e){}
+  try{ readRef(); }catch(e){}                    /* capture ?ref= reseller from URL */
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
+  try{ purgeOldOrders(90); }catch(e){}   /* user sees only last 90 days of orders */
   try{ setTimeout(maybeAutoDeliver, 2000); setInterval(maybeAutoDeliver, 30000); }catch(e){}
   try{ Sync.run(); }catch(e){}
   const page = document.body.dataset.page;
@@ -53,7 +55,7 @@ function cardHTML(p){
         (out
           ? '<button type="button" class="btn" disabled style="opacity:.55">Out of Stock</button>'
           : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">Add to Cart</button>') +
-        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">💬</a>' +
+        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
       '</div>' +
     '</div></article>';
 }
@@ -71,10 +73,17 @@ function renderHome(){
       '<p>Authentic Kanchipuram silk, soft cotton &amp; wedding sarees. Order in 2 minutes — pay by UPI or Cash on Delivery.</p>' +
       '<div class="hero-ctas">' +
         '<a class="btn btn-gold" href="shop.html">🛍️ Shop Best Sellers</a>' +
-        '<a class="btn btn-wa" href="' + waLink('Hi! I would like to see your saree collection & current offers.') + '" target="_blank" rel="noopener">💬 Order on WhatsApp</a>' +
+        '<a class="btn btn-wa" href="' + waLink('Hi! I would like to see your saree collection & current offers.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp</a>' +
       '</div>' +
       '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> above ₹999</span><span>💵 <b>COD</b> Available</span><span>⏱ <b>Fast</b> Delivery</span></div>' +
+      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search by saree name, SKU or colour…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
     '</div></section>' +
+    '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
+      '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
+      '<p class="small">Share sarees, earn <b>₹' + (CONFIG.resellerMargin || 50) + '</b> margin on every sale. Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+      '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
+      '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
+    '</section></div>' +
     '<div class="wrap">' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>Shop by Category</h2><a href="shop.html">View all →</a></div>' +
         '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
@@ -98,8 +107,8 @@ function renderHome(){
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access</h2>' +
         '<a href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">Join WhatsApp Group →</a></div>' +
         '<div class="fest-grid">' + FESTIVALS.map(f =>
-          '<a class="fest-tile" href="shop.html?cat=' + f.slug + '"><span class="fest-emoji">' + f.emoji + '</span>' +
-          '<b>' + esc(f.name) + '</b><small>' + esc(f.tag) + '</small><span class="fest-blurb">' + esc(f.blurb) + '</span></a>'
+          '<a class="fest-tile' + (currentFestival() === f.slug ? ' fest-live' : '') + '" href="shop.html?cat=' + f.slug + '"><span class="fest-emoji">' + f.emoji + '</span>' +
+          '<b>' + esc(f.name) + '</b><small>' + esc(festivalTag(f.slug)) + '</small><span class="fest-blurb">' + esc(f.blurb) + '</span></a>'
         ).join('') +
         '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
           '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
@@ -112,9 +121,32 @@ function renderHome(){
         ).join('') + '</div>' +
         '<div style="text-align:center;margin-top:16px"><a class="btn btn-outline" style="max-width:320px;margin:0 auto" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Rate us on Google — share your experience!</a></div>' +
         '</section>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ Google Reviews</h2>' +
+        '<a href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">See all reviews →</a></div>' +
+        '<div class="google-rev-box"><div style="text-align:center;padding:10px">' +
+        '<div style="font-size:1.6rem">⭐⭐⭐⭐⭐</div><b style="font-size:1.1rem">Rated on Google</b>' +
+        '<p class="small muted" style="margin:6px 0 10px">Real customer reviews on our Google Business Profile — 2/130, Thoothanoor, Edanganasalai, Salem 637502.</p>' +
+        '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
+        '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:180px" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Write a Review</a>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="showMapBtn" style="width:auto;min-width:180px">📍 Show Store on Map</button>' +
+        '</div><div id="gmapBox" style="margin-top:10px;display:none"></div></div></div></section>' +
       '<section class="sec faq"><div class="sec-head"><h2><span class="tick"></span>❓ FAQ</h2></div>' +
         FAQ.map(f => '<details><summary>' + esc(f.q) + '</summary><p>' + esc(f.a) + '</p></details>').join('') + '</section>' +
     '</div>';
+  /* Google map loads only when the user taps "Show Store on Map" (fast + light) */
+  try{
+    const mb = document.getElementById('showMapBtn');
+    if (mb) mb.addEventListener('click', () => {
+      const box = document.getElementById('gmapBox');
+      if (!box) return;
+      if (!box.innerHTML){
+        box.innerHTML = '<iframe src="https://maps.google.com/maps?q=SK%20Sarees%20Edanganasalai%20Salem&t=&z=13&ie=UTF8&iwloc=&output=embed" title="SK Sarees on Google Maps" loading="lazy" style="border:0;width:100%;height:260px;border-radius:14px"></iframe>';
+      }
+      box.style.display = 'block';
+      mb.textContent = '📍 Hide Map';
+      mb.classList.toggle('on', box.style.display === 'block');
+    });
+  }catch(e){}
 }
 
 /* ============================ SHOP ============================ */
@@ -124,6 +156,8 @@ function renderShop(){
   const params = new URLSearchParams(location.search);
   const cq = params.get('cat');
   if (cq && CATEGORIES.some(c => c.slug === cq)) shopState.cat = cq;  /* ignore unknown/festival slugs */
+  const sq = params.get('q');
+  if (sq) shopState.q = sq;                     /* search by name/SKU/colour from index */
   app.innerHTML =
     '<div class="wrap page">' +
       '<h1>🛍️ Shop All Sarees</h1>' +
@@ -158,7 +192,10 @@ function drawChips(){
 }
 function bindShop(){
   const el = (id) => document.getElementById(id);
-  if (el('shopSearch')) el('shopSearch').addEventListener('input', e => { shopState.q = e.target.value; shopState.shown = 12; updateShopList(); });
+  if (el('shopSearch')){
+    el('shopSearch').value = shopState.q || '';
+    el('shopSearch').addEventListener('input', e => { shopState.q = e.target.value; shopState.shown = 12; updateShopList(); });
+  }
   if (el('fFilter')) el('fFilter').addEventListener('change', e => { shopState.fabric = e.target.value; shopState.shown = 12; updateShopList(); });
   if (el('pFilter')) el('pFilter').addEventListener('input', e => { shopState.max = +e.target.value; if (el('priceLbl')) el('priceLbl').textContent = money(shopState.max); shopState.shown = 12; updateShopList(); });
   if (el('sFilter')) el('sFilter').addEventListener('change', e => { shopState.sort = e.target.value; shopState.shown = 12; updateShopList(); });
@@ -181,7 +218,7 @@ function bindShop(){
 function shopList(){
   let l = PRODUCTS.filter(p =>
     (!shopState.cat || p.cat === shopState.cat) &&
-    (!shopState.q || (p.name + ' ' + p.fabric + ' ' + p.color).toLowerCase().includes(shopState.q.toLowerCase())) &&
+    (!shopState.q || (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + (p.sku || '')).toLowerCase().includes(shopState.q.toLowerCase())) &&
     (!shopState.fabric || p.fabric.toLowerCase().includes(shopState.fabric.toLowerCase())) &&
     p.price <= shopState.max);
   switch (shopState.sort){
@@ -302,19 +339,23 @@ function renderProduct(){
         '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping</p>' +
         '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
         '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
-        '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div></div>' +
+        '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
           (out ? '' : '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>') +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 Buy on WhatsApp — Instant Confirmation</a>' +
+          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-share">' +
-          '<button type="button" class="btn btn-outline btn-sm" data-share-wa="' + esc(p.id) + '">💬 WhatsApp Share (family/group)</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Photo → WhatsApp Status</button>' +
+          '<button type="button" class="btn btn-outline btn-sm" data-share-wa="' + esc(p.id) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Share (family/group)</button>' +
+          '<button type="button" class="btn btn-outline btn-sm" data-dl-photo="' + esc(p.img) + '">📥 Download Photo</button>' +
+          '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Share Photo</button>' +
           '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
         '</div>' +
+        '<div class="pin-check"><b>📍 Check Delivery</b>' +
+          '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
+          '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Reviews &amp; Comments</h3>' + revs +
           '<div class="rev-form" style="background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:13px;margin-top:12px;display:grid;gap:9px">' +
             '<b>✍️ Write a review</b>' +
@@ -327,17 +368,34 @@ function renderProduct(){
     '</div>' +
     '<div class="wrap" id="recSection"></div>' +
     '<div class="sticky-bar">' +
-      '<div class="sb-price"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
-      '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>' +
+      '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
+      '<a class="btn btn-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy Now</a>' +
       '<button type="button" class="btn btn-maroon" data-add="' + p.id + '">Add</button>' +
-      '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">💬</a>' +
+      '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   /* AI-style similar-saree recommendations */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
-  /* qty buttons */
-  document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); }));
-  document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); }));
+  /* qty buttons — auto-update the total amount EVERYWHERE (main + sticky bar)
+     and pass the qty along when using "Buy Now" (main + mobile floating bar) */
+  const qtyRefresh = () => {
+    const v = document.getElementById('qtyVal'); if (!v) return;
+    const n = Math.max(1, Math.min(10, +v.textContent || 1));
+    const dyn = document.getElementById('qtyTotal');
+    if (dyn) dyn.textContent = money(p.price * n);
+    const addB = document.querySelector('.pd-btns [data-add]');
+    if (addB) addB.textContent = '🛒 Add to Cart ×' + n;
+    /* mobile floating Buy Now — amount + qty link update too */
+    const sbPrice = document.getElementById('sbPrice');
+    if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
+    const sbBuy = document.getElementById('sbBuy');
+    if (sbBuy) sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n);
+    const pdBuy = document.querySelector('.pd-btns .btn-buy');
+    if (pdBuy) pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n);
+  };
+  document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
+  document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
+  qtyRefresh();
   /* 👈👉 swipe the gallery to switch photos (mobile) */
   const mainBox = document.getElementById('pdMain');
   if (mainBox){
@@ -374,7 +432,8 @@ function renderProduct(){
 /* share the product to ANY WhatsApp chat / family group — user picks the recipient */
 function shareWaProduct(p){
   if (!p) return;
-  const msg = waProductMsg(p) + '\n\n👉 Share with your family & friends — let them see this saree too!';
+  const msg = '🛍️ Guess what I found on SK Sarees website!\n\n' + waProductMsg(p) +
+    '\n\n📢 Share with your family & friends — they will love this saree too! Visit www.sksaree.shop for more 😍';
   try{ window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 /* share the saree PHOTO to WhatsApp Status (mobile: image → long-press → WhatsApp → My Status) */
@@ -425,8 +484,8 @@ function renderCartPage(){
     }).join('') + '</div>' +
     '<div class="summary">' +
       '<div class="coupon-box"><div style="display:flex;gap:8px">' +
-        '<input id="cartCoupon" placeholder="Coupon code (e.g. AADI10)" value="' + esc(co.data.coupon || '') + '" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.85rem;background:#fff;outline:none;text-transform:uppercase">' +
-        '<button type="button" class="btn btn-outline btn-sm" id="cartCouponBtn" style="min-height:44px">Apply</button>' +
+        '<input id="cartCoupon" placeholder="Coupon code (e.g. AADI10)" value="' + esc(co.data.coupon || '') + '" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;text-transform:uppercase;min-height:50px;box-sizing:border-box">' +
+        '<button type="button" class="btn btn-outline btn-sm" id="cartCouponBtn" style="flex:0 0 auto;width:auto;min-width:100px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Apply</button>' +
       '</div>' + (coup && disc > 0 ? '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">🎟️ Coupon <b>' + esc(coup.code) + '</b> applied — ₹' + disc + ' off!' +
         (coup.expiry ? ' <span class="muted">(valid till ' + esc(coup.expiry) + ')</span>' : '') +
         (couponRemaining(coup) !== Infinity ? ' <span class="muted">(' + couponRemaining(coup) + ' uses left)</span>' : '') +
@@ -441,7 +500,7 @@ function renderCartPage(){
       '<p class="small muted" style="margin-top:8px">🚚 Shipping per saree: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others (' + n + ' saree' + (n > 1 ? 's' : '') + ' = <b>' + money(sh) + '</b>) · <b>FREE above ₹999</b>.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
-        '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener">💬 Order on WhatsApp Instead</a>' +
+        '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp Instead</a>' +
       '</div>' +
     '</div></div>';
 }
@@ -461,8 +520,10 @@ function renderCheckoutPage(){
     payment: co.data.payment || draft.payment || 'upi',
   });
   saveCoDraft();
-  const buy = new URLSearchParams(location.search).get('buy');
-  if (buy && !Store.cart.some(i => i.id === buy)) addToCart(buy, 1);
+  const qs = new URLSearchParams(location.search);
+  const buy = qs.get('buy');
+  const buyQty = Math.max(1, Math.min(10, +qs.get('qty') || 1));
+  if (buy && !Store.cart.some(i => i.id === buy)) addToCart(buy, buyQty);
   if (!Store.cart.length){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1><div class="empty"><div class="e-ic">🛒</div><b>Your cart is empty</b>' +
       '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
@@ -502,37 +563,45 @@ function drawCo(){
       '</div></div>' +
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
       (d.payment === 'cod'
-        ? '<button type="button" class="btn btn-wa btn-xl" data-confirm-wa>💬 Confirm Order on WhatsApp</button>'
+        ? '<button type="button" class="btn btn-wa btn-xl" data-confirm-wa><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Confirm Order on WhatsApp</button>'
         : '<button type="button" class="btn btn-maroon btn-xl" data-cont>Continue to Payment →</button>') +
     '</div>';
   } else {
     const upiPay = d.payment === 'upi';
+    /* reserve an order id now so the UPI payment note can carry it */
+    if (!co.pendingId) co.pendingId = genOrderId();
+    const note = 'Order ' + co.pendingId + ' SK Sarees';
+    const booking = CONFIG.codFee;                      /* COD: ₹70 booking paid now */
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card"><h3>🧾 Review Your Order</h3>' + itemLines +
         (t.discount > 0 ? '<div class="row"><span>Coupon discount (' + esc(co.data.coupon) + ')</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
         '<div class="row"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-        (upiPay ? '' : '<div class="row"><span>COD charges</span><b>+' + money(t.codFee) + '</b></div>') +
+        (upiPay ? '' : '<div class="row"><span>COD booking (pay now)</span><b>+' + money(booking) + '</b></div>') +
         '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
         '<div class="delivery-card" style="margin-top:10px"><b>⏱ Fast Delivery</b>' + t.eta + '.</div>' +
         '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:10px;background:var(--bg)"><b>' + esc(d.name) + '</b> • ' + esc(d.phone) + '<br>' + esc(d.address) + ' — ' + esc(d.pincode) + '</p>' +
       '</div>' +
       (upiPay
         ? '<div class="form-card"><h3>📲 Pay by UPI</h3>' +
-          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(t.grand) + '</b><span class="muted small"> payable</span></div>' +
+          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(t.grand) + '</b><span class="muted small"> payable</span>' +
+          '<p class="small" style="margin-top:4px">🧾 Payment note: <b>Order ' + esc(co.pendingId) + '</b></p></div>' +
           '<div class="qr-box"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
-          '<a class="btn btn-gold btn-xl" href="' + upiLink(t.grand, 'SK Sarees order') + '">📲 Pay Now — Open UPI App</a>' +
+          '<a class="btn btn-gold btn-xl" href="' + upiLink(t.grand, note) + '">📲 Pay Now — Open UPI App</a>' +
           '<div style="display:grid;gap:8px;margin-top:10px">' +
-            '<a class="btn btn-xl" style="background:#1a73e8;color:#fff" href="' + upiAppLink('gpay', t.grand, 'SK Sarees order') + '">🟢 Google Pay — Pay ' + money(t.grand) + '</a>' +
-            '<a class="btn btn-xl" style="background:#5f259f;color:#fff" href="' + upiAppLink('phonepe', t.grand, 'SK Sarees order') + '">🟣 PhonePe — Pay ' + money(t.grand) + '</a>' +
-            '<a class="btn btn-xl" style="background:#002e6e;color:#fff" href="' + upiAppLink('paytm', t.grand, 'SK Sarees order') + '">🔷 Paytm — Pay ' + money(t.grand) + '</a>' +
+            '<a class="btn btn-xl" style="background:#1a73e8;color:#fff" href="' + upiAppLink('gpay', t.grand, note) + '">🟢 Google Pay — Pay ' + money(t.grand) + '</a>' +
+            '<a class="btn btn-xl" style="background:#5f259f;color:#fff" href="' + upiAppLink('phonepe', t.grand, note) + '">🟣 PhonePe — Pay ' + money(t.grand) + '</a>' +
+            '<a class="btn btn-xl" style="background:#002e6e;color:#fff" href="' + upiAppLink('paytm', t.grand, note) + '">🔷 Paytm — Pay ' + money(t.grand) + '</a>' +
           '</div>' +
           '<p class="small muted" style="text-align:center;margin:8px 0 0">📲 App install pannirundha direct-ah open aagum — illaina QR scan pannunga.</p>' +
-          '<div class="verify-note">✅ After paying, tap below. We will confirm your order on WhatsApp within minutes.</div>' +
-          '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Confirm My Order</button></div>'
+          '<div class="verify-note">💳 After paying, tap below. <b>Your payment is pending — we will confirm once the payment is received.</b></div>' +
+          '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Waiting for Confirmation</button></div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
-          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(t.grand) + '</b><span class="muted small"> pay at delivery</span></div>' +
-          '<div class="cod-note">💵 COD Available (Extra <b>₹' + CONFIG.codFee + '</b> charges apply).</div>' +
-          '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ Place Order — Pay on Delivery</button></div>') +
+          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> booking fee — pay now (UPI)</span></div>' +
+          '<div class="cod-note">💵 COD Available — <b>₹' + booking + ' courier booking</b> paid now.<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
+          '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
+          '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 Pay ₹' + booking + ' Booking (UPI)</a>' +
+          '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
+          '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid Booking — Place Order</button></div>') +
       '<button type="button" class="btn btn-ghost" data-back>← Back to edit details</button>' +
     '</div>';
     if (upiPay) setTimeout(drawUpiQR, 150); /* wait for DOM + qrcode lib */
@@ -553,9 +622,10 @@ function drawUpiQR(){
     return;
   }
   const t = coTotals();
+  const note = 'Order ' + (co.pendingId || genOrderId()) + ' SK Sarees';
   try{
     const qr = qrLib(0, 'M');
-    qr.addData(upiLink(t.grand, 'SK Sarees order'));
+    qr.addData(upiLink(t.grand, note));
     qr.make();
     box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   }catch(e){ box.innerHTML = '<p class="small muted">Use the UPI app buttons below, “Pay Now” or the UPI ID.</p>'; }
@@ -587,22 +657,32 @@ function doPlaceOrder(payment){
     const d = co.data;
     if (!coValid()) return;
     const t = coTotals();
+    const couponUsed = d.coupon || '';
+    const myReseller = currentReseller();
     const order = {
-      id: genOrderId(), date: new Date().toISOString(),
+      id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: Store.cart.map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
-      payment, totals: t, status: payment === 'upi' ? 'confirmed' : 'placed',
+      payment,
+      totals: t,
+      reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
+      margin: myReseller ? (CONFIG.resellerMargin || 0) : 0,
+      /* UPI: paid but awaiting admin confirmation; COD: ₹70 booking paid now */
+      status: payment === 'upi' ? 'pending' : 'placed',
+      bookingPaid: payment === 'cod' ? CONFIG.codFee : (payment === 'upi' ? t.grand : 0),
       device: deviceId(),
     };
     const orderCount = order.items.reduce((s, i) => s + (i.qty || 1), 0);
     Store.orders.unshift(order); Store.saveOrders();
+    recordResellerOrder(order);               /* credit reseller margin */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     Store.saveProfile();
-    Store.cart = []; Store.saveCart();
+    consumeStock(order.items);                 /* 1 psc model: stock goes down for next customer */
+    Store.cart = []; Store.saveCart(); syncCartReservation();
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
-    if (co.data.coupon) useCoupon(co.data.coupon);   /* count coupon usage */
+    if (couponUsed) useCoupon(couponUsed);     /* count coupon usage (before co reset) */
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
     fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
     renderOrderComplete(order, false);
@@ -614,27 +694,34 @@ function doWaOrder(){
     const d = co.data;
     if (!coValid()) return;
     const t = coTotals();
+    const myReseller = currentReseller();
     const order = {
-      id: genOrderId(), date: new Date().toISOString(),
+      id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: Store.cart.map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
       payment: 'cod', totals: t, status: 'placed',
+      bookingPaid: CONFIG.codFee,                 /* ₹70 courier booking paid now */
+      reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
+      margin: myReseller ? (CONFIG.resellerMargin || 0) : 0,
       device: deviceId(),
     };
+    const couponUsed = d.coupon || '';
     Store.orders.unshift(order); Store.saveOrders();
+    recordResellerOrder(order);               /* credit reseller margin */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     Store.saveProfile();
-    Store.cart = []; Store.saveCart();
+    consumeStock(order.items);
+    Store.cart = []; Store.saveCart(); syncCartReservation();
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
       '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
       '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
       order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
-      '\n\nTotal (incl. COD ₹' + CONFIG.codFee + '): ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
+      '\n\n💰 COD booking ₹' + CONFIG.codFee + ' — I will pay the booking now.\nRemaining ' + money(Math.max(0, t.grand - CONFIG.codFee)) + ' at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
-    if (co.data.coupon) useCoupon(co.data.coupon);   /* count coupon usage */
+    if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
     renderOrderComplete(order, true);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
@@ -649,11 +736,17 @@ function renderOrderComplete(o, viaWa){
         '<div class="oc-items">' + fmtDT(od.date) + ' • ' + money((od.totals || {}).grand || 0) + ' (' + (od.payment || '').toUpperCase() + ')</div>' +
         '<a class="btn btn-outline btn-sm" style="margin-top:8px" href="orders.html?id=' + encodeURIComponent(od.id) + '&data=' + encodeURIComponent(JSON.stringify(od)) + '">👁️ View Details</a></div>').join('')
     : '<div class="empty"><div class="e-ic">📦</div><b>No orders yet</b></div>';
+  const isUpi = (o.payment || '') === 'upi' || (o.payment || '').indexOf('upi') === 0;
+  const successMsg = isUpi
+    ? '⏳ <b>Payment received — waiting for admin confirmation.</b> We will confirm your order on WhatsApp as soon as your UPI payment is verified. 📱'
+    : (viaWa
+        ? '💵 Order sent on WhatsApp — pay <b>₹' + CONFIG.codFee + ' booking</b> (already in the message), remaining amount at delivery. We will confirm shortly! 📱'
+        : '💵 COD — you paid the ₹' + CONFIG.codFee + ' booking now. Remaining amount collected at delivery. We will confirm shortly! 📱');
   app.innerHTML = '<div class="wrap page">' +
     '<div class="success"><div class="tick-big"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
       '<h1>' + (viaWa ? '🎉 Order Sent on WhatsApp!' : '🎉 Order Placed Successfully!') + '</h1>' +
       '<span class="oid">Order ID: #' + esc(o.id) + '</span>' +
-      '<p class="muted small" style="max-width:46ch;margin:8px auto 0">Our team will confirm your order on WhatsApp within minutes. Keep your phone handy! 📱</p>' +
+      '<p class="muted small" style="max-width:46ch;margin:8px auto 0">' + successMsg + '</p>' +
     '</div>' +
     '<div class="summary" style="margin-top:6px">' + items +
       (t.discount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Coupon discount</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
@@ -664,7 +757,7 @@ function renderOrderComplete(o, viaWa){
     '<div style="display:grid;gap:10px;margin-top:16px;grid-template-columns:1fr 1fr">' +
       '<a class="btn btn-maroon" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 Track This Order</a>' +
       '<a class="btn btn-gold" href="orders.html">📋 All My Orders</a>' +
-      (viaWa ? '' : '<a class="btn btn-wa" style="grid-column:1/-1" href="' + waLink('Hi! I just placed order ' + o.id + '. Please confirm it.') + '" target="_blank" rel="noopener">💬 Chat with Us on WhatsApp</a>') +
+      (viaWa ? '' : '<a class="btn btn-wa" style="grid-column:1/-1" href="' + waLink('Hi! I just placed order ' + o.id + '. Please confirm it.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Chat with Us on WhatsApp</a>') +
     '</div>' +
     '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">📦 Your Orders</h3>' + cards + '</div>' +
   '</div>';
@@ -710,6 +803,7 @@ function renderOrdersPage(){
     '<div class="cat-chips" id="orderChips">' +
       '<button type="button" class="chip on" data-of="all">All</button>' +
       '<button type="button" class="chip" data-of="placed">🆕 New</button>' +
+      '<button type="button" class="chip" data-of="pending">⏳ Payment Pending</button>' +
       '<button type="button" class="chip" data-of="confirmed">✅ Confirmed</button>' +
       '<button type="button" class="chip" data-of="shipped">🚚 Dispatched</button>' +
       '<button type="button" class="chip" data-of="delivered">✔ Delivered</button>' +
@@ -742,8 +836,9 @@ function renderOrdersPage(){
   }
 }
 function statusTrack(o){
-  const steps = [['placed','🆕 Placed'], ['confirmed','✅ Confirmed'], ['shipped','🚚 Dispatched'], ['delivered','✔ Delivered']];
-  const idx = steps.findIndex(s => s[0] === o.status);
+  const st = o.status || 'placed';
+  const steps = [['placed','🆕 Placed'], ['pending','⏳ Payment Pending'], ['confirmed','✅ Confirmed'], ['shipped','🚚 Dispatched'], ['delivered','✔ Delivered']];
+  const idx = steps.findIndex(s => s[0] === st);
   return '<div class="status-track">' + steps.map((s, i) => '<span class="' + (i < idx ? 'done' : i === idx ? 'now' : '') + '">' + s[1] + '</span>').join('') + '</div>';
 }
 function orderCard(o){
@@ -761,7 +856,7 @@ function showDetail(o){
   if (!o){
     openDetailId = null;
     wrap.innerHTML = '<div class="empty"><div class="e-ic">🔍</div><b>Order not found</b>Check the order ID. ' +
-      '<a class="btn btn-wa btn-sm" style="max-width:280px;margin:8px auto" href="' + waLink('Hi! I cannot find my order. Please help.') + '" target="_blank" rel="noopener">💬 Ask us on WhatsApp</a></div>';
+      '<a class="btn btn-wa btn-sm" style="max-width:280px;margin:8px auto" href="' + waLink('Hi! I cannot find my order. Please help.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Ask us on WhatsApp</a></div>';
     return;
   }
   const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, grand:0 };
@@ -787,7 +882,7 @@ function showDetail(o){
     '</div>' +
     '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
     '<div style="display:grid;gap:8px;margin-top:12px;grid-template-columns:1fr 1fr">' +
-      '<a class="btn btn-wa btn-sm" href="' + waLink('Hi! I want to track my order ' + o.id + '.') + '" target="_blank" rel="noopener">💬 Ask on WhatsApp</a>' +
+      '<a class="btn btn-wa btn-sm" href="' + waLink('Hi! I want to track my order ' + o.id + '.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Ask on WhatsApp</a>' +
       '<a class="btn btn-outline btn-sm" href="shop.html">🛍️ Shop More</a>' +
     '</div></div>';
 }
@@ -856,7 +951,7 @@ function renderProfilePage(){
     '<div class="form-card"><h3>🌐 Language</h3><select id="pfLang" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px">' +
       '<option value="en"' + (lang === 'en' ? ' selected' : '') + '>English</option>' +
       '<option value="ta"' + (lang === 'ta' ? ' selected' : '') + '>தமிழ்</option></select></div>' +
-    '<div class="form-card"><h3>🏠 Store Info</h3><p class="small" style="line-height:1.9">📍 2/130, Thoothanoor, Edanganasalai, Salem 637502<br>📞 <a href="tel:+917867915699" style="color:var(--maroon);font-weight:800">+91 78679 15699</a><br>💬 <a href="' + waLink('Hi! I need help.') + '" target="_blank" rel="noopener" style="color:var(--wa-d);font-weight:800">Chat on WhatsApp</a><br>⏰ 9 AM – 9 PM, all days</p></div>' +
+    '<div class="form-card"><h3>🏠 Store Info</h3><p class="small" style="line-height:1.9">📍 2/130, Thoothanoor, Edanganasalai, Salem 637502<br>📞 <a href="tel:+917867915699" style="color:var(--maroon);font-weight:800">+91 78679 15699</a><br><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> <a href="' + waLink('Hi! I need help.') + '" target="_blank" rel="noopener" style="color:var(--wa-d);font-weight:800">Chat on WhatsApp</a><br>⏰ 9 AM – 9 PM, all days</p></div>' +
   '</div>';
   document.getElementById('pfSave').addEventListener('click', () => {
     const name = document.getElementById('pfName').value.trim();
@@ -893,9 +988,30 @@ function renderProfilePage(){
     ? list.map(p => '<div class="pcard"><a class="pcard-img" href="product.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(p.img) + '" alt="" loading="lazy"></a>' +
         '<div class="pcard-body"><h3>' + esc(p.name) + '</h3><div class="price-row"><b>' + money(p.price) + '</b></div>' +
         '<div class="p-actions"><button type="button" class="btn btn-outline" data-add="' + p.id + '">Add</button>' +
-        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">💬</a></div></div></div>').join('')
+        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a></div></div></div>').join('')
     : '<p class="muted small">❤️ Nothing yet — tap the heart on any saree to save it here.</p>';
 }
+
+/* ============================ INSTANT PRODUCT UPDATES ============================
+   When the ADMIN edits products in another tab, the user page re-renders
+   instantly via the storage event (no manual refresh needed). */
+window.addEventListener('storage', function(e){
+  try{
+    if (e.key !== 'sk_products' && e.key !== 'sk_products_cloud') return;
+    if (e.key === 'sk_products'){
+      const v = JSON.parse(e.newValue || '[]');
+      if (Array.isArray(v)) PRODUCTS = v;
+    }
+    try{ if (window.REC) REC.invalidate(); }catch(e2){}
+    /* re-render the current page lists */
+    const page = document.body.dataset.page;
+    if (page === 'home') renderHome();
+    else if (page === 'shop') renderShop();
+    else if (page === 'product') renderProduct();
+    else if (page === 'profile') renderProfilePage();
+    else if (page === 'admin' && typeof renderProducts === 'function' && adminTab === 'products') renderProducts();
+  }catch(e){}
+});
 
 /* ============================ GLOBAL EVENTS ============================ */
 /* Fast open/close of an order's full details — no page reload at all */
@@ -942,7 +1058,14 @@ document.addEventListener('click', function(e){
 document.addEventListener('click', function(e){
   /* add to cart (from cards, product page, wishlist) */
   const add = e.target.closest('[data-add]');
-  if (add){ e.preventDefault(); addToCart(add.dataset.add, 1); return; }
+  if (add){
+    e.preventDefault();
+    /* use the selected quantity on the product page (fixes "shows 1 qty only") */
+    const qv = document.getElementById('qtyVal');
+    const qty = qv ? Math.max(1, Math.min(10, +qv.textContent || 1)) : 1;
+    addToCart(add.dataset.add, qty);
+    return;
+  }
   /* cart qty */
   const cqm = e.target.closest('[data-cqm]');
   if (cqm){ const it = Store.cart.find(i => i.id === cqm.dataset.cqm); if (it){ setCartQty(it.id, it.qty - 1); renderCartPage(); } return; }
@@ -987,9 +1110,38 @@ document.addEventListener('click', function(e){
   /* 📤 share product on WhatsApp (family/group) */
   const sw = e.target.closest('[data-share-wa]');
   if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
+  /* 📥 download saree photo */
+  const dlp = e.target.closest('[data-dl-photo]');
+  if (dlp){
+    e.preventDefault();
+    const url = dlp.dataset.dlPhoto;
+    try{
+      fetch(url).then(r => r.blob()).then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'sk-sarees-photo.jpg';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      }).catch(() => { try{ window.open(url, '_blank'); }catch(e2){} });
+    }catch(err){ try{ window.open(url, '_blank'); }catch(e2){} }
+    return;
+  }
   /* 📸 share saree photo on WhatsApp status */
   const ss = e.target.closest('[data-share-status]');
   if (ss){ e.preventDefault(); shareProductStatus(byId(ss.dataset.shareStatus)); return; }
+  /* 📍 PIN code delivery check */
+  const pcb = e.target.closest('#pinCheckBtn');
+  if (pcb){
+    e.preventDefault();
+    const pin = (document.getElementById('pinCheck') || {}).value || '';
+    if (!/^\d{6}$/.test(pin)){ const r = document.getElementById('pinResult'); if (r) r.textContent = '⚠️ Enter a valid 6-digit PIN'; return; }
+    const zone = ZONES[deliveryZone(pin)];
+    const eUpi = deliveryEstimate(pin, 'upi');
+    const eCod = deliveryEstimate(pin, 'cod');
+    const r = document.getElementById('pinResult');
+    if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>🚚 Shipping: <b>₹' + zone.ship + '</b> per saree (free above ₹999)<br>📦 Delivery: <b>' + esc(eUpi.text) + '</b><br>💵 COD: ' + esc(eCod.text);
+    return;
+  }
   /* 🔗 copy product link */
   const clk = e.target.closest('[data-copy-link]');
   if (clk){ e.preventDefault(); copyText(clk.dataset.copyLink); return; }

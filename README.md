@@ -2,6 +2,39 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 📦 Catalog & Auto-cleanup (latest)
+
+- **Demo products removed** — the data.js demo catalog is gone. Products now come **only from the admin (`sk_products`) and Firestore** (`sk_products_cloud` cache). The store shows exactly what you add/manage.
+- **Auto-delete orders** — **Admin keeps 30 days** (local purge + cloud filtered to last 30 days); **user "My Orders" keeps 90 days**. Old orders vanish automatically, so the store never accumulates stale data.
+- **Instant product updates** — when the admin edits/saves products, **open user pages re-render instantly** (storage event + REC invalidation), no manual refresh.
+- **Festival auto-update** — the promo strip and Festival Calendar detect today's date and highlight the **live festival** (Aadi ~17 Jul–17 Aug, Pongal ~10–20 Jan, Diwali ~15 Oct–15 Nov, default Wedding season): "Aadi Sale Special — Up to 40% OFF" + the live tile shows **Now live**.
+- **Abandoned-cart messages** (WhatsApp/SMS/push) now include a **"Complete your order" link to `cart.html`**.
+- **WhatsApp logo icon** — every WhatsApp button (buy, share, cart, floating chat, admin templates) now shows the **official WhatsApp SVG logo** instead of the 💬 emoji.
+- **Engaging prefilled WhatsApp messages** — product/cart/share messages are friendlier and point customers to the website (www.sksaree.shop), so reach grows.
+
+## 💰 Reseller / Share & Earn program (full loop)
+
+- **Index banner** — "Share & Earn — Reseller Program" on the home page: customers get **₹50 off** with coupon **`SHARE50`**; resellers earn **₹50 margin per order** (`CONFIG.resellerMargin`).
+- **Join & get a personal link** — on `share-earn.html`, a reseller enters **name + mobile** → gets a personal code (e.g. `PRI3210`) and share link (`shop.html?ref=PRI3210`) with Copy + WhatsApp share buttons.
+- **Order tracking** — when a customer orders via `?ref=CODE`, the order records the **reseller (name/phone/code) + margin ₹50** automatically; the reseller's stats (orders, margin total) update locally + Firestore.
+- **Admin → 💰 Resellers tab** — shows every reseller's **name, phone, code, orders count, total margin**, the **order details they brought in**, plus buttons: **💸 Pay via GPay** (opens GPay with the amount to their phone `@upi`), **Notify on WhatsApp**, **Call**. Firestore resellers merge in automatically.
+- **Check Delivery + coupon inputs** — fixed alignment: input and Check/Apply buttons are equal height (50px), buttons no longer stretch full-width.
+
+## 💰 Share & Earn page
+
+A ready **`share-earn.html`** affiliate landing page (linked from the footer & drawer): hero banner ("Share Products & Earn Margin"), 3-step How It Works, 8 benefits, coupon-offer section, final CTA (all WhatsApp prefilled), a copyable **WhatsApp broadcast message** with a "Send on WhatsApp" button, and a Share & Earn FAQ. Uses the site header/footer theme automatically. Marketing copy source: `share-earn-content.md`.
+
+## 🛒 Cart, Stock & Checkout (latest)
+
+- **Quantity fixed** — the product page qty selector now actually adds that many to cart (was stuck at 1) and the **total amount updates live** as qty changes (e.g. 3×₹849 → ₹2,547 shown next to qty).
+- **Stock = 1 psc model** — products have real stock (often 1). When an order is placed, **stock is consumed** and the next customer sees **Out of Stock**. Cart reservations are synced to Firestore so "one customer adds it → others see it taken".
+- **Download Photo** — product page now has **📥 Download Photo** (plus the WhatsApp Share + Share Photo buttons).
+- **📍 PIN code delivery check** — on the product page: enter a PIN → shows zone, shipping (₹30/40/60 per saree) and delivery days (UPI vs COD).
+- **⭐ Google Reviews** — home section with "Rated on Google" + **Write a Review** link + lazy **📍 Show Store on Map** (map loads only on tap, keeps the page fast).
+- **🔍 Index search** — hero search box searches by **name, SKU or colour** and jumps to the shop (`shop.html?q=…`).
+- **UPI payments** — the UPI note includes the **Order ID** ("Order ORD-… SK Sarees"); after paying, order status is **⏳ Payment Pending** and the success page says *waiting for admin confirmation* (admin has a ⏳ Payment Pending filter + status option).
+- **COD = ₹70 booking upfront** — "Cash on Delivery — ₹70 courier booking paid now (UPI), **remaining saree price collected at delivery**". Order records `bookingPaid: 70` and the WhatsApp message explains it.
+
 ## 🛠️ Admin & Conversion Fixes (latest)
 
 - **Admin status fixed for cloud orders** — changing status (Confirmed/Shipped/Delivered) now works for **both** device orders and Firestore orders. Cloud status updates push to Firestore and are never written into the device's own `sk_orders`.

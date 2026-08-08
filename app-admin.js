@@ -10,6 +10,7 @@ function adminInit(){
   try{ injectChrome(); }catch(e){}
   try{ renderCartBadge(); }catch(e){}
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
+  try{ purgeOldOrders(30); }catch(e){}   /* auto-delete orders older than 30 days */
   try{ Sync.run(); }catch(e){}
   if (String(LS.get('sk_admin', '0')) === '1'){
     renderAdmin();
@@ -59,6 +60,7 @@ function renderAdmin(){
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
       '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
       '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
+      '<button type="button" class="admin-tab" id="tabResellers">💰 Resellers</button>' +
       '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
       '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
     '</div>' +
@@ -75,6 +77,7 @@ function renderAdmin(){
   document.getElementById('tabReviews').addEventListener('click', () => switchTab('reviews'));
   document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboard'));
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
+  document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
   document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
@@ -99,6 +102,10 @@ function renderAdmin(){
         const l = []; snap.forEach(x => l.push(Object.assign({}, x.data(), { device: x.id })));
         fsAbandoned = l; if (adminTab === 'push') renderPush();
       }, () => {});
+      db.collection('resellers').onSnapshot(snap => {
+        const l = []; snap.forEach(x => l.push(Object.assign({}, x.data(), { code: x.id })));
+        fsResellers = l; if (adminTab === 'resellers') renderResellers();
+      }, () => {});
     }).catch(() => {});
     FS._getDb().catch(() => {});
   }
@@ -113,7 +120,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabResellers','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -123,6 +130,7 @@ function switchTab(t){
     else if (t === 'products') renderProducts();
     else if (t === 'reviews') renderReviews();
     else if (t === 'coupons') renderCoupons();
+    else if (t === 'resellers') renderResellers();
     else if (t === 'push') renderPush();
     else if (t === 'metaads') renderMetaAds();
     else if (t === 'dashboard') renderDashboard();
@@ -154,23 +162,24 @@ function renderDashboard(){
 
 let orderSearch = '';   /* Orders tab: search query (id / customer / phone) */
 
-/* Admin merged view = this device's orders + cloud orders (runtime only) */
+/* Admin merged view = this device's orders + cloud orders (runtime only).
+   Shows the LAST 30 DAYS only (auto-delete policy). */
 function adminAllOrders(){
   const localMap = {};
   Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; });
-  const merged = (fsOrders || []).map(f => Object.assign({}, f, localMap[f.id] || {}))
-    .concat(Store.orders.filter(o => o && o.id && !(fsOrders || []).some(x => x.id === o.id)));
+  const merged = (fsOrders || []).filter(f => orderAgeDays(f) <= 30).map(f => Object.assign({}, f, localMap[f.id] || {}))
+    .concat(Store.orders.filter(o => o && o.id && orderAgeDays(o) <= 30 && !(fsOrders || []).some(x => x.id === o.id)));
   merged.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   return merged;
 }
 function renderFilters(){
   const all = adminAllOrders();
-  const counts = { all: all.length, placed: 0, confirmed: 0, shipped: 0, delivered: 0 };
+  const counts = { all: all.length, placed: 0, pending: 0, confirmed: 0, shipped: 0, delivered: 0 };
   all.forEach(o => { const s = o.status || 'placed'; if (counts[s] !== undefined) counts[s]++; });
   const defs = [
     ['all', '📦 All (' + counts.all + ')'], ['placed', '🆕 New (' + counts.placed + ')'],
-    ['confirmed', '✅ Confirmed (' + counts.confirmed + ')'], ['shipped', '🚚 Shipped (' + counts.shipped + ')'],
-    ['delivered', '✔ Delivered (' + counts.delivered + ')'],
+    ['pending', '⏳ Payment Pending (' + counts.pending + ')'], ['confirmed', '✅ Confirmed (' + counts.confirmed + ')'],
+    ['shipped', '🚚 Shipped (' + counts.shipped + ')'], ['delivered', '✔ Delivered (' + counts.delivered + ')'],
   ];
   document.getElementById('tabBody').innerHTML =
     '<input id="orderSearch" type="search" placeholder="🔍 Search orders — ID, customer name, phone…" autocomplete="off" value="' + esc(orderSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
@@ -217,12 +226,13 @@ function orderCard(o){
       esc(c.address || '') + ', ' + esc(c.pincode || '') + '<br>' + items + ' • <b>' + money(t.grand || 0) + '</b> (' + (o.payment || '').toUpperCase() + ')</div>' +
     '<select data-status="' + o.id + '">' +
       '<option value="placed"' + (st === 'placed' ? ' selected' : '') + '>Placed</option>' +
+      '<option value="pending"' + (st === 'pending' ? ' selected' : '') + '>⏳ Payment Pending</option>' +
       '<option value="confirmed"' + (st === 'confirmed' ? ' selected' : '') + '>Confirmed</option>' +
       '<option value="shipped"' + (st === 'shipped' ? ' selected' : '') + '>Shipped</option>' +
       '<option value="delivered"' + (st === 'delivered' ? ' selected' : '') + '>Delivered</option>' +
     '</select>' +
     '<div class="oc-btns">' +
-      '<a class="btn btn-wa btn-sm" href="' + waLink(TPL_CONFIRM(o), c.phone) + '" target="_blank" rel="noopener">💬 Send Confirmation</a>' +
+      '<a class="btn btn-wa btn-sm" href="' + waLink(TPL_CONFIRM(o), c.phone) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Send Confirmation</a>' +
       '<a class="btn btn-outline btn-sm" href="' + waLink(TPL_DELIVERY(o), c.phone) + '" target="_blank" rel="noopener">🚚 Send Delivery Reminder</a>' +
     '</div></div>';
 }
@@ -508,7 +518,7 @@ function renderMetaAds(){
         '<a class="btn btn-outline btn-sm" href="https://www.facebook.com/adsmanager" target="_blank" rel="noopener">🖥️ Open Meta Ads Manager</a>' +
         '<a class="btn btn-outline btn-sm" href="https://business.facebook.com/events_manager" target="_blank" rel="noopener">📈 Events Manager (Pixel)</a>' +
         '<a class="btn btn-outline btn-sm" href="https://business.facebook.com" target="_blank" rel="noopener">🏢 Business Suite</a>' +
-        '<a class="btn btn-outline btn-sm" href="' + waLink('Hi! I am promoting my saree store on Meta ads — any tips for our area? 😊') + '" target="_blank" rel="noopener">💬 Ad tips on WhatsApp</a>' +
+        '<a class="btn btn-outline btn-sm" href="' + waLink('Hi! I am promoting my saree store on Meta ads — any tips for our area? 😊') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Ad tips on WhatsApp</a>' +
       '</div>' +
       '<p class="small muted" style="margin-top:10px">💡 <b>Tip:</b> the Meta Pixel is already installed — ads will automatically track AddToCart, InitiateCheckout &amp; Purchase. Start with ₹100–₹300/day targeting Tamil Nadu &amp; Karnataka, women 25–50.</p></div>';
   document.getElementById('maGen').addEventListener('click', maGenerate);
@@ -535,11 +545,53 @@ function maGenerate(){
     '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
       '<button type="button" class="btn btn-outline btn-sm" data-copy="' + esc(primary) + '" style="width:auto">📋 Copy Ad Text</button>' +
-      '<a class="btn btn-wa btn-sm" href="' + waLink('Please promote my saree: ' + headline + ' — ' + link) + '" target="_blank" rel="noopener" style="width:auto">💬 Send to my WhatsApp</a>' +
+      '<a class="btn btn-wa btn-sm" href="' + waLink('Please promote my saree: ' + headline + ' — ' + link) + '" target="_blank" rel="noopener" style="width:auto"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Send to my WhatsApp</a>' +
       '<a class="btn btn-gold btn-sm" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(link) + '" target="_blank" rel="noopener" style="width:auto">📤 Share on Facebook</a>' +
     '</div>' +
     '<p class="small muted" style="margin-top:10px">🔗 Tracking link: <b style="word-break:break-all">' + esc(link) + '</b> <button type="button" class="btn btn-ghost btn-sm" data-copy="' + esc(link) + '" style="width:auto;min-height:28px;padding:3px 10px">Copy</button></p>' +
     '<p class="small muted">📷 Ad image: use <b>' + esc(p.img) + '</b> (or any of the ' + ((p.images || []).length) + ' product photos).</p>';
+}
+
+/* ============================ RESELLERS (Share & Earn) ============================
+   Shows every reseller: name, phone, code, orders count, total margin, and the
+   order details they brought in — so the owner can pay commission via GPay. */
+let fsResellers = [];
+function renderResellers(){
+  const body = document.getElementById('tabBody');
+  /* merge local + Firestore resellers (dedupe by code) */
+  const merged = getResellers().slice();
+  (fsResellers || []).forEach(fr => {
+    if (!fr || !fr.code) return;
+    const i = merged.findIndex(x => x.code === fr.code);
+    if (i >= 0) merged[i] = Object.assign({}, merged[i], fr);
+    else merged.push(fr);
+  });
+  const all = merged.slice().sort((a, b) => (b.margin || 0) - (a.margin || 0));
+  const totalMargin = all.reduce((s, r) => s + (r.margin || 0), 0);
+  body.innerHTML =
+    '<div class="form-card"><h3>💰 Resellers — Share &amp; Earn</h3>' +
+      '<p class="small muted">Resellers earn <b>₹' + (CONFIG.resellerMargin || 50) + '</b> per confirmed order placed through their share link (<code>?ref=CODE</code>). Total margin to pay: <b style="color:var(--green)">' + money(totalMargin) + '</b>.</p></div>' +
+    '<div id="rsList"></div>';
+  const wrap = document.getElementById('rsList');
+  if (!all.length){
+    wrap.innerHTML = '<div class="empty"><div class="e-ic">💰</div><b>No resellers yet</b>Share the Share &amp; Earn page (share-earn.html) so people can join!</div>';
+    return;
+  }
+  wrap.innerHTML = all.map((r, i) => {
+    const myOrders = Store.orders.filter(o => o.reseller && o.reseller.code === r.code);
+    const orderLines = myOrders.length
+      ? myOrders.slice(0, 8).map(o => '<div style="font-size:.75rem;padding:3px 0;border-bottom:1px dashed var(--line)">#' + esc(o.id) + ' • ' + fmtDT(o.date) + ' • ' + money((o.totals||{}).grand||0) + ' (' + esc(o.payment||'').toUpperCase() + ') • ' + esc((o.customer||{}).name||'') + '</div>').join('')
+      : '<p class="small muted" style="margin-top:4px">No local orders yet (cloud orders sync when Firestore is on).</p>';
+    return '<div class="order-card">' +
+      '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + '</span></div>' +
+      '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) + '</div>' +
+      '<div class="oc-items" style="margin-top:6px"><b>📦 Orders via ' + esc(r.code) + ':</b>' + orderLines + '</div>' +
+      '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+        '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('🎉 Hi ' + r.name + '! Your SK Sarees commission ' + money(r.margin||0) + ' for ' + (r.orders||0) + ' order(s) is ready. Please confirm your GPay details 🙏') + '" target="_blank" rel="noopener">💬 Notify on WhatsApp</a>' +
+        '<a class="btn btn-gold btn-sm" style="width:auto" href="' + resellerPayLink(r, r.margin) + '">💸 Pay ' + money(r.margin||0) + ' via GPay</a>' +
+        '<a class="btn btn-outline btn-sm" style="width:auto" href="tel:+91' + esc(r.phone) + '">📞 Call</a>' +
+      '</div></div>';
+  }).join('');
 }
 
 /* ============================ PUSH NOTIFICATIONS ============================ */
@@ -599,13 +651,14 @@ function renderAbandonedList(list){
     const items = (r.items || []).map(it => esc(it.name) + ' ×' + it.qty).join(', ');
     const when = r.time ? fmtDT(r.time) : '—';
     const hasSub = !!(r.sub && r.sub.endpoint);
-    const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items + '\n\nUse coupon CART50 for ₹50 off — offer valid today! 🎉';
+    const cartUrl = location.origin + location.pathname.replace(/[^/]*$/, '') + 'cart.html';
+    const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items + '\n\n🎟️ Use coupon CART50 for ₹50 off — offer valid today!\n\n👉 Complete your order: ' + cartUrl + '\n\nHappy shopping! 😊';
     return '<div class="order-card">' +
       '<div class="oc-top"><b>🧺 Abandoned cart</b><span class="status-pill ' + (hasSub ? 'status-delivered' : 'status-placed') + '">' + (hasSub ? '🔔 Push ready' : 'No push sub') + '</span></div>' +
       '<div class="oc-items">' + when + (r.phone ? ' • 📱 ' + esc(r.phone) : '') + '<br>' + items + '<br><b>' + money(r.total || 0) + '</b></div>' +
       '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
         '<button type="button" class="btn btn-maroon btn-sm" data-pushsend="' + i + '" ' + (hasSub ? '' : 'disabled style="opacity:.5"') + '>📣 Send Push</button>' +
-        '<a class="btn btn-wa btn-sm" href="' + waLink(msg) + '" target="_blank" rel="noopener" style="width:auto">💬 WhatsApp</a>' +
+        '<a class="btn btn-wa btn-sm" href="' + waLink(msg) + '" target="_blank" rel="noopener" style="width:auto"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp</a>' +
         '<a class="btn btn-outline btn-sm" href="sms:+91' + CONFIG.waNumber + '?body=' + encodeURIComponent(msg) + '" style="width:auto">📱 SMS</a>' +
       '</div></div>';
   }).join('');

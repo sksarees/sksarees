@@ -19,6 +19,9 @@ const CONFIG = {
   cartCoupon    : { code:'CART50', off:50, label:'Forgot your cart? Get ₹50 off!' },
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
   dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
+  /* 💰 Reseller / Share & Earn program: margin paid per order + promo coupon */
+  resellerMargin : 50,               // ₹ margin the reseller earns per confirmed order
+  resellerCoupon : 'SHARE50',        // ₹50 off coupon shown on the index banner
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get ₹50 off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
@@ -51,11 +54,30 @@ const ZONES = {
 };
 /* ============================ 2b. FESTIVAL CALENDAR + EARLY ACCESS ============================ */
 const FESTIVALS = [
-  { slug:'aadi',     emoji:'🌾', name:'Aadi Sale',        tag:'Now live',  blurb:'Aadi month specials — up to 40% off' },
-  { slug:'pongal',   emoji:'🌅', name:'Pongal Collection', tag:'Coming',   blurb:'Harvest season silks & cottons' },
-  { slug:'diwali',   emoji:'🪔', name:'Diwali Special',    tag:'Coming',   blurb:'Festive lights & gold-zari sarees' },
-  { slug:'wedding',  emoji:'💍', name:'Wedding Season',    tag:'Early access', blurb:'Bridal & family wedding sarees' },
+  { slug:'aadi',     emoji:'🌾', name:'Aadi Sale',        blurb:'Aadi month specials — up to 40% off' },
+  { slug:'pongal',   emoji:'🌅', name:'Pongal Collection', blurb:'Harvest season silks & cottons' },
+  { slug:'diwali',   emoji:'🪔', name:'Diwali Special',    blurb:'Festive lights & gold-zari sarees' },
+  { slug:'wedding',  emoji:'💍', name:'Wedding Season',    blurb:'Bridal & family wedding sarees' },
 ];
+/* Auto-detect which festival is currently live based on today's date */
+function currentFestival(){
+  const d = new Date();
+  const m = d.getMonth() + 1, day = d.getDate();
+  if ((m === 7 && day >= 17) || (m === 8 && day <= 17)) return 'aadi';          /* Aadi: ~17 Jul – 17 Aug */
+  if (m === 1 && day >= 10 && day <= 20) return 'pongal';                        /* Pongal: 10–20 Jan */
+  if ((m === 10 && day >= 15) || (m === 11 && day <= 15)) return 'diwali';       /* Diwali: ~15 Oct – 15 Nov */
+  return 'wedding';                                                              /* default: wedding season */
+}
+function festivalTag(slug){
+  const cur = currentFestival();
+  if (slug === cur) return 'Now live';
+  if (slug === 'wedding') return 'Early access';
+  return 'Coming';
+}
+function festivalName(slug){
+  const f = FESTIVALS.find(x => x.slug === slug);
+  return f ? f.name : 'Festival';
+}
 
 /* Which zone a PIN code belongs to (empty/unknown → Tamil Nadu default) */
 function deliveryZone(pincode){
@@ -174,25 +196,31 @@ const VARIANTS = [
   { color:'Peacock', off:4 }, { color:'Champagne', off:10 }, { color:'Sage', off:6 },
 ];
 let PRODUCTS = (() => {
-  let built = BASE.map(b => Object.assign({}, b));
-  BASE.forEach(b => {
-    VARIANTS.slice(0, 3).forEach((v, i) => {
-      built.push(Object.assign({}, b, {
-        id: b.id + '-v' + (i + 1),
-        name: b.name.replace(/—[^-]*$/, '— ' + v.color),
-        color: v.color + ' variant',
-        price: Math.round(b.price * (1 - v.off / 100)),
-        mrp: b.mrp,
-        rating: b.rating,                 /* original rating — same saree, different colour */
-        reviews: b.reviews,                /* original review count */
-        stock: Math.max(2, b.stock - i * 4),
-        badge: b.badge === 'Bestseller' ? '' : b.badge,
-      }));
+  /* 📦 CATALOG SOURCE: real products come from the ADMIN (sk_products) and
+     FIRESTORE (sk_products_cloud cache). The demo BASE catalog in data.js is
+     REMOVED — enable it only for tests with window.__KEEP_BASE = true. */
+  let built = [];
+  if (window.__KEEP_BASE){
+    built = BASE.map(b => Object.assign({}, b));
+    BASE.forEach(b => {
+      VARIANTS.slice(0, 3).forEach((v, i) => {
+        built.push(Object.assign({}, b, {
+          id: b.id + '-v' + (i + 1),
+          name: b.name.replace(/—[^-]*$/, '— ' + v.color),
+          color: v.color + ' variant',
+          price: Math.round(b.price * (1 - v.off / 100)),
+          mrp: b.mrp,
+          rating: b.rating,                 /* original rating — same saree, different colour */
+          reviews: b.reviews,                /* original review count */
+          stock: Math.max(2, b.stock - i * 4),
+          badge: b.badge === 'Bestseller' ? '' : b.badge,
+        }));
+      });
     });
-  });
-  /* auto-SKU for every catalog product: SK + 5 digits, sequential (SK10001…) */
-  built = built.map((p, i) => Object.assign({}, p, { sku: p.sku || ('SK' + String(10000 + i + 1)) }));
-  /* 1. Admin edits (sk_products) override the base catalog */
+    /* auto-SKU for every catalog product: SK + 5 digits, sequential (SK10001…) */
+    built = built.map((p, i) => Object.assign({}, p, { sku: p.sku || ('SK' + String(10000 + i + 1)) }));
+  }
+  /* 1. Admin edits (sk_products) override everything */
   try{
     const custom = JSON.parse(localStorage.getItem('sk_products'));
     if (Array.isArray(custom) && custom.length){
@@ -292,6 +320,23 @@ function normalizeProduct(raw){
 const money = n => '₹' + Number(n).toLocaleString('en-IN');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+/* age of an order in days (0 if unknown) */
+function orderAgeDays(o){
+  try{
+    const d = new Date(o && (o.date || o.createdAt || 0));
+    if (isNaN(d.getTime())) return 0;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 864e5));
+  }catch(e){ return 0; }
+}
+/* Auto-delete old orders: ADMIN keeps 30 days, USER keeps 90 days.
+   Cleans sk_orders so the store never accumulates stale orders. */
+function purgeOldOrders(days){
+  try{
+    const before = Store.orders.length;
+    Store.orders = Store.orders.filter(o => orderAgeDays(o) <= days);
+    if (Store.orders.length !== before) Store.saveOrders();
+  }catch(e){}
+}
 /* Date + time with AM/PM, e.g. "6 Aug 2026, 3:05 PM" */
 const fmtDT = iso => {
   const d = new Date(iso); if (isNaN(d.getTime())) return '';
@@ -452,12 +497,66 @@ const Store = {
   saveProfile(){ LS.set('sk_profile', this.profile); },
 };
 function cartTotal(){ return Store.cart.reduce((s,i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0); }
+/* ---- STOCK (1 psc model) ----
+   Products have limited stock (often 1 psc). Stock is consumed when an order is
+   placed; cart reservations (this device + other devices via Firestore) reduce
+   what other customers see — one customer takes it → next sees Out of Stock. */
+let _remoteReserve = null;
+function remoteReservedSync(id){ try{ return _remoteReserve ? (_remoteReserve[id] || 0) : 0; }catch(e){ return 0; } }
+function myCartQty(id){ const it = Store.cart.find(i => i.id === id); return it ? (it.qty || 1) : 0; }
+/* fetch reservations from Firestore (once), excluding this device */
+async function loadRemoteReservations(){
+  try{
+    if (!FS.enabled()) return;
+    const db = await FS._getDb();
+    if (!db) return;
+    const snap = await db.collection('cart').get();
+    const my = deviceId();
+    const map = {};
+    snap.forEach(doc => {
+      if (doc.id === my) return;
+      const data = doc.data() || {};
+      (data.items || []).forEach(it => { if (it && it.id) map[it.id] = (map[it.id] || 0) + (+it.qty || 1); });
+    });
+    _remoteReserve = map;
+  }catch(e){}
+}
+function syncCartReservation(){
+  try{
+    if (!FS.enabled()) return;
+    FS._getDb().then(db => {
+      if (!db) return;
+      if (Store.cart.length) db.collection('cart').doc(deviceId()).set({ items: Store.cart, updatedAt: Date.now() }, { merge: true }).catch(() => {});
+      else db.collection('cart').doc(deviceId()).delete().catch(() => {});
+    }).catch(() => {});
+  }catch(e){}
+}
+/* stock still available to THIS customer right now */
+function liveStock(p){
+  if (!p) return 0;
+  return Math.max(0, (+p.stock || 0) - remoteReservedSync(p.id) - myCartQty(p.id));
+}
+/* permanently consume stock after an order (1 psc model) */
+function consumeStock(items){
+  (items || []).forEach(i => {
+    const p = byId(i.id);
+    if (p) p.stock = Math.max(0, (+p.stock || 0) - (i.qty || 1));
+  });
+  try{ LS.set('sk_products', PRODUCTS); }catch(e){}
+  try{ if (window.REC) REC.invalidate(); }catch(e){}
+  if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }
+}
 function addToCart(id, qty = 1){
   const p = byId(id); if (!p) return;
   if (p.stock != null && p.stock <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
   const ex = Store.cart.find(i => i.id === id);
-  if (ex) ex.qty = Math.min(ex.qty + qty, 10); else Store.cart.push({ id, qty });
+  const have = ex ? (ex.qty || 1) : 0;
+  const avail = liveStock(p);                       /* stock − remote − my cart */
+  if (avail <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
+  if (qty > avail) qty = avail;                     /* can't take more than available */
+  if (ex) ex.qty = Math.min(have + qty, Math.max(1, +p.stock || 1)); else Store.cart.push({ id, qty: Math.min(qty, Math.max(1, +p.stock || 1)) });
   Store.saveCart();
+  syncCartReservation();
   toast('✅ Added to cart');
   fbqSafe('AddToCart', Object.assign(fbqId(id), { value: p.price * qty, currency: 'INR', quantity: qty }));
 }
@@ -476,8 +575,8 @@ function toggleWish(id){
     });
   }catch(e){}
 }
-function setCartQty(id, qty){ const it = Store.cart.find(i => i.id === id); if (!it) return; it.qty = Math.max(1, Math.min(qty,10)); Store.saveCart(); }
-function removeFromCart(id){ Store.cart = Store.cart.filter(i => i.id !== id); Store.saveCart(); toast('🗑️ Removed'); }
+function setCartQty(id, qty){ const it = Store.cart.find(i => i.id === id); if (!it) return; it.qty = Math.max(1, Math.min(qty, Math.max(1, +((byId(id) || {}).stock) || 1))); Store.saveCart(); syncCartReservation(); }
+function removeFromCart(id){ Store.cart = Store.cart.filter(i => i.id !== id); Store.saveCart(); syncCartReservation(); toast('🗑️ Removed'); }
 function renderCartBadge(){
   const b = document.getElementById('cartBadge'); if (!b) return;
   const n = Store.cart.reduce((s,i) => s + i.qty, 0);
@@ -510,11 +609,12 @@ function productUrl(p){
 function waProductMsg(p){
   /* absolute product URL so the customer can tap & see the saree */
   const url = productUrl(p);
-  return `Hi! I want to order this Saree:\n\n🪡 ${p.name}\n💰 Price: ${money(p.price)}\n🔗 ${url}\n\nIs it available? Please confirm.`;
+  const off = offPct(p);
+  return `🪡 Hi! I found this beautiful saree on SK Sarees 🛍️\n\n✨ ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n📱 Order in 2 minutes — COD & UPI available, fast delivery!\n👉 ${url}\n\nIs it available? Please confirm 😊`;
 }
 function waCartMsg(){
-  let m = 'Hi! I want to place this order:\n';
-  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n• ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n  🔗 ${location.origin}${location.pathname.replace(/[^/]*$/, '')}product.html?id=${encodeURIComponent(p.id)}`; });
+  let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
+  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}${location.pathname.replace(/[^/]*$/, '')}product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
   m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
   return m;
@@ -563,8 +663,9 @@ function abandonedCartBanner(){
     /* also fire a browser push/local notification */
     try{ notifyLocal('🧺 Your cart is waiting!', CONFIG.cartCoupon.label + ' Use coupon ' + CONFIG.cartCoupon.code, 'cart.html'); }catch(e){}
     const items = Store.cart.map(i => { const p = byId(i.id); return p ? '• ' + p.name + ' ×' + i.qty : ''; }).filter(Boolean).join('\n');
+    const cartUrl = location.origin + location.pathname.replace(/[^/]*$/, '') + 'cart.html';
     const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items +
-      '\n\nUse coupon ' + CONFIG.cartCoupon.code + ' for ₹' + CONFIG.cartCoupon.off + ' off — offer valid today! 🎉';
+      '\n\n🎟️ Use coupon ' + CONFIG.cartCoupon.code + ' for ₹' + CONFIG.cartCoupon.off + ' off — offer valid today!\n\n👉 Complete your order: ' + cartUrl + '\n\nHappy shopping! 😊';
     const div = document.createElement('div');
     div.id = 'cartRecovery';
     div.className = 'cart-recovery';
@@ -572,7 +673,7 @@ function abandonedCartBanner(){
       '<b>🧺 ' + CONFIG.cartCoupon.label + '</b>' +
       '<span>Coupon <b>' + CONFIG.cartCoupon.code + '</b> = ₹' + CONFIG.cartCoupon.off + ' off on your next order.</span>' +
       '<div class="cr-btns">' +
-        '<a class="btn btn-wa btn-sm" href="' + waLink(msg) + '" target="_blank" rel="noopener">💬 WhatsApp Reminder</a>' +
+        '<a class="btn btn-wa btn-sm" href="' + waLink(msg) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Reminder</a>' +
         '<a class="btn btn-outline btn-sm" href="sms:+91' + CONFIG.waNumber + '?body=' + encodeURIComponent(msg) + '">📱 SMS Reminder</a>' +
         '<a class="btn btn-gold btn-sm" href="cart.html">🛒 Complete Order</a>' +
       '</div>';
@@ -595,6 +696,7 @@ function defaultCoupons(){
     { code:'AADI10', type:'percent', value:10, min:999, active:true, label:'Aadi Festival — 10% off', maxUses:0, expiry:'' },
     { code:'CART50', type:'flat',    value:50, min:0,   active:true, label:'Forgot cart — ₹50 off', maxUses:0, expiry:'' },
     { code:'LATE50', type:'flat',    value:50, min:0,   active:true, label:'Late delivery — ₹50 off', maxUses:0, expiry:'' },
+    { code:'SHARE50', type:'flat',   value:50, min:0,   active:true, label:'Share & Earn — ₹50 off', maxUses:0, expiry:'' },
   ];
 }
 function getCoupons(){
@@ -637,6 +739,85 @@ function couponDiscount(code, total){
   const c = couponFor(code); if (!c) return 0;
   if (c.min && total < +c.min) return 0;
   return c.type === 'percent' ? Math.round(total * (+c.value || 0) / 100) : (+c.value || 0);
+}
+
+/* ============================ 9d. RESELLER / SHARE & EARN ============================
+   Customers can join as resellers: they get a personal code + share link
+   (?ref=CODE). Orders placed through their link record the reseller and a
+   margin (₹CONFIG.resellerMargin). Admin sees name/phone/margin/orders and can
+   pay the commission via GPay. Resellers are saved locally + Firestore. */
+function getResellers(){
+  try{ const r = JSON.parse(localStorage.getItem('sk_resellers')); if (Array.isArray(r)) return r; }catch(e){}
+  return [];
+}
+function saveResellers(list){
+  try{ localStorage.setItem('sk_resellers', JSON.stringify(list || [])); }catch(e){}
+}
+function makeResellerCode(name, phone){
+  const n = String(name || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase() || 'RS';
+  const p = String(phone || '').replace(/\D/g, '').slice(-4);
+  return n + p || ('R' + Date.now().toString(36).slice(-4));
+}
+function addReseller(name, phone){
+  const list = getResellers();
+  const ph = String(phone || '').replace(/\D/g, '');
+  const ex = list.find(r => r.phone === ph);
+  if (ex) return ex;                                   /* already registered */
+  const r = { code: makeResellerCode(name, ph), name: String(name || '').trim(), phone: ph, date: Date.now(), orders: 0, margin: 0 };
+  list.push(r);
+  saveResellers(list);
+  try{
+    if (FS.enabled()){ FS._getDb().then(db => { if (db) db.collection('resellers').doc(r.code).set(r, { merge: true }).catch(()=>{}); }).catch(()=>{}); }
+  }catch(e){}
+  return r;
+}
+function resellerByCode(code){
+  if (!code) return null;
+  const s = String(code).trim().toUpperCase();
+  return getResellers().find(r => String(r.code).trim().toUpperCase() === s) || null;
+}
+/* capture ?ref= from the URL on any page (used by orders placed later) */
+function readRef(){
+  try{
+    const ref = new URLSearchParams(location.search).get('ref');
+    if (!ref) return null;
+    const r = resellerByCode(ref);
+    if (r){ try{ sessionStorage.setItem('sk_ref', r.code); }catch(e){} return r; }
+  }catch(e){}
+  return null;
+}
+/* reseller attached to the CURRENT visitor (from ?ref= they arrived with) */
+function currentReseller(){
+  try{ return resellerByCode(sessionStorage.getItem('sk_ref')); }catch(e){ return null; }
+}
+/* after an order is placed: credit the reseller + persist to Firestore */
+function recordResellerOrder(order){
+  try{
+    const r = order && order.reseller;
+    if (!r || !r.code) return;
+    const list = getResellers();
+    const i = list.findIndex(x => x.code === r.code);
+    if (i >= 0){
+      list[i].orders = (list[i].orders || 0) + 1;
+      list[i].margin = (list[i].margin || 0) + (order.margin || CONFIG.resellerMargin || 0);
+      list[i].lastOrder = order.date || new Date().toISOString();
+      saveResellers(list);
+    }
+    if (FS.enabled()){
+      FS._getDb().then(db => {
+        if (!db) return;
+        db.collection('resellers').doc(r.code).set({ code: r.code, name: r.name, phone: r.phone, orders: (list[i] && list[i].orders) || 0, margin: (list[i] && list[i].margin) || 0, updatedAt: Date.now() }, { merge: true }).catch(()=>{});
+      }).catch(()=>{});
+    }
+  }catch(e){}
+}
+/* GPay commission link for a reseller (pay to their phone @upi) */
+function resellerPayLink(r, amount){
+  const p = String(r.phone || '').replace(/\D/g, '');
+  const amt = Number(amount || CONFIG.resellerMargin || 0).toFixed(2);
+  const note = encodeURIComponent('SK Sarees commission ' + (r.code || '') + ' — thank you!');
+  const name = encodeURIComponent(r.name || 'Reseller');
+  return 'intent://pay?pa=' + p + '@upi&pn=' + name + '&am=' + amt + '&cu=INR&tn=' + note + '#Intent;scheme=upi;package=com.google.android.apps.nfcpay;S.browser_fallback_url=' + encodeURIComponent('https://pay.google.com/') + ';end';
 }
 
 /* ============================ 9d. WEB PUSH NOTIFICATIONS ============================
@@ -1244,6 +1425,7 @@ function renderHeader(){
       ${CATEGORIES.slice(0, 8).map(c => `<a href="shop.html?cat=${c.slug}">${c.emoji} ${c.name}</a>`).join('')}
       <div class="sub">Help</div>
       <a href="orders.html">📦 ${t('myOrders')}</a>
+      <a href="share-earn.html">💰 Share &amp; Earn</a>
       <a href="#" data-faq>❓ FAQ</a>
     </nav>
   </aside>`;
@@ -1265,7 +1447,7 @@ function renderFooter(){
           <a href="${CONFIG.social.instagram}" target="_blank" rel="noopener" aria-label="Instagram">📸</a>
           <a href="${CONFIG.social.facebook}" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
           <a href="${CONFIG.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
-          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp group">💬</a>
+          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp group"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
           <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us on Google">⭐</a>
         </div>
       </div>
@@ -1278,7 +1460,8 @@ function renderFooter(){
           <a href="orders.html">${t('myOrders')}</a><br>
           <a href="profile.html">${t('profile')}</a><br>
           <a href="#" data-i18n-faq>❓ FAQ</a><br>
-          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 Join WhatsApp Group</a>
+          <a href="share-earn.html">💰 Share &amp; Earn</a><br>
+          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Join WhatsApp Group</a>
         </p>
       </div>
       <div class="foot">
@@ -1286,7 +1469,7 @@ function renderFooter(){
         <ul class="foot-contact">
           <li><span>📍</span><span>2/130, Thoothanoor,<br>Edanganasalai,<br>Salem — 637502,<br>Tamil Nadu</span></li>
           <li><span>📞</span><a href="tel:+917867915699">+91 78679 15699</a></li>
-          <li><span>💬</span><a href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" style="color:#7be6a4;font-weight:800">Chat on WhatsApp</a></li>
+          <li><span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span><a href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" style="color:#7be6a4;font-weight:800">Chat on WhatsApp</a></li>
         </ul>
         <p style="font-size:.76rem">⏰ Order support: 9 AM – 9 PM, all days</p>
       </div>
@@ -1406,11 +1589,12 @@ function injectChrome(){
     const f = document.createElement('div'); f.id = 'siteFooter';
     document.body.appendChild(f);
   }
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 Aadi Festival Sale — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   document.body.insertAdjacentHTML('beforeend', `
     <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>
-    <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span>💬</span></a>
+    <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span></a>
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);
   try{ abandonedCartBanner(); }catch(e){}
