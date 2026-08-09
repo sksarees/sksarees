@@ -21,8 +21,6 @@ const CONFIG = {
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
   /* 🛒 bundle deal: buy 2+ sarees → ₹50 off */
   bundleCount : 2, bundleOff : 50,
-  /* 🌙 dark mode default */
-  darkDefault : false,
   dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
   /* 💰 Reseller / Share & Earn program: margin paid per order + promo coupon */
   resellerMargin : 50,               // ₹ margin the reseller earns per confirmed order
@@ -1070,7 +1068,9 @@ const Stats = {
       }
     }catch(e){}
     this.refreshOrders();
-    /* live cloud totals (when Firestore is on) */
+    /* 🔴 REAL totals: visitors from the shared Firestore counter,
+       orders = actual count of documents in the Firestore orders collection
+       (plus this device's local orders that may not be synced yet) */
     try{
       if (FS.enabled()){
         FS._getDb().then(db => {
@@ -1079,17 +1079,26 @@ const Stats = {
             if (!snap.exists) return;
             const d = snap.data() || {};
             if (d.visitors) this.visitors = d.visitors;
-            if (d.orders) this.orders = d.orders;
             renderStatsText();
           }, () => {});
-          db.collection('orders').get().then(snap => { this.orders = (snap.size || 0) + Store.orders.length; renderStatsText(); }).catch(() => {});
+          /* true order count = Firestore orders docs + unsynced local orders */
+          db.collection('orders').get().then(snap => {
+            this.orders = (snap.size || 0);
+            this.orders += Store.orders.filter(o => !o.syncedCloud).length || 0;
+            renderStatsText();
+          }).catch(() => {});
+          /* keep it live with a listener */
+          db.collection('orders').onSnapshot(snap => {
+            this.orders = (snap && snap.size) || 0;
+            renderStatsText();
+          }, () => {});
         }).catch(() => {});
       }
     }catch(e){}
   },
   refreshOrders(){
     try{ this.orders = Store.orders.length; }catch(e){}
-    try{ if (typeof fsOrders !== 'undefined' && fsOrders) this.orders = Store.orders.length + fsOrders.length; }catch(e){}
+    try{ if (typeof fsOrders !== 'undefined' && fsOrders) this.orders = fsOrders.length; }catch(e){}
   },
   text(){ return '👥 ' + (this.visitors || 0).toLocaleString('en-IN') + '+ visitors · 📦 ' + (this.orders || 0).toLocaleString('en-IN') + '+ orders'; }
 };
@@ -1190,21 +1199,6 @@ const LANGS = {
 let lang = LS.get('sk_lang', 'en');
 const t = k => (LANGS[lang] && LANGS[lang][k]) || LANGS.en[k] || k;
 function setLang(l){ lang = LANGS[l] ? l : 'en'; LS.set('sk_lang', lang); location.reload(); }
-/* 🌙 dark mode */
-let darkMode = (function(){ try{ const v = LS.get('sk_dark', null); if (v === '1' || v === true) return true; if (v === '0' || v === false) return false; return !!CONFIG.darkDefault; }catch(e){ return false; } })();
-function applyDark(){
-  try{ document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light'); }catch(e){}
-  try{
-    const b = document.getElementById('darkBtn');
-    if (b) b.textContent = darkMode ? '☀️ Light' : '🌙 Dark';
-  }catch(e){}
-}
-function toggleDark(){
-  darkMode = !darkMode;
-  try{ LS.set('sk_dark', darkMode ? '1' : '0'); }catch(e){}
-  applyDark();
-}
-
 /* ============================ 12. FIRESTORE (ORDERS + REVIEWS only) ============================
    Clean & simple: optional cloud sync for orders & reviews.
    - Never blocks the site — everything works locally first.
@@ -1608,7 +1602,6 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
-        <button type="button" class="icon-btn" id="darkBtn" aria-label="Dark mode" style="border:0;background:none;color:var(--ink)">🌙</button>
         <a class="icon-btn" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
       </div>
@@ -1685,6 +1678,20 @@ function renderFooter(){
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
+/* ============================ MICROSOFT CLARITY ============================
+   Session recordings + heatmaps. Loads once on every page. */
+(function(){
+  try{
+    if (window.__clarityDone) return;
+    window.__clarityDone = true;
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xuykvctr73");
+  }catch(e){}
+})();
+
 /* ============================ GOOGLE TAG (gtag.js / GA4) ============================
    Loads on EVERY page. Analytics ID: G-J1W5VVY48L
    Replace the ID below if your GA4 property changes. */
@@ -1779,9 +1786,38 @@ function seoInject(){
   }catch(e){}
 }
 
+/* 📲 PWA install — capture the beforeinstallprompt and show an Install button */
+let deferredPrompt = null;
+function installApp(){
+  try{
+    if (deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; }); return; }
+    toast('📲 Chrome: ⋮ menu → Add to Home screen · Safari: Share → Add to Home Screen');
+  }catch(e){}
+}
+function showInstallBanner(){
+  try{
+    if (document.getElementById('installBanner')) return;
+    const el = document.createElement('div');
+    el.id = 'installBanner';
+    el.className = 'install-banner';
+    el.innerHTML = '<div><b>📲 Install SK Sarees App</b><span class="small muted">Open in one tap, like a native app!</span></div>' +
+      '<button type="button" class="btn btn-maroon btn-sm" id="installBtn" style="width:auto;min-width:110px">Install</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="installX" style="width:auto;min-width:40px">✕</button>';
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.add('show'), 800);
+    document.getElementById('installBtn').addEventListener('click', () => { installApp(); });
+    document.getElementById('installX').addEventListener('click', () => { el.remove(); try{ localStorage.setItem('sk_install_closed','1'); }catch(e){} });
+  }catch(e){}
+}
+
 function injectChrome(){
   try{ seoInject(); }catch(e){}
   try{ Stats.init(); renderStatsText(); }catch(e){}
+  /* PWA install: capture prompt + show banner once */
+  try{
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; try{ if (!localStorage.getItem('sk_install_closed')) showInstallBanner(); }catch(e2){} });
+    try{ if (localStorage.getItem('sk_install_closed') !== '1' && !window.matchMedia('(display-mode: standalone)').matches){ setTimeout(showInstallBanner, 4000); } }catch(e2){}
+  }catch(e){}
   /* register the push service worker (HTTPS only; harmless fallback otherwise) */
   try{
     if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -1797,11 +1833,6 @@ function injectChrome(){
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
   document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
-  try{ applyDark(); }catch(e){}          /* dark mode */
-  try{
-    const db = document.getElementById('darkBtn');
-    if (db) db.addEventListener('click', toggleDark);
-  }catch(e){}
   try{ renderStatsText(); }catch(e){}   /* fill footer stats after chrome renders */
   document.body.insertAdjacentHTML('beforeend', `
     <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>

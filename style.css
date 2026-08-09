@@ -16,19 +16,6 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-/* ---------- Dark mode ---------- */
-html[data-theme="dark"]{
-  --bg:#12100e; --card:#1d1916; --ink:#f2e9e0; --muted:#a99a8e;
-  --line:#3a3128; --gold-soft:#2b2416; --maroon-soft:#3a1622;
-  --sh:0 8px 26px rgba(0,0,0,.5); --sh-sm:0 2px 10px rgba(0,0,0,.4);
-  color-scheme:dark;
-}
-html[data-theme="dark"] body{background:var(--bg)}
-html[data-theme="dark"] .pcard-img{background:#221c17}
-html[data-theme="dark"] .pd-gal .main{background:#1a1512}
-html[data-theme="dark"] .prod-table td,
-html[data-theme="dark"] .pd-block p{color:#d8c9bc}
-html[data-theme="dark"] .toast{background:#3a2a20}
 
 body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px;-webkit-tap-highlight-color:transparent}
 img{max-width:100%;display:block}
@@ -292,6 +279,11 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 /* bundle deal note */
 .bundle-note{margin-top:10px;background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:10px;padding:9px 11px;font-size:.78rem;color:#6b4c05;font-weight:700}
+/* PWA install banner */
+.install-banner{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:71;background:#fff;border:2px solid var(--maroon);border-radius:16px;box-shadow:0 12px 40px rgba(90,30,20,.22);padding:12px 14px;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(16px);pointer-events:none;transition:.3s;max-width:520px;margin:0 auto}
+.install-banner.show{opacity:1;transform:none;pointer-events:auto}
+.install-banner > div{flex:1;min-width:0}
+.install-banner b{font-size:.9rem;color:var(--maroon)}
 /* abandoned-cart recovery banner */
 .cart-recovery{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;background:#fff;border:2px solid var(--gold);border-radius:16px;box-shadow:0 12px 40px rgba(90,30,20,.22);padding:14px;display:grid;gap:8px;opacity:0;transform:translateY(16px);pointer-events:none;transition:.3s;max-width:520px;margin:0 auto}
 .cart-recovery.show{opacity:1;transform:none;pointer-events:auto}

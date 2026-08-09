@@ -263,7 +263,7 @@ const REC = (function(){
   /* ---------- 7. render the "✨ Similar Sarees" section ---------- */
   function renderSimilar(p, container){
     if (!container) return;
-    const recs = recommendFor(p, 8);
+    const recs = recommendFor(p, 30);
     if (recs.length < 2){ container.innerHTML = ''; return; }
     container.innerHTML =
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ Similar Sarees</h2>' +
@@ -287,7 +287,49 @@ const REC = (function(){
       }).join('') + '</div></section>';
   }
 
-  /* ---------- 8. view tracking (feeds collaborative part) ---------- */
+  /* ---------- 8. EXPLORE MORE — 3 merchandising sections ----------
+     · Customers who bought this item also bought → bestsellers/co-purchased
+     · Visually similar items                     → attribute-based (fabric/color/design)
+     · What other items do customers buy after viewing this item → collaborative views
+     Each shows up to 30 products with a small "why" label. */
+  function exploreHTML(title, recs, label){
+    if (!recs || recs.length < 2) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + title + '</h2>' +
+      '<span class="small muted">' + label + '</span></div>' +
+      '<div class="prow">' + recs.slice(0, 30).map(r => {
+        const prod = byId(r.id) || {};
+        return '<article class="pcard">' +
+          '<a class="pcard-img" href="product.html?id=' + encodeURIComponent(r.id) + '">' +
+            '<img src="' + esc(r.img) + '" alt="' + esc(r.name) + '" loading="lazy" decoding="async" width="800" height="600">' +
+            '<span class="match-chip">' + r.score + '%</span>' +
+          '</a>' +
+          '<div class="pcard-body"><h3><a href="product.html?id=' + encodeURIComponent(r.id) + '">' + esc(r.name) + '</a></h3>' +
+          '<div class="price-row"><b>' + money(r.price) + '</b></div>' +
+          '<div class="p-actions">' +
+            '<button type="button" class="btn btn-outline" data-add="' + esc(r.id) + '">Add</button>' +
+            '<a class="btn btn-wa" href="' + waLink(waProductMsg(prod)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
+          '</div></div></article>';
+      }).join('') + '</div></section>';
+  }
+  function renderExplore(p, container){
+    if (!container) return;
+    try{
+      const all = recommendFor(p, 60);
+      /* visual = attribute similarity (default ordering) */
+      const visual = all.slice(0, 30);
+      /* co-bought = bestsellers/rating-heavy */
+      const bought = all.slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 30);
+      /* after-viewing = collaborative (view-history boosted) + popular */
+      const after = all.slice().sort((a, b) => (b.score - a.score) || ((byId(a.id) || {}).reviews || 0) - ((byId(b.id) || {}).reviews || 0)).slice(0, 30);
+      const html =
+        exploreHTML('🛒 Customers Who Bought This Also Bought', bought, 'bestsellers & co-purchased') +
+        exploreHTML('🎨 Visually Similar Items', visual, 'matched by fabric, colour & design') +
+        exploreHTML('👀 Others Buy After Viewing This', after, 'based on browsing + order patterns');
+      container.innerHTML = html;
+    }catch(e){}
+  }
+
+  /* ---------- 9. view tracking (feeds collaborative part) ---------- */
   function trackView(id){
     try{
       if (!id) return;
@@ -300,6 +342,6 @@ const REC = (function(){
 
   function invalidate(){ attrCache.clear(); index = null; try{ PRODUCTS_VERSION = PRODUCTS_VERSION + 1; }catch(e){} try{ const k = localStorage; const toRm = []; for (let i = 0; i < k.length; i++){ if (k.key(i).indexOf('sk_rec_') === 0) toRm.push(k.key(i)); } toRm.forEach(x => k.removeItem(x)); }catch(e){} }
 
-  return { attrs, similarity, recommendFor, renderSimilar, trackView, invalidate };
+  return { attrs, similarity, recommendFor, renderSimilar, renderExplore, trackView, invalidate };
 })();
 window.REC = REC;

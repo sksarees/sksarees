@@ -23,6 +23,19 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 
 **Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
 
+## 🛍️ Conversion & UX updates (latest)
+
+1. **⚡ Buy at ₹X** — the Buy Now buttons (main + mobile sticky bar) now say **"Buy at ₹849"** and update live with quantity (**Buy at ₹1,698** for 3 pcs), and pass the qty to checkout.
+2. **📍 PIN check upgrade** — shows **"Delivery by Thu, 13 Aug"** (with weekday), COD date, shipping, and **"✅ Fulfilled by SK SAREES COLLECTION"**.
+3. **🧠 30 similar + Explore More** — "✨ Similar Sarees" now shows **30 products**; below it three merchandising sections: **🛒 Customers Who Bought This Also Bought**, **🎨 Visually Similar Items**, **👀 Others Buy After Viewing This** (each up to 30).
+4. **🌙 Dark mode removed** — toggle, helpers and dark CSS fully removed (per your request).
+5. **👥 Real counters** — visitors come from the shared Firestore `counters/site` doc; **orders = actual Firestore orders collection count** (live listener), so the numbers are the true store totals.
+6. **🗑️ Product delete fixed** — deleting now also removes the product from the local cloud cache and marks it **Inactive in Firestore**, so it never comes back on refresh/pull.
+7. **🎁 Bundle total fixed** — the cart total now **subtracts the ₹50 bundle discount** correctly (2+ sarees).
+8. **📦 Google Merchant Center feed** — added `g:mpn` (SKU), `g:item_group_id`, and `g:shipping` (IN) so the feed uploads cleanly to Google Merchant Center.
+9. **📲 PWA easy install** — install banner (first visit) + **Install App** button in Profile + `beforeinstallprompt` capture. Works on Android Chrome / iPhone Safari (HTTPS).
+10. **📊 Microsoft Clarity** — the Clarity snippet (ID `xuykvctr73`) loads on **every page** for session recordings & heatmaps.
+
 ## 🚀 Big Feature Pack (all implemented)
 
 1. **📦 Catalog Feed XML** — Admin → **📦 Catalog Feed** tab: download `products-feed.xml` (Facebook/Instagram Shopping format: id, title, description, price, sale_price, image_link, availability, brand, google_product_category…). Upload it to your host, connect in Meta Commerce Manager, and customers can **tag & buy sarees on Instagram/Facebook**. Static `products-feed.xml` also included.

@@ -613,8 +613,11 @@ function feedXml(){
       (p.mrp && p.mrp > p.price ? '<g:sale_price>' + p.price + ' INR</g:sale_price>\n<g:price>' + p.mrp + ' INR</g:price>\n' : '') +
       '<g:condition>new</g:condition>\n' +
       '<g:brand>SK Sarees</g:brand>\n' +
+      '<g:mpn>' + escX(p.sku || p.id) + '</g:mpn>\n' +
+      '<g:item_group_id>' + escX(p.id) + '</g:item_group_id>\n' +
       '<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>\n' +
       '<g:product_type>' + escX(p.cat || 'Sarees') + '</g:product_type>\n' +
+      '<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>\n' +
       '<g:identifier_exists>no</g:identifier_exists>\n' +
       '</item>\n';
   });
@@ -852,8 +855,22 @@ document.addEventListener('click', e => {
   const delp = e.target.closest('[data-delprod]');
   if (delp){
     if (!confirm('Delete this product?')) return;
-    PRODUCTS = PRODUCTS.filter(p => p.id !== delp.dataset.delprod);
-    saveProducts(PRODUCTS); prodPage = 1; renderProdBody(); toast('🗑️ Deleted');
+    const id = delp.dataset.delprod;
+    PRODUCTS = PRODUCTS.filter(p => p.id !== id);
+    saveProducts(PRODUCTS);
+    /* remove it from the Firestore cache too, so it never comes back */
+    try{
+      const cached = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
+      const nc = cached.filter(p => p.id !== id);
+      localStorage.setItem('sk_products_cloud', JSON.stringify(nc));
+    }catch(e){}
+    /* mark Inactive in Firestore so pulls skip it */
+    try{
+      if (FS.enabled()){
+        FS._getDb().then(db => { if (db) db.collection('products').doc(String(id)).set({ status: 'Inactive', deletedAt: Date.now() }, { merge: true }).catch(() => {}); }).catch(() => {});
+      }
+    }catch(e){}
+    prodPage = 1; renderProdBody(); toast('🗑️ Deleted');
     return;
   }
   const delr = e.target.closest('[data-delreview]');

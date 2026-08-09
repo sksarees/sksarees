@@ -361,7 +361,7 @@ function renderProduct(){
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
-          (out ? '' : '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">⚡ Buy Now</a>') +
+          (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(p.price) + '</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-share">' +
@@ -394,15 +394,17 @@ function renderProduct(){
       '</div>' +
     '</div>' +
     '<div class="wrap" id="recSection"></div>' +
+    '<div class="wrap" id="exploreSection"></div>' +
     '<div class="sticky-bar">' +
       '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
-      '<a class="btn btn-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy Now</a>' +
+      '<a class="btn btn-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(p.price) + '</a>' +
       '<button type="button" class="btn btn-maroon" data-add="' + p.id + '">Add</button>' +
       '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
-  /* AI-style similar-saree recommendations */
+  /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
+  try{ if (window.REC) REC.renderExplore(p, document.getElementById('exploreSection')); }catch(e){}
   /* 💰 Share & Earn box under the product */
   try{
     const earnWa = document.getElementById('earnWa');
@@ -434,9 +436,9 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy) sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n);
-    const pdBuy = document.querySelector('.pd-btns .btn-buy');
-    if (pdBuy) pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n);
+    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ Buy at ' + money(p.price * n); }
+    const pdBuy = document.getElementById('pdBuyBtn');
+    if (pdBuy){ pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); pdBuy.textContent = '⚡ Buy at ' + money(p.price * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
@@ -514,6 +516,7 @@ function renderCartPage(){
   }
   const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
   const disc = couponDiscount(co.data.coupon, t);
+  const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
   app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' +
     '<div>' + Store.cart.map(i => {
@@ -537,9 +540,9 @@ function renderCartPage(){
         '</p>' : (co.data.coupon ? '<p class="small muted" style="margin-top:6px">Coupon invalid, expired or fully used</p>' : '')) + '</div>' +
       '<div class="row"><span>Items total</span><b>' + money(t) + '</b></div>' +
       (disc > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(disc) + '</b></div>' : '') +
-      (n >= (CONFIG.bundleCount || 2) ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(CONFIG.bundleOff || 0) + '</b></div>' : '') +
+      (bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(bundle) + '</b></div>' : '') +
       '<div class="row"><span>Shipping</span><b style="color:' + (sh ? 'inherit' : 'var(--green)') + '">' + (sh ? money(sh) : 'FREE') + '</b></div>' +
-      '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc) + sh) + '</b></div>' +
+      '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc - bundle) + sh) + '</b></div>' +
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
@@ -1058,6 +1061,9 @@ function renderProfilePage(){
       '<button type="button" class="btn btn-maroon" id="pfSave">💾 Save Details</button>' +
       '<p class="small muted" style="margin-top:8px">🔒 Stored only on your device.</p>' +
     '</div>' +
+    '<div class="form-card"><h3>📲 Install App (PWA)</h3>' +
+      '<p class="small muted" style="margin-bottom:10px">Install SK Sarees as an app — one tap open, works offline-friendly, like a native app.</p>' +
+      '<button type="button" class="btn btn-maroon" id="pfInstall">📲 Install App</button></div>' +
     '<div class="form-card"><h3>🔔 Push Notifications</h3>' +
       '<p class="small muted" style="margin-bottom:10px">Get notified about order status, festival offers &amp; if you leave items in your cart.</p>' +
       '<button type="button" class="btn btn-maroon" id="pfNotify">' + notifyStatusLabel() + '</button>' +
@@ -1079,6 +1085,9 @@ function renderProfilePage(){
     toast('✅ Details saved');
   });
   document.getElementById('pfLang').addEventListener('change', e => setLang(e.target.value));
+  /* install app (PWA) */
+  const inBtn = document.getElementById('pfInstall');
+  if (inBtn) inBtn.addEventListener('click', () => { installApp(); });
   /* push notification opt-in */
   const nBtn = document.getElementById('pfNotify');
   if (nBtn) nBtn.addEventListener('click', async () => {
@@ -1254,7 +1263,11 @@ document.addEventListener('click', function(e){
     const eUpi = deliveryEstimate(pin, 'upi');
     const eCod = deliveryEstimate(pin, 'cod');
     const r = document.getElementById('pinResult');
-    if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>🚚 Shipping: <b>₹' + zone.ship + '</b> per saree (free above ₹999)<br>📦 Delivery: <b>' + esc(eUpi.text) + '</b><br>💵 COD: ' + esc(eCod.text);
+    const delBy = eUpi.to ? eUpi.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '';
+    if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>' +
+      '📦 <b>Delivery by ' + esc(delBy) + '</b> (UPI) • ' + esc(eCod.to ? eCod.to.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '') + ' (COD)<br>' +
+      '🚚 Shipping: <b>₹' + zone.ship + '</b> per saree (free above ₹999)<br>' +
+      '✅ Fulfilled by <b>SK SAREES COLLECTION</b>';
     return;
   }
   /* 🔗 copy product link */
