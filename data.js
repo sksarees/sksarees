@@ -1622,6 +1622,7 @@ function renderHeader(){
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="share-earn.html">💰 Share &amp; Earn</a>
       <a href="blog.html">📖 Blog</a>
+      <a href="return-policy.html">↩️ Return Policy</a>
       <a href="#" data-faq>❓ FAQ</a>
     </nav>
   </aside>`;
@@ -1658,6 +1659,7 @@ function renderFooter(){
           <a href="#" data-i18n-faq>❓ FAQ</a><br>
           <a href="share-earn.html">💰 Share &amp; Earn</a><br>
           <a href="blog.html">📖 Blog</a><br>
+          <a href="return-policy.html">↩️ Return Policy</a><br>
           <a href="${CONFIG.waGroup}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Join WhatsApp Group</a>
         </p>
       </div>
@@ -1786,6 +1788,54 @@ function seoInject(){
   }catch(e){}
 }
 
+/* 🎟️ First-visit coupon popup — builds a WhatsApp list + urgency */
+function maybeCouponPopup(){
+  try{
+    const page = (document.body && document.body.dataset.page) || '';
+    if (page === 'admin' || page === 'cart' || page === 'checkout') return;
+    if (localStorage.getItem('sk_coupon_popup')) return;
+    if (localStorage.getItem('sk_coupon_popup_closed')) return;
+    const code = CONFIG.resellerCoupon || 'SHARE50';
+    /* show after a few seconds */
+    setTimeout(() => {
+      if (document.getElementById('couponPopup')) return;
+      const el = document.createElement('div');
+      el.id = 'couponPopup';
+      el.className = 'coupon-popup';
+      el.innerHTML = '<button type="button" class="cp-x" id="cpX" aria-label="Close">✕</button>' +
+        '<div class="cp-badge">🎟️</div>' +
+        '<b style="font-size:1.1rem;color:var(--maroon)">Welcome Offer — ₹50 OFF!</b>' +
+        '<p class="small" style="margin:6px 0">Use coupon <b>' + esc(code) + '</b> on your first order. Enter your WhatsApp number and we will send the offer + new arrivals!</p>' +
+        '<div style="display:flex;gap:8px"><input id="cpPhone" placeholder="WhatsApp number" inputmode="numeric" maxlength="10" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;min-height:46px;background:#fff;outline:none"><button type="button" class="btn btn-maroon btn-sm" id="cpGo" style="width:auto;min-width:120px;min-height:46px">Get Offer</button></div>' +
+        '<a class="btn btn-wa btn-sm" id="cpWa" href="#" target="_blank" rel="noopener" style="display:none;margin-top:8px">💬 Open WhatsApp</a>' +
+        '<p class="small muted" style="margin-top:6px">No spam — only saree offers. 💛</p>';
+      document.body.appendChild(el);
+      setTimeout(() => el.classList.add('show'), 50);
+      document.getElementById('cpX').addEventListener('click', () => { el.remove(); try{ localStorage.setItem('sk_coupon_popup_closed','1'); }catch(e){} });
+      document.getElementById('cpGo').addEventListener('click', () => {
+        const ph = document.getElementById('cpPhone').value.trim();
+        if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
+        try{
+          const list = JSON.parse(localStorage.getItem('sk_lead_list') || '[]');
+          list.push({ phone: ph, code, date: Date.now() });
+          localStorage.setItem('sk_lead_list', JSON.stringify(list));
+        }catch(e){}
+        /* also save to Firestore leads */
+        try{
+          if (FS.enabled()){
+            FS._getDb().then(db => { if (db) db.collection('leads').add({ phone: ph, code, date: Date.now() }).catch(()=>{}); }).catch(()=>{});
+          }
+        }catch(e){}
+        const msg = 'Hi! I want my ₹50 OFF coupon for SK Sarees 🎟️\n\nMy number: ' + ph + '\nPlease send me the coupon + new arrivals!';
+        document.getElementById('cpWa').setAttribute('href', waLink(msg));
+        document.getElementById('cpWa').style.display = 'block';
+        toast('✅ Coupon ' + code + ' sent to WhatsApp!');
+        try{ localStorage.setItem('sk_coupon_popup','1'); }catch(e){}
+      });
+    }, 2500);
+  }catch(e){}
+}
+
 /* 📲 PWA install — capture the beforeinstallprompt and show an Install button */
 let deferredPrompt = null;
 function installApp(){
@@ -1813,6 +1863,7 @@ function showInstallBanner(){
 function injectChrome(){
   try{ seoInject(); }catch(e){}
   try{ Stats.init(); renderStatsText(); }catch(e){}
+  try{ maybeCouponPopup(); }catch(e){}   /* first-visit offer popup */
   /* PWA install: capture prompt + show banner once */
   try{
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; try{ if (!localStorage.getItem('sk_install_closed')) showInstallBanner(); }catch(e2){} });

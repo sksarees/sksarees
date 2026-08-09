@@ -298,6 +298,17 @@ function updateStatus(id, status){
     if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
   }
   toast('✅ ' + id + ' → ' + status);
+  /* 💬 auto-offer: open WhatsApp to the customer with the status update + track link */
+  try{
+    const cust = o.customer || {};
+    if (cust.phone && /^[6-9]\d{9}$/.test(String(cust.phone).replace(/\D/g, ''))){
+      const track = location.origin + '/orders.html?id=' + encodeURIComponent(id);
+      const labels = { placed:'🆕 Placed', pending:'⏳ Payment Pending', confirmed:'✅ Confirmed', shipped:'🚚 Dispatched', delivered:'✔ Delivered' };
+      const msg = '🪡 SK Sarees — Order update!\n\n📦 Order ' + id + ' → ' + (labels[status] || status) + (status === 'delivered' ? ' 🎉 Enjoy your saree!' : '') +
+        '\n\nTrack: ' + track + '\n\nThank you for shopping with SK SAREES! 💛';
+      setTimeout(() => { try{ window.open(waLink(msg, cust.phone), '_blank', 'noopener'); }catch(e){} }, 400);
+    }
+  }catch(e){}
   orderPage = 1;
   renderFilters(); renderOrderList();
 }
@@ -624,6 +635,28 @@ function feedXml(){
   xml += '</channel>\n</rss>';
   return xml;
 }
+/* Google Merchant Center TXT feed — exact required columns:
+   id,title,description,price,condition,link,availability,image_link */
+function feedTxt(){
+  const escT = v => String(v == null ? '' : v).replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
+  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  const lines = ['id\ttitle\tdescription\tprice\tcondition\tlink\tavailability\timage_link'];
+  PRODUCTS.slice(0, 500).forEach(p => {
+    const imgAbs = /^https?:/.test(p.img) ? p.img : (location.origin + '/' + p.img.replace(/^\.?\//, ''));
+    const row = [
+      escT(p.id),
+      escT(p.name),
+      escT((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' - ' + p.color),
+      p.price + ' INR',
+      'new',
+      escT(base + 'product.html?id=' + encodeURIComponent(p.id)),
+      (p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock',
+      escT(imgAbs),
+    ];
+    lines.push(row.join('\t'));
+  });
+  return lines.join('\n');
+}
 function renderFeed(){
   const body = document.getElementById('tabBody');
   const count = PRODUCTS.length;
@@ -632,7 +665,8 @@ function renderFeed(){
       '<p class="small muted">Generate the product XML feed, upload it to your hosting root as <b>products-feed.xml</b>, then connect it in Meta Commerce Manager (Catalog → Data source → Product feed). This lets customers <b>tag &amp; buy sarees directly on Instagram/Facebook</b>.</p>' +
       '<p class="small" style="margin-top:6px">Currently <b>' + count + '</b> products will be in the feed.</p>' +
       '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:220px">⬇️ Download products-feed.xml</button>' +
+        '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:230px">⬇️ Download products-feed.xml</button>' +
+        '<button type="button" class="btn btn-gold" id="feedTxtDownload" style="width:auto;min-width:240px">⬇️ Google Merchant (TXT)</button>' +
         '<button type="button" class="btn btn-outline" id="feedCopy" style="width:auto;min-width:200px">📋 Copy XML</button>' +
       '</div>' +
       '<p class="small muted" id="feedNote" style="margin-top:8px">1. Download → 2. Upload to your host (same folder as index.html) → 3. Meta Commerce Manager → add feed URL <b>' + esc(location.origin + '/products-feed.xml') + '</b>.</p></div>' +
@@ -647,6 +681,16 @@ function renderFeed(){
     toast('✅ products-feed.xml downloaded (' + count + ' products)');
   });
   document.getElementById('feedCopy').addEventListener('click', () => { copyText(feedXml()); });
+  const txtBtn = document.getElementById('feedTxtDownload');
+  if (txtBtn) txtBtn.addEventListener('click', () => {
+    const blob = new Blob([feedTxt()], { type: 'text/tab-separated-values' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'google-merchant-feed.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('✅ google-merchant-feed.txt downloaded (' + PRODUCTS.length + ' products)');
+  });
 }
 
 /* ============================ RESELLERS (Share & Earn) ============================

@@ -23,6 +23,21 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 
 **Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
 
+## ↩️ Returns & ⚡ Speed & 🛒 Merchant Feed (latest)
+
+1. **↩️ Return & Refund Policy page** — `return-policy.html` (7-day replacement, how to request, refunds, shipping, FAQ, WhatsApp CTA), linked from footer & drawer — builds buyer trust → more orders.
+2. **⚡ Instant product page** — cached products render **immediately** (no spinner); uncached ones load straight from the raw cloud cache, or a quick Firestore fetch (<1s) — the long "Loading product… hang on" screen is gone. Main product image uses `fetchpriority="high"`; Google Fonts are non-blocking (faster first paint) on every page.
+3. **🛒 Google Merchant Center TXT feed** — Admin → 📦 Catalog Feed → **"⬇️ Google Merchant (TXT)"** downloads `google-merchant-feed.txt` with the exact required columns: `id, title, description, price, condition, link, availability, image_link` (72 products). A static copy also ships in the site root.
+
+## 🎯 Orders-Boosters (added to drive sales)
+
+1. **⚡ Festival countdown timer** — the flash-sale timer now really ticks ("7d 09h 27m" until the current festival offer ends) — urgency = conversion.
+2. **⭐ Review-request button** — after every order, the success page shows "Loved it? Review us on Google" (prefilled WhatsApp) — grows your Google reviews → trust → more orders.
+3. **🛒 Cart upsell** — "Complete your look — add more & save ₹50 (2+ sarees)" suggests same-category products right in the cart.
+4. **🔥 Deal of the Day** — home page auto-picks the biggest-discount in-stock product each day (rotates daily) with a "Grab It Now" CTA.
+5. **🎟️ First-visit coupon popup** — after ~2.5s a ₹50-off (SHARE50) popup asks for the WhatsApp number, saves it as a lead (local + Firestore `leads`), and opens WhatsApp with the offer — builds your list + converts.
+6. **💬 Auto WhatsApp on status change** — when the admin updates an order status, WhatsApp auto-opens to the **customer** with the status + track link (trust → repeat orders).
+
 ## 🛍️ Conversion & UX updates (latest)
 
 1. **⚡ Buy at ₹X** — the Buy Now buttons (main + mobile sticky bar) now say **"Buy at ₹849"** and update live with quantity (**Buy at ₹1,698** for 3 pcs), and pass the qty to checkout.

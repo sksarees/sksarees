@@ -2,7 +2,1375 @@
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
 <channel>
 <title>SK Sarees Catalog</title>
-<link>https://www.sksaree.shop/</link>
-<description>Saree catalog for Facebook &amp; Instagram Shopping — generate fresh from Admin → Catalog Feed</description>
+<link>http://localhost:8150/</link>
+<description>Saree catalog for Facebook & Instagram Shopping</description>
+<item>
+<g:id>kanchipuram-red</g:id>
+<g:title>Kanchipuram Pure Silk — Red &amp; Gold Zari</g:title>
+<g:description>Semi silk with rich gold zari — heavy, glossy, the pride of Tamil Nadu weaving. Semi silk with gold zari — Red / Maroon / Green</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-red</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2499 INR</g:price>
+<g:sale_price>2499 INR</g:sale_price>
+<g:price>3999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10001</g:mpn>
+<g:item_group_id>kanchipuram-red</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>banarasi-purple</g:id>
+<g:title>Banarasi Silk — Royal Purple &amp; Gold</g:title>
+<g:description>Classic semi-silk weave with intricate gold paisley motifs — rich sheen for grand celebrations. Semi silk, kadhwa weave — Purple / Maroon / Teal</g:description>
+<g:link>http://localhost:8150/product.html?id=banarasi-purple</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1899 INR</g:price>
+<g:sale_price>1899 INR</g:sale_price>
+<g:price>2999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10002</g:mpn>
+<g:item_group_id>banarasi-purple</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>soft-silk-rose</g:id>
+<g:title>Soft Silk — Rose Pink Golden Border</g:title>
+<g:description>Feather-light soft silk that drapes beautifully — comfortable all-day wear. Semi silk (light, skin-friendly) — Rose Pink / Lavender / Sky Blue</g:description>
+<g:link>http://localhost:8150/product.html?id=soft-silk-rose</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1499 INR</g:price>
+<g:sale_price>1499 INR</g:sale_price>
+<g:price>2299 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10003</g:mpn>
+<g:item_group_id>soft-silk-rose</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>soft-silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>cotton-silk-emerald</g:id>
+<g:title>Cotton Silk — Emerald Green Temple</g:title>
+<g:description>Perfect mix of cotton comfort and silk sheen with classic temple border. Cotton silk blend — Emerald / Maroon / Navy</g:description>
+<g:link>http://localhost:8150/product.html?id=cotton-silk-emerald</g:link>
+<g:image_link>http://localhost:8150/images/products/cotton-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>999 INR</g:price>
+<g:sale_price>999 INR</g:sale_price>
+<g:price>1599 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10004</g:mpn>
+<g:item_group_id>cotton-silk-emerald</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>handloom-mustard</g:id>
+<g:title>Handloom Cotton — Mustard &amp; Teal</g:title>
+<g:description>Our most-loved handloom weave — soft, breathable, gets softer with every wash. 100% handloom cotton — Mustard / Teal / Indigo</g:description>
+<g:link>http://localhost:8150/product.html?id=handloom-mustard</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>749 INR</g:price>
+<g:sale_price>749 INR</g:sale_price>
+<g:price>1199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10005</g:mpn>
+<g:item_group_id>handloom-mustard</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>printed-sky</g:id>
+<g:title>Printed Cotton — Sky Blue Floral</g:title>
+<g:description>Lightweight daily-wear cotton with a fresh floral print. Pure cotton, printed — Sky Blue / Pink / Mint</g:description>
+<g:link>http://localhost:8150/product.html?id=printed-sky</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>649 INR</g:price>
+<g:sale_price>649 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10006</g:mpn>
+<g:item_group_id>printed-sky</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>printed</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>georgette-turquoise</g:id>
+<g:title>Georgette — Turquoise Sequin Border</g:title>
+<g:description>Flow-y georgette with shimmering sequin border — drapes elegantly. Georgette with sequin border — Turquoise / Peach / Lavender</g:description>
+<g:link>http://localhost:8150/product.html?id=georgette-turquoise</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>899 INR</g:price>
+<g:sale_price>899 INR</g:sale_price>
+<g:price>1499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10007</g:mpn>
+<g:item_group_id>georgette-turquoise</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>georgette</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>party-navy</g:id>
+<g:title>Party Wear — Navy Blue Sequins</g:title>
+<g:description>Designer party wear with all-over gold sequin embroidery. Georgette, sequin &amp; zari embroidery — Navy / Black / Wine</g:description>
+<g:link>http://localhost:8150/product.html?id=party-navy</g:link>
+<g:image_link>http://localhost:8150/images/products/party-wear.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1299 INR</g:price>
+<g:sale_price>1299 INR</g:sale_price>
+<g:price>2199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10008</g:mpn>
+<g:item_group_id>party-navy</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>party</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>organza-lavender</g:id>
+<g:title>Organza — Lavender Pearl Accents</g:title>
+<g:description>Airy organza with delicate golden threadwork and pearl accents. Organza with golden threadwork — Lavender / White / Peach</g:description>
+<g:link>http://localhost:8150/product.html?id=organza-lavender</g:link>
+<g:image_link>http://localhost:8150/images/products/organza.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1099 INR</g:price>
+<g:sale_price>1099 INR</g:sale_price>
+<g:price>1799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10009</g:mpn>
+<g:item_group_id>organza-lavender</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>designer</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>linen-beige</g:id>
+<g:title>Linen — Beige Brown Stripe</g:title>
+<g:description>Breathable pure linen — crisp, minimal and effortlessly elegant. Pure linen — Beige / Grey / Sage</g:description>
+<g:link>http://localhost:8150/product.html?id=linen-beige</g:link>
+<g:image_link>http://localhost:8150/images/products/linen.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>849 INR</g:price>
+<g:sale_price>849 INR</g:sale_price>
+<g:price>1399 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10010</g:mpn>
+<g:item_group_id>linen-beige</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>office</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-peacock</g:id>
+<g:title>Kanchipuram Soft Silk — Peacock Green</g:title>
+<g:description>Lighter Kanchipuram soft silk with striking peacock-green body. Semi silk — Peacock Green / Blue</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-peacock</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2199 INR</g:price>
+<g:sale_price>2199 INR</g:sale_price>
+<g:price>3499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10011</g:mpn>
+<g:item_group_id>kanchipuram-peacock</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>fancy-net</g:id>
+<g:title>Fancy Net — Champagne Stone Work</g:title>
+<g:description>Trendy net saree with delicate stone work — modern glam. Net with stone &amp; sequin work — Champagne / Rose Gold</g:description>
+<g:link>http://localhost:8150/product.html?id=fancy-net</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1199 INR</g:price>
+<g:sale_price>1199 INR</g:sale_price>
+<g:price>1999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10012</g:mpn>
+<g:item_group_id>fancy-net</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>fancy</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>half-saree-red</g:id>
+<g:title>Traditional Half Saree Set — Red &amp; Gold</g:title>
+<g:description>Traditional pavadai-davani style half saree set — a cherished Tamil tradition. Silk blend two-piece — Red / Maroon</g:description>
+<g:link>http://localhost:8150/product.html?id=half-saree-red</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1799 INR</g:price>
+<g:sale_price>1799 INR</g:sale_price>
+<g:price>2799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10013</g:mpn>
+<g:item_group_id>half-saree-red</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>half-saree</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kids-lehenga</g:id>
+<g:title>Kids Silk Lehenga Set — Pink &amp; Gold</g:title>
+<g:description>Adorable silk lehenga sets — soft, comfortable and party-ready. Soft silk, comfort fit — Pink / Peach</g:description>
+<g:link>http://localhost:8150/product.html?id=kids-lehenga</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1199 INR</g:price>
+<g:sale_price>1199 INR</g:sale_price>
+<g:price>1899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10014</g:mpn>
+<g:item_group_id>kids-lehenga</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kids</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>men-dhoti</g:id>
+<g:title>Pure Cotton Men Dhoti — Gold Border</g:title>
+<g:description>Soft pure-cotton dhotis with optional gold zari border. 100% pure cotton — White / Cream</g:description>
+<g:link>http://localhost:8150/product.html?id=men-dhoti</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>499 INR</g:price>
+<g:sale_price>499 INR</g:sale_price>
+<g:price>799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10015</g:mpn>
+<g:item_group_id>men-dhoti</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>men-dhoti</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>blouse-material</g:id>
+<g:title>Designer Blouse Material — Zari Contrast</g:title>
+<g:description>Premium blouse pieces matched to our saree shades. Matching saree fabric — Multiple options</g:description>
+<g:link>http://localhost:8150/product.html?id=blouse-material</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>599 INR</g:price>
+<g:sale_price>599 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10016</g:mpn>
+<g:item_group_id>blouse-material</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>blouse</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>zari-border</g:id>
+<g:title>Gold Zari Border &amp; Accessory Pack</g:title>
+<g:description>Handy gold zari border strips and pins for quick draping. Zari border + pins — Gold / Antique</g:description>
+<g:link>http://localhost:8150/product.html?id=zari-border</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>299 INR</g:price>
+<g:sale_price>299 INR</g:sale_price>
+<g:price>499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10017</g:mpn>
+<g:item_group_id>zari-border</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>accessories</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>daily-printed</g:id>
+<g:title>Daily Wear Printed Cotton — Mint</g:title>
+<g:description>Cool and comfy everyday cotton with a cheerful print. Pure cotton, printed — Mint / Yellow / Blue</g:description>
+<g:link>http://localhost:8150/product.html?id=daily-printed</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>549 INR</g:price>
+<g:sale_price>549 INR</g:sale_price>
+<g:price>899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10018</g:mpn>
+<g:item_group_id>daily-printed</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>daily</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-red-v1</g:id>
+<g:title>Kanchipuram Pure Silk — Emerald</g:title>
+<g:description>Semi silk with rich gold zari — heavy, glossy, the pride of Tamil Nadu weaving. Semi silk with gold zari — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-red-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2499 INR</g:price>
+<g:sale_price>2499 INR</g:sale_price>
+<g:price>3999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10019</g:mpn>
+<g:item_group_id>kanchipuram-red-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-red-v2</g:id>
+<g:title>Kanchipuram Pure Silk — Royal Blue</g:title>
+<g:description>Semi silk with rich gold zari — heavy, glossy, the pride of Tamil Nadu weaving. Semi silk with gold zari — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-red-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2374 INR</g:price>
+<g:sale_price>2374 INR</g:sale_price>
+<g:price>3999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10020</g:mpn>
+<g:item_group_id>kanchipuram-red-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-red-v3</g:id>
+<g:title>Kanchipuram Pure Silk — Wine</g:title>
+<g:description>Semi silk with rich gold zari — heavy, glossy, the pride of Tamil Nadu weaving. Semi silk with gold zari — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-red-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2299 INR</g:price>
+<g:sale_price>2299 INR</g:sale_price>
+<g:price>3999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10021</g:mpn>
+<g:item_group_id>kanchipuram-red-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>banarasi-purple-v1</g:id>
+<g:title>Banarasi Silk — Emerald</g:title>
+<g:description>Classic semi-silk weave with intricate gold paisley motifs — rich sheen for grand celebrations. Semi silk, kadhwa weave — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=banarasi-purple-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1899 INR</g:price>
+<g:sale_price>1899 INR</g:sale_price>
+<g:price>2999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10022</g:mpn>
+<g:item_group_id>banarasi-purple-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>banarasi-purple-v2</g:id>
+<g:title>Banarasi Silk — Royal Blue</g:title>
+<g:description>Classic semi-silk weave with intricate gold paisley motifs — rich sheen for grand celebrations. Semi silk, kadhwa weave — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=banarasi-purple-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1804 INR</g:price>
+<g:sale_price>1804 INR</g:sale_price>
+<g:price>2999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10023</g:mpn>
+<g:item_group_id>banarasi-purple-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>banarasi-purple-v3</g:id>
+<g:title>Banarasi Silk — Wine</g:title>
+<g:description>Classic semi-silk weave with intricate gold paisley motifs — rich sheen for grand celebrations. Semi silk, kadhwa weave — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=banarasi-purple-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1747 INR</g:price>
+<g:sale_price>1747 INR</g:sale_price>
+<g:price>2999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10024</g:mpn>
+<g:item_group_id>banarasi-purple-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>soft-silk-rose-v1</g:id>
+<g:title>Soft Silk — Emerald</g:title>
+<g:description>Feather-light soft silk that drapes beautifully — comfortable all-day wear. Semi silk (light, skin-friendly) — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=soft-silk-rose-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1499 INR</g:price>
+<g:sale_price>1499 INR</g:sale_price>
+<g:price>2299 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10025</g:mpn>
+<g:item_group_id>soft-silk-rose-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>soft-silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>soft-silk-rose-v2</g:id>
+<g:title>Soft Silk — Royal Blue</g:title>
+<g:description>Feather-light soft silk that drapes beautifully — comfortable all-day wear. Semi silk (light, skin-friendly) — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=soft-silk-rose-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1424 INR</g:price>
+<g:sale_price>1424 INR</g:sale_price>
+<g:price>2299 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10026</g:mpn>
+<g:item_group_id>soft-silk-rose-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>soft-silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>soft-silk-rose-v3</g:id>
+<g:title>Soft Silk — Wine</g:title>
+<g:description>Feather-light soft silk that drapes beautifully — comfortable all-day wear. Semi silk (light, skin-friendly) — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=soft-silk-rose-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1379 INR</g:price>
+<g:sale_price>1379 INR</g:sale_price>
+<g:price>2299 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10027</g:mpn>
+<g:item_group_id>soft-silk-rose-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>soft-silk</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>cotton-silk-emerald-v1</g:id>
+<g:title>Cotton Silk — Emerald</g:title>
+<g:description>Perfect mix of cotton comfort and silk sheen with classic temple border. Cotton silk blend — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=cotton-silk-emerald-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/cotton-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>999 INR</g:price>
+<g:sale_price>999 INR</g:sale_price>
+<g:price>1599 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10028</g:mpn>
+<g:item_group_id>cotton-silk-emerald-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>cotton-silk-emerald-v2</g:id>
+<g:title>Cotton Silk — Royal Blue</g:title>
+<g:description>Perfect mix of cotton comfort and silk sheen with classic temple border. Cotton silk blend — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=cotton-silk-emerald-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/cotton-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>949 INR</g:price>
+<g:sale_price>949 INR</g:sale_price>
+<g:price>1599 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10029</g:mpn>
+<g:item_group_id>cotton-silk-emerald-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>cotton-silk-emerald-v3</g:id>
+<g:title>Cotton Silk — Wine</g:title>
+<g:description>Perfect mix of cotton comfort and silk sheen with classic temple border. Cotton silk blend — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=cotton-silk-emerald-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/cotton-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>919 INR</g:price>
+<g:sale_price>919 INR</g:sale_price>
+<g:price>1599 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10030</g:mpn>
+<g:item_group_id>cotton-silk-emerald-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>handloom-mustard-v1</g:id>
+<g:title>Handloom Cotton — Emerald</g:title>
+<g:description>Our most-loved handloom weave — soft, breathable, gets softer with every wash. 100% handloom cotton — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=handloom-mustard-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>749 INR</g:price>
+<g:sale_price>749 INR</g:sale_price>
+<g:price>1199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10031</g:mpn>
+<g:item_group_id>handloom-mustard-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>handloom-mustard-v2</g:id>
+<g:title>Handloom Cotton — Royal Blue</g:title>
+<g:description>Our most-loved handloom weave — soft, breathable, gets softer with every wash. 100% handloom cotton — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=handloom-mustard-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>712 INR</g:price>
+<g:sale_price>712 INR</g:sale_price>
+<g:price>1199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10032</g:mpn>
+<g:item_group_id>handloom-mustard-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>handloom-mustard-v3</g:id>
+<g:title>Handloom Cotton — Wine</g:title>
+<g:description>Our most-loved handloom weave — soft, breathable, gets softer with every wash. 100% handloom cotton — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=handloom-mustard-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>689 INR</g:price>
+<g:sale_price>689 INR</g:sale_price>
+<g:price>1199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10033</g:mpn>
+<g:item_group_id>handloom-mustard-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>cotton</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>printed-sky-v1</g:id>
+<g:title>Printed Cotton — Emerald</g:title>
+<g:description>Lightweight daily-wear cotton with a fresh floral print. Pure cotton, printed — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=printed-sky-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>649 INR</g:price>
+<g:sale_price>649 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10034</g:mpn>
+<g:item_group_id>printed-sky-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>printed</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>printed-sky-v2</g:id>
+<g:title>Printed Cotton — Royal Blue</g:title>
+<g:description>Lightweight daily-wear cotton with a fresh floral print. Pure cotton, printed — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=printed-sky-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>617 INR</g:price>
+<g:sale_price>617 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10035</g:mpn>
+<g:item_group_id>printed-sky-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>printed</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>printed-sky-v3</g:id>
+<g:title>Printed Cotton — Wine</g:title>
+<g:description>Lightweight daily-wear cotton with a fresh floral print. Pure cotton, printed — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=printed-sky-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>597 INR</g:price>
+<g:sale_price>597 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10036</g:mpn>
+<g:item_group_id>printed-sky-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>printed</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>georgette-turquoise-v1</g:id>
+<g:title>Georgette — Emerald</g:title>
+<g:description>Flow-y georgette with shimmering sequin border — drapes elegantly. Georgette with sequin border — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=georgette-turquoise-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>899 INR</g:price>
+<g:sale_price>899 INR</g:sale_price>
+<g:price>1499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10037</g:mpn>
+<g:item_group_id>georgette-turquoise-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>georgette</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>georgette-turquoise-v2</g:id>
+<g:title>Georgette — Royal Blue</g:title>
+<g:description>Flow-y georgette with shimmering sequin border — drapes elegantly. Georgette with sequin border — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=georgette-turquoise-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>854 INR</g:price>
+<g:sale_price>854 INR</g:sale_price>
+<g:price>1499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10038</g:mpn>
+<g:item_group_id>georgette-turquoise-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>georgette</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>georgette-turquoise-v3</g:id>
+<g:title>Georgette — Wine</g:title>
+<g:description>Flow-y georgette with shimmering sequin border — drapes elegantly. Georgette with sequin border — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=georgette-turquoise-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>827 INR</g:price>
+<g:sale_price>827 INR</g:sale_price>
+<g:price>1499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10039</g:mpn>
+<g:item_group_id>georgette-turquoise-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>georgette</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>party-navy-v1</g:id>
+<g:title>Party Wear — Emerald</g:title>
+<g:description>Designer party wear with all-over gold sequin embroidery. Georgette, sequin &amp; zari embroidery — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=party-navy-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/party-wear.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1299 INR</g:price>
+<g:sale_price>1299 INR</g:sale_price>
+<g:price>2199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10040</g:mpn>
+<g:item_group_id>party-navy-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>party</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>party-navy-v2</g:id>
+<g:title>Party Wear — Royal Blue</g:title>
+<g:description>Designer party wear with all-over gold sequin embroidery. Georgette, sequin &amp; zari embroidery — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=party-navy-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/party-wear.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1234 INR</g:price>
+<g:sale_price>1234 INR</g:sale_price>
+<g:price>2199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10041</g:mpn>
+<g:item_group_id>party-navy-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>party</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>party-navy-v3</g:id>
+<g:title>Party Wear — Wine</g:title>
+<g:description>Designer party wear with all-over gold sequin embroidery. Georgette, sequin &amp; zari embroidery — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=party-navy-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/party-wear.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1195 INR</g:price>
+<g:sale_price>1195 INR</g:sale_price>
+<g:price>2199 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10042</g:mpn>
+<g:item_group_id>party-navy-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>party</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>organza-lavender-v1</g:id>
+<g:title>Organza — Emerald</g:title>
+<g:description>Airy organza with delicate golden threadwork and pearl accents. Organza with golden threadwork — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=organza-lavender-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/organza.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1099 INR</g:price>
+<g:sale_price>1099 INR</g:sale_price>
+<g:price>1799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10043</g:mpn>
+<g:item_group_id>organza-lavender-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>designer</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>organza-lavender-v2</g:id>
+<g:title>Organza — Royal Blue</g:title>
+<g:description>Airy organza with delicate golden threadwork and pearl accents. Organza with golden threadwork — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=organza-lavender-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/organza.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1044 INR</g:price>
+<g:sale_price>1044 INR</g:sale_price>
+<g:price>1799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10044</g:mpn>
+<g:item_group_id>organza-lavender-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>designer</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>organza-lavender-v3</g:id>
+<g:title>Organza — Wine</g:title>
+<g:description>Airy organza with delicate golden threadwork and pearl accents. Organza with golden threadwork — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=organza-lavender-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/organza.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1011 INR</g:price>
+<g:sale_price>1011 INR</g:sale_price>
+<g:price>1799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10045</g:mpn>
+<g:item_group_id>organza-lavender-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>designer</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>linen-beige-v1</g:id>
+<g:title>Linen — Emerald</g:title>
+<g:description>Breathable pure linen — crisp, minimal and effortlessly elegant. Pure linen — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=linen-beige-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/linen.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>849 INR</g:price>
+<g:sale_price>849 INR</g:sale_price>
+<g:price>1399 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10046</g:mpn>
+<g:item_group_id>linen-beige-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>office</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>linen-beige-v2</g:id>
+<g:title>Linen — Royal Blue</g:title>
+<g:description>Breathable pure linen — crisp, minimal and effortlessly elegant. Pure linen — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=linen-beige-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/linen.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>807 INR</g:price>
+<g:sale_price>807 INR</g:sale_price>
+<g:price>1399 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10047</g:mpn>
+<g:item_group_id>linen-beige-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>office</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>linen-beige-v3</g:id>
+<g:title>Linen — Wine</g:title>
+<g:description>Breathable pure linen — crisp, minimal and effortlessly elegant. Pure linen — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=linen-beige-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/linen.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>781 INR</g:price>
+<g:sale_price>781 INR</g:sale_price>
+<g:price>1399 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10048</g:mpn>
+<g:item_group_id>linen-beige-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>office</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-peacock-v1</g:id>
+<g:title>Kanchipuram Soft Silk — Emerald</g:title>
+<g:description>Lighter Kanchipuram soft silk with striking peacock-green body. Semi silk — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-peacock-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2199 INR</g:price>
+<g:sale_price>2199 INR</g:sale_price>
+<g:price>3499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10049</g:mpn>
+<g:item_group_id>kanchipuram-peacock-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-peacock-v2</g:id>
+<g:title>Kanchipuram Soft Silk — Royal Blue</g:title>
+<g:description>Lighter Kanchipuram soft silk with striking peacock-green body. Semi silk — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-peacock-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2089 INR</g:price>
+<g:sale_price>2089 INR</g:sale_price>
+<g:price>3499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10050</g:mpn>
+<g:item_group_id>kanchipuram-peacock-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kanchipuram-peacock-v3</g:id>
+<g:title>Kanchipuram Soft Silk — Wine</g:title>
+<g:description>Lighter Kanchipuram soft silk with striking peacock-green body. Semi silk — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kanchipuram-peacock-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>2023 INR</g:price>
+<g:sale_price>2023 INR</g:sale_price>
+<g:price>3499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10051</g:mpn>
+<g:item_group_id>kanchipuram-peacock-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kanchipuram</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>fancy-net-v1</g:id>
+<g:title>Fancy Net — Emerald</g:title>
+<g:description>Trendy net saree with delicate stone work — modern glam. Net with stone &amp; sequin work — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=fancy-net-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1199 INR</g:price>
+<g:sale_price>1199 INR</g:sale_price>
+<g:price>1999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10052</g:mpn>
+<g:item_group_id>fancy-net-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>fancy</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>fancy-net-v2</g:id>
+<g:title>Fancy Net — Royal Blue</g:title>
+<g:description>Trendy net saree with delicate stone work — modern glam. Net with stone &amp; sequin work — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=fancy-net-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1139 INR</g:price>
+<g:sale_price>1139 INR</g:sale_price>
+<g:price>1999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10053</g:mpn>
+<g:item_group_id>fancy-net-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>fancy</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>fancy-net-v3</g:id>
+<g:title>Fancy Net — Wine</g:title>
+<g:description>Trendy net saree with delicate stone work — modern glam. Net with stone &amp; sequin work — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=fancy-net-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/georgette.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1103 INR</g:price>
+<g:sale_price>1103 INR</g:sale_price>
+<g:price>1999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10054</g:mpn>
+<g:item_group_id>fancy-net-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>fancy</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>half-saree-red-v1</g:id>
+<g:title>Traditional Half Saree Set — Emerald</g:title>
+<g:description>Traditional pavadai-davani style half saree set — a cherished Tamil tradition. Silk blend two-piece — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=half-saree-red-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1799 INR</g:price>
+<g:sale_price>1799 INR</g:sale_price>
+<g:price>2799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10055</g:mpn>
+<g:item_group_id>half-saree-red-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>half-saree</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>half-saree-red-v2</g:id>
+<g:title>Traditional Half Saree Set — Royal Blue</g:title>
+<g:description>Traditional pavadai-davani style half saree set — a cherished Tamil tradition. Silk blend two-piece — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=half-saree-red-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1709 INR</g:price>
+<g:sale_price>1709 INR</g:sale_price>
+<g:price>2799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10056</g:mpn>
+<g:item_group_id>half-saree-red-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>half-saree</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>half-saree-red-v3</g:id>
+<g:title>Traditional Half Saree Set — Wine</g:title>
+<g:description>Traditional pavadai-davani style half saree set — a cherished Tamil tradition. Silk blend two-piece — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=half-saree-red-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/kanchipuram-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1655 INR</g:price>
+<g:sale_price>1655 INR</g:sale_price>
+<g:price>2799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10057</g:mpn>
+<g:item_group_id>half-saree-red-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>half-saree</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kids-lehenga-v1</g:id>
+<g:title>Kids Silk Lehenga Set — Emerald</g:title>
+<g:description>Adorable silk lehenga sets — soft, comfortable and party-ready. Soft silk, comfort fit — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kids-lehenga-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1199 INR</g:price>
+<g:sale_price>1199 INR</g:sale_price>
+<g:price>1899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10058</g:mpn>
+<g:item_group_id>kids-lehenga-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kids</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kids-lehenga-v2</g:id>
+<g:title>Kids Silk Lehenga Set — Royal Blue</g:title>
+<g:description>Adorable silk lehenga sets — soft, comfortable and party-ready. Soft silk, comfort fit — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kids-lehenga-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1139 INR</g:price>
+<g:sale_price>1139 INR</g:sale_price>
+<g:price>1899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10059</g:mpn>
+<g:item_group_id>kids-lehenga-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kids</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>kids-lehenga-v3</g:id>
+<g:title>Kids Silk Lehenga Set — Wine</g:title>
+<g:description>Adorable silk lehenga sets — soft, comfortable and party-ready. Soft silk, comfort fit — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=kids-lehenga-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/soft-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>1103 INR</g:price>
+<g:sale_price>1103 INR</g:sale_price>
+<g:price>1899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10060</g:mpn>
+<g:item_group_id>kids-lehenga-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>kids</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>men-dhoti-v1</g:id>
+<g:title>Pure Cotton Men Dhoti — Emerald</g:title>
+<g:description>Soft pure-cotton dhotis with optional gold zari border. 100% pure cotton — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=men-dhoti-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>499 INR</g:price>
+<g:sale_price>499 INR</g:sale_price>
+<g:price>799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10061</g:mpn>
+<g:item_group_id>men-dhoti-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>men-dhoti</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>men-dhoti-v2</g:id>
+<g:title>Pure Cotton Men Dhoti — Royal Blue</g:title>
+<g:description>Soft pure-cotton dhotis with optional gold zari border. 100% pure cotton — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=men-dhoti-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>474 INR</g:price>
+<g:sale_price>474 INR</g:sale_price>
+<g:price>799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10062</g:mpn>
+<g:item_group_id>men-dhoti-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>men-dhoti</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>men-dhoti-v3</g:id>
+<g:title>Pure Cotton Men Dhoti — Wine</g:title>
+<g:description>Soft pure-cotton dhotis with optional gold zari border. 100% pure cotton — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=men-dhoti-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/handloom-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>459 INR</g:price>
+<g:sale_price>459 INR</g:sale_price>
+<g:price>799 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10063</g:mpn>
+<g:item_group_id>men-dhoti-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>men-dhoti</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>blouse-material-v1</g:id>
+<g:title>Designer Blouse Material — Emerald</g:title>
+<g:description>Premium blouse pieces matched to our saree shades. Matching saree fabric — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=blouse-material-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>599 INR</g:price>
+<g:sale_price>599 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10064</g:mpn>
+<g:item_group_id>blouse-material-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>blouse</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>blouse-material-v2</g:id>
+<g:title>Designer Blouse Material — Royal Blue</g:title>
+<g:description>Premium blouse pieces matched to our saree shades. Matching saree fabric — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=blouse-material-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>569 INR</g:price>
+<g:sale_price>569 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10065</g:mpn>
+<g:item_group_id>blouse-material-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>blouse</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>blouse-material-v3</g:id>
+<g:title>Designer Blouse Material — Wine</g:title>
+<g:description>Premium blouse pieces matched to our saree shades. Matching saree fabric — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=blouse-material-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>551 INR</g:price>
+<g:sale_price>551 INR</g:sale_price>
+<g:price>999 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10066</g:mpn>
+<g:item_group_id>blouse-material-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>blouse</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>zari-border-v1</g:id>
+<g:title>Gold Zari Border &amp; Accessory Pack</g:title>
+<g:description>Handy gold zari border strips and pins for quick draping. Zari border + pins — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=zari-border-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>299 INR</g:price>
+<g:sale_price>299 INR</g:sale_price>
+<g:price>499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10067</g:mpn>
+<g:item_group_id>zari-border-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>accessories</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>zari-border-v2</g:id>
+<g:title>Gold Zari Border &amp; Accessory Pack</g:title>
+<g:description>Handy gold zari border strips and pins for quick draping. Zari border + pins — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=zari-border-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>284 INR</g:price>
+<g:sale_price>284 INR</g:sale_price>
+<g:price>499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10068</g:mpn>
+<g:item_group_id>zari-border-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>accessories</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>zari-border-v3</g:id>
+<g:title>Gold Zari Border &amp; Accessory Pack</g:title>
+<g:description>Handy gold zari border strips and pins for quick draping. Zari border + pins — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=zari-border-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/banarasi-silk.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>275 INR</g:price>
+<g:sale_price>275 INR</g:sale_price>
+<g:price>499 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10069</g:mpn>
+<g:item_group_id>zari-border-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>accessories</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>daily-printed-v1</g:id>
+<g:title>Daily Wear Printed Cotton — Emerald</g:title>
+<g:description>Cool and comfy everyday cotton with a cheerful print. Pure cotton, printed — Emerald variant</g:description>
+<g:link>http://localhost:8150/product.html?id=daily-printed-v1</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>549 INR</g:price>
+<g:sale_price>549 INR</g:sale_price>
+<g:price>899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10070</g:mpn>
+<g:item_group_id>daily-printed-v1</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>daily</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>daily-printed-v2</g:id>
+<g:title>Daily Wear Printed Cotton — Royal Blue</g:title>
+<g:description>Cool and comfy everyday cotton with a cheerful print. Pure cotton, printed — Royal Blue variant</g:description>
+<g:link>http://localhost:8150/product.html?id=daily-printed-v2</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>522 INR</g:price>
+<g:sale_price>522 INR</g:sale_price>
+<g:price>899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10071</g:mpn>
+<g:item_group_id>daily-printed-v2</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>daily</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
+<item>
+<g:id>daily-printed-v3</g:id>
+<g:title>Daily Wear Printed Cotton — Wine</g:title>
+<g:description>Cool and comfy everyday cotton with a cheerful print. Pure cotton, printed — Wine variant</g:description>
+<g:link>http://localhost:8150/product.html?id=daily-printed-v3</g:link>
+<g:image_link>http://localhost:8150/images/products/printed-cotton.jpg</g:image_link>
+<g:availability>in stock</g:availability>
+<g:price>505 INR</g:price>
+<g:sale_price>505 INR</g:sale_price>
+<g:price>899 INR</g:price>
+<g:condition>new</g:condition>
+<g:brand>SK Sarees</g:brand>
+<g:mpn>SK10072</g:mpn>
+<g:item_group_id>daily-printed-v3</g:item_group_id>
+<g:google_product_category>Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing</g:google_product_category>
+<g:product_type>daily</g:product_type>
+<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>30 INR</g:price></g:shipping>
+<g:identifier_exists>no</g:identifier_exists>
+</item>
 </channel>
 </rss>

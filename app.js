@@ -62,6 +62,57 @@ function cardHTML(p){
     '</div></article>';
 }
 
+/* ============================ URGENCY + REVIEW (orders-boosters) ============================ */
+/* 🔥 festival countdown — deadline = current festival end (auto from date) */
+function festivalDeadline(){
+  const d = new Date();
+  const m = d.getMonth() + 1, day = d.getDate();
+  const cur = currentFestival();
+  if (cur === 'aadi')     return new Date(d.getFullYear(), 7, 17);          /* 17 Aug */
+  if (cur === 'pongal')   return new Date(d.getFullYear(), 0, 20);          /* 20 Jan */
+  if (cur === 'diwali')   return new Date(d.getFullYear(), 10, 15);         /* 15 Nov */
+  return new Date(d.getFullYear(), 11, 31);                                 /* wedding: year end */
+}
+function festivalCountdown(){
+  try{
+    const el = document.getElementById('flashTimer'); if (!el) return;
+    const end = festivalDeadline();
+    if (isNaN(end.getTime())) return;
+    const tick = () => {
+      const diff = end.getTime() - Date.now();
+      if (diff <= 0){ el.textContent = '🎉 Offer ending today — order now!'; return; }
+      const dd = Math.floor(diff / 864e5), hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
+      const p2 = n => String(n).padStart(2, '0');
+      el.innerHTML = '<b>' + dd + '</b>d <b>' + p2(hh) + '</b>h <b>' + p2(mm) + '</b>m <b>' + p2(ss) + '</b>s';
+    };
+    tick(); setInterval(tick, 1000);
+  }catch(e){}
+}
+/* ⭐ after placing an order — ask for a Google review via WhatsApp */
+function askReviewWhatsApp(o){
+  try{
+    const msg = '🪡 Hi! Thank you for your order ' + (o && o.id || '') + ' from SK Sarees! 🎉\n\nDid you love your saree? Please take 30 seconds to review us on Google — it helps our small store grow so much! 🙏\n\n⭐ ' + CONFIG.googleReview;
+    return waLink(msg);
+  }catch(e){ return CONFIG.googleReview; }
+}
+
+/* 🔥 Deal of the Day — auto-picks the product with the biggest discount (rotates daily) */
+function dealOfDayHTML(){
+  try{
+    const candidates = PRODUCTS.filter(p => p.stock != null && p.stock > 0 && offPct(p) >= 20);
+    if (!candidates.length) return '';
+    /* rotate by day so it changes daily */
+    const day = Math.floor(Date.now() / 864e5);
+    const deal = candidates[day % candidates.length];
+    const off = offPct(deal);
+    return '<div class="deal-day"><div class="dd-left"><span class="dd-badge">🔥 DEAL OF THE DAY</span>' +
+      '<h3>' + esc(deal.name) + '</h3>' +
+      '<div class="price-row"><b>' + money(deal.price) + '</b>' + (deal.mrp ? '<s>' + money(deal.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="product.html?id=' + encodeURIComponent(deal.id) + '">🛒 Grab It Now</a></div>' +
+      '<a class="dd-img" href="product.html?id=' + encodeURIComponent(deal.id) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy"></a></div>';
+  }catch(e){ return ''; }
+}
+
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -80,6 +131,8 @@ function renderHome(){
       '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>👥 <b id="statV">0</b> Visitors</span><span>📦 <b id="statO">0</b> Orders</span><span>🚚 <b>Free</b> above ₹999</span></div>' +
       '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 ' + (lang === 'ta' ? t('searchHero') : 'Search by saree name, SKU or colour…') + '" autocomplete="off"><button type="submit" class="btn btn-gold">' + (lang === 'ta' ? t('search') : 'Search') + '</button></form>' +
     '</div></section>' +
+    '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
+    dealOfDayHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
       '<p class="small">Share sarees, earn <b>₹' + (CONFIG.resellerMargin || 50) + '</b> margin on every sale. Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
@@ -136,6 +189,8 @@ function renderHome(){
         FAQ.map(f => '<details><summary>' + esc(f.q) + '</summary><p>' + esc(f.a) + '</p></details>').join('') + '</section>' +
     '</div>';
   try{ renderStatsText(); }catch(e){}   /* hero counters */
+  /* 🔥 festival countdown — urgency drives orders */
+  try{ festivalCountdown(); }catch(e){}
   /* Google map loads only when the user taps "Show Store on Map" (fast + light) */
   try{
     const mb = document.getElementById('showMapBtn');
@@ -249,8 +304,22 @@ function renderProduct(){
   const id = new URLSearchParams(location.search).get('id');
   let p = byId(id);
   if (!p){
-    /* Not in the local catalog yet — try Firestore (pull + one-time get) before
-       showing "not found". The product may exist in the cloud. */
+    /* Instant path: if a cached copy exists in the raw cloud cache, use it NOW
+       (no spinner, no waiting) — the catalog cache is merged at startup, this is
+       a fallback for edge cases. */
+    try{
+      const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
+      const hit = raw.find(x => String(x.id || x.sku) === String(id));
+      if (hit){
+        const np = normalizeProduct(hit);
+        if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.unshift(np);
+        p = np;
+      }
+    }catch(e){}
+  }
+  if (!p){
+    /* Not cached at all — fetch from Firestore fast (pull + one-time get in parallel).
+       The product may exist in the cloud. */
     window.__pdTry = (window.__pdTry || 0) + 1;
     let done = false;
     const finish = (prod, msg) => {
@@ -266,9 +335,8 @@ function renderProduct(){
           '<button type="button" class="btn btn-outline" onclick="renderProduct()">🔄 Try Again</button></div></div></div>';
       }
     };
-    /* keep showing "Loading product…" while we fetch the catalog from Firestore */
-    app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b>' +
-      '<span class="muted small">Fetching our saree collection from the cloud — hang on! 🌸</span></div></div>';
+    /* quick spinner while we fetch (usually <1s) */
+    app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b></div></div>';
     if (FS.enabled()){
       /* 1) pull all active Firestore products first (also re-renders when done) */
       try{ Sync.pullProducts(); }catch(e){}
@@ -280,17 +348,17 @@ function renderProduct(){
         } else {
           /* retry a couple of times before giving up (slow cloud) */
           if (window.__pdTry < 3){
-            setTimeout(() => { if (!done) renderProduct(); }, 1200);
+            setTimeout(() => { if (!done) renderProduct(); }, 600);
           } else {
             finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
           }
         }
       }).catch(() => {
-        if (window.__pdTry < 3){ setTimeout(() => { if (!done) renderProduct(); }, 1200); }
+        if (window.__pdTry < 3){ setTimeout(() => { if (!done) renderProduct(); }, 600); }
         else finish(null, 'Cloud sync is not responding right now — please check your internet and try again.');
       });
       /* safety: never leave the spinner hanging */
-      setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 9000);
+      setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 6000);
     } else {
       finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
     }
@@ -327,7 +395,7 @@ function renderProduct(){
       '<div>' +
         '<div class="pd-gal">' +
           '<div class="pd-heart"><button type="button" class="heart-btn' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist" title="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button></div>' +
-          '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '"></div>' +
+          '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async"></div>' +
           '<div class="pd-swipe-hint">👈 👉 swipe to see all photos</div>' +
           '<div class="pd-thumbs">' + thumbs + '</div>' +
         '</div>' +
@@ -530,6 +598,17 @@ function renderCartPage(){
         '</div>' +
         '<button type="button" class="rm" data-rm="' + p.id + '" aria-label="Remove">✕</button></div>';
     }).join('') + '</div>' +
+    (function(){
+      /* 🛒 upsell: suggest 4 products from the same categories (exclude what's in cart) */
+      try{
+        const inCart = Store.cart.map(i => i.id);
+        const cats = Store.cart.map(i => (byId(i.id) || {}).cat).filter(Boolean);
+        const sug = PRODUCTS.filter(p => !inCart.includes(p.id) && cats.indexOf(p.cat) !== -1).slice(0, 4);
+        if (!sug.length) return '';
+        return '<div class="cart-upsell"><h3>🎁 Complete your look — add more &amp; save ₹' + (CONFIG.bundleOff || 0) + ' (2+ sarees)</h3>' +
+          '<div class="prow">' + sug.map(cardHTML).join('') + '</div></div>';
+      }catch(e){ return ''; }
+    })() +
     '<div class="summary">' +
       '<div class="coupon-box"><div style="display:flex;gap:8px">' +
         '<input id="cartCoupon" placeholder="Coupon code (e.g. AADI10)" value="' + esc(co.data.coupon || '') + '" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;text-transform:uppercase;min-height:50px;box-sizing:border-box">' +
@@ -815,6 +894,7 @@ function renderOrderComplete(o, viaWa){
     '<div style="display:grid;gap:10px;margin-top:16px;grid-template-columns:1fr 1fr">' +
       '<a class="btn btn-maroon" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 Track This Order</a>' +
       '<a class="btn btn-gold" href="orders.html">📋 All My Orders</a>' +
+      '<a class="btn btn-outline" style="grid-column:1/-1" href="' + esc(askReviewWhatsApp(o)) + '" target="_blank" rel="noopener">⭐ Loved it? Review us on Google — 30 seconds!</a>' +
       (viaWa ? '' : '<a class="btn btn-wa" style="grid-column:1/-1" href="' + waLink('Hi! I just placed order ' + o.id + '. Please confirm it.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Chat with Us on WhatsApp</a>') +
     '</div>' +
     '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">📦 Your Orders</h3>' + cards + '</div>' +
