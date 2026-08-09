@@ -23,6 +23,22 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 
 **Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
 
+## 🌟 Fame & Power Pack (latest — makes sksaree.shop a top saree store)
+
+1. **🌐 SEO power** — `sitemap.xml` + `robots.txt` (Google discovers every page), **Open Graph + Twitter cards** on all pages (product pages get dynamic og:title/og:image/description), and **BreadcrumbList schema** on product pages → rich results in Google.
+2. **🔥 Social proof** — product page shows "🔥 N people bought this today" + rating (deterministic per product, Bestseller boosted).
+3. **👀 Recently Viewed** — tracked per device; a "Recently Viewed" strip appears on the home page → repeat engagement.
+4. **🔁 Order Again** — one-tap reorder button on every order card AND in the order detail (re-adds items to cart → checkout).
+5. **⭐ Loyalty Points** — earn **1 point per ₹50** spent; Profile shows balance; **cart has "Use points" checkbox** (1 point = ₹1 off); points auto-consume on order.
+6. **📏 Blouse Size Guide** — expandable size chart (XS–XXL bust/waist) + tip on every product page → fewer returns.
+7. **⚡ catalog.json instant load** + **📋 Leads tab** (from the previous batch) — all active.
+
+## ⚡ Instant Firestore Products + 📋 Leads (latest)
+
+1. **⚡ catalog.json instant load** — a static `catalog.json` ships with the site (regenerate in **Admin → 📦 Catalog Feed → "⚡ catalog.json (instant load)"** and upload to the site root). On the **first visit**, the product page reads it from the **local file** (zero network wait) → **Firestore products like `product.html?id=SK20001` render instantly — no "Loading product…"**. Firestore still refreshes the cache in the background for freshness. Works even before the Firestore cache is warm.
+2. **📋 Leads collected with NAME** — the ₹50-off first-visit popup now asks for **name + number**; the lead is saved (local `sk_lead_list` + Firestore `leads`) AND stored into the **customer profile**, so the **next checkout auto-fills the number** (shows "✅ Saved customer — number auto-filled") — no re-asking.
+3. **Admin → 📋 Leads tab** — every collected number with **name, phone, coupon, date** + per-lead **💬 Send Offer / 📞 Call / 📱 SMS** buttons (Firestore leads live-sync).
+
 ## ↩️ Returns & ⚡ Speed & 🛒 Merchant Feed (latest)
 
 1. **↩️ Return & Refund Policy page** — `return-policy.html` (7-day replacement, how to request, refunds, shipping, FAQ, WhatsApp CTA), linked from footer & drawer — builds buyer trust → more orders.

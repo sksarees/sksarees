@@ -368,6 +368,40 @@ function normalizeProduct(raw){
   };
 }
 
+/* ============================ 4b. INSTANT CATALOG LOAD ============================
+   Static catalog.json ships with the site (regenerate from Admin → Catalog Feed).
+   First visit: catalog.json loads INSTANTLY (local file, no network wait) so
+   Firestore product pages render immediately. Firestore pull still refreshes
+   the cache in the background for freshness. */
+async function preloadCatalog(){
+  try{
+    if (PRODUCTS.length) return true;
+    /* 1) raw cloud cache */
+    try{
+      const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
+      if (Array.isArray(raw) && raw.length){
+        raw.filter(p => p && !isSampleId(p.id)).forEach(cp => { const np = normalizeProduct(cp); if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np); });
+        if (PRODUCTS.length) return true;
+      }
+    }catch(e){}
+    /* 2) static catalog.json (instant — local file) */
+    try{
+      const r = await fetch('catalog.json', { cache: 'no-cache' });
+      if (r.ok){
+        const list = await r.json();
+        if (Array.isArray(list) && list.length){
+          list.filter(p => p && !isSampleId(p.id)).forEach(cp => { const np = normalizeProduct(cp); if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np); });
+          if (PRODUCTS.length){
+            try{ LS.set('sk_products_cloud', PRODUCTS); }catch(e){}
+            return true;
+          }
+        }
+      }
+    }catch(e){}
+    return false;
+  }catch(e){ return false; }
+}
+
 /* ============================ 5. UTILITIES ============================ */
 const money = n => '₹' + Number(n).toLocaleString('en-IN');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1758,6 +1792,29 @@ function seoInject(){
     const page = (document.body && document.body.dataset.page) || '';
     const base = location.origin + location.pathname.replace(/[^/]*$/, '');
     const ld = [];
+    /* 🌐 Open Graph + Twitter meta (social sharing cards — makes sharing famous) */
+    try{
+      const ogTitle = document.title || CONFIG.storeName;
+      const ogDesc = (document.querySelector('meta[name="description"]') || {}).content || 'Buy sarees online from Salem, Tamil Nadu — semi silk, cotton & Kanchipuram styles.';
+      const ogImg = base + 'images/hero-banner.jpg';
+      const addMeta = (prop, content, isProp) => {
+        if (document.querySelector('meta[' + (isProp ? 'property' : 'name') + '="' + prop + '"]')) return;
+        const m = document.createElement('meta');
+        if (isProp) m.setAttribute('property', prop); else m.setAttribute('name', prop);
+        m.setAttribute('content', content);
+        document.head.appendChild(m);
+      };
+      addMeta('og:title', ogTitle, true);
+      addMeta('og:description', ogDesc, true);
+      addMeta('og:type', 'website', true);
+      addMeta('og:url', location.href, true);
+      addMeta('og:image', ogImg, true);
+      addMeta('og:site_name', CONFIG.storeName, true);
+      addMeta('twitter:card', 'summary_large_image', false);
+      addMeta('twitter:title', ogTitle, false);
+      addMeta('twitter:description', ogDesc, false);
+      addMeta('twitter:image', ogImg, false);
+    }catch(e){}
     /* LocalBusiness (all pages) */
     ld.push({
       '@context':'https://schema.org','@type':'LocalBusiness','@id': base + '#business',
@@ -1777,9 +1834,24 @@ function seoInject(){
     if (page === 'product'){
       const id = new URLSearchParams(location.search).get('id');
       const p = byId(id);
-      if (p) ld.push({ '@context':'https://schema.org','@type':'Product', name:p.name, image:p.img, sku:p.sku || p.id, brand:{ '@type':'Brand', name:CONFIG.storeName },
-        offers:{ '@type':'Offer', priceCurrency:'INR', price:p.price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: location.href, itemCondition:'https://schema.org/NewCondition' },
-        aggregateRating: p.reviews ? { '@type':'AggregateRating', ratingValue:p.rating || 4.5, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
+      if (p){
+        ld.push({ '@context':'https://schema.org','@type':'Product', name:p.name, image:p.img, sku:p.sku || p.id, brand:{ '@type':'Brand', name:CONFIG.storeName },
+          offers:{ '@type':'Offer', priceCurrency:'INR', price:p.price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: location.href, itemCondition:'https://schema.org/NewCondition' },
+          aggregateRating: p.reviews ? { '@type':'AggregateRating', ratingValue:p.rating || 4.5, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
+        /* Breadcrumb */
+        const cat = catOf(p.cat);
+        ld.push({ '@context':'https://schema.org','@type':'BreadcrumbList', itemListElement:[
+          { '@type':'ListItem', position:1, name:'Home', item: location.origin + '/' },
+          { '@type':'ListItem', position:2, name: cat ? cat.name : 'Sarees', item: location.origin + '/shop.html' },
+          { '@type':'ListItem', position:3, name: p.name, item: location.href },
+        ]});
+        /* product og:image */
+        try{
+          const ogi = document.querySelector('meta[property="og:image"]');
+          if (ogi && /^https?:/.test(p.img)) ogi.setAttribute('content', p.img);
+          else if (ogi) ogi.setAttribute('content', location.origin + '/' + p.img.replace(/^\.?\//, ''));
+        }catch(e){}
+      }
     }
     const sc = document.createElement('script');
     sc.type = 'application/ld+json'; sc.id = 'ld-seo';
@@ -1805,8 +1877,9 @@ function maybeCouponPopup(){
       el.innerHTML = '<button type="button" class="cp-x" id="cpX" aria-label="Close">✕</button>' +
         '<div class="cp-badge">🎟️</div>' +
         '<b style="font-size:1.1rem;color:var(--maroon)">Welcome Offer — ₹50 OFF!</b>' +
-        '<p class="small" style="margin:6px 0">Use coupon <b>' + esc(code) + '</b> on your first order. Enter your WhatsApp number and we will send the offer + new arrivals!</p>' +
-        '<div style="display:flex;gap:8px"><input id="cpPhone" placeholder="WhatsApp number" inputmode="numeric" maxlength="10" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;min-height:46px;background:#fff;outline:none"><button type="button" class="btn btn-maroon btn-sm" id="cpGo" style="width:auto;min-width:120px;min-height:46px">Get Offer</button></div>' +
+        '<p class="small" style="margin:6px 0">Use coupon <b>' + esc(code) + '</b> on your first order. Enter your <b>name &amp; WhatsApp number</b> — we will save it so checkout is faster next time!</p>' +
+        '<div style="display:grid;gap:8px"><input id="cpName" placeholder="Your name" maxlength="40" style="width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;min-height:46px;background:#fff;outline:none">' +
+        '<div style="display:flex;gap:8px"><input id="cpPhone" placeholder="WhatsApp number" inputmode="numeric" maxlength="10" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;min-height:46px;background:#fff;outline:none"><button type="button" class="btn btn-maroon btn-sm" id="cpGo" style="width:auto;min-width:120px;min-height:46px">Get Offer</button></div></div>' +
         '<a class="btn btn-wa btn-sm" id="cpWa" href="#" target="_blank" rel="noopener" style="display:none;margin-top:8px">💬 Open WhatsApp</a>' +
         '<p class="small muted" style="margin-top:6px">No spam — only saree offers. 💛</p>';
       document.body.appendChild(el);
@@ -1815,16 +1888,23 @@ function maybeCouponPopup(){
       document.getElementById('cpGo').addEventListener('click', () => {
         const ph = document.getElementById('cpPhone').value.trim();
         if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
+        const nm = (document.getElementById('cpName').value || '').trim() || ('Customer ' + ph.slice(-4));
         try{
           const list = JSON.parse(localStorage.getItem('sk_lead_list') || '[]');
-          list.push({ phone: ph, code, date: Date.now() });
+          list.push({ name: nm, phone: ph, code, date: Date.now() });
           localStorage.setItem('sk_lead_list', JSON.stringify(list));
         }catch(e){}
         /* also save to Firestore leads */
         try{
           if (FS.enabled()){
-            FS._getDb().then(db => { if (db) db.collection('leads').add({ phone: ph, code, date: Date.now() }).catch(()=>{}); }).catch(()=>{});
+            FS._getDb().then(db => { if (db) db.collection('leads').add({ name: nm, phone: ph, code, date: Date.now() }).catch(()=>{}); }).catch(()=>{});
           }
+        }catch(e){}
+        /* 💾 save as CUSTOMER profile → checkout auto-fills, no re-asking */
+        try{
+          Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || nm, phone: ph });
+          Store.saveProfile();
+          saveCoDraft();
         }catch(e){}
         const msg = 'Hi! I want my ₹50 OFF coupon for SK Sarees 🎟️\n\nMy number: ' + ph + '\nPlease send me the coupon + new arrivals!';
         document.getElementById('cpWa').setAttribute('href', waLink(msg));

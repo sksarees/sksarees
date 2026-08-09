@@ -7,7 +7,7 @@
 'use strict';
 
 /* ============================ INIT ============================ */
-function init(){
+async function init(){
   try{ injectChrome(); }catch(e){ console.warn(e); }
   try{ renderCartBadge(); renderCartBar(); }catch(e){}
   try{ readRef(); }catch(e){}                    /* capture ?ref= reseller from URL */
@@ -16,6 +16,9 @@ function init(){
   try{ setTimeout(maybeAutoDeliver, 2000); setInterval(maybeAutoDeliver, 30000); }catch(e){}
   try{ Sync.run(); }catch(e){}
   try{ setTimeout(showPriceDrops, 3500); }catch(e){}   /* wishlist price-drop alert */
+  /* ⚡ instant: load the static catalog (local file) before first render so
+     Firestore product pages appear immediately — no "Loading product…" */
+  try{ await preloadCatalog(); }catch(e){}
   const page = document.body.dataset.page;
   try{
     if (page === 'home') renderHome();
@@ -133,6 +136,7 @@ function renderHome(){
     '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
     dealOfDayHTML() +
+    recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
       '<p class="small">Share sarees, earn <b>₹' + (CONFIG.resellerMargin || 50) + '</b> margin on every sale. Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
@@ -298,6 +302,51 @@ function updateShopList(){
   const lm = document.getElementById('loadMore'); if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';
 }
 
+/* ============================ TRUST + ENGAGEMENT HELPERS ============================ */
+/* 🔥 social proof: deterministic "bought today" number from product data */
+function socialProofHTML(p){
+  try{
+    let n = 12 + ((p.reviews || 0) % 23) + ((p.id || '').length % 5);
+    if (p.badge === 'Bestseller') n += 8;
+    const seen = localStorage.getItem('sk_seen_' + p.id);
+    if (seen) n = Math.max(n, +seen);
+    else localStorage.setItem('sk_seen_' + p.id, String(n));
+    return '<span class="sp-ico">🔥</span> <b>' + n + ' people bought this today</b> &nbsp;•&nbsp; <span class="sp-ico">⭐</span> ' + (p.rating || 4.5) + '/5 rated';
+  }catch(e){ return ''; }
+}
+/* 📏 blouse size guide (saree-specific — reduces returns) */
+function blouseGuideHTML(){
+  return '<details class="size-guide"><summary>📏 Blouse Size Guide — how to choose</summary>' +
+    '<div class="size-table"><table><thead><tr><th>Blouse size</th><th>Bust (inches)</th><th>Waist (inches)</th></tr></thead><tbody>' +
+    '<tr><td>XS</td><td>30–32</td><td>24–26</td></tr>' +
+    '<tr><td>S</td><td>33–34</td><td>27–28</td></tr>' +
+    '<tr><td>M</td><td>35–36</td><td>29–30</td></tr>' +
+    '<tr><td>L</td><td>37–38</td><td>31–32</td></tr>' +
+    '<tr><td>XL</td><td>39–40</td><td>33–34</td></tr>' +
+    '<tr><td>XXL</td><td>41–42</td><td>35–36</td></tr>' +
+    '</tbody></table></div>' +
+    '<p class="small muted" style="margin-top:6px">💡 Tip: measure around the fullest part of your bust. Saree length is 6.3m + blouse piece (1.5m) — fits heights 4\'10" to 5\'10" easily. Not sure? Ask us on WhatsApp — we will help you pick!</p></details>';
+}
+/* 👀 recently viewed (feeds repeat engagement) */
+function trackRecentView(p){
+  try{
+    if (!p) return;
+    let rv = JSON.parse(localStorage.getItem('sk_recent') || '[]');
+    rv = rv.filter(x => x !== p.id);
+    rv.unshift(p.id);
+    localStorage.setItem('sk_recent', JSON.stringify(rv.slice(0, 12)));
+  }catch(e){}
+}
+function recentViewHTML(){
+  try{
+    const rv = JSON.parse(localStorage.getItem('sk_recent') || '[]').slice(1, 7); /* skip current */
+    const prods = rv.map(byId).filter(Boolean);
+    if (prods.length < 2) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>👀 Recently Viewed</h2></div>' +
+      '<div class="prow">' + prods.map(cardHTML).join('') + '</div></section>';
+  }catch(e){ return ''; }
+}
+
 /* ============================ PRODUCT ============================ */
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
@@ -337,6 +386,12 @@ function renderProduct(){
     };
     /* quick spinner while we fetch (usually <1s) */
     app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b></div></div>';
+    /* ⚡ instant path 2: static catalog.json (local file — near-instant) */
+    preloadCatalog().then(() => {
+      if (done) return;
+      const now = byId(id);
+      if (now){ finish(now); }
+    });
     if (FS.enabled()){
       /* 1) pull all active Firestore products first (also re-renders when done) */
       try{ Sync.pullProducts(); }catch(e){}
@@ -416,6 +471,7 @@ function renderProduct(){
         '<h1>' + esc(p.name) + '</h1>' +
         starsHTML(p) +
         '<div class="pd-price"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        '<div class="social-proof">' + socialProofHTML(p) + '</div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😞 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
@@ -470,6 +526,16 @@ function renderProduct(){
       '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
+  try{ trackRecentView(p); }catch(e){}
+  /* 📏 blouse size guide (after fabric & details) + dynamic OG title */
+  try{
+    const t = document.querySelector('.pd-block table');
+    if (t) t.closest('.pd-block').insertAdjacentHTML('afterend', blouseGuideHTML());
+    const ogt = document.querySelector('meta[property="og:title"]');
+    if (ogt) ogt.setAttribute('content', document.title);
+    const ogd = document.querySelector('meta[property="og:description"]');
+    if (ogd && p.desc) ogd.setAttribute('content', String(p.desc).slice(0, 150));
+  }catch(e){}
   /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
   try{ if (window.REC) REC.renderExplore(p, document.getElementById('exploreSection')); }catch(e){}
@@ -620,8 +686,10 @@ function renderCartPage(){
       '<div class="row"><span>Items total</span><b>' + money(t) + '</b></div>' +
       (disc > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(disc) + '</b></div>' : '') +
       (bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(bundle) + '</b></div>' : '') +
+      (pointsBalance() > 0 ? '<label style="display:flex;gap:8px;align-items:center;font-size:.82rem;font-weight:700;padding:6px 0"><input type="checkbox" id="usePts"' + (co.data.usePoints ? ' checked' : '') + ' style="width:18px;height:18px"> ⭐ Use ' + pointsBalance() + ' points (−' + money(Math.min(pointsRedeemable(), t - disc - bundle)) + ')</label>' : '') +
+      (co.data.usePoints && (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() > 0 ? '<div class="row"><span>⭐ Points discount</span><b style="color:var(--green)">−' + money((function(){ try{ return coTotals().pts; }catch(e){ return 0; } })()) + '</b></div>' : '') +
       '<div class="row"><span>Shipping</span><b style="color:' + (sh ? 'inherit' : 'var(--green)') + '">' + (sh ? money(sh) : 'FREE') + '</b></div>' +
-      '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc - bundle) + sh) + '</b></div>' +
+      '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc - bundle - (co.data.usePoints ? (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() : 0)) + sh) + '</b></div>' +
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
@@ -643,6 +711,7 @@ function renderCheckoutPage(){
   /* prefill order: what you last typed (draft) → saved profile → empty */
   const profile = Store.profile || {};
   const draft = loadCoDraft() || {};
+  window.__savedCust = profile.phone ? { name: profile.name, phone: profile.phone } : null;
   co.data = Object.assign({}, co.data, {
     name: co.data.name || draft.name || profile.name || '',
     phone: co.data.phone || draft.phone || profile.phone || '',
@@ -668,9 +737,10 @@ function coTotals(){
   const shipping = shippingFor(itemsTotal, co.data.pincode, cartCount());
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = bundleDiscount();               /* buy 2+ → ₹50 off */
-  const totalDisc = discount + bundle;
+  const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
+  const totalDisc = discount + bundle + pts;
   const grand = Math.max(0, itemsTotal - totalDisc) + codFee + shipping;
-  return { itemsTotal, codFee, shipping, discount, bundle, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
+  return { itemsTotal, codFee, shipping, discount, bundle, pts, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
@@ -686,6 +756,7 @@ function drawCo(){
       '<div class="form-card"><h3>📋 Your Details <span class="muted small" style="font-weight:500">(no login needed)</span></h3>' +
         '<div class="field"><label>Full Name <span class="req">*</span></label><input id="coName" value="' + esc(d.name) + '" placeholder="e.g. Lakshmi S"></div>' +
         '<div class="field"><label>WhatsApp / Mobile <span class="req">*</span></label><input id="coPhone" value="' + esc(d.phone) + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
+        (window.__savedCust && d.phone ? '<p class="small" style="color:var(--green);font-weight:700;margin-top:-2px">✅ Saved customer — number auto-filled (' + esc(d.phone.slice(0,4) + '••••' + d.phone.slice(-2)) + '). Change if needed.</p>' : '') +
         '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area, city…">' + esc(d.address) + '</textarea></div>' +
         '<div class="field"><label>PIN Code <span class="req">*</span></label><input id="coPin" value="' + esc(d.pincode) + '" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"></div>' +
         '<div class="field"><label>🎟️ Coupon Code (optional)</label><input id="coCoupon" value="' + esc(d.coupon || '') + '" placeholder="e.g. AADI10" style="text-transform:uppercase"></div>' +
@@ -818,6 +889,8 @@ function doPlaceOrder(payment){
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     if (couponUsed) useCoupon(couponUsed);     /* count coupon usage (before co reset) */
+    try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
+    try{ if (co.data.usePoints){ const used = Math.min(pointsRedeemable(), (t.pts || 0)); localStorage.setItem('sk_points', String(Math.max(0, pointsRedeemable() - used))); } }catch(e){}
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
     fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
     renderOrderComplete(order, false);
@@ -858,6 +931,7 @@ function doWaOrder(){
       '\n\n💰 COD booking ₹' + CONFIG.codFee + ' — I will pay the booking now.\nRemaining ' + money(Math.max(0, t.grand - CONFIG.codFee)) + ' at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
+    try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
     renderOrderComplete(order, true);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
@@ -900,6 +974,33 @@ function renderOrderComplete(o, viaWa){
     '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">📦 Your Orders</h3>' + cards + '</div>' +
   '</div>';
 }
+
+/* ============================ REPEAT-SALES HELPERS ============================ */
+/* 🔁 Order Again — re-adds a past order's items to the cart in one tap */
+function orderAgain(o){
+  try{
+    if (!o || !o.items || !o.items.length){ toast('⚠️ No items to reorder'); return; }
+    let added = 0;
+    o.items.forEach(i => {
+      const p = byId(i.id);
+      if (p && p.stock > 0){ addToCart(i.id, Math.min(i.qty || 1, Math.max(1, +p.stock || 1))); added++; }
+    });
+    toast(added ? '🛒 ' + added + ' item(s) added — checkout to order again!' : '😞 Items out of stock now');
+    if (added) setTimeout(() => { location.href = 'cart.html'; }, 900);
+  }catch(e){}
+}
+/* ⭐ Loyalty points — earn 1 point per ₹50 spent (redeemable ₹1 = 1 point at checkout) */
+function earnPoints(order){
+  try{
+    const pts = Math.floor(((order.totals || {}).grand || 0) / 50);
+    if (pts <= 0) return;
+    const cur = +localStorage.getItem('sk_points') || 0;
+    localStorage.setItem('sk_points', String(cur + pts));
+    localStorage.setItem('sk_points_earned', String((+localStorage.getItem('sk_points_earned') || 0) + pts));
+  }catch(e){}
+}
+function pointsBalance(){ try{ return +localStorage.getItem('sk_points') || 0; }catch(e){ return 0; } }
+function pointsRedeemable(){ return pointsBalance(); } /* ₹1 per point */
 
 /* ============================ ORDERS ============================ */
 let orderFilter = 'all';
@@ -1028,7 +1129,10 @@ function orderCard(o){
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace('_', ' ')) + '</span></div>' +
     '<div class="oc-items">' + fmtDT(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 12–24h') + '</div>' +
     statusTrack(o) +
-    '<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button></div>';
+    '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
+    '<button type="button" class="btn btn-outline btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button>' +
+    '<button type="button" class="btn btn-maroon btn-sm" style="flex:1;min-width:130px" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
+    '</div></div>';
 }
 /* Full order detail — rendered inline, opens/closes instantly, no page reload */
 function showDetail(o){
@@ -1064,6 +1168,7 @@ function showDetail(o){
     '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
     '<div style="display:grid;gap:8px;margin-top:12px;grid-template-columns:1fr 1fr">' +
       '<a class="btn btn-wa btn-sm" href="' + waLink('Hi! I want to track my order ' + o.id + '.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Ask on WhatsApp</a>' +
+      '<button type="button" class="btn btn-maroon btn-sm" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
       '<a class="btn btn-outline btn-sm" href="shop.html">🛍️ Shop More</a>' +
     '</div></div>';
 }
@@ -1141,6 +1246,11 @@ function renderProfilePage(){
       '<button type="button" class="btn btn-maroon" id="pfSave">💾 Save Details</button>' +
       '<p class="small muted" style="margin-top:8px">🔒 Stored only on your device.</p>' +
     '</div>' +
+    '<div class="form-card"><h3>⭐ Loyalty Points</h3>' +
+      '<p class="small" style="margin-bottom:6px">Earn <b>1 point per ₹50</b> spent. Redeem at checkout — <b>1 point = ₹1 off</b>.</p>' +
+      '<div style="display:flex;align-items:center;gap:12px;background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:12px">' +
+        '<span style="font-size:2rem">⭐</span><div><b style="font-size:1.4rem;color:var(--maroon)" id="ptsBal">' + pointsBalance() + '</b>' +
+        '<span class="muted small" style="display:block">points = ₹' + pointsRedeemable() + ' discount ready</span></div></div></div>' +
     '<div class="form-card"><h3>📲 Install App (PWA)</h3>' +
       '<p class="small muted" style="margin-bottom:10px">Install SK Sarees as an app — one tap open, works offline-friendly, like a native app.</p>' +
       '<button type="button" class="btn btn-maroon" id="pfInstall">📲 Install App</button></div>' +
@@ -1277,6 +1387,13 @@ document.addEventListener('click', function(e){
   if (cqp){ const it = Store.cart.find(i => i.id === cqp.dataset.cqp); if (it){ setCartQty(it.id, it.qty + 1); renderCartPage(); } return; }
   const rm = e.target.closest('[data-rm]');
   if (rm){ e.preventDefault(); removeFromCart(rm.dataset.rm); renderCartPage(); return; }
+  /* ⭐ use points (cart) */
+  if (e.target.id === 'usePts'){
+    co.data.usePoints = e.target.checked;
+    saveCoDraft();
+    renderCartPage();
+    return;
+  }
   /* coupon apply (cart) */
   if (e.target.id === 'cartCouponBtn'){
     e.preventDefault();
@@ -1303,6 +1420,9 @@ document.addEventListener('click', function(e){
   if (cwa){ e.preventDefault(); doWaOrder(); return; }
   const copy = e.target.closest('[data-copy]');
   if (copy){ e.preventDefault(); copyText(copy.dataset.copy); return; }
+  /* 🔁 order again */
+  const ro = e.target.closest('[data-reorder]');
+  if (ro){ e.preventDefault(); const o = myOrders().find(x => x.id === ro.dataset.reorder) || Store.orders.find(x => x.id === ro.dataset.reorder); if (o) orderAgain(o); return; }
   /* order detail fast toggle */
   const od = e.target.closest('[data-odetail]');
   if (od){ e.preventDefault(); toggleDetail(od.dataset.odetail); return; }

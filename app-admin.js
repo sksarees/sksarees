@@ -61,6 +61,7 @@ function renderAdmin(){
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
       '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
       '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
+      '<button type="button" class="admin-tab" id="tabLeads">📋 Leads</button>' +
       '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Feed</button>' +
       '<button type="button" class="admin-tab" id="tabResellers">💰 Resellers</button>' +
       '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
@@ -81,6 +82,7 @@ function renderAdmin(){
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
+  document.getElementById('tabLeads').addEventListener('click', () => switchTab('leads'));
   document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
   document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
@@ -109,6 +111,10 @@ function renderAdmin(){
         const l = []; snap.forEach(x => l.push(Object.assign({}, x.data(), { code: x.id })));
         fsResellers = l; if (adminTab === 'resellers') renderResellers();
       }, () => {});
+      db.collection('leads').onSnapshot(snap => {
+        const l = []; snap.forEach(x => l.push(Object.assign({}, x.data(), { lid: x.id })));
+        fsLeads = l; if (adminTab === 'leads') renderLeads();
+      }, () => {});
     }).catch(() => {});
     FS._getDb().catch(() => {});
   }
@@ -123,7 +129,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabResellers','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabResellers','tabLeads','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -135,6 +141,7 @@ function switchTab(t){
     else if (t === 'coupons') renderCoupons();
     else if (t === 'resellers') renderResellers();
     else if (t === 'feed') renderFeed();
+    else if (t === 'leads') renderLeads();
     else if (t === 'push') renderPush();
     else if (t === 'metaads') renderMetaAds();
     else if (t === 'dashboard') renderDashboard();
@@ -606,6 +613,42 @@ function maGenerate(){
     '<p class="small muted">📷 Ad image: use <b>' + esc(p.img) + '</b> (or any of the ' + ((p.images || []).length) + ' product photos).</p>';
 }
 
+/* ============================ LEADS (customer numbers from first-load popup) ============================
+   Every number collected on first visit (coupon popup) is saved here —
+   local sk_lead_list + Firestore leads — with name, phone, code & date.
+   WhatsApp / call each lead to convert them into orders. */
+let fsLeads = [];
+function renderLeads(){
+  const body = document.getElementById('tabBody');
+  /* merge local + Firestore (dedupe by phone) */
+  const merged = [];
+  const seen = {};
+  try{ const l = JSON.parse(localStorage.getItem('sk_lead_list') || '[]'); l.forEach(x => { const k = String(x.phone); if (!seen[k]){ seen[k] = 1; merged.push(x); } }); }catch(e){}
+  (fsLeads || []).forEach(x => { if (!x || !x.phone) return; const k = String(x.phone); if (!seen[k]){ seen[k] = 1; merged.push(x); } });
+  merged.sort((a, b) => (b.date || 0) - (a.date || 0));
+  body.innerHTML =
+    '<div class="form-card"><h3>📋 Customer Leads — collected on first visit</h3>' +
+      '<p class="small muted">Numbers captured from the welcome-offer popup. Contact them on WhatsApp — they already wanted the coupon! Total: <b>' + merged.length + '</b>.</p></div>' +
+    '<div id="leadList"></div>';
+  const wrap = document.getElementById('leadList');
+  if (!merged.length){
+    wrap.innerHTML = '<div class="empty"><div class="e-ic">📋</div><b>No leads yet</b>When visitors enter their number in the ₹50-off popup, they appear here.</div>';
+    return;
+  }
+  wrap.innerHTML = merged.map((r, i) => {
+    const when = r.date ? fmtDT(r.date) : '—';
+    const msg = '🎉 Hi ' + (r.name || 'there') + '! Your SK Sarees ₹50 OFF coupon (' + (r.code || 'SHARE50') + ') is ready — shop now & save! 🪡\n\n👉 https://www.sksaree.shop/shop.html';
+    return '<div class="order-card">' +
+      '<div class="oc-top"><b>👤 ' + esc(r.name || 'Customer') + '</b><span class="status-pill status-delivered">🎟️ ' + esc(r.code || 'SHARE50') + '</span></div>' +
+      '<div class="oc-items">📱 ' + esc(r.phone) + ' • ' + when + '</div>' +
+      '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+        '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink(msg, r.phone) + '" target="_blank" rel="noopener">💬 Send Offer</a>' +
+        '<a class="btn btn-gold btn-sm" style="width:auto" href="tel:+91' + esc(String(r.phone).replace(/\D/g, '')) + '">📞 Call</a>' +
+        '<a class="btn btn-outline btn-sm" style="width:auto" href="sms:+91' + esc(String(r.phone).replace(/\D/g, '')) + '?body=' + encodeURIComponent('Hi! Your ₹50 OFF coupon is ready: ' + (r.code || 'SHARE50')) + '">📱 SMS</a>' +
+      '</div></div>';
+  }).join('');
+}
+
 /* ============================ CATALOG FEED (Facebook/Instagram Shopping XML) ============================ */
 function feedXml(){
   const escX = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
@@ -665,9 +708,10 @@ function renderFeed(){
       '<p class="small muted">Generate the product XML feed, upload it to your hosting root as <b>products-feed.xml</b>, then connect it in Meta Commerce Manager (Catalog → Data source → Product feed). This lets customers <b>tag &amp; buy sarees directly on Instagram/Facebook</b>.</p>' +
       '<p class="small" style="margin-top:6px">Currently <b>' + count + '</b> products will be in the feed.</p>' +
       '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:230px">⬇️ Download products-feed.xml</button>' +
+        '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:230px">⬇️ products-feed.xml</button>' +
         '<button type="button" class="btn btn-gold" id="feedTxtDownload" style="width:auto;min-width:240px">⬇️ Google Merchant (TXT)</button>' +
-        '<button type="button" class="btn btn-outline" id="feedCopy" style="width:auto;min-width:200px">📋 Copy XML</button>' +
+        '<button type="button" class="btn btn-buy" id="feedJsonDownload" style="width:auto;min-width:220px">⚡ catalog.json (instant load)</button>' +
+        '<button type="button" class="btn btn-outline" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
       '</div>' +
       '<p class="small muted" id="feedNote" style="margin-top:8px">1. Download → 2. Upload to your host (same folder as index.html) → 3. Meta Commerce Manager → add feed URL <b>' + esc(location.origin + '/products-feed.xml') + '</b>.</p></div>' +
     '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>';
@@ -681,6 +725,17 @@ function renderFeed(){
     toast('✅ products-feed.xml downloaded (' + count + ' products)');
   });
   document.getElementById('feedCopy').addEventListener('click', () => { copyText(feedXml()); });
+  const jsonBtn = document.getElementById('feedJsonDownload');
+  if (jsonBtn) jsonBtn.addEventListener('click', () => {
+    const clean = PRODUCTS.map(p => ({ id: p.id, sku: p.sku, name: p.name, price: p.price, mrp: p.mrp, cat: p.cat, img: p.img, images: p.images || [p.img], stock: p.stock, fabric: p.fabric, color: p.color, border: p.border, blouse: p.blouse, length: p.length, weight: p.weight, wash: p.wash, desc: p.desc, rating: p.rating, reviews: p.reviews, badge: p.badge, status: 'Active' }));
+    const blob = new Blob([JSON.stringify(clean)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'catalog.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('⚡ catalog.json downloaded — upload to site root for instant product load!');
+  });
   const txtBtn = document.getElementById('feedTxtDownload');
   if (txtBtn) txtBtn.addEventListener('click', () => {
     const blob = new Blob([feedTxt()], { type: 'text/tab-separated-values' });
