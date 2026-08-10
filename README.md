@@ -23,6 +23,15 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 
 **Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
 
+## ✂️ Removed features (per owner request)
+
+- **Facebook-ad offer banner** removed — no AD coupon, no ad-visitor popup (even with `?utm_source=facebook` / `fbclid`).
+- **Welcome ₹50-off popup** removed — no name/number collection popup on first visit.
+- **Regional offer popup + location asking** removed — no geolocation / PIN-based popups.
+- **Shop filters simplified** — removed Colour, Occasion, Length, Blouse-piece and **📷 photo upload** search; kept **Fabric, Max Price, Sort** + category chips + text search.
+- **Review photo upload** removed — reviews are text-only again.
+- (Kept: header "Hi, {name}" greeting, checkout auto-fill from saved profile, Chat on WhatsApp, Try-On preview, 1% online discount, 5% coupon cap.)
+
 ## 💰 Low-Profit Boost + Smart Shopping (latest)
 
 1. **🔒 All % coupons capped at 5%** — `CONFIG.couponCap:5`. Defaults: `AP5` (5%), flat ₹50 coupons stay. Low-margin strategy = more buying (per your call).

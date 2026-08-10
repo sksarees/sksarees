@@ -246,7 +246,7 @@ function renderHome(){
 }
 
 /* ============================ SHOP ============================ */
-let shopState = { cat: '', q: '', fabric: '', color: '', occ: '', len: '', blouse: '', max: 3000, sort: 'newest', shown: 12, list: [] };
+let shopState = { cat: '', q: '', fabric: '', max: 3000, sort: 'newest', shown: 12, list: [] };
 function renderShop(){
   const app = document.getElementById('app'); if (!app) return;
   const params = new URLSearchParams(location.search);
@@ -261,22 +261,9 @@ function renderShop(){
         '<input id="shopSearch" type="search" placeholder="🔍 Search sarees, fabric, colour…" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
       '</div>' +
       '<div class="cat-chips" id="catChips" style="margin-top:12px"></div>' +
-      '<div class="pd-block" style="margin-top:12px"><div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
+      '<div class="pd-block" style="margin-top:12px"><div style="display:grid;gap:10px;grid-template-columns:1fr">' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Fabric</label>' +
         '<select id="fFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All fabrics</option><option>Silk</option><option>Cotton</option><option>Georgette</option><option>Linen</option><option>Organza</option><option>Net</option></select></div>' +
-        '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Colour</label>' +
-        '<select id="cFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All colours</option><option>Red</option><option>Pink</option><option>Green</option><option>Blue</option><option>Purple</option><option>Gold</option><option>White</option><option>Multi</option></select></div>' +
-        '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Occasion</label>' +
-        '<select id="oFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All occasions</option><option>Wedding</option><option>Party</option><option>Office</option><option>Festival</option><option>Daily</option></select></div>' +
-        '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Length</label>' +
-        '<select id="lFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">Any length</option><option>6.3m (full)</option><option>6m</option><option>2 pc set</option></select></div>' +
-        '<div style="grid-column:1/-1"><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Blouse piece</label>' +
-        '<select id="bFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">Any</option><option value="yes">Blouse piece included</option><option value="no">Without blouse</option></select></div>' +
-        '<div style="grid-column:1/-1"><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">📷 Search by photo</label>' +
-        '<div style="display:flex;gap:8px"><input type="file" id="visFile" accept="image/*" style="display:none">' +
-        '<button type="button" class="btn btn-outline btn-sm" id="visBtn" style="flex:1;min-height:44px">📷 Upload photo to find similar colour</button>' +
-        '<button type="button" class="btn btn-ghost btn-sm" id="visClear" style="flex:0 0 auto;min-width:60px;min-height:44px">✕</button></div>' +
-        '<p class="small muted" id="visResult" style="margin-top:4px"></p></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Max Price — <span id="priceLbl">₹3,000</span></label>' +
         '<input type="range" id="pFilter" min="299" max="3000" step="100" value="3000" style="width:100%;accent-color:var(--maroon)"></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Sort</label>' +
@@ -308,56 +295,6 @@ function bindShop(){
   if (el('fFilter')) el('fFilter').addEventListener('change', e => { shopState.fabric = e.target.value; shopState.shown = 12; updateShopList(); });
   if (el('pFilter')) el('pFilter').addEventListener('input', e => { shopState.max = +e.target.value; if (el('priceLbl')) el('priceLbl').textContent = money(shopState.max); shopState.shown = 12; updateShopList(); });
   if (el('sFilter')) el('sFilter').addEventListener('change', e => { shopState.sort = e.target.value; shopState.shown = 12; updateShopList(); });
-  if (el('cFilter')) el('cFilter').addEventListener('change', e => { shopState.color = e.target.value; shopState.shown = 12; updateShopList(); });
-  if (el('oFilter')) el('oFilter').addEventListener('change', e => { shopState.occ = e.target.value; shopState.shown = 12; updateShopList(); });
-  if (el('lFilter')) el('lFilter').addEventListener('change', e => { shopState.len = e.target.value; shopState.shown = 12; updateShopList(); });
-  if (el('bFilter')) el('bFilter').addEventListener('change', e => { shopState.blouse = e.target.value; shopState.shown = 12; updateShopList(); });
-  /* 📷 visual search: upload photo → sample dominant color → filter by it */
-  if (el('visBtn')){
-    el('visBtn').addEventListener('click', () => { const f = el('visFile'); if (f) f.click(); });
-  }
-  if (el('visFile')) el('visFile').addEventListener('change', e => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const img = new Image();
-    img.onload = () => {
-      try{
-        const cv = document.createElement('canvas'); cv.width = 32; cv.height = 32;
-        const cx = cv.getContext('2d');
-        cx.drawImage(img, 0, 0, 32, 32);
-        const data = cx.getImageData(0, 0, 32, 32).data;
-        let r=0,g=0,b=0,n=0;
-        for (let i=0;i<data.length;i+=4){ r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++; }
-        r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
-        /* map RGB → colour family */
-        let col = 'Multi';
-        const hue = (function(){ const max=Math.max(r,g,b),min=Math.min(r,g,b); const d=max-min; if(d===0) return -1; let h; if(max===r) h=((g-b)/d)%6; else if(max===g) h=(b-r)/d+2; else h=(r-g)/d+4; return Math.round(h*60); })();
-        const sAt = (max-min)/max, v = max/255;
-        if (v < .3) col = 'Black';
-        else if (sAt < .25) col = 'White';
-        else if (hue >= 350 || hue < 15) col = 'Red';
-        else if (hue < 45) col = 'Gold';
-        else if (hue < 75) col = 'Green';
-        else if (hue < 170) col = 'Blue';
-        else if (hue < 200) col = 'Purple';
-        else if (hue < 320) col = 'Pink';
-        else col = 'Multi';
-        shopState.color = col;
-        const cf = el('cFilter'); if (cf) cf.value = col;
-        shopState.shown = 12;
-        const vr = el('visResult');
-        if (vr) vr.innerHTML = '📷 Detected colour: <b>' + col + '</b> — showing matching sarees';
-        updateShopList();
-      }catch(err){ const vr = el('visResult'); if (vr) vr.textContent = 'Could not read photo'; }
-    };
-    img.src = URL.createObjectURL(file);
-  });
-  if (el('visClear')) el('visClear').addEventListener('click', () => {
-    shopState.color = '';
-    const cf = el('cFilter'); if (cf) cf.value = '';
-    const vr = el('visResult'); if (vr) vr.textContent = '';
-    shopState.shown = 12; updateShopList();
-  });
   if (el('catChips')) el('catChips').addEventListener('click', e => {
     const b = e.target.closest('[data-cat]'); if (!b) return;
     shopState.cat = b.dataset.cat; shopState.shown = 12; drawChips(); updateShopList();
@@ -375,15 +312,10 @@ function bindShop(){
   }
 }
 function shopList(){
-  const occMap = { Wedding:'wedding', Party:'party', Office:'office', Festival:'festival', Daily:'daily' };
-  let l = PRODUCTS.filter(p =>
+    let l = PRODUCTS.filter(p =>
     (!shopState.cat || p.cat === shopState.cat) &&
     (!shopState.q || (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + (p.sku || '')).toLowerCase().includes(shopState.q.toLowerCase())) &&
     (!shopState.fabric || p.fabric.toLowerCase().includes(shopState.fabric.toLowerCase())) &&
-    (!shopState.color || String(p.color || '').toLowerCase().includes(shopState.color.toLowerCase())) &&
-    (!shopState.occ || String(p.cat || '').toLowerCase() === (occMap[shopState.occ] || shopState.occ).toLowerCase()) &&
-    (!shopState.len || String(p.length || '').toLowerCase().includes(String(shopState.len).toLowerCase().replace(' (full)',''))) &&
-    (!shopState.blouse || (shopState.blouse === 'yes' ? /blouse|piece/i.test(String(p.blouse||'')) : !/blouse|piece/i.test(String(p.blouse||'')))) &&
     p.price <= shopState.max);
   switch (shopState.sort){
     case 'price-asc': l = l.slice().sort((a, b) => a.price - b.price); break;
@@ -432,22 +364,6 @@ function fastOrderModal(p){
       toast('✅ WhatsApp opened — send it!');
     });
   }catch(e){}
-}
-/* 🎯 Ad-visitor offer: when they land from a Meta/Facebook ad, show a coupon + Fast Order */
-function adVisitorOffer(p){
-  try{
-    const q = new URLSearchParams(location.search);
-    const fromAd = q.get('utm_source') === 'facebook' || q.get('utm_source') === 'instagram' || q.get('fbclid') || q.get('gclid') || q.get('from') === 'ad' || q.get('utm_medium') === 'paid';
-    if (!fromAd || !p) return '';
-    const code = CONFIG.adCoupon || 'AD10';
-    return '<div class="ad-offer"><span class="ao-badge">🎯 AD SPECIAL</span>' +
-      '<b>Extra 10% off with coupon <span>' + esc(code) + '</span></b>' +
-      '<p class="small muted">This offer is only for ad visitors. Order now — stock is limited!</p>' +
-      '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-buy btn-sm" id="foOpen" style="flex:1;min-width:150px">⚡ Fast Order</button>' +
-        '<a class="btn btn-outline btn-sm" style="flex:1;min-width:140px" href="checkout.html?buy=' + encodeURIComponent(p.id) + '">🛒 Checkout</a>' +
-      '</div></div>';
-  }catch(e){ return ''; }
 }
 
 /* 🎨 AI-style colour preview — see the saree design in other shades (try-on feel) */
@@ -622,7 +538,7 @@ function renderProduct(){
   const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
   const revs = userRevs.length
-    ? userRevs.slice().reverse().map(r => '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name) + '</b><small>Verified customer ⭐</small></div></div><div class="stars">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text) + '</p>' + (r.photo ? '<img src="' + esc(r.photo) + '" alt="Customer photo" style="max-width:180px;border-radius:10px;margin-top:6px;border:1px solid var(--line)">' : '') + '</div>').join('')
+    ? userRevs.slice().reverse().map(r => '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name) + '</b><small>Verified customer ⭐</small></div></div><div class="stars">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text) + '</p>' + '</div>').join('')
     : '<p class="muted small">No customer reviews yet — be the first! 💬</p>';
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
   const gal = [];
@@ -688,7 +604,6 @@ function renderProduct(){
           (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
-        adVisitorOffer(p) +
         '<div class="pd-btns" style="margin-top:10px">' +
           '<button type="button" class="btn btn-wa2 btn-xl" id="foOpen">⚡ Fast Order — WhatsApp</button>' +
           '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I have a question about: ' + p.name + ' (' + money(p.price) + ') — is it available?') + '" target="_blank" rel="noopener">💬 Chat on WhatsApp</a>' +
@@ -719,8 +634,6 @@ function renderProduct(){
             '<input id="rvName" placeholder="Your name" maxlength="40" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none">' +
             '<select id="rvStars" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none"><option value="5">★★★★★ Excellent</option><option value="4">★★★★☆ Very good</option><option value="3">★★★☆☆ Good</option><option value="2">★★☆☆☆ Average</option><option value="1">★☆☆☆☆ Poor</option></select>' +
             '<textarea id="rvText" rows="2" placeholder="Share your experience…" maxlength="300" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none;resize:vertical"></textarea>' +
-            '<input type="file" id="rvPhoto" accept="image/*" style="display:none">' +
-            '<button type="button" class="btn btn-outline btn-sm" id="rvPhotoBtn">📷 Add photo (optional)</button>' +
             '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ Post Comment</button>' +
           '</div></div>' +
       '</div>' +
@@ -809,24 +722,13 @@ function renderProduct(){
     const text = (document.getElementById('rvText') || {}).value || '';
     if (!text.trim()){ toast('✍️ Please write your comment first'); return; }
     const list = LS.get('sk_reviews_' + p.id, []);
-    const rev = { name: name || 'Anonymous', rating: +stars, text, date: Date.now(), photo: (window.__rvPhoto || '') };
+    const rev = { name: name || 'Anonymous', rating: +stars, text, date: Date.now() };
     list.push(rev); LS.set('sk_reviews_' + p.id, list);
     if (FS.enabled()) FS.saveReview(p.id, rev).catch(() => {});
-    window.__rvPhoto = '';
     toast('✅ Thank you! Review posted');
     renderProduct();
   }));
-  /* 📷 review photo upload */
-  const rvPBtn = document.getElementById('rvPhotoBtn');
-  const rvP = document.getElementById('rvPhoto');
-  if (rvPBtn && rvP) rvPBtn.addEventListener('click', () => rvP.click());
-  if (rvP) rvP.addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0];
-    if (!f) return;
-    const rd = new FileReader();
-    rd.onload = () => { window.__rvPhoto = rd.result; toast('📷 Photo added!'); };
-    rd.readAsDataURL(f);
-  });
+
 }
 
 /* ============================ SHARE (WhatsApp family/group + Status) ============================ */

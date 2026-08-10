@@ -25,7 +25,6 @@ const CONFIG = {
   /* 💰 Reseller / Share & Earn program: margin paid per order + promo coupon */
   resellerMargin : 50,               // ₹ margin the reseller earns per confirmed order
   resellerCoupon : 'SHARE50',        // ₹50 off coupon shown on the index banner
-  adCoupon       : 'AD5',             // coupon shown to ad visitors (5% — low-profit policy)
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
   onlineDiscount : 1,                 // 💳 1% off when paying ONLINE (UPI); COD = full price
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get ₹50 off your next order (code LATE50).',
@@ -1956,145 +1955,6 @@ function seoInject(){
   }catch(e){}
 }
 
-/* 🎯 REGIONAL OFFER popup — state-specific offers (from saved PIN or geolocation).
-   Shows once per visitor. Makes each region feel local → more orders. */
-function regionalOffers(){
-  return {
-    tn:  { emoji:'🌾', title:'Tamil Nadu Special!', offer:'Free shipping on your first order — use coupon <b>TNFREE</b>!', code:'TNFREE' },
-    andra: { emoji:'🌅', title:'Andhra/Telangana Special!', offer:'10% off with coupon <b>AP10</b> — Telugu customers love us!', code:'AP10' },
-    karnataka:{ emoji:'🌸', title:'Karnataka Special!', offer:'Flat ₹50 off with coupon <b>KA50</b> — free delivery to Bengaluru!', code:'KA50' },
-    other: { emoji:'🛍️', title:'Pan-India Offer!', offer:'Use coupon <b>INDIA10</b> for 10% off — we ship everywhere!', code:'INDIA10' },
-  };
-}
-function detectRegion(){
-  try{
-    /* 1) saved PIN from profile/checkout */
-    const pin = (Store.profile && Store.profile.pincode) || (co && co.data ? co.data.pincode : '') || (localStorage.getItem('sk_pin_check') || '');
-    if (pin && /^\d{6}$/.test(pin)) return deliveryZone(pin);
-    /* 2) browser geolocation (best effort, non-blocking) */
-    if (navigator.geolocation && navigator.permissions){
-      return 'unknown';   /* handled async in maybeRegionalPopup */
-    }
-  }catch(e){}
-  return 'unknown';
-}
-function maybeRegionalPopup(){
-  try{
-    const page = (document.body && document.body.dataset.page) || '';
-    if (page === 'admin' || page === 'checkout') return;
-    if (localStorage.getItem('sk_regional_popup')) return;
-    if (Store.profile && Store.profile.phone){ return; }  /* known customer — skip */
-    const offers = regionalOffers();
-    const show = (zone) => {
-      try{ if (localStorage.getItem('sk_regional_popup')) return; }catch(e){}
-      const o = offers[zone] || offers.other;
-      if (document.getElementById('regionalPopup')) return;
-      const el = document.createElement('div');
-      el.id = 'regionalPopup';
-      el.className = 'regional-popup';
-      el.innerHTML = '<button type="button" class="rp-x" id="rpX" aria-label="Close">✕</button>' +
-        '<div style="text-align:center"><span style="font-size:2rem">' + o.emoji + '</span>' +
-        '<b style="display:block;color:var(--maroon);font-size:1.05rem;margin:4px 0">' + o.title + '</b>' +
-        '<p class="small" style="margin:4px 0 10px">' + o.offer + '</p></div>' +
-        '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
-          '<a class="btn btn-maroon btn-sm" href="shop.html">🛍️ Shop Now</a>' +
-          '<button type="button" class="btn btn-outline btn-sm" id="rpClose">Maybe later</button>' +
-        '</div>';
-      document.body.appendChild(el);
-      setTimeout(() => el.classList.add('show'), 50);
-      const close = () => { el.remove(); try{ localStorage.setItem('sk_regional_popup','1'); }catch(e){} };
-      document.getElementById('rpX').addEventListener('click', close);
-      document.getElementById('rpClose').addEventListener('click', close);
-    };
-    /* saved PIN → immediate; else geolocation async */
-    const pin = (Store.profile && Store.profile.pincode) || (localStorage.getItem('sk_pin_check') || '');
-    if (pin && /^\d{6}$/.test(pin)){
-      setTimeout(() => show(deliveryZone(pin)), 4000);
-      return;
-    }
-    try{
-      if (navigator.geolocation){
-        setTimeout(() => {
-          navigator.geolocation.getCurrentPosition(pos => {
-            const lat = pos.coords.latitude, lng = pos.coords.longitude;
-            /* simple state guess by lat/lng box (South India) */
-            let zone = 'other';
-            if (lat > 7 && lat < 14 && lng > 76 && lng < 81) zone = 'tn';
-            else if (lat > 12 && lat < 20 && lng > 77 && lng < 85) zone = 'andra';
-            else if (lat > 11 && lat < 19 && lng > 74 && lng < 78) zone = 'karnataka';
-            show(zone);
-          }, () => show('other'), { timeout: 5000 });
-        }, 3500);
-        return;
-      }
-    }catch(e){}
-    setTimeout(() => show('other'), 4000);
-  }catch(e){}
-}
-
-/* 🎟️ First-visit coupon popup — builds a WhatsApp list + urgency */
-function maybeCouponPopup(){
-  try{
-    const page = (document.body && document.body.dataset.page) || '';
-    if (page === 'admin' || page === 'cart' || page === 'checkout') return;
-    if (localStorage.getItem('sk_coupon_popup')) return;
-    if (localStorage.getItem('sk_coupon_popup_closed')) return;
-    if (Store.profile && Store.profile.phone) { try{ localStorage.setItem('sk_coupon_popup','1'); }catch(e){} return; }
-    const code = CONFIG.resellerCoupon || 'SHARE50';
-    /* small, simple — name + number in ONE row */
-    setTimeout(() => {
-      if (document.getElementById('couponPopup')) return;
-      const el = document.createElement('div');
-      el.id = 'couponPopup';
-      el.className = 'coupon-popup compact';
-      el.innerHTML = '<button type="button" class="cp-x" id="cpX" aria-label="Close">✕</button>' +
-        '<div style="text-align:center"><span style="font-size:1.6rem">🎟️</span>' +
-        '<b style="display:block;color:var(--maroon);margin:2px 0">₹50 OFF on first order!</b>' +
-        '<p class="small muted" style="margin:2px 0 8px">Use coupon <b>' + esc(code) + '</b></p></div>' +
-        '<div style="display:flex;gap:6px">' +
-          '<input id="cpName" placeholder="Name" maxlength="30" style="flex:1;min-width:0;width:auto;box-sizing:border-box;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;font-size:15px;min-height:44px;background:#fff;outline:none">' +
-          '<input id="cpPhone" placeholder="WhatsApp no." inputmode="numeric" maxlength="10" style="flex:1;min-width:0;width:auto;box-sizing:border-box;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;font-size:15px;min-height:44px;background:#fff;outline:none">' +
-        '</div>' +
-        '<button type="button" class="btn btn-maroon" id="cpGo" style="margin-top:8px;min-height:42px">🎟️ Get My ₹50 OFF</button>' +
-        '<p class="small muted" style="text-align:center;margin-top:6px">We will WhatsApp you the coupon 😊</p>';
-      document.body.appendChild(el);
-      setTimeout(() => el.classList.add('show'), 50);
-      document.getElementById('cpX').addEventListener('click', () => { el.remove(); try{ localStorage.setItem('sk_coupon_popup_closed','1'); }catch(e){} });
-      document.getElementById('cpGo').addEventListener('click', () => {
-        const ph = document.getElementById('cpPhone').value.trim();
-        if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
-        const nm = (document.getElementById('cpName').value || '').trim() || ('Customer ' + ph.slice(-4));
-        try{
-          const list = JSON.parse(localStorage.getItem('sk_lead_list') || '[]');
-          list.push({ name: nm, phone: ph, code, date: Date.now() });
-          localStorage.setItem('sk_lead_list', JSON.stringify(list));
-        }catch(e){}
-        try{
-          if (FS.enabled()){
-            FS._getDb().then(db => { if (db) db.collection('leads').add({ name: nm, phone: ph, code, date: Date.now() }).catch(()=>{}); }).catch(()=>{});
-          }
-        }catch(e){}
-        /* 💾 save as CUSTOMER profile → header greeting + checkout auto-fill */
-        try{
-          Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || nm, phone: ph });
-          Store.saveProfile();
-          saveCoDraft();
-          renderHeader();   /* show "Hi, name" in header now */
-        }catch(e){}
-        const msg = 'Hi! I want my ₹50 OFF coupon for SK Sarees 🎟️\n\nMy name: ' + nm + '\nMy number: ' + ph + '\nPlease send me the coupon!';
-        el.innerHTML = '<div style="text-align:center;padding:6px 0"><span style="font-size:2rem">✅</span>' +
-          '<b style="display:block;color:var(--green);margin:4px 0">🎉 Welcome' + (nm ? ', ' + esc(nm.split(' ')[0]) + '!' : '!') + '</b>' +
-          '<p class="small muted" style="margin-bottom:10px">Your coupon <b>' + esc(code) + '</b> is on the way on WhatsApp.</p>' +
-          '<a class="btn btn-wa btn-sm" id="cpWa" href="' + waLink(msg) + '" target="_blank" rel="noopener">💬 Open WhatsApp</a>' +
-          '<button type="button" class="btn btn-outline btn-sm" id="cpX2" style="margin-top:8px">Start Shopping</button></div>';
-        document.getElementById('cpX2').addEventListener('click', () => { el.remove(); });
-        toast('🎉 Welcome' + (nm ? ', ' + nm.split(' ')[0] : '') + '! Coupon ' + code + ' sent!');
-        try{ localStorage.setItem('sk_coupon_popup','1'); }catch(e){}
-      });
-    }, 2500);
-  }catch(e){}
-}
-
 /* 📲 PWA install — capture the beforeinstallprompt and show an Install button */
 let deferredPrompt = null;
 function installApp(){
@@ -2122,8 +1982,6 @@ function showInstallBanner(){
 function injectChrome(){
   try{ seoInject(); }catch(e){}
   try{ Stats.init(); renderStatsText(); }catch(e){}
-  try{ maybeCouponPopup(); }catch(e){}   /* first-visit offer popup */
-  try{ maybeRegionalPopup(); }catch(e){}  /* regional offer popup */
   /* PWA install: capture prompt + show banner once */
   try{
     /* ⚡ show the Install banner ONLY on devices that fire beforeinstallprompt
