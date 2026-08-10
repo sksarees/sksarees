@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8f1d3a">
+<title>Aadi Festival Saree Sale — Up to 40% OFF | SK Sarees Salem</title>
+<meta name="description" content="Shop Aadi festival sarees — semi silk, cotton & Kanchipuram styles at up to 40% off. Free shipping ₹999+, COD, fast delivery in Tamil Nadu.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SK Sarees">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="festival">
+<main id="app">
+  <section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees Aadi Sale" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in" style="text-align:center">
+    <span class="hero-chip">🔥 Aadi Sale Special</span>
+    <h1>Aadi Sale Sarees<br><span class="gold">Up to 40% OFF + Free Shipping ₹999+</span></h1>
+    <p>Festive semi-silk, cotton &amp; Kanchipuram styles — COD available, fast delivery in Tamil Nadu, Andhra &amp; Karnataka.</p>
+    <div class="hero-ctas" style="justify-content:center">
+      <a class="btn btn-gold" href="shop.html">🛍️ Shop the Collection</a>
+      <a class="btn btn-outline" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5);color:#fff" href="https://wa.me/917867915699?text=Hi!%20I%20want%20Aadi Sale%20saree%20offers" target="_blank" rel="noopener">💬 Ask on WhatsApp</a>
+    </div>
+  </div></section>
+  <div class="wrap page">
+    <section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎟️ Aadi Sale Offers</h2></div>
+      <div class="pd-block">
+        <ul style="list-style:none;display:grid;gap:8px;font-size:.9rem">
+          <li>🔥 Up to <b>40% OFF</b> on selected sarees</li>
+          <li>🚚 <b>Free shipping</b> above ₹999</li>
+          <li>💵 <b>COD</b> available (+₹70 booking, balance at delivery)</li>
+          <li>🎟️ Coupon <b>AADI10</b> — 10% extra off (min ₹999)</li>
+          <li>⏱ Dispatch in 12–24h • 2–3 days in Tamil Nadu</li>
+        </ul>
+      </div></section>
+    <section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ Best Aadi Sale Sarees</h2></div><div class="prow" id="festRow"></div></section>
+    <section class="sec"><div class="sec-head"><h2><span class="tick"></span>❓ Aadi Sale Shopping Tips</h2></div>
+      <div class="pd-block"><p style="line-height:1.9;color:#4a3f38;font-size:.9rem">
+        🪡 Pick <b>semi-silk</b> for rich look at honest prices — normal wash friendly.<br>
+        🌈 For Aadi Sale, <b>reds, golds &amp; greens</b> are always festive favourites.<br>
+        📏 Check the <b>blouse size guide</b> on each product page before ordering.<br>
+        💬 Not sure? WhatsApp us — we will video-call and show real colours!
+      </p></div></section>
+  </div>
+</main>
+<script src="data.js"></script>
+<script src="rec.js"></script>
+<script src="app.js"></script>
+<script>
+/* show festive sarees (best discount) */
+(function(){
+  try{
+    if (!window.PRODUCTS) return;
+    var list = PRODUCTS.slice().sort(function(a,b){ return (offPct(b)||0)-(offPct(a)||0); }).slice(0,8);
+    var row = document.getElementById('festRow');
+    if (row && list.length) row.innerHTML = list.map(cardHTML).join('');
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

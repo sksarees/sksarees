@@ -25,6 +25,9 @@ const CONFIG = {
   /* 💰 Reseller / Share & Earn program: margin paid per order + promo coupon */
   resellerMargin : 50,               // ₹ margin the reseller earns per confirmed order
   resellerCoupon : 'SHARE50',        // ₹50 off coupon shown on the index banner
+  adCoupon       : 'AD5',             // coupon shown to ad visitors (5% — low-profit policy)
+  couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
+  onlineDiscount : 1,                 // 💳 1% off when paying ONLINE (UPI); COD = full price
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get ₹50 off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
@@ -41,6 +44,7 @@ const CONFIG = {
      the `img()` helper). Failed remote images (Firestore etc.) fall back to the
      local copy, then to a branded placeholder — no broken icons ever. */
   imageBase : 'https://sksaree.shop/',   /* 👉 optional CDN root for future use */
+  siteUrl   : 'https://www.sksaree.shop', /* canonical site URL — used for Google feeds & schema so Google can reach the products */
   social : {
     instagram : 'https://www.instagram.com/sksarees_collection/',
     facebook  : 'https://www.facebook.com/eske.kalekcan/',
@@ -404,6 +408,41 @@ async function preloadCatalog(){
 
 /* ============================ 5. UTILITIES ============================ */
 const money = n => '₹' + Number(n).toLocaleString('en-IN');
+/* 💳 online-only price: 1% off for UPI payments (COD = full price) */
+const onlinePrice = p => Math.round((p.price || 0) * (100 - (CONFIG.onlineDiscount || 1)) / 100);
+const onlineOffLabel = () => '1% off on online payment';
+/* 👀 "X people viewing now" — deterministic from id so it's stable per product */
+function viewingNow(p){
+  try{
+    let n = 3 + ((p.id || '').length % 6) + ((p.reviews || 0) % 4);
+    if (p.badge === 'Bestseller') n += 3;
+    return Math.min(14, n);
+  }catch(e){ return 4; }
+}
+/* 🤝 Referral: my code → friend gets ₹50 off, I get ₹50 points */
+function myReferralCode(){
+  try{ return localStorage.getItem('sk_ref_code') || ''; }catch(e){ return ''; }
+}
+function setReferralCode(code){
+  try{ localStorage.setItem('sk_ref_code', String(code).trim().toUpperCase()); }catch(e){}
+}
+function genReferralCode(){
+  try{
+    const ph = ((Store.profile || {}).phone || '').replace(/\D/g, '').slice(-4);
+    return 'SK' + ph + Math.floor(10 + Math.random() * 89);
+  }catch(e){ return 'SK' + Math.floor(100 + Math.random() * 900); }
+}
+function referralLink(){
+  try{ return location.origin + '/shop.html?ref=' + encodeURIComponent(myReferralCode()); }catch(e){ return ''; }
+}
+/* when a friend buys with my referral → I earn 50 points */
+function creditReferral(order){
+  try{
+    if (!order || !order.referral) return;
+    const cur = +localStorage.getItem('sk_points') || 0;
+    localStorage.setItem('sk_points', String(cur + 50));
+  }catch(e){}
+}
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
 /* age of an order in days (0 if unknown) */
@@ -780,7 +819,7 @@ document.addEventListener('click', function(e){
    Usage is tracked in sk_coupon_used (a map code → count). */
 function defaultCoupons(){
   return [
-    { code:'AADI10', type:'percent', value:10, min:999, active:true, label:'Aadi Festival — 10% off', maxUses:0, expiry:'' },
+    { code:'AP5',    type:'percent', value:5,  min:0,   active:true, label:'Aadi Festival — 5% off', maxUses:0, expiry:'' },
     { code:'CART50', type:'flat',    value:50, min:0,   active:true, label:'Forgot cart — ₹50 off', maxUses:0, expiry:'' },
     { code:'LATE50', type:'flat',    value:50, min:0,   active:true, label:'Late delivery — ₹50 off', maxUses:0, expiry:'' },
     { code:'SHARE50', type:'flat',   value:50, min:0,   active:true, label:'Share & Earn — ₹50 off', maxUses:0, expiry:'' },
@@ -825,7 +864,10 @@ function useCoupon(code){
 function couponDiscount(code, total){
   const c = couponFor(code); if (!c) return 0;
   if (c.min && total < +c.min) return 0;
-  return c.type === 'percent' ? Math.round(total * (+c.value || 0) / 100) : (+c.value || 0);
+  /* 🔒 percent coupons capped at CONFIG.couponCap (5%) — low-profit policy */
+  let val = +c.value || 0;
+  if (c.type === 'percent') val = Math.min(val, CONFIG.couponCap || 5);
+  return c.type === 'percent' ? Math.round(total * val / 100) : val;
 }
 
 /* ============================ 9d. RESELLER / SHARE & EARN ============================
@@ -1182,6 +1224,39 @@ function showPriceDrops(){
   }catch(e){}
 }
 
+/* ============================ 9h. SKIN-TONE → SAREE COLOR (South India favorite) ============================
+   Brides & family pick saree colours by skin tone. This gives instant
+   recommendations per product colour. */
+const SKIN_TONES = {
+  fair:   { label:'Fair (சிவப்பு நிறம்)',    colors:['red','pink','purple','blue','green','gold'] },
+  medium: { label:'Medium (சராசரி)',         colors:['gold','green','maroon','teal','purple','pink'] },
+  dusky:  { label:'Dusky (கருப்பு நிறம்)',    colors:['gold','orange','red','yellow','green','champagne'] },
+};
+function skinToneOf(colorFam){
+  /* map a saree colour family to the best skin tones for it */
+  const c = String(colorFam || '').toLowerCase();
+  if (['gold','orange','yellow','champagne','red','green'].indexOf(c) !== -1) return 'dusky';
+  if (['purple','blue','pink','maroon','teal'].indexOf(c) !== -1) return 'fair';
+  if (['white','brown'].indexOf(c) !== -1) return 'medium';
+  return 'medium';
+}
+function skinToneRecommendHTML(p){
+  try{
+    /* compute colour family locally (no REC dependency) */
+    const COL = [
+      [/maroon|burgundy|wine|red/i,'red'],[/pink|rose|magenta/i,'pink'],[/emerald|green|peacock|teal|mint|sage/i,'green'],
+      [/navy|blue|turquoise|sky/i,'blue'],[/purple|lavender|violet/i,'purple'],[/gold|yellow|mustard|ochre/i,'gold'],
+      [/white|cream|ivory/i,'white'],[/beige|brown|tan/i,'brown'],[/black|grey|gray/i,'dark'],[/champagne/i,'champagne'],
+    ];
+    const src = String((p.colors||[]).join(' ') + ' ' + (p.color||'')).toLowerCase();
+    let fam = 'multi';
+    for (const [re, v] of COL){ if (re.test(src)){ fam = v; break; } }
+    const best = skinToneOf(fam);
+    const tone = SKIN_TONES[best];
+    return '<div class="skin-note">✨ <b>Looks great on ' + esc(tone.label) + ' skin</b> — a favourite for brides &amp; family in South India!</div>';
+  }catch(e){ return ''; }
+}
+
 /* ============================ 10. TOAST / MODAL ============================ */
 let toastT;
 function toast(msg){
@@ -1228,6 +1303,22 @@ const LANGS = {
     googleRev:'Google மதிப்புரைகள்', whatsappGroup:'வாட்ஸ்அப் குழுவில் சேர',
     searchHero:'சேலை பெயர், SKU அல்லது நிறம் தேடுங்கள்…', search:'தேடு',
     freeShipAbove:'₹999க்கு மேல் இலவச டெலிவரி', cod:'காஷ் ஆன் டெலிவரி',
+  },
+  te: {
+    home:'హోమ్', shop:'షాప్', cart:'మీ కార్ట్', checkout:'చెక్అవుట్', myOrders:'నా ఆర్డర్లు', profile:'ప్రొఫైల్',
+    shopAll:'అన్ని చీరలు', addToCart:'కార్ట్‌లో చేర్చండి', buyNow:'ఇప్పుడు కొనండి', orderOnWA:'వాట్సాప్‌లో ఆర్డర్',
+    viewAll:'అన్నీ →', bestSellers:'బెస్ట్ సెల్లర్స్', newArrivals:'కొత్త వస్తువులు', todaysDeals:'నేటి ఆఫర్లు',
+    categories:'వర్గాల ప్రకారం కొనండి', aboutUs:'మా గురించి', quickLinks:'త్వరిత లింకులు',
+    contactUs:'సంప్రదించండి', freeShip:'ఫ్రీ డెలివరీ', placeOrder:'ఆర్డర్ చేయండి',
+    search:'చీరలు, ఫాబ్రిక్, రంగు వెతకండి…', all:'అన్నీ', inStock:'స్టాక్‌లో ఉంది', outStock:'స్టాక్ లేదు',
+  },
+  kn: {
+    home:'ಮುಖಪುಟ', shop:'ಅಂಗಡಿ', cart:'ನಿಮ್ಮ ಕಾರ್ಟ್', checkout:'ಚೆಕ್ಔಟ್', myOrders:'ನನ್ನ ಆರ್ಡರ್ಗಳು', profile:'ಪ್ರೊಫೈಲ್',
+    shopAll:'ಎಲ್ಲಾ ಸೀರೆಗಳು', addToCart:'ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ', buyNow:'ಈಗ ಖರೀದಿಸಿ', orderOnWA:'ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಆರ್ಡರ್',
+    viewAll:'ಎಲ್ಲಾ →', bestSellers:'ಅತ್ಯುತ್ತಮ ಮಾರಾಟ', newArrivals:'ಹೊಸ ಆಗಮನ', todaysDeals:'ಇಂದಿನ ಆಫರ್ಗಳು',
+    categories:'ವರ್ಗಗಳ ಮೂಲಕ ಖರೀದಿಸಿ', aboutUs:'ನಮ್ಮ ಬಗ್ಗೆ', quickLinks:'ತ್ವರಿತ ಲಿಂಕ್ಗಳು',
+    contactUs:'ಸಂಪರ್ಕಿಸಿ', freeShip:'ಉಚಿತ ಡೆಲಿವರಿ', placeOrder:'ಆರ್ಡರ್ ಮಾಡಿ',
+    search:'ಸೀರೆಗಳು, ಫ್ಯಾಬ್ರಿಕ್, ಬಣ್ಣ ಹುಡುಕಿ…', all:'ಎಲ್ಲಾ', inStock:'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ', outStock:'ಸ್ಟಾಕ್ ಇಲ್ಲ',
   },
 };
 let lang = LS.get('sk_lang', 'en');
@@ -1636,6 +1727,7 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
+        ${((Store.profile && Store.profile.name) ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">Hi, <b>' + esc(Store.profile.name.split(' ')[0]) + '</b></span></a>' : '')}
         <a class="icon-btn" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
       </div>
@@ -1694,6 +1786,10 @@ function renderFooter(){
           <a href="share-earn.html">💰 Share &amp; Earn</a><br>
           <a href="blog.html">📖 Blog</a><br>
           <a href="return-policy.html">↩️ Return Policy</a><br>
+          <a href="aadi-sale.html">🌾 Aadi Sale</a><br>
+          <a href="pongal-collection.html">🌅 Pongal</a><br>
+          <a href="diwali-special.html">🪔 Diwali</a><br>
+          <a href="bulk-wedding.html">💍 Bulk Wedding</a><br>
           <a href="${CONFIG.waGroup}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Join WhatsApp Group</a>
         </p>
       </div>
@@ -1860,6 +1956,82 @@ function seoInject(){
   }catch(e){}
 }
 
+/* 🎯 REGIONAL OFFER popup — state-specific offers (from saved PIN or geolocation).
+   Shows once per visitor. Makes each region feel local → more orders. */
+function regionalOffers(){
+  return {
+    tn:  { emoji:'🌾', title:'Tamil Nadu Special!', offer:'Free shipping on your first order — use coupon <b>TNFREE</b>!', code:'TNFREE' },
+    andra: { emoji:'🌅', title:'Andhra/Telangana Special!', offer:'10% off with coupon <b>AP10</b> — Telugu customers love us!', code:'AP10' },
+    karnataka:{ emoji:'🌸', title:'Karnataka Special!', offer:'Flat ₹50 off with coupon <b>KA50</b> — free delivery to Bengaluru!', code:'KA50' },
+    other: { emoji:'🛍️', title:'Pan-India Offer!', offer:'Use coupon <b>INDIA10</b> for 10% off — we ship everywhere!', code:'INDIA10' },
+  };
+}
+function detectRegion(){
+  try{
+    /* 1) saved PIN from profile/checkout */
+    const pin = (Store.profile && Store.profile.pincode) || (co && co.data ? co.data.pincode : '') || (localStorage.getItem('sk_pin_check') || '');
+    if (pin && /^\d{6}$/.test(pin)) return deliveryZone(pin);
+    /* 2) browser geolocation (best effort, non-blocking) */
+    if (navigator.geolocation && navigator.permissions){
+      return 'unknown';   /* handled async in maybeRegionalPopup */
+    }
+  }catch(e){}
+  return 'unknown';
+}
+function maybeRegionalPopup(){
+  try{
+    const page = (document.body && document.body.dataset.page) || '';
+    if (page === 'admin' || page === 'checkout') return;
+    if (localStorage.getItem('sk_regional_popup')) return;
+    if (Store.profile && Store.profile.phone){ return; }  /* known customer — skip */
+    const offers = regionalOffers();
+    const show = (zone) => {
+      try{ if (localStorage.getItem('sk_regional_popup')) return; }catch(e){}
+      const o = offers[zone] || offers.other;
+      if (document.getElementById('regionalPopup')) return;
+      const el = document.createElement('div');
+      el.id = 'regionalPopup';
+      el.className = 'regional-popup';
+      el.innerHTML = '<button type="button" class="rp-x" id="rpX" aria-label="Close">✕</button>' +
+        '<div style="text-align:center"><span style="font-size:2rem">' + o.emoji + '</span>' +
+        '<b style="display:block;color:var(--maroon);font-size:1.05rem;margin:4px 0">' + o.title + '</b>' +
+        '<p class="small" style="margin:4px 0 10px">' + o.offer + '</p></div>' +
+        '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
+          '<a class="btn btn-maroon btn-sm" href="shop.html">🛍️ Shop Now</a>' +
+          '<button type="button" class="btn btn-outline btn-sm" id="rpClose">Maybe later</button>' +
+        '</div>';
+      document.body.appendChild(el);
+      setTimeout(() => el.classList.add('show'), 50);
+      const close = () => { el.remove(); try{ localStorage.setItem('sk_regional_popup','1'); }catch(e){} };
+      document.getElementById('rpX').addEventListener('click', close);
+      document.getElementById('rpClose').addEventListener('click', close);
+    };
+    /* saved PIN → immediate; else geolocation async */
+    const pin = (Store.profile && Store.profile.pincode) || (localStorage.getItem('sk_pin_check') || '');
+    if (pin && /^\d{6}$/.test(pin)){
+      setTimeout(() => show(deliveryZone(pin)), 4000);
+      return;
+    }
+    try{
+      if (navigator.geolocation){
+        setTimeout(() => {
+          navigator.geolocation.getCurrentPosition(pos => {
+            const lat = pos.coords.latitude, lng = pos.coords.longitude;
+            /* simple state guess by lat/lng box (South India) */
+            let zone = 'other';
+            if (lat > 7 && lat < 14 && lng > 76 && lng < 81) zone = 'tn';
+            else if (lat > 12 && lat < 20 && lng > 77 && lng < 85) zone = 'andra';
+            else if (lat > 11 && lat < 19 && lng > 74 && lng < 78) zone = 'karnataka';
+            show(zone);
+          }, () => show('other'), { timeout: 5000 });
+        }, 3500);
+        return;
+      }
+    }catch(e){}
+    setTimeout(() => show('other'), 4000);
+  }catch(e){}
+}
+
 /* 🎟️ First-visit coupon popup — builds a WhatsApp list + urgency */
 function maybeCouponPopup(){
   try{
@@ -1867,21 +2039,24 @@ function maybeCouponPopup(){
     if (page === 'admin' || page === 'cart' || page === 'checkout') return;
     if (localStorage.getItem('sk_coupon_popup')) return;
     if (localStorage.getItem('sk_coupon_popup_closed')) return;
+    if (Store.profile && Store.profile.phone) { try{ localStorage.setItem('sk_coupon_popup','1'); }catch(e){} return; }
     const code = CONFIG.resellerCoupon || 'SHARE50';
-    /* show after a few seconds */
+    /* small, simple — name + number in ONE row */
     setTimeout(() => {
       if (document.getElementById('couponPopup')) return;
       const el = document.createElement('div');
       el.id = 'couponPopup';
-      el.className = 'coupon-popup';
+      el.className = 'coupon-popup compact';
       el.innerHTML = '<button type="button" class="cp-x" id="cpX" aria-label="Close">✕</button>' +
-        '<div class="cp-badge">🎟️</div>' +
-        '<b style="font-size:1.1rem;color:var(--maroon)">Welcome Offer — ₹50 OFF!</b>' +
-        '<p class="small" style="margin:6px 0">Use coupon <b>' + esc(code) + '</b> on your first order. Enter your <b>name &amp; WhatsApp number</b> — we will save it so checkout is faster next time!</p>' +
-        '<div style="display:grid;gap:8px"><input id="cpName" placeholder="Your name" maxlength="40" style="width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;min-height:46px;background:#fff;outline:none">' +
-        '<div style="display:flex;gap:8px"><input id="cpPhone" placeholder="WhatsApp number" inputmode="numeric" maxlength="10" style="flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;min-height:46px;background:#fff;outline:none"><button type="button" class="btn btn-maroon btn-sm" id="cpGo" style="width:auto;min-width:120px;min-height:46px">Get Offer</button></div></div>' +
-        '<a class="btn btn-wa btn-sm" id="cpWa" href="#" target="_blank" rel="noopener" style="display:none;margin-top:8px">💬 Open WhatsApp</a>' +
-        '<p class="small muted" style="margin-top:6px">No spam — only saree offers. 💛</p>';
+        '<div style="text-align:center"><span style="font-size:1.6rem">🎟️</span>' +
+        '<b style="display:block;color:var(--maroon);margin:2px 0">₹50 OFF on first order!</b>' +
+        '<p class="small muted" style="margin:2px 0 8px">Use coupon <b>' + esc(code) + '</b></p></div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<input id="cpName" placeholder="Name" maxlength="30" style="flex:1;min-width:0;width:auto;box-sizing:border-box;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;font-size:15px;min-height:44px;background:#fff;outline:none">' +
+          '<input id="cpPhone" placeholder="WhatsApp no." inputmode="numeric" maxlength="10" style="flex:1;min-width:0;width:auto;box-sizing:border-box;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;font-size:15px;min-height:44px;background:#fff;outline:none">' +
+        '</div>' +
+        '<button type="button" class="btn btn-maroon" id="cpGo" style="margin-top:8px;min-height:42px">🎟️ Get My ₹50 OFF</button>' +
+        '<p class="small muted" style="text-align:center;margin-top:6px">We will WhatsApp you the coupon 😊</p>';
       document.body.appendChild(el);
       setTimeout(() => el.classList.add('show'), 50);
       document.getElementById('cpX').addEventListener('click', () => { el.remove(); try{ localStorage.setItem('sk_coupon_popup_closed','1'); }catch(e){} });
@@ -1894,22 +2069,26 @@ function maybeCouponPopup(){
           list.push({ name: nm, phone: ph, code, date: Date.now() });
           localStorage.setItem('sk_lead_list', JSON.stringify(list));
         }catch(e){}
-        /* also save to Firestore leads */
         try{
           if (FS.enabled()){
             FS._getDb().then(db => { if (db) db.collection('leads').add({ name: nm, phone: ph, code, date: Date.now() }).catch(()=>{}); }).catch(()=>{});
           }
         }catch(e){}
-        /* 💾 save as CUSTOMER profile → checkout auto-fills, no re-asking */
+        /* 💾 save as CUSTOMER profile → header greeting + checkout auto-fill */
         try{
           Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || nm, phone: ph });
           Store.saveProfile();
           saveCoDraft();
+          renderHeader();   /* show "Hi, name" in header now */
         }catch(e){}
-        const msg = 'Hi! I want my ₹50 OFF coupon for SK Sarees 🎟️\n\nMy number: ' + ph + '\nPlease send me the coupon + new arrivals!';
-        document.getElementById('cpWa').setAttribute('href', waLink(msg));
-        document.getElementById('cpWa').style.display = 'block';
-        toast('✅ Coupon ' + code + ' sent to WhatsApp!');
+        const msg = 'Hi! I want my ₹50 OFF coupon for SK Sarees 🎟️\n\nMy name: ' + nm + '\nMy number: ' + ph + '\nPlease send me the coupon!';
+        el.innerHTML = '<div style="text-align:center;padding:6px 0"><span style="font-size:2rem">✅</span>' +
+          '<b style="display:block;color:var(--green);margin:4px 0">🎉 Welcome' + (nm ? ', ' + esc(nm.split(' ')[0]) + '!' : '!') + '</b>' +
+          '<p class="small muted" style="margin-bottom:10px">Your coupon <b>' + esc(code) + '</b> is on the way on WhatsApp.</p>' +
+          '<a class="btn btn-wa btn-sm" id="cpWa" href="' + waLink(msg) + '" target="_blank" rel="noopener">💬 Open WhatsApp</a>' +
+          '<button type="button" class="btn btn-outline btn-sm" id="cpX2" style="margin-top:8px">Start Shopping</button></div>';
+        document.getElementById('cpX2').addEventListener('click', () => { el.remove(); });
+        toast('🎉 Welcome' + (nm ? ', ' + nm.split(' ')[0] : '') + '! Coupon ' + code + ' sent!');
         try{ localStorage.setItem('sk_coupon_popup','1'); }catch(e){}
       });
     }, 2500);
@@ -1944,10 +2123,28 @@ function injectChrome(){
   try{ seoInject(); }catch(e){}
   try{ Stats.init(); renderStatsText(); }catch(e){}
   try{ maybeCouponPopup(); }catch(e){}   /* first-visit offer popup */
+  try{ maybeRegionalPopup(); }catch(e){}  /* regional offer popup */
   /* PWA install: capture prompt + show banner once */
   try{
-    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; try{ if (!localStorage.getItem('sk_install_closed')) showInstallBanner(); }catch(e2){} });
-    try{ if (localStorage.getItem('sk_install_closed') !== '1' && !window.matchMedia('(display-mode: standalone)').matches){ setTimeout(showInstallBanner, 4000); } }catch(e2){}
+    /* ⚡ show the Install banner ONLY on devices that fire beforeinstallprompt
+       (i.e. truly PWA-install-capable: Android Chrome / desktop). iOS/Safari and
+       unsupported browsers never get it. */
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      try{ if (!localStorage.getItem('sk_install_closed')) showInstallBanner(); }catch(e2){}
+    });
+    /* iOS Safari can't fire beforeinstallprompt but CAN add to home screen —
+       show a tiny hint there instead of the big banner */
+    try{
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+      if (isIOS && !window.matchMedia('(display-mode: standalone)').matches && !localStorage.getItem('sk_install_closed')){
+        setTimeout(() => {
+          if (deferredPrompt || document.getElementById('installBanner')) return;
+          showInstallBanner();
+        }, 6000);
+      }
+    }catch(e2){}
   }catch(e){}
   /* register the push service worker (HTTPS only; harmless fallback otherwise) */
   try{

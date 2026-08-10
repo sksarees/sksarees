@@ -652,10 +652,11 @@ function renderLeads(){
 /* ============================ CATALOG FEED (Facebook/Instagram Shopping XML) ============================ */
 function feedXml(){
   const escX = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  /* 🔴 absolute site URL (not localhost) so GOOGLE can reach every product */
+  const base = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n<channel>\n<title>SK Sarees Catalog</title>\n<link>' + escX(location.origin + '/') + '</link>\n<description>Saree catalog for Facebook & Instagram Shopping</description>\n';
   PRODUCTS.slice(0, 500).forEach(p => {
-    const imgAbs = /^https?:/.test(p.img) ? p.img : (location.origin + '/' + p.img.replace(/^\.?\//,''));
+    const imgAbs = /^https?:/.test(p.img) ? p.img : (base + p.img.replace(/^\.?\//,''));
     xml += '<item>\n' +
       '<g:id>' + escX(p.id) + '</g:id>\n' +
       '<g:title>' + escX(p.name) + '</g:title>\n' +
@@ -682,10 +683,11 @@ function feedXml(){
    id,title,description,price,condition,link,availability,image_link */
 function feedTxt(){
   const escT = v => String(v == null ? '' : v).replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
-  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  /* 🔴 absolute site URL so Google Merchant Center can crawl products */
+  const base = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
   const lines = ['id\ttitle\tdescription\tprice\tcondition\tlink\tavailability\timage_link'];
   PRODUCTS.slice(0, 500).forEach(p => {
-    const imgAbs = /^https?:/.test(p.img) ? p.img : (location.origin + '/' + p.img.replace(/^\.?\//, ''));
+    const imgAbs = /^https?:/.test(p.img) ? p.img : (base + p.img.replace(/^\.?\//, ''));
     const row = [
       escT(p.id),
       escT(p.name),

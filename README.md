@@ -23,6 +23,40 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 
 **Note:** requires Firestore sync (project `sksareesapp`) to be enabled and reachable — the same cloud that powers the admin. Works on HTTPS with the rules from this README.
 
+## 💰 Low-Profit Boost + Smart Shopping (latest)
+
+1. **🔒 All % coupons capped at 5%** — `CONFIG.couponCap:5`. Defaults: `AP5` (5%), flat ₹50 coupons stay. Low-margin strategy = more buying (per your call).
+2. **💳 1% online-payment discount** — Buy Now shows **"Buy at ₹1,287"** for a ₹1,300 saree (1% off online only); **COD = full price**. Product page shows **Old price + New price** line + "Pay online & save 1%" note; checkout review & success add the online-discount row.
+3. **🔍 Advanced Filters + Smart Search** — shop page now filters by **Fabric · Colour · Occasion · Length · Blouse-included** PLUS **📷 visual search**: upload a photo → dominant colour detected (canvas) → matching sarees shown.
+4. **📷 Photo reviews** — review form has "Add photo (optional)"; uploaded photos show in the review list ("Verified customer").
+5. **👀 "X people viewing right now"** — deterministic urgency on every product page.
+6. **🤝 Refer & Earn** — Profile referral card: personal code + copy + WhatsApp share; friend orders with your code → you earn ₹50 margin (reseller flow) + they get ₹50 off.
+7. **💬 Chat on WhatsApp** — product page direct chat button (product name + price pre-filled).
+8. **🧺 Complete the Look + Frequently Bought Together** — explore sections now include matching blouse/accessories and top co-purchased picks.
+
+## 🔧 Google Feed Fix + 🧵 Weaver + 🎨 Try-On + 🎯 Regional (latest)
+
+1. **🔧 Google "No products displayed" FIXED** — the feed files were generated with `http://localhost:8150` URLs, which Google can't crawl → zero products shown. Now the feed generators use **`CONFIG.siteUrl` (`https://www.sksaree.shop`)** for **both** product links and image links, and the static `google-merchant-feed.txt` / `products-feed.xml` are regenerated with the real domain. (Remember: the product photos must actually exist at `https://www.sksaree.shop/images/products/…`.)
+2. **🧵 Ilampillai weaver story** — home page section "Our Weaver Story — Ilampillai Looms": heritage, weaver-family support, honesty badges + CTA. Builds trust & premium feel (Salem's famous handloom village, ~20 km away).
+3. **🎨 Try-On / AI colour preview** — every product page has "🎨 Try-On — Preview Colours": pick one of 9 shades and the saree photo re-colours live (CSS filter). Feels like trying on different colourways; note that real photos can be requested on WhatsApp.
+4. **🎯 Regional offer popups** — state-specific one-time offer popup: saved PIN (or geolocation) → **Tamil Nadu (TNFREE) · Andhra/Telangana (AP10) · Karnataka (KA50) · Pan-India (INDIA10)**. Makes each region feel local.
+
+## 🏆 South India #1 Pack (regional power)
+
+1. **🌐 4 languages** — English · தமிழ் · **తెలుగు** · **ಕನ್ನಡ** (Profile → Language). Win Andhra/Telangana & Karnataka customers in their own language.
+2. **✨ Skin-tone → saree colour recommender** — every product page shows "Looks great on Fair/Medium/Dusky skin" — a huge help for brides & family in South India (also reduces returns).
+3. **💍 Bulk Wedding Order page** — `bulk-wedding.html` (name, occasion, count, budget → WhatsApp) — South Indian weddings order 5–50 sarees at once. Linked from footer.
+4. **🌾 Festival landing pages** — `aadi-sale.html`, `pongal-collection.html`, `diwali-special.html` with SEO titles/descriptions + offers + best-deal sarees (auto). Each is a Google-magnet keyword page. In sitemap.
+5. **🎉 Shop by Occasion** — home page one-tap tiles: Wedding · Reception · Puja · Office · Daily Wear · Party (each links to its category).
+
+## 🎯 Conversion Boost (ads → orders — the SK20002 problem)
+
+**Why ad visitors view but don't order:** full checkout (address + payment + coupon) is too much friction for a Facebook ad visitor. Fixes added:
+1. **⚡ Fast Order** — a big "⚡ Fast Order — WhatsApp" button on every product page opens a **name + phone only** modal → WhatsApp with the full order pre-filled. **No address, no payment, no coupon — the seller confirms & closes on WhatsApp.** This converts ad traffic that bounces at checkout.
+2. **🎯 AD SPECIAL offer** — when a visitor lands from a **Meta/Facebook ad** (`?utm_source=facebook`, `fbclid`, `gclid`, `from=ad`), the product page shows an **"AD SPECIAL — Extra 10% off with coupon AD10"** banner + Fast Order. Normal visitors don't see it.
+3. **🎟️ Compact welcome popup** — smaller & simpler (name + number one row, "₹50 OFF on first order"). After entering the name, the popup says **"🎉 Welcome, {name}!"** and the **header shows "👋 Hi, {name}"** on every page (saved to the customer profile; checkout auto-fills, no re-asking).
+4. **📲 Install banner only on PWA-capable devices** — the "Install App" banner now appears **only after `beforeinstallprompt` fires** (Android Chrome / desktop that support PWA) — never on unsupported devices. iOS gets a delayed hint instead.
+
 ## 🌟 Fame & Power Pack (latest — makes sksaree.shop a top saree store)
 
 1. **🌐 SEO power** — `sitemap.xml` + `robots.txt` (Google discovers every page), **Open Graph + Twitter cards** on all pages (product pages get dynamic og:title/og:image/description), and **BreadcrumbList schema** on product pages → rich results in Google.

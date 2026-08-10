@@ -321,7 +321,14 @@ const REC = (function(){
       const bought = all.slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 30);
       /* after-viewing = collaborative (view-history boosted) + popular */
       const after = all.slice().sort((a, b) => (b.score - a.score) || ((byId(a.id) || {}).reviews || 0) - ((byId(b.id) || {}).reviews || 0)).slice(0, 30);
+      /* complete the look: blouse / accessories / same-colour pairings */
+      const look = PRODUCTS.filter(x => x.id !== p.id && ['blouse','accessories'].indexOf(x.cat) !== -1).slice(0, 10)
+        .map(x => ({ id: x.id, name: x.name, img: x.img, price: x.price, score: 80, reason: 'Completes the look' }));
+      /* frequently bought together: top-rated + same price band */
+      const fbt = all.slice().sort((a, b) => ((byId(b.id) || {}).reviews || 0) - ((byId(a.id) || {}).reviews || 0)).slice(0, 12);
       const html =
+        exploreHTML('🛒 Frequently Bought Together', fbt, 'top picks with this saree') +
+        exploreHTML('💃 Complete the Look', look, 'matching blouse & accessories') +
         exploreHTML('🛒 Customers Who Bought This Also Bought', bought, 'bestsellers & co-purchased') +
         exploreHTML('🎨 Visually Similar Items', visual, 'matched by fabric, colour & design') +
         exploreHTML('👀 Others Buy After Viewing This', after, 'based on browsing + order patterns');

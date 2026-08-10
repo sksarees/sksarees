@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8f1d3a">
+<title>Bulk Wedding Order — Sarees for Family &amp; Guests | SK Sarees Salem</title>
+<meta name="description" content="Order 5–50 sarees for weddings & family functions from Salem's trusted saree store. Bulk pricing, on-time delivery, WhatsApp ordering. Perfect for South Indian weddings.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SK Sarees">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="bulk">
+<main id="app">
+  <div class="wrap page">
+    <h1>💍 Bulk Wedding Order</h1>
+    <p class="small muted" style="margin-bottom:16px">South Indian weddings need 10–50 sarees for bridesmaids, mothers, aunties &amp; guests. We handle it all — <b>bulk pricing, on-time delivery, same-quality guarantee</b>.</p>
+
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>👨‍👩‍👧 Who orders bulk?</h2></div>
+      <div class="form-card">
+        <ul style="list-style:none;display:grid;gap:8px;font-size:.88rem">
+          <li>👰 <b>Bride's family</b> — bridesmaids &amp; close relatives matching sarees</li>
+          <li>👩‍👧 <b>Mother of the bride/groom</b> — function sarees for the whole family</li>
+          <li>🎉 <b>Event planners</b> — engagements, receptions, pujas</li>
+          <li>🏪 <b>Shops/resellers</b> — stock our collection at wholesale rates</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>📝 Bulk Order Request</h2></div>
+      <div class="form-card">
+        <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
+          <div class="field"><label>Your Name *</label><input id="bwName" placeholder="e.g. Lakshmi"></div>
+          <div class="field"><label>WhatsApp Number *</label><input id="bwPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>
+        </div>
+        <div class="field"><label>Event / Occasion</label>
+          <select id="bwOcc"><option>Wedding</option><option>Engagement</option><option>Reception</option><option>Puja / Festival</option><option>Shop / Resale</option></select></div>
+        <div class="field"><label>How many sarees? *</label>
+          <select id="bwCount"><option value="5-10">5–10</option><option value="11-20">11–20</option><option value="21-50">21–50</option><option value="50+">50+</option></select></div>
+        <div class="field"><label>Budget per saree (₹)</label>
+          <select id="bwBudget"><option>500–1000</option><option>1000–2000</option><option>2000–3500</option><option>3500+</option></select></div>
+        <div class="field"><label>Preferred colours / notes (optional)</label><textarea id="bwNotes" rows="2" placeholder="e.g. Red & gold, matching blouses, delivery date…"></textarea></div>
+        <button type="button" class="btn btn-maroon" id="bwGo">💬 Send Bulk Order on WhatsApp</button>
+        <p class="small muted" id="bwMsg" style="margin-top:8px"></p>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>✅ Why SK Sarees for bulk?</h2></div>
+      <div class="pd-block">
+        <p style="line-height:1.9;color:#4a3f38;font-size:.9rem">
+          🚚 <b>On-time delivery</b> — dispatch in 12–24h, 2–3 days in Tamil Nadu<br>
+          💵 <b>Flexible payment</b> — UPI or COD (₹70 booking, balance at delivery)<br>
+          🎟️ <b>Bulk discount</b> — special pricing for 10+ sarees (ask us!)<br>
+          📦 <b>Single invoice</b> — one order, one delivery, easy for gifting<br>
+          🤝 <b>Personal service</b> — we video-call to show colours before you order
+        </p>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="data.js"></script>
+<script src="rec.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+  try{
+    const go = document.getElementById('bwGo');
+    if (!go) return;
+    go.addEventListener('click', () => {
+      const name = document.getElementById('bwName').value.trim();
+      const phone = document.getElementById('bwPhone').value.trim();
+      if (!name || !validPhone(phone)){ toast('⚠️ Enter your name & valid 10-digit number'); return; }
+      const occ = document.getElementById('bwOcc').value;
+      const cnt = document.getElementById('bwCount').value;
+      const bud = document.getElementById('bwBudget').value;
+      const notes = document.getElementById('bwNotes').value.trim();
+      const msg = '💍 Bulk Wedding Order — SK Sarees\\n\\n👤 ' + name + '\\n📱 ' + phone +
+        '\\n🎉 Occasion: ' + occ + '\\n👗 Sarees: ' + cnt + '\\n💰 Budget: ₹' + bud + ' per saree' +
+        (notes ? '\\n📝 Notes: ' + notes : '') + '\\n\\nPlease share bulk pricing & availability. Thank you!';
+      try{
+        Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || name, phone: phone });
+        Store.saveProfile();
+      }catch(e){}
+      try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
+      document.getElementById('bwMsg').innerHTML = '<b style="color:var(--green)">✅ WhatsApp opened! Send it and we will reply with bulk pricing within minutes.</b>';
+      toast('✅ WhatsApp opened!');
+    });
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
