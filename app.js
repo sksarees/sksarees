@@ -28,10 +28,58 @@ async function init(){
     else if (page === 'checkout') renderCheckoutPage();
     else if (page === 'orders') renderOrdersPage();
     else if (page === 'profile') renderProfilePage();
+    else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
 }
 document.addEventListener('DOMContentLoaded', init);
+
+/* ============================ FEED PAGE (public) ============================
+   feed.html lists every machine-readable product feed (catalog.json for instant
+   load, products-feed.xml for Meta, google-merchant-feed.txt for Google Merchant
+   Center) with download links + last-updated time. Auto-refreshes from the
+   latest feeds the admin regenerates in Admin → Catalog Feed. */
+function renderFeedPage(){
+  const app = document.getElementById('app'); if (!app) return;
+  const base = (CONFIG.siteUrl || location.origin) + '/';
+  let updated = '—';
+  let feedCount = PRODUCTS.length;
+  try{
+    const u = localStorage.getItem('sk_feed_updated');
+    if (u) updated = new Date(u).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }catch(e){}
+  const files = [
+    { name: 'catalog.json', icon: '⚡', desc: 'Instant product load — powers every product page. Upload to your site root.', url: 'catalog.json', meta: 'JSON · ' + feedCount + ' products' },
+    { name: 'products-feed.xml', icon: '📦', desc: 'Facebook / Instagram Shopping catalogue (Meta Commerce Manager → Data source → Product feed).', url: 'products-feed.xml', meta: 'XML · RSS 2.0 + Google namespace' },
+    { name: 'google-merchant-feed.txt', icon: '🛒', desc: 'Google Merchant Center product feed — submit this URL in GMC → Products → Feeds.', url: 'google-merchant-feed.txt', meta: 'TXT · TSV, exact Google columns' },
+  ];
+  app.innerHTML =
+    '<div class="wrap page">' +
+      '<h1>📦 SK Sarees — Product Feeds</h1>' +
+      '<p class="muted small" style="max-width:60ch">Machine-readable catalog files so <b>Google Shopping, Meta (Facebook/Instagram)</b> and this website always show your latest sarees. Regenerate in <a href="admin.html#feed" style="color:var(--maroon);font-weight:800">Admin → Catalog Feed</a> and upload to your hosting root.</p>' +
+      '<div class="pd-block" style="margin-top:14px"><h3>🕒 Last updated: <span style="color:var(--maroon)">' + esc(updated) + '</span></h3>' +
+        '<p class="small muted">Products in feed: <b>' + feedCount + '</b> • Site: <a href="' + esc(base) + '" style="color:var(--maroon)">' + esc(base) + '</a></p></div>' +
+      '<div style="display:grid;gap:12px;margin-top:14px">' + files.map(f =>
+        '<div class="cart-item" style="align-items:center;padding:14px">' +
+          '<div style="font-size:1.6rem">' + f.icon + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<b>' + esc(f.name) + '</b><br>' +
+            '<small class="muted">' + esc(f.desc) + '</small><br>' +
+            '<small style="color:var(--green);font-weight:700">' + esc(f.meta) + '</small>' +
+          '</div>' +
+          '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:120px" href="' + esc(f.url) + '" download>' + (f.url === 'catalog.json' ? '⚡ Download' : '⬇️ Download') + '</a>' +
+        '</div>').join('') + '</div>' +
+      '<div class="pd-block" style="margin-top:16px"><h3>📋 How to connect</h3>' +
+        '<ol class="small" style="line-height:1.9;padding-left:20px">' +
+          '<li>Open <b>Admin → Catalog Feed</b>, save a product or tap "💾 Save feeds to this browser" — the 3 files regenerate automatically.</li>' +
+          '<li>Download &amp; upload them to your hosting root (same folder as index.html).</li>' +
+          '<li><b>Google Merchant Center:</b> Products → Feeds → add primary feed → choose <i>Google Sheets or scheduled fetch</i> → paste <b>' + esc(base + 'google-merchant-feed.txt') + '</b> → set refresh to daily (auto-update).</li>' +
+          '<li><b>Meta:</b> Commerce Manager → Data sources → Product feed → paste <b>' + esc(base + 'products-feed.xml') + '</b>.</li>' +
+          '<li>Submit <a href="sitemap.xml" style="color:var(--maroon)">sitemap.xml</a> in Google Search Console for fast page discovery.</li>' +
+        '</ol></div>' +
+      '<div style="text-align:center;margin-top:18px"><a class="btn btn-gold" href="shop.html">🛍️ Back to Shop</a></div>' +
+    '</div>';
+}
 
 /* ============================ SHARED UI ============================ */
 function starsHTML(p){
@@ -246,14 +294,20 @@ function renderHome(){
 }
 
 /* ============================ SHOP ============================ */
-let shopState = { cat: '', q: '', fabric: '', max: 3000, sort: 'newest', shown: 12, list: [] };
+let shopState = { cat: '', q: '', fabric: '', colour: '', max: 3000, sort: 'newest', shown: 12, list: [] };
 function renderShop(){
   const app = document.getElementById('app'); if (!app) return;
-  const params = new URLSearchParams(location.search);
+  const params = safeParams();
   const cq = params.get('cat');
   if (cq && CATEGORIES.some(c => c.slug === cq)) shopState.cat = cq;  /* ignore unknown/festival slugs */
   const sq = params.get('q');
   if (sq) shopState.q = sq;                     /* search by name/SKU/colour from index */
+  /* 🎨 unique colours across the live catalog (drives the Colour filter) */
+  const allColours = [];
+  try{
+    PRODUCTS.forEach(p => (p.colors || []).forEach(c => { c = String(c).trim(); if (c && allColours.indexOf(c) === -1) allColours.push(c); }));
+  }catch(e){}
+  const colOpts = allColours.map(c => '<option value="' + esc(c) + '"' + (shopState.colour === c ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
   app.innerHTML =
     '<div class="wrap page">' +
       '<h1>🛍️ Shop All Sarees</h1>' +
@@ -261,9 +315,11 @@ function renderShop(){
         '<input id="shopSearch" type="search" placeholder="🔍 Search sarees, fabric, colour…" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
       '</div>' +
       '<div class="cat-chips" id="catChips" style="margin-top:12px"></div>' +
-      '<div class="pd-block" style="margin-top:12px"><div style="display:grid;gap:10px;grid-template-columns:1fr">' +
+      '<div class="pd-block" style="margin-top:12px"><div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Fabric</label>' +
         '<select id="fFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All fabrics</option><option>Silk</option><option>Cotton</option><option>Georgette</option><option>Linen</option><option>Organza</option><option>Net</option></select></div>' +
+        '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">🎨 Colour</label>' +
+        '<select id="cFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All colours</option>' + colOpts + '</select></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Max Price — <span id="priceLbl">₹3,000</span></label>' +
         '<input type="range" id="pFilter" min="299" max="3000" step="100" value="3000" style="width:100%;accent-color:var(--maroon)"></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Sort</label>' +
@@ -293,6 +349,7 @@ function bindShop(){
     el('shopSearch').addEventListener('input', e => { shopState.q = e.target.value; shopState.shown = 12; updateShopList(); });
   }
   if (el('fFilter')) el('fFilter').addEventListener('change', e => { shopState.fabric = e.target.value; shopState.shown = 12; updateShopList(); });
+  if (el('cFilter')) el('cFilter').addEventListener('change', e => { shopState.colour = e.target.value; shopState.shown = 12; updateShopList(); });
   if (el('pFilter')) el('pFilter').addEventListener('input', e => { shopState.max = +e.target.value; if (el('priceLbl')) el('priceLbl').textContent = money(shopState.max); shopState.shown = 12; updateShopList(); });
   if (el('sFilter')) el('sFilter').addEventListener('change', e => { shopState.sort = e.target.value; shopState.shown = 12; updateShopList(); });
   if (el('catChips')) el('catChips').addEventListener('click', e => {
@@ -316,6 +373,7 @@ function shopList(){
     (!shopState.cat || p.cat === shopState.cat) &&
     (!shopState.q || (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + (p.sku || '')).toLowerCase().includes(shopState.q.toLowerCase())) &&
     (!shopState.fabric || p.fabric.toLowerCase().includes(shopState.fabric.toLowerCase())) &&
+    (!shopState.colour || (p.colors || []).indexOf(shopState.colour) !== -1 || String(p.color || '').toLowerCase().includes(shopState.colour.toLowerCase())) &&
     p.price <= shopState.max);
   switch (shopState.sort){
     case 'price-asc': l = l.slice().sort((a, b) => a.price - b.price); break;
@@ -462,7 +520,9 @@ function recentViewHTML(){
 /* ============================ PRODUCT ============================ */
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
-  const id = new URLSearchParams(location.search).get('id');
+  /* 🔐 defensive id: safeParams already fixes broken links like
+     product.html?id=SK75250?ref=SHA9088 → id=SK75250 & ref=SHA9088 */
+  const id = String(safeParams().get('id') || '').split('?')[0].trim();
   let p = byId(id);
   if (!p){
     /* Instant path: if a cached copy exists in the raw cloud cache, use it NOW
@@ -498,17 +558,28 @@ function renderProduct(){
     };
     /* quick spinner while we fetch (usually <1s) */
     app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b></div></div>';
-    /* ⚡ instant path 2: static catalog.json (local file — near-instant) */
-    preloadCatalog().then(() => {
+    /* ⚡ INSTANT path: static catalog.json FIRST (local file — near-instant).
+       preloadCatalog(id) merges the uploaded catalog into PRODUCTS even when
+       other caches already exist, then tells us if THIS id is now found.
+       Only if the catalog still doesn't have it do we go to Firestore / give
+       up — so an uploaded catalog.json always fixes "Loading product…". */
+    const gate = Promise.race([
+      preloadCatalog(id),
+      new Promise(res => setTimeout(() => res(false), 4000)),
+    ]);
+    gate.then(() => {
       if (done) return;
       const now = byId(id);
-      if (now){ finish(now); }
-    });
-    if (FS.enabled()){
-      /* 1) pull all active Firestore products first (also re-renders when done) */
+      if (now){ finish(now); return; }
+      if (!FS.enabled()){
+        finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
+        return;
+      }
+      /* Firestore: 1) pull all active products (re-renders when done)
+                     2) one-time get by id/sku */
       try{ Sync.pullProducts(); }catch(e){}
-      /* 2) one-time get by id/sku */
       FS.getProduct(id).then(doc => {
+        if (done) return;
         if (doc){
           try{ finish(normalizeProduct(doc)); }
           catch(err){ finish(null); }
@@ -521,14 +592,13 @@ function renderProduct(){
           }
         }
       }).catch(() => {
+        if (done) return;
         if (window.__pdTry < 3){ setTimeout(() => { if (!done) renderProduct(); }, 600); }
         else finish(null, 'Cloud sync is not responding right now — please check your internet and try again.');
       });
       /* safety: never leave the spinner hanging */
       setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 6000);
-    } else {
-      finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
-    }
+    });
     return;
   }
   window.__pdTry = 0;
@@ -569,7 +639,7 @@ function renderProduct(){
         vidBlock +
         '<div class="pd-block" style="margin-top:12px"><h3>🔍 Fabric &amp; Details</h3><table>' +
           '<tr><td>Fabric</td><td>' + esc(p.fabric) + '</td></tr>' +
-          '<tr><td>Colour</td><td>' + esc(p.color) + '</td></tr>' +
+          '<tr><td>Colour</td><td>' + esc(p.color) + (p.colourStock ? '<br><small class="muted">' + (p.colors || []).map(c => esc(c) + ': ' + (p.colourStock[c] != null ? p.colourStock[c] : '—')).join(' • ') + '</small>' : '') + '</td></tr>' +
           '<tr><td>Border</td><td>' + esc(p.border) + '</td></tr>' +
           '<tr><td>Blouse</td><td>' + esc(p.blouse) + '</td></tr>' +
           '<tr><td>Length / Weight</td><td>' + esc(p.length) + ' • ' + esc(p.weight) + '</td></tr>' +
@@ -596,12 +666,20 @@ function renderProduct(){
         '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping</p>' +
         '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
         '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
+        (p.colors && p.colors.length
+          ? '<div class="pd-colour-row"><b>🎨 Colour</b><div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
+              const left = (p.colourStock && p.colourStock[c] != null) ? p.colourStock[c] : null;
+              const dead = left === 0;
+              return '<button type="button" class="pd-colour' + (i === 0 && !dead ? ' on' : '') + '" data-colour="' + esc(c) + '"' + (dead ? ' disabled' : '') + '>' + esc(c) + (left != null ? ' <small>(' + left + ' left)</small>' : '') + '</button>';
+            }).join('') + '</div></div>'
+          : '') +
+        '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
-          (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
+          (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-btns" style="margin-top:10px">' +
@@ -693,7 +771,7 @@ function renderProduct(){
     const sbBuy = document.getElementById('sbBuy');
     if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ Buy at ' + money(onlinePrice(p) * n); }
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); pdBuy.textContent = '⚡ Buy at ' + money(onlinePrice(p) * n); }
+    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '⚡ Buy at ' + money(onlinePrice(p) * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
@@ -777,14 +855,16 @@ function renderCartPage(){
   app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' +
     '<div>' + Store.cart.map(i => {
       const p = byId(i.id); if (!p) return '';
+      const lk = encodeURIComponent(p.id) + '::' + encodeURIComponent(i.colour || '');
       return '<div class="cart-item">' +
         '<a href="product.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" width="200" height="150"></a>' +
         '<div style="flex:1;min-width:0;padding-right:26px">' +
           '<h4><a href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(p.name) + '</a></h4>' +
+          (i.colour ? '<div class="ci-col">🎨 ' + esc(i.colour) + '</div>' : '') +
           '<div class="ci-price">' + money(p.price) + '</div>' +
-          '<div class="qty"><button type="button" data-cqm="' + p.id + '">−</button><span>' + i.qty + '</span><button type="button" data-cqp="' + p.id + '">+</button></div>' +
+          '<div class="qty"><button type="button" data-cqm="' + lk + '">−</button><span>' + i.qty + '</span><button type="button" data-cqp="' + lk + '">+</button></div>' +
         '</div>' +
-        '<button type="button" class="rm" data-rm="' + p.id + '" aria-label="Remove">✕</button></div>';
+        '<button type="button" class="rm" data-rm="' + lk + '" aria-label="Remove">✕</button></div>';
     }).join('') + '</div>' +
     (function(){
       /* 🛒 upsell: suggest 4 products from the same categories (exclude what's in cart) */
@@ -843,10 +923,12 @@ function renderCheckoutPage(){
     payment: co.data.payment || draft.payment || 'upi',
   });
   saveCoDraft();
-  const qs = new URLSearchParams(location.search);
+  const qs = safeParams();
   const buy = qs.get('buy');
   const buyQty = Math.max(1, Math.min(10, +qs.get('qty') || 1));
-  if (buy && !Store.cart.some(i => i.id === buy)) addToCart(buy, buyQty);
+  const buyCol = qs.get('colour') || '';
+  /* Buy Now → add the exact colour chosen on the product page (merge-safe) */
+  if (buy && !Store.cart.some(i => i.id === buy && (i.colour || '') === buyCol)) addToCart(buy, buyQty, buyCol);
   if (!Store.cart.length){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1><div class="empty"><div class="e-ic">🛒</div><b>Your cart is empty</b>' +
       '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
@@ -875,7 +957,7 @@ function drawCo(){
     '<div class="step-dot ' + (co.step > 1 ? 'done' : 'on') + '"><span class="dot">' + (co.step > 1 ? '✓' : '1') + '</span><span class="lbl">Details</span></div>' +
     '<div class="step-line ' + (co.step > 1 ? 'on' : '') + '"></div>' +
     '<div class="step-dot ' + (co.step === 2 ? 'on' : '') + '"><span class="dot">2</span><span class="lbl">Payment</span></div></div>';
-  const itemLines = Store.cart.map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
+  const itemLines = Store.cart.map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
   if (co.step === 1){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card"><h3>📋 Your Details <span class="muted small" style="font-weight:500">(no login needed)</span></h3>' +
@@ -970,7 +1052,7 @@ function coValid(){
 /* cart item → safe product ref (never crashes if product was deleted) */
 function safeItem(i){
   const p = byId(i.id) || {};
-  return { id: i.id, name: p.name || i.name || 'Saree', price: +(p.price != null ? p.price : i.price) || 0, qty: i.qty || 1 };
+  return { id: i.id, name: p.name || i.name || 'Saree', price: +(p.price != null ? p.price : i.price) || 0, qty: i.qty || 1, colour: i.colour || '' };
 }
 /* remember the typed checkout details so they return on the next visit */
 function saveCoDraft(){
@@ -1065,7 +1147,7 @@ function doWaOrder(){
 function renderOrderComplete(o, viaWa){
   const app = document.getElementById('app'); if (!app) return;
   const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, discount:0, grand:0, eta:'' };
-  const items = (o.items || []).map(i => '<div style="display:flex;justify-content:space-between;font-size:.84rem;padding:6px 0;border-bottom:1px dashed var(--line)"><span>' + esc(i.name) + ' ×' + i.qty + '</span><b>' + money(i.price * i.qty) + '</b></div>').join('');
+  const items = (o.items || []).map(i => '<div style="display:flex;justify-content:space-between;font-size:.84rem;padding:6px 0;border-bottom:1px dashed var(--line)"><span>' + esc(i.name) + (i.colour ? ' <small class="muted">(' + esc(i.colour) + ')</small>' : '') + ' ×' + i.qty + '</span><b>' + money(i.price * i.qty) + '</b></div>').join('');
   const mine = myOrders();
   const cards = mine.length
     ? mine.map(od => '<div class="order-card"><div class="oc-top"><b>#' + od.id + '</b><span class="status-pill status-' + od.status + '">' + esc((od.status || 'placed').replace('_', ' ')) + '</span></div>' +
@@ -1136,7 +1218,7 @@ const ORDERS_PAGE_SIZE = 10;
 let openDetailId = null;         /* which order detail is open (fast toggle) */
 function renderOrdersPage(){
   const app = document.getElementById('app'); if (!app) return;
-  const q = new URLSearchParams(location.search);
+  const q = safeParams();
   /* seed from URL payloads */
   const ordersParam = q.get('orders');
   if (ordersParam){
@@ -1277,6 +1359,7 @@ function showDetail(o){
     return '<div style="display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:11px;padding:10px;margin-bottom:8px">' +
       '<a href="product.html?id=' + encodeURIComponent(i.id) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto"></a>' +
       '<div style="flex:1;min-width:0"><a href="product.html?id=' + encodeURIComponent(i.id) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
+      (i.colour ? '<small class="muted">🎨 ' + esc(i.colour) + '</small><br>' : '') +
       '<small class="muted">' + money(i.price) + ' × ' + i.qty + '</small></div><b>' + money(i.price * i.qty) + '</b></div>';
   }).join('');
   wrap.innerHTML = '<div class="form-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
@@ -1529,16 +1612,44 @@ document.addEventListener('click', function(e){
     /* use the selected quantity on the product page (fixes "shows 1 qty only") */
     const qv = document.getElementById('qtyVal');
     const qty = qv ? Math.max(1, Math.min(10, +qv.textContent || 1)) : 1;
-    addToCart(add.dataset.add, qty);
+    let colour = '';
+    const sel = document.getElementById('pdSelColour');
+    if (sel && sel.value) colour = sel.value;
+    addToCart(add.dataset.add, qty, colour);
+    /* 🛒 upsell "add more" on the cart page: refresh totals instantly so the
+       amount shown always matches checkout */
+    if (document.body.dataset.page === 'cart'){ try{ renderCartPage(); }catch(err){} }
     return;
   }
-  /* cart qty */
+  /* 🎨 colour chip on product page */
+  const pchip = e.target.closest('[data-colour]');
+  if (pchip){
+    e.preventDefault();
+    if (pchip.disabled) return;
+    document.querySelectorAll('#pdColours .pd-colour').forEach(b => { b.classList.toggle('on', b === pchip); });
+    const hid = document.getElementById('pdSelColour');
+    if (hid) hid.value = pchip.dataset.colour;
+    return;
+  }
+  /* ⚡ Buy Now — carry the selected colour into checkout */
+  const pb = e.target.closest('#pdBuyBtn');
+  if (pb){
+    e.preventDefault();
+    const c = document.getElementById('pdSelColour');
+    const q = document.getElementById('qtyVal');
+    const qty = q ? Math.max(1, Math.min(10, +q.textContent || 1)) : 1;
+    pb.href = 'checkout.html?buy=' + encodeURIComponent(pb.dataset.buy || '') + '&qty=' + qty + (c && c.value ? '&colour=' + encodeURIComponent(c.value) : '');
+    location.href = pb.href;
+    return;
+  }
+  /* cart qty (line key = id::colour so colour variants change independently) */
+  const parseLK = s => { try{ const p2 = String(s).split('::'); return { id: decodeURIComponent(p2[0]), colour: p2[1] ? decodeURIComponent(p2[1]) : '' }; }catch(e){ return { id: s, colour: '' }; } };
   const cqm = e.target.closest('[data-cqm]');
-  if (cqm){ const it = Store.cart.find(i => i.id === cqm.dataset.cqm); if (it){ setCartQty(it.id, it.qty - 1); renderCartPage(); } return; }
+  if (cqm){ const lk = parseLK(cqm.dataset.cqm); const it = Store.cart.find(i => i.id === lk.id && (i.colour || '') === lk.colour); if (it){ setCartQty(it.id, it.qty - 1, it.colour); renderCartPage(); } return; }
   const cqp = e.target.closest('[data-cqp]');
-  if (cqp){ const it = Store.cart.find(i => i.id === cqp.dataset.cqp); if (it){ setCartQty(it.id, it.qty + 1); renderCartPage(); } return; }
+  if (cqp){ const lk = parseLK(cqp.dataset.cqp); const it = Store.cart.find(i => i.id === lk.id && (i.colour || '') === lk.colour); if (it){ setCartQty(it.id, it.qty + 1, it.colour); renderCartPage(); } return; }
   const rm = e.target.closest('[data-rm]');
-  if (rm){ e.preventDefault(); removeFromCart(rm.dataset.rm); renderCartPage(); return; }
+  if (rm){ e.preventDefault(); const lk = parseLK(rm.dataset.rm); removeFromCart(lk.id, lk.colour); renderCartPage(); return; }
   /* ⭐ use points (cart) */
   if (e.target.id === 'usePts'){
     co.data.usePoints = e.target.checked;
@@ -1574,10 +1685,10 @@ document.addEventListener('click', function(e){
   if (copy){ e.preventDefault(); copyText(copy.dataset.copy); return; }
   /* 🎨 try-on preview */
   const tr = e.target.closest('#tryOpen');
-  if (tr){ e.preventDefault(); openTryOn(byId(new URLSearchParams(location.search).get('id'))); return; }
+  if (tr){ e.preventDefault(); openTryOn(byId(safeParams().get('id'))); return; }
   /* ⚡ fast order */
   const fo = e.target.closest('#foOpen');
-  if (fo){ e.preventDefault(); fastOrderModal(byId(new URLSearchParams(location.search).get('id'))); return; }
+  if (fo){ e.preventDefault(); fastOrderModal(byId(safeParams().get('id'))); return; }
   /* 🔁 order again */
   const ro = e.target.closest('[data-reorder]');
   if (ro){ e.preventDefault(); const o = myOrders().find(x => x.id === ro.dataset.reorder) || Store.orders.find(x => x.id === ro.dataset.reorder); if (o) orderAgain(o); return; }

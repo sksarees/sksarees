@@ -1360,6 +1360,13 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .delivery-card{border:1.5px dashed var(--gold);background:var(--gold-soft);border-radius:12px;padding:12px;font-size:.8rem;color:#6b4c05}
 .delivery-card b{display:block;font-size:.9rem;margin-bottom:2px}
 .qty-row{display:flex;align-items:center;gap:12px;margin:14px 0}
+.pd-colour-row{margin:12px 0 2px}
+.pd-colour-row>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+.pd-colour{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:8px 14px;font-size:.8rem;font-weight:800;color:#4a3f38;transition:all .15s}
+.pd-colour small{font-weight:700;color:var(--green)}
+.pd-colour.on{border-color:var(--maroon);background:var(--maroon);color:#fff;box-shadow:0 3px 10px rgba(143,29,58,.25)}
+.pd-colour.on small{color:#ffe9a8}
+.pd-colour:disabled{opacity:.45;text-decoration:line-through;cursor:not-allowed}
 .qty{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
 .qty button{width:42px;height:44px;font-size:1.25rem;font-weight:800;color:var(--maroon)}
 .qty button:active{background:var(--maroon-soft)}
@@ -1377,6 +1384,7 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .cart-item{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:11px;margin-bottom:10px;position:relative}
 .cart-item img{width:86px;height:65px;object-fit:cover;border-radius:9px;flex:0 0 auto}
 .cart-item h4{font-size:.88rem;font-weight:800;line-height:1.3}
+.cart-item .ci-col{font-size:.72rem;font-weight:800;color:var(--maroon);margin:2px 0}
 .cart-item .ci-price{color:var(--maroon);font-weight:800;font-size:.92rem;margin:3px 0}
 .cart-item .qty{height:36px}
 .cart-item .qty button{width:32px;height:36px;font-size:1.05rem}

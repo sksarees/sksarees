@@ -9,5 +9,9 @@
   <url><loc>https://www.sksaree.shop/pongal-collection.html</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.sksaree.shop/diwali-special.html</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.sksaree.shop/bulk-wedding.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sksaree.shop/feed.html</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.sksaree.shop/catalog.json</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.sksaree.shop/products-feed.xml</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.sksaree.shop/google-merchant-feed.txt</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <!-- Product URLs are added automatically when you regenerate the sitemap (Admin → SEO) -->
 </urlset>

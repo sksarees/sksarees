@@ -2,6 +2,22 @@
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
+## 🎨 Auto Colour Detection from Saree Photo (new)
+
+- In **Admin → Add/Edit Product**, paste the saree photo link and tap **"🎨 Auto-detect colour from photo"** — or just paste the URL and the colours are detected **automatically** (when the Colours field is empty).
+- The photo is read on the phone/browser (no server): dominant colours are found (white studio backgrounds are skipped) and matched to the shop's colour names — **Red, Maroon, Wine, Rose Pink, Purple, Royal Blue, Teal, Peacock, Emerald, Green, Gold, Mustard, Orange, Saffron, Brown, Beige, Cream, Black** and more.
+- Detected colours are saved into the product's **Colours** field → they **automatically appear in the shop's 🎨 Colour filter** and on the product page colour chips.
+- If the photo host blocks colour reading (CORS) you get a friendly "type them manually" message — the product still saves fine.
+
+## ⚡ Fast-Load Fixes · 🎨 Colour Auto-Deduct · 📦 Feed Page (latest)
+
+- **Broken referral links fixed** — links like `product.html?id=SK75250?ref=SHA9088` (two `?` marks) now load perfectly. A new `safeParams()` parser repairs malformed URLs on every page (product, shop, checkout, orders), so no page ever hangs or shows "Product not found" from a bad share link.
+- **catalog.json is now merged on EVERY visit** — even when other caches already exist. If you upload a fresh `catalog.json`, every product in it renders **instantly** (no "Loading product…"). The product page checks the static catalog FIRST, and only falls back to Firestore when the saree isn't in it. Accepts both `[...]` and `{ "products": [...] }` formats.
+- **Cart "add more" totals fixed** — adding upsell products on the cart page now re-renders the summary instantly, so the cart amount always matches checkout.
+- **🎨 Colour-wise stock (auto-deduct)** — products can have per-colour stock (`Red:3, Blue:2` in Admin → Add/Edit product). The product page shows colour chips with remaining count, the cart keeps each colour as its own line, and when an order is placed the **exact colour's stock is deducted automatically** (sold-out colours disappear). **Colour filter restored** in the shop (Fabric + Colour + Max Price + Sort).
+- **Google Merchant auto-update + public feed page** — the 3 feeds (`catalog.json`, `products-feed.xml`, `google-merchant-feed.txt`) **regenerate automatically** every time you save/delete/import a product in Admin → Catalog Feed ("💾 Save feeds to this browser"). New public page **`feed.html`** lists all feeds with download links, last-updated time and step-by-step Google/Meta setup — point Google Merchant Center at `google-merchant-feed.txt` with **daily scheduled fetch = automatic updates**.
+- **Faster page load** — `catalog.json` is preloaded (`<link rel="preload">`) on product & shop pages; the catalog is loaded into memory before the first render.
+
 ## 📦 Catalog & Auto-cleanup (latest)
 
 - **Demo products removed** — the data.js demo catalog is gone. Products now come **only from the admin (`sk_products`) and Firestore** (`sk_products_cloud` cache). The store shows exactly what you add/manage.
@@ -28,7 +44,7 @@ When the **admin changes an order status** (Confirmed / Shipped / Delivered / Pa
 - **Facebook-ad offer banner** removed — no AD coupon, no ad-visitor popup (even with `?utm_source=facebook` / `fbclid`).
 - **Welcome ₹50-off popup** removed — no name/number collection popup on first visit.
 - **Regional offer popup + location asking** removed — no geolocation / PIN-based popups.
-- **Shop filters simplified** — removed Colour, Occasion, Length, Blouse-piece and **📷 photo upload** search; kept **Fabric, Max Price, Sort** + category chips + text search.
+- **Shop filters** — removed Occasion, Length, Blouse-piece and **📷 photo upload** search; kept **Fabric, Colour (re-added on owner request), Max Price, Sort** + category chips + text search.
 - **Review photo upload** removed — reviews are text-only again.
 - (Kept: header "Hi, {name}" greeting, checkout auto-fill from saved profile, Chat on WhatsApp, Try-On preview, 1% online discount, 5% coupon cap.)
 

@@ -320,6 +320,123 @@ function updateStatus(id, status){
   renderFilters(); renderOrderList();
 }
 
+/* ============================ 🎨 AUTO COLOUR DETECTION ============================
+   Reads a saree photo and finds its dominant colours (client-side, no server).
+   The names match the shop's Colour filter, so detected colours automatically
+   appear in the filter + product page colour chips. Works with:
+     • same-origin images (your host, e.g. https://www.sksaree.shop/images/...)
+     • CORS-enabled image hosts (img.crossOrigin)
+     • data: URIs
+   If the photo host blocks canvas reading (CORS), it falls back gracefully. */
+const COLOR_PALETTE = [
+  ['Red', 198, 40, 40], ['Maroon', 128, 0, 32], ['Wine', 114, 47, 55],
+  ['Rose Pink', 233, 30, 99], ['Pink', 244, 143, 177], ['Magenta', 194, 24, 91],
+  ['Purple', 123, 31, 162], ['Lavender', 156, 122, 200],
+  ['Royal Blue', 25, 58, 148], ['Blue', 25, 118, 210], ['Sky Blue', 79, 195, 247], ['Navy', 26, 35, 126],
+  ['Teal', 0, 137, 123], ['Peacock', 0, 105, 92],
+  ['Emerald', 4, 99, 7], ['Green', 46, 125, 50], ['Sage', 140, 150, 120],
+  ['Gold', 212, 175, 55], ['Mustard', 201, 162, 39], ['Yellow', 249, 168, 37],
+  ['Orange', 239, 108, 0], ['Saffron', 245, 124, 0], ['Rust', 183, 65, 14], ['Coral', 255, 112, 67],
+  ['Peach', 255, 204, 188], ['Brown', 109, 76, 65], ['Beige', 201, 183, 156],
+  ['Cream', 245, 235, 220], ['Champagne', 247, 231, 206], ['Grey', 117, 117, 117],
+  ['Silver', 176, 190, 197], ['Black', 33, 33, 33], ['White', 245, 245, 245],
+];
+/* nearest named colour (redmean weighted RGB distance) */
+function nearestColourName(r, g, b){
+  let best = 'Multi', bestD = Infinity;
+  for (const c of COLOR_PALETTE){
+    const dr = r - c[1], dg = g - c[2], db = b - c[3];
+    const rm = (r + c[1]) / 2;
+    const d = (2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db;
+    if (d < bestD){ bestD = d; best = c[0]; }
+  }
+  return best;
+}
+/* detect dominant colours → array of names (up to 4) or null on failure */
+function detectColoursFromImage(src, cb){
+  try{
+    src = String(src || '').trim();
+    if (!src){ cb(null); return; }
+    const img = new Image();
+    const t = setTimeout(() => { try{ img.src = ''; }catch(e){} cb(null); }, 8000);
+    if (/^https?:/i.test(src)) img.crossOrigin = 'anonymous';   /* data:/blob: cannot use crossOrigin */
+    img.onload = function(){
+      try{
+        const W = 48, H = 48;
+        const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        const ctx = cv.getContext('2d', { willReadFrequently: true });
+        if (!ctx){ clearTimeout(t); cb(null); return; }
+        ctx.drawImage(img, 0, 0, W, H);
+        let data;
+        try{ data = ctx.getImageData(0, 0, W, H).data; }
+        catch(e){ clearTimeout(t); cb(null); return; }           /* CORS-blocked */
+        const buckets = {};
+        const total = W * H;
+        for (let i = 0; i < data.length; i += 4){
+          const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+          if (a < 128) continue;
+          const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+          const val = mx / 255;
+          const sat = mx === 0 ? 0 : (mx - mn) / mx;
+          if (val > 0.93 && sat < 0.12) continue;   /* white studio background */
+          if (val < 0.06 || sat < 0.10) continue;   /* near-black / grey */
+          if (mx === mn) continue;
+          const d = mx - mn;
+          let hue = (mx === r) ? ((g - b) / d) % 6 : (mx === g) ? (b - r) / d + 2 : (r - g) / d + 4;
+          hue = (hue * 60 + 360) % 360;
+          const key = Math.round(hue / 30);         /* 12 hue buckets */
+          const bk = buckets[key] || (buckets[key] = { count: 0, sr: 0, sg: 0, sb: 0, sv: 0 });
+          bk.count++; bk.sr += r; bk.sg += g; bk.sb += b; bk.sv += val;
+        }
+        const entries = Object.keys(buckets).map(k => {
+          const bk = buckets[k];
+          return { count: bk.count, score: bk.count * (bk.sv / bk.count), r: bk.sr / bk.count, g: bk.sg / bk.count, b: bk.sb / bk.count };
+        }).sort((x, y) => y.score - x.score);
+        const picked = [];
+        entries.slice(0, 8).forEach(e => {
+          if (e.count < total * 0.025) return;      /* ignore tiny specks */
+          const name = nearestColourName(e.r, e.g, e.b);
+          if (name && picked.indexOf(name) === -1) picked.push(name);
+        });
+        clearTimeout(t);
+        cb(picked.length ? picked.slice(0, 4) : null);
+      }catch(e){ clearTimeout(t); cb(null); }
+    };
+    img.onerror = function(){ clearTimeout(t); cb(null); };
+    img.src = src;
+  }catch(e){ cb(null); }
+}
+/* wires the 🎨 Auto-detect button + auto-run when an image URL is entered */
+function wireAutoColour(imgId, colorsId, btnId){
+  const btn = document.getElementById(btnId);
+  const imgEl = document.getElementById(imgId);
+  const colEl = document.getElementById(colorsId);
+  if (!imgEl || !colEl) return;
+  let timer = null;
+  const run = (silent) => {
+    const src = imgEl.value.trim();
+    if (!src){ toast('⚠️ Add the image URL first'); return; }
+    if (btn){ btn.disabled = true; btn.textContent = '⏳ Detecting colours…'; }
+    detectColoursFromImage(src, names => {
+      if (btn){ btn.disabled = false; btn.textContent = '🎨 Auto-detect colour from photo'; }
+      if (names && names.length){
+        colEl.value = names.join(', ');
+        if (!silent) toast('🎨 Detected: ' + names.join(', ') + ' — saved to Colours ✔');
+      } else if (!silent) {
+        toast('⚠️ Could not read colours from this photo — type them manually');
+      }
+    });
+  };
+  if (btn) btn.addEventListener('click', () => run(false));
+  imgEl.addEventListener('input', () => {          /* auto-run when URL pasted & Colours empty */
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (!colEl.value.trim() && /^https?:|^data:image\//i.test(imgEl.value.trim())) run(true);
+    }, 700);
+  });
+  imgEl.addEventListener('blur', () => { if (!colEl.value.trim()) run(true); });
+}
+
 /* ============================ PRODUCTS ============================ */
 function renderProducts(){
   document.getElementById('tabBody').innerHTML =
@@ -350,7 +467,7 @@ function renderProducts(){
     if (!sel.length){ toast('⚠️ Select products first'); return; }
     if (!confirm('Delete ' + sel.length + ' selected product(s)?')) return;
     PRODUCTS = PRODUCTS.filter(p => !sel.includes(p.id));
-    saveProducts(PRODUCTS); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
+    saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
   });
   /* select-all checkbox in the table header */
   const selAll = document.getElementById('prodSelAll');
@@ -407,9 +524,12 @@ function openAddProduct(){
       '<div class="field"><label>Category *</label><select id="apCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Badge</label><select id="apBadge"><option value="">—</option><option>Bestseller</option><option>New</option><option>Sale</option><option>Limited Stock</option></select></div></div>' +
     '<div class="field"><label>🖼️ Main Image URL *</label><input id="apImg" placeholder="https://…"></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px"><button type="button" class="btn btn-ghost btn-sm" id="apAutoCol" style="width:auto;min-width:0;min-height:30px;padding:4px 12px;font-size:.72rem">🎨 Auto-detect colour from photo</button><small class="muted">photo-ila irukkura colours automatic-a fill aagum</small></div>' +
     '<div class="field"><label>➕ Extra Image 1 (optional — gallery thumbnail)</label><input id="apImg2" placeholder="https://…"></div>' +
     '<div class="field"><label>➕ Extra Image 2 (optional — gallery thumbnail)</label><input id="apImg3" placeholder="https://…"></div>' +
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="apVideo" placeholder="https://youtube.com/watch?v=…"></div>' +
+    '<div class="field"><label>🎨 Colours (comma separated)</label><input id="apColors" placeholder="e.g. Red, Gold — or tap Auto-detect"></div>' +
+    '<div class="field"><label>Colour-wise stock (optional — auto-deduct on order)</label><input id="apColStock" placeholder="e.g. Red:3, Blue:2 — leave empty to use single stock"></div>' +
     '<div class="field"><label>Stock</label><input id="apStock" type="number" value="10"></div>' +
     '<button type="button" class="btn btn-maroon" id="apSave">💾 Add Product</button>');
   document.getElementById('apSave').addEventListener('click', () => {
@@ -423,10 +543,14 @@ function openAddProduct(){
       video: document.getElementById('apVideo').value,
       img2: document.getElementById('apImg2').value,
       img3: document.getElementById('apImg3').value,
+      colors: document.getElementById('apColors').value.split(',').map(s => s.trim()).filter(Boolean),
+      colourStock: document.getElementById('apColStock').value,
     });
     PRODUCTS.unshift(np); saveProducts(PRODUCTS);
+    refreshFeedCache();
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
   });
+  wireAutoColour('apImg', 'apColors', 'apAutoCol');
 }
 function importBulk(){
   const lines = document.getElementById('bulkText').value.trim().split(/\r?\n/).filter(l => l.trim());
@@ -437,7 +561,7 @@ function importBulk(){
     PRODUCTS.unshift(normalizeProduct({ name: parts[0], price: parts[1], mrp: parts[2], cat: parts[3], img: parts[4], badge: parts[5] }));
     added++;
   });
-  if (added){ saveProducts(PRODUCTS); prodPage = 1; renderProdBody(); }
+  if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
   document.getElementById('bulkResult').innerHTML = added ? '✅ Imported ' + added + (errors.length ? ' • ⚠️ ' + errors.join('; ') : '') : '⚠️ Nothing imported' + (errors.length ? ': ' + errors.join('; ') : '');
   if (added) toast('📥 ' + added + ' imported');
 }
@@ -455,9 +579,12 @@ function openEditProduct(id){
       '<div class="field"><label>Stock</label><input id="epStock" type="number" value="' + p.stock + '"></div></div>' +
     '<div class="field"><label>Badge</label><select id="epBadge"><option value=""' + (!p.badge ? ' selected' : '') + '>—</option><option' + (p.badge === 'Bestseller' ? ' selected' : '') + '>Bestseller</option><option' + (p.badge === 'New' ? ' selected' : '') + '>New</option><option' + (p.badge === 'Sale' ? ' selected' : '') + '>Sale</option><option' + (p.badge === 'Limited Stock' ? ' selected' : '') + '>Limited Stock</option></select></div>' +
     '<div class="field"><label>🖼️ Main Image URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px"><button type="button" class="btn btn-ghost btn-sm" id="epAutoCol" style="width:auto;min-width:0;min-height:30px;padding:4px 12px;font-size:.72rem">🎨 Auto-detect colour from photo</button><small class="muted">photo-ila irukkura colours automatic-a fill aagum</small></div>' +
     '<div class="field"><label>➕ Extra Image 1</label><input id="epImg2" value="' + esc((p.images || [])[1] || '') + '" placeholder="https://…"></div>' +
     '<div class="field"><label>➕ Extra Image 2</label><input id="epImg3" value="' + esc((p.images || [])[2] || '') + '" placeholder="https://…"></div>' +
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
+    '<div class="field"><label>🎨 Colours (comma separated)</label><input id="epColors" value="' + esc((p.colors || []).join(', ')) + '"></div>' +
+    '<div class="field"><label>Colour-wise stock (optional — auto-deduct on order)</label><input id="epColStock" value="' + esc(p.colourStock ? Object.keys(p.colourStock).map(k => k + ':' + p.colourStock[k]).join(', ') : '') + '" placeholder="e.g. Red:3, Blue:2"></div>' +
     '<button type="button" class="btn btn-maroon" id="epSave">💾 Save Changes</button>');
   document.getElementById('epSave').addEventListener('click', () => {
     const name = document.getElementById('epName').value.trim();
@@ -465,6 +592,21 @@ function openEditProduct(id){
     if (!name || !(price > 0)){ toast('⚠️ Name and Price required'); return; }
     const idx = PRODUCTS.findIndex(x => x.id === id);
     if (idx >= 0){
+      let csMap = null;
+      try{
+        const raw = String(document.getElementById('epColStock').value || '').trim();
+        if (raw){
+          const m = {};
+          raw.split(',').forEach(part => {
+            const kv = String(part).split(':');
+            if (kv.length === 2){
+              const k = kv[0].trim(), v = Math.round(+kv[1]);
+              if (k && Number.isFinite(v)) m[k] = Math.max(0, v);
+            }
+          });
+          if (Object.keys(m).length) csMap = m;
+        }
+      }catch(e){}
       PRODUCTS[idx] = Object.assign({}, PRODUCTS[idx], {
         name, price,
         mrp: Math.max(price, +document.getElementById('epMrp').value || price),
@@ -475,6 +617,8 @@ function openEditProduct(id){
         img2: document.getElementById('epImg2').value,
         img3: document.getElementById('epImg3').value,
         video: ytId(document.getElementById('epVideo').value),
+        colors: document.getElementById('epColors').value.split(',').map(s => s.trim()).filter(Boolean),
+        colourStock: csMap,
       });
       /* rebuild the gallery array from main + extra images */
       try{
@@ -485,9 +629,11 @@ function openEditProduct(id){
         PRODUCTS[idx].images = imgs;
       }catch(e){}
       saveProducts(PRODUCTS);
+      refreshFeedCache();
       closeModal(); renderProdBody(); toast('✅ Product updated');
     }
   });
+  wireAutoColour('epImg', 'epColors', 'epAutoCol');
 }
 
 /* ============================ COUPONS ============================ */
@@ -589,8 +735,9 @@ function maGenerate(){
   const id = document.getElementById('maProd').value;
   const p = byId(id); if (!p) return;
   const coupon = document.getElementById('maCoupon').value.trim().toUpperCase();
-  const page = location.origin + location.pathname.replace(/[^/]*$/, '');
-  const link = page + 'product.html?id=' + encodeURIComponent(p.id) + (coupon ? '?coupon=' + coupon : '');
+  const page = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
+  /* ✅ correct URL: product.html?id=X&coupon=Y — never a second ? */
+  const link = page + 'product.html?id=' + encodeURIComponent(p.id) + (coupon ? '&coupon=' + encodeURIComponent(coupon) : '');
   const off = offPct(p);
   const price = money(p.price);
   const mrp = p.mrp ? money(p.mrp) : '';
@@ -702,6 +849,30 @@ function feedTxt(){
   });
   return lines.join('\n');
 }
+/* catalog.json content (exact shape the store + Google/Meta can consume) */
+function feedJson(){
+  return JSON.stringify(PRODUCTS.map(p => ({
+    id: p.id, sku: p.sku, name: p.name, price: p.price, mrp: p.mrp, cat: p.cat,
+    img: p.img, images: p.images || [p.img], stock: p.stock,
+    fabric: p.fabric, color: p.color, colors: p.colors || [],
+    colourStock: p.colourStock || null,
+    border: p.border, blouse: p.blouse, length: p.length, weight: p.weight,
+    wash: p.wash, desc: p.desc, rating: p.rating, reviews: p.reviews, badge: p.badge, status: 'Active',
+  })));
+}
+/* 🔄 AUTO-UPDATE feeds: regenerate all 3 feed files into this browser whenever
+   a product is saved/deleted/imported, so Admin → Catalog Feed and feed.html
+   always show the latest catalog. Upload the files to your host to update
+   Google Merchant Center / Meta (their scheduled fetch = automatic). */
+function refreshFeedCache(){
+  try{
+    localStorage.setItem('sk_feed_xml', feedXml());
+    localStorage.setItem('sk_feed_txt', feedTxt());
+    localStorage.setItem('sk_feed_json', feedJson());
+    localStorage.setItem('sk_feed_updated', new Date().toISOString());
+    return true;
+  }catch(e){ return false; }
+}
 function renderFeed(){
   const body = document.getElementById('tabBody');
   const count = PRODUCTS.length;
@@ -713,11 +884,19 @@ function renderFeed(){
         '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:230px">⬇️ products-feed.xml</button>' +
         '<button type="button" class="btn btn-gold" id="feedTxtDownload" style="width:auto;min-width:240px">⬇️ Google Merchant (TXT)</button>' +
         '<button type="button" class="btn btn-buy" id="feedJsonDownload" style="width:auto;min-width:220px">⚡ catalog.json (instant load)</button>' +
-        '<button type="button" class="btn btn-outline" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
+        '<button type="button" class="btn btn-outline" id="feedSave" style="width:auto;min-width:230px">💾 Save feeds to this browser</button>' +
+        '<button type="button" class="btn btn-ghost" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
       '</div>' +
-      '<p class="small muted" id="feedNote" style="margin-top:8px">1. Download → 2. Upload to your host (same folder as index.html) → 3. Meta Commerce Manager → add feed URL <b>' + esc(location.origin + '/products-feed.xml') + '</b>.</p></div>' +
+      '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / import a product.</p>' +
+      '<p class="small muted" id="feedNote" style="margin-top:4px">1. Tap <b>💾 Save feeds to this browser</b> (or just save a product — it happens automatically). 2. Download the 3 files → upload to your host root (same folder as index.html). 3. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc((CONFIG.siteUrl || location.origin) + '/google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc((CONFIG.siteUrl || location.origin) + '/products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc((CONFIG.siteUrl || location.origin) + '/feed.html') + '</a></p></div>' +
     '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>';
+  const saveBtn = document.getElementById('feedSave');
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    const ok = refreshFeedCache();
+    toast(ok ? '💾 Feeds saved to this browser (' + count + ' products)' : '⚠️ Could not save feeds');
+  });
   document.getElementById('feedDownload').addEventListener('click', () => {
+    refreshFeedCache();
     const blob = new Blob([feedXml()], { type: 'application/xml' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -729,8 +908,8 @@ function renderFeed(){
   document.getElementById('feedCopy').addEventListener('click', () => { copyText(feedXml()); });
   const jsonBtn = document.getElementById('feedJsonDownload');
   if (jsonBtn) jsonBtn.addEventListener('click', () => {
-    const clean = PRODUCTS.map(p => ({ id: p.id, sku: p.sku, name: p.name, price: p.price, mrp: p.mrp, cat: p.cat, img: p.img, images: p.images || [p.img], stock: p.stock, fabric: p.fabric, color: p.color, border: p.border, blouse: p.blouse, length: p.length, weight: p.weight, wash: p.wash, desc: p.desc, rating: p.rating, reviews: p.reviews, badge: p.badge, status: 'Active' }));
-    const blob = new Blob([JSON.stringify(clean)], { type: 'application/json' });
+    refreshFeedCache();
+    const blob = new Blob([feedJson()], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'catalog.json';
@@ -740,6 +919,7 @@ function renderFeed(){
   });
   const txtBtn = document.getElementById('feedTxtDownload');
   if (txtBtn) txtBtn.addEventListener('click', () => {
+    refreshFeedCache();
     const blob = new Blob([feedTxt()], { type: 'text/tab-separated-values' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -959,6 +1139,7 @@ document.addEventListener('click', e => {
     const id = delp.dataset.delprod;
     PRODUCTS = PRODUCTS.filter(p => p.id !== id);
     saveProducts(PRODUCTS);
+    refreshFeedCache();
     /* remove it from the Firestore cache too, so it never comes back */
     try{
       const cached = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');

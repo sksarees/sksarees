@@ -342,8 +342,29 @@ function normalizeProduct(raw){
   let badge = ['Bestseller','New','Sale','Limited Stock'].includes(raw.badge) ? raw.badge : '';
   if (!badge){ if (raw.featured || raw.ft) badge = 'Bestseller'; else if ((+raw.disc || 0) >= 40) badge = 'Sale'; }
   const colors = Array.isArray(raw.colors) && raw.colors.length
-    ? raw.colors
+    ? raw.colors.map(c => String(c).trim()).filter(Boolean)
     : String(raw.col || raw.color || 'Multi').split('/').map(x => x.trim()).filter(Boolean);
+  /* 🎨 colour-wise stock — e.g. {Red:3, Blue:2} (object) or "Red:3, Blue:2" (string).
+     When present, each colour is sold & deducted separately (auto colour deduct). */
+  let colourStock = null;
+  try{
+    const cs = raw.colourStock || raw.colorStock || raw.colStock;
+    if (cs && typeof cs === 'object' && !Array.isArray(cs)){
+      const m = {};
+      Object.keys(cs).forEach(k => { const v = Math.round(+cs[k]); if (k.trim() && Number.isFinite(v)) m[String(k).trim()] = Math.max(0, v); });
+      if (Object.keys(m).length) colourStock = m;
+    } else if (cs && typeof cs === 'string'){
+      const m = {};
+      cs.split(',').forEach(part => {
+        const kv = String(part).split(':');
+        if (kv.length === 2){
+          const k = kv[0].trim(), v = Math.round(+kv[1]);
+          if (k && Number.isFinite(v)) m[k] = Math.max(0, v);
+        }
+      });
+      if (Object.keys(m).length) colourStock = m;
+    }
+  }catch(e){ colourStock = null; }
   /* PRODUCT ID == SKU (same value). If only one is given, the other copies it;
      if neither, a fresh auto-increment SK+5 number is used for BOTH. */
   const pid = String(raw.id || raw.sku || genProductId(raw.name || '')).trim();
@@ -366,6 +387,7 @@ function normalizeProduct(raw){
     wash: String(raw.wash || raw.care || 'Normal wash').trim(),
     stock: (function(){ const s = +raw.stock; return Number.isFinite(s) ? Math.max(0, Math.round(s)) : 10; })(),
     colors: colors.length ? colors : ['Multi'],
+    colourStock,
     desc: String(raw.desc || 'Beautiful handpicked saree from our collection.').trim(),
     video: ytId(raw.video || raw.videoUrl || ''),
   };
@@ -373,36 +395,54 @@ function normalizeProduct(raw){
 
 /* ============================ 4b. INSTANT CATALOG LOAD ============================
    Static catalog.json ships with the site (regenerate from Admin → Catalog Feed).
-   First visit: catalog.json loads INSTANTLY (local file, no network wait) so
-   Firestore product pages render immediately. Firestore pull still refreshes
-   the cache in the background for freshness. */
-async function preloadCatalog(){
+   catalog.json is merged into PRODUCTS on EVERY visit (before first render) so
+   Firestore product pages render immediately — no "Loading product…". Firestore
+   pull still refreshes the cache in the background for freshness.
+   wantId (optional): when given, returns true only once that product is found,
+   so the product page can render instantly from the static catalog. */
+async function preloadCatalog(wantId){
+  const have = id => { try{ return !id || PRODUCTS.some(p => String(p.id) === String(id)); }catch(e){ return false; } };
+  try{ if (have(wantId)) return true; }catch(e){}
+  /* 1) raw cloud cache (device copy of Firestore products) — silent merge */
   try{
-    if (PRODUCTS.length) return true;
-    /* 1) raw cloud cache */
-    try{
-      const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
-      if (Array.isArray(raw) && raw.length){
-        raw.filter(p => p && !isSampleId(p.id)).forEach(cp => { const np = normalizeProduct(cp); if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np); });
-        if (PRODUCTS.length) return true;
-      }
-    }catch(e){}
-    /* 2) static catalog.json (instant — local file) */
-    try{
-      const r = await fetch('catalog.json', { cache: 'no-cache' });
-      if (r.ok){
-        const list = await r.json();
+    const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
+    if (Array.isArray(raw) && raw.length){
+      raw.filter(p => p && p.id && !isSampleId(p.id)).forEach(cp => {
+        try{
+          const np = normalizeProduct(cp);
+          if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
+        }catch(e){}
+      });
+    }
+  }catch(e){}
+  try{ if (have(wantId)) return true; }catch(e){}
+  /* 2) static catalog.json — merged ALWAYS (not only when PRODUCTS is empty),
+     so an uploaded catalog fixes missing products even if other caches exist.
+     Accepts both a bare array and { products: [...] }. */
+  if (!window.__catalogLoaded){
+    const tryLoad = async url => {
+      try{
+        const r = await fetch(url, { cache: 'no-cache' });
+        if (!r.ok) return false;
+        const data = await r.json();
+        const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          list.filter(p => p && !isSampleId(p.id)).forEach(cp => { const np = normalizeProduct(cp); if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np); });
-          if (PRODUCTS.length){
-            try{ LS.set('sk_products_cloud', PRODUCTS); }catch(e){}
-            return true;
-          }
+          list.filter(p => p && p.id && !isSampleId(p.id)).forEach(cp => {
+            try{
+              const np = normalizeProduct(cp);
+              if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
+            }catch(e){}
+          });
+          return true;
         }
-      }
-    }catch(e){}
-    return false;
-  }catch(e){ return false; }
+      }catch(e){}
+      return false;
+    };
+    try{ await tryLoad('catalog.json'); }catch(e){}
+    window.__catalogLoaded = true;
+    if (PRODUCTS.length){ try{ LS.set('sk_products_cloud', PRODUCTS); }catch(e){} }
+  }
+  try{ return have(wantId); }catch(e){ return false; }
 }
 
 /* ============================ 5. UTILITIES ============================ */
@@ -655,33 +695,74 @@ function syncCartReservation(){
     }).catch(() => {});
   }catch(e){}
 }
-/* stock still available to THIS customer right now */
-function liveStock(p){
+/* stock still available to THIS customer right now (optionally per colour) */
+function colourStockOf(p, colour){
   if (!p) return 0;
-  return Math.max(0, (+p.stock || 0) - remoteReservedSync(p.id) - myCartQty(p.id));
+  if (p.colourStock && colour && p.colourStock[colour] != null) return Math.max(0, +p.colourStock[colour] || 0);
+  return Math.max(0, +p.stock || 0);
 }
-/* permanently consume stock after an order (1 psc model) */
+/* how many of THIS colour the visitor already holds in their cart (legacy items
+   without a colour are counted under the product's default colour) */
+function myColourQty(id, colour){
+  const p = byId(id);
+  const defCol = p && p.colors && p.colors[0] ? p.colors[0] : '';
+  let n = 0;
+  try{
+    Store.cart.forEach(i => {
+      if (i.id !== id) return;
+      if ((i.colour || defCol) === colour) n += (i.qty || 1);
+    });
+  }catch(e){}
+  return n;
+}
+function liveStock(p, colour){
+  if (!p) return 0;
+  const base = colour ? colourStockOf(p, colour) : Math.max(0, +p.stock || 0);
+  const mine = colour ? myColourQty(p.id, colour) : myCartQty(p.id);
+  return Math.max(0, base - remoteReservedSync(p.id) - mine);
+}
+/* permanently consume stock after an order (1 psc model) — also deducts the
+   exact colour bought (auto colour deduct) and removes sold-out colours */
 function consumeStock(items){
   (items || []).forEach(i => {
     const p = byId(i.id);
-    if (p) p.stock = Math.max(0, (+p.stock || 0) - (i.qty || 1));
+    if (!p) return;
+    p.stock = Math.max(0, (+p.stock || 0) - (i.qty || 1));
+    if (p.colourStock && i.colour && p.colourStock[i.colour] != null){
+      p.colourStock[i.colour] = Math.max(0, (+p.colourStock[i.colour] || 0) - (i.qty || 1));
+      if (p.colourStock[i.colour] <= 0){
+        delete p.colourStock[i.colour];
+        p.colors = (p.colors || []).filter(c => c !== i.colour);
+      }
+      if (p.colourStock && !Object.keys(p.colourStock).length) p.colourStock = null;
+    }
   });
   try{ LS.set('sk_products', PRODUCTS); }catch(e){}
   try{ if (window.REC) REC.invalidate(); }catch(e){}
   if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }
 }
-function addToCart(id, qty = 1){
+function addToCart(id, qty = 1, colour){
   const p = byId(id); if (!p) return;
   if (p.stock != null && p.stock <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
-  const ex = Store.cart.find(i => i.id === id);
+  /* colour separation only when colour-wise stock is set (else single-line cart) */
+  const useColours = !!(p.colourStock && Object.keys(p.colourStock).length);
+  const defCol = (p.colors && p.colors[0]) || '';
+  const c = useColours ? (colour || defCol) : '';
+  const ex = useColours ? Store.cart.find(i => i.id === id && (i.colour || defCol) === c) : Store.cart.find(i => i.id === id);
   const have = ex ? (ex.qty || 1) : 0;
-  const avail = liveStock(p);                       /* stock − remote − my cart */
+  const avail = liveStock(p, c);                        /* stock − remote − my cart */
   if (avail <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
-  if (qty > avail) qty = avail;                     /* can't take more than available */
-  if (ex) ex.qty = Math.min(have + qty, Math.max(1, +p.stock || 1)); else Store.cart.push({ id, qty: Math.min(qty, Math.max(1, +p.stock || 1)) });
+  if (qty > avail) qty = avail;                         /* can't take more than available */
+  const cap = Math.max(1, useColours ? (colourStockOf(p, c) || 1) : (+p.stock || 1));
+  if (ex){
+    ex.qty = Math.min(have + qty, cap);
+    if (!useColours && ex.colour) ex.colour = '';
+  } else {
+    Store.cart.push({ id, qty: Math.min(qty, cap), colour: useColours ? c : '' });
+  }
   Store.saveCart();
   syncCartReservation();
-  toast('✅ Added to cart');
+  toast('✅ Added to cart' + (useColours && c ? ' — ' + c : ''));
   fbqSafe('AddToCart', Object.assign(fbqId(id), { value: p.price * qty, currency: 'INR', quantity: qty }));
 }
 /* ❤️ Like / wishlist toggle — works on product page & shop cards */
@@ -699,8 +780,28 @@ function toggleWish(id){
     });
   }catch(e){}
 }
-function setCartQty(id, qty){ const it = Store.cart.find(i => i.id === id); if (!it) return; it.qty = Math.max(1, Math.min(qty, Math.max(1, +((byId(id) || {}).stock) || 1))); Store.saveCart(); syncCartReservation(); }
-function removeFromCart(id){ Store.cart = Store.cart.filter(i => i.id !== id); Store.saveCart(); syncCartReservation(); toast('🗑️ Removed'); }
+function setCartQty(id, qty, colour){
+  const p = byId(id); if (!p) return;
+  const useColours = !!(p.colourStock && Object.keys(p.colourStock).length);
+  const defCol = (p.colors && p.colors[0]) || '';
+  const c = useColours ? (colour || defCol) : '';
+  const it = useColours
+    ? (Store.cart.find(i => i.id === id && (i.colour || defCol) === c) || Store.cart.find(i => i.id === id))
+    : Store.cart.find(i => i.id === id);
+  if (!it) return;
+  it.qty = Math.max(1, Math.min(qty, Math.max(1, useColours ? (colourStockOf(p, it.colour || c) || 1) : (+p.stock || 1))));
+  Store.saveCart(); syncCartReservation();
+}
+function removeFromCart(id, colour){
+  const p = byId(id); if (!p){ Store.cart = Store.cart.filter(i => i.id !== id); Store.saveCart(); syncCartReservation(); toast('🗑️ Removed'); return; }
+  const useColours = !!(p.colourStock && Object.keys(p.colourStock).length);
+  const defCol = (p.colors && p.colors[0]) || '';
+  const c = useColours ? (colour || defCol) : '';
+  Store.cart = useColours
+    ? Store.cart.filter(i => !(i.id === id && (i.colour || defCol) === c))
+    : Store.cart.filter(i => i.id !== id);
+  Store.saveCart(); syncCartReservation(); toast('🗑️ Removed');
+}
 function renderCartBadge(){
   const b = document.getElementById('cartBadge'); if (!b) return;
   const n = Store.cart.reduce((s,i) => s + i.qty, 0);
@@ -916,10 +1017,25 @@ function shareUrl(p){
   if (mine) return base + (base.indexOf('?') === -1 ? '?' : '&') + 'ref=' + encodeURIComponent(mine);
   return base;
 }
+/* 🔐 safe query-param reader — tolerates MALFORMED share URLs like
+   product.html?id=SK75250?ref=SHA9088 (double ?) by converting every extra ?
+   into &, and strips stray ? / spaces from values. Never throws, so no page
+   can hang or crash from a bad link. */
+function safeParams(){
+  try{
+    let s = String(location.search || '');
+    if (s.charAt(0) === '?') s = s.slice(1);
+    if (s.indexOf('?') !== -1) s = s.replace(/\?/g, '&');   /* fix broken ?ref= links */
+    const p = new URLSearchParams(s);
+    const clean = {};
+    p.forEach((v, k) => { clean[k] = String(v || '').split('?')[0].trim(); });
+    return { get: k => (k in clean ? clean[k] : null) };
+  }catch(e){ return { get: () => null }; }
+}
 /* capture ?ref= from the URL on any page (used by orders placed later) */
 function readRef(){
   try{
-    const ref = new URLSearchParams(location.search).get('ref');
+    const ref = safeParams().get('ref');
     if (!ref) return null;
     const r = resellerByCode(ref);
     if (r){ try{ sessionStorage.setItem('sk_ref', r.code); }catch(e){} return r; }
@@ -1815,6 +1931,9 @@ function closeDrawer(){ document.getElementById('drawer').classList.remove('show
   try{
     if (window.__clarityDone) return;
     window.__clarityDone = true;
+    /* defensive: only load in real browsers (Clarity needs MessageChannel;
+       test runners like jsdom don't have it and would crash) */
+    if (typeof window.MessageChannel === 'undefined') return;
     (function(c,l,a,r,i,t,y){
       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
       t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
@@ -1927,7 +2046,7 @@ function seoInject(){
     }
     /* Product (product pages) */
     if (page === 'product'){
-      const id = new URLSearchParams(location.search).get('id');
+      const id = safeParams().get('id');
       const p = byId(id);
       if (p){
         ld.push({ '@context':'https://schema.org','@type':'Product', name:p.name, image:p.img, sku:p.sku || p.id, brand:{ '@type':'Brand', name:CONFIG.storeName },
