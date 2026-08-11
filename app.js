@@ -41,9 +41,10 @@ document.addEventListener('DOMContentLoaded', init);
    latest feeds the admin regenerates in Admin → Catalog Feed. */
 function renderFeedPage(){
   const app = document.getElementById('app'); if (!app) return;
-  const base = (CONFIG.siteUrl || location.origin) + '/';
+  let base = (CONFIG.siteUrl || location.origin) + '/';
+  try{ const d = localStorage.getItem('sk_feed_domain'); if (d) base = d.replace(/\/+$/, '') + '/'; }catch(e){}
   let updated = '—';
-  let feedCount = PRODUCTS.length;
+  let feedCount = PRODUCTS.filter(p => !p.hidden).length;
   try{
     const u = localStorage.getItem('sk_feed_updated');
     if (u) updated = new Date(u).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -150,7 +151,7 @@ function askReviewWhatsApp(o){
 /* 🔥 Deal of the Day — auto-picks the product with the biggest discount (rotates daily) */
 function dealOfDayHTML(){
   try{
-    const candidates = PRODUCTS.filter(p => p.stock != null && p.stock > 0 && offPct(p) >= 20);
+    const candidates = PRODUCTS.filter(p => !p.hidden && p.stock != null && p.stock > 0 && offPct(p) >= 20);
     if (!candidates.length) return '';
     /* rotate by day so it changes daily */
     const day = Math.floor(Date.now() / 864e5);
@@ -176,8 +177,8 @@ function occasionQuickShopHTML(){
   ];
   return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎉 Shop by Occasion</h2></div>' +
     '<div class="occ-grid">' + items.map(i => {
-      const p = PRODUCTS.find(x => x.cat === i[2]) || PRODUCTS[0];
-      const count = PRODUCTS.filter(x => x.cat === i[2]).length;
+      const p = PRODUCTS.find(x => !x.hidden && x.cat === i[2]) || PRODUCTS.find(x => !x.hidden) || PRODUCTS[0];
+      const count = PRODUCTS.filter(x => !x.hidden && x.cat === i[2]).length;
       return '<a class="occ-tile" href="shop.html?cat=' + i[2] + '"><span class="occ-ic">' + i[0] + '</span><b>' + i[1] + '</b><small>' + count + ' sarees</small></a>';
     }).join('') + '</div></section>';
 }
@@ -199,9 +200,9 @@ function weaverStoryHTML(){
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
-  const best = PRODUCTS.filter(p => p.badge === 'Bestseller').slice(0, 4);
-  const fresh = PRODUCTS.filter(p => p.badge === 'New').slice(0, 4);
-  const deals = PRODUCTS.filter(p => offPct(p) >= 35).slice(0, 4);
+  const best = PRODUCTS.filter(p => !p.hidden && p.badge === 'Bestseller').slice(0, 4);
+  const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
+  const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
   app.innerHTML =
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
@@ -226,7 +227,7 @@ function renderHome(){
     '<div class="wrap">' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
-          const count = PRODUCTS.filter(p => p.cat === c.slug).length;
+          const count = PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length;
           return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
             '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
             '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
@@ -370,6 +371,7 @@ function bindShop(){
 }
 function shopList(){
     let l = PRODUCTS.filter(p =>
+    !p.hidden &&
     (!shopState.cat || p.cat === shopState.cat) &&
     (!shopState.q || (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + (p.sku || '')).toLowerCase().includes(shopState.q.toLowerCase())) &&
     (!shopState.fabric || p.fabric.toLowerCase().includes(shopState.fabric.toLowerCase())) &&
@@ -602,10 +604,17 @@ function renderProduct(){
     return;
   }
   window.__pdTry = 0;
+  /* 🚫 hidden product → customers go straight home (admin can still open it) */
+  if (p.hidden && !isAdminDevice()){
+    try{ location.replace('index.html'); }catch(e){}
+    app.innerHTML = '<div class="wrap page"><div class="empty"><div class="e-ic">🚫</div><b>This saree is no longer available</b>' +
+      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="index.html">🏠 Back to Home</a></div></div>';
+    return;
+  }
   const off = offPct(p), cat = catOf(p.cat);
   const eta = deliveryEstimate();
   try{ if (window.REC) REC.trackView(p.id); }catch(e){}
-  const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
+  const related = PRODUCTS.filter(x => !x.hidden && x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
   const revs = userRevs.length
     ? userRevs.slice().reverse().map(r => '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name) + '</b><small>Verified customer ⭐</small></div></div><div class="stars">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text) + '</p>' + '</div>').join('')
@@ -871,7 +880,7 @@ function renderCartPage(){
       try{
         const inCart = Store.cart.map(i => i.id);
         const cats = Store.cart.map(i => (byId(i.id) || {}).cat).filter(Boolean);
-        const sug = PRODUCTS.filter(p => !inCart.includes(p.id) && cats.indexOf(p.cat) !== -1).slice(0, 4);
+        const sug = PRODUCTS.filter(p => !p.hidden && !inCart.includes(p.id) && cats.indexOf(p.cat) !== -1).slice(0, 4);
         if (!sug.length) return '';
         return '<div class="cart-upsell"><h3>🎁 Complete your look — add more &amp; save ₹' + (CONFIG.bundleOff || 0) + ' (2+ sarees)</h3>' +
           '<div class="prow">' + sug.map(cardHTML).join('') + '</div></div>';

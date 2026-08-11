@@ -237,6 +237,14 @@ function isSampleId(id){
     return /-v[123]$/.test(String(id)) && BASE.some(b => id.indexOf(b.id) === 0);
   }catch(e){ return false; }
 }
+/* 🔐 this device is the admin (logged in) → sees hidden products in Admin only */
+function isAdminDevice(){
+  try{ return String(LS.get('sk_admin', '0')) === '1'; }catch(e){ return false; }
+}
+/* customer-visible products (hidden ones stay in Admin but never on the store) */
+function visibleProducts(){
+  try{ return PRODUCTS.filter(p => !p.hidden); }catch(e){ return PRODUCTS || []; }
+}
 let PRODUCTS = (() => {
   /* 📦 CATALOG SOURCE: real products come from the ADMIN (sk_products) and
      FIRESTORE (sk_products_cloud cache). The demo BASE catalog in data.js is
@@ -252,6 +260,7 @@ let PRODUCTS = (() => {
     return set;
   })();
   const notSample = p => p && p.id && !SAMPLE_IDS[p.id];
+  const notHidden = p => isAdminDevice() || !(p && p.hidden);   /* customers never see hidden products */
   let built = [];
   if (window.__KEEP_BASE){
     built = BASE.map(b => Object.assign({}, b));
@@ -281,7 +290,7 @@ let PRODUCTS = (() => {
       try{
         const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
         if (Array.isArray(cached) && cached.length){
-          cached.filter(notSample).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
+          cached.filter(notSample).filter(notHidden).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
         }
       }catch(e){}
       return custom.filter(notSample);
@@ -292,7 +301,7 @@ let PRODUCTS = (() => {
   try{
     const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
     if (Array.isArray(cached) && cached.length){
-      cached.filter(notSample).forEach(cp => {
+      cached.filter(notSample).filter(notHidden).forEach(cp => {
         const np = normalizeProduct(cp);
         const i = built.findIndex(x => x.id === np.id);
         if (i >= 0) built[i] = np; else built.unshift(np);
@@ -373,6 +382,7 @@ function normalizeProduct(raw){
     sku: String(raw.sku || pid).trim(),
     name: String(raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
+    hidden: !!(raw.hidden === true || raw.hidden === 1 || raw.hidden === 'true' || raw.hidden === '1'),
     rating: Math.min(5, Math.max(1, +raw.rating || +raw.rat || 4.5)),
     reviews: Math.max(0, +raw.reviews || +raw.rev || 0),
     badge,
@@ -407,7 +417,7 @@ async function preloadCatalog(wantId){
   try{
     const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
     if (Array.isArray(raw) && raw.length){
-      raw.filter(p => p && p.id && !isSampleId(p.id)).forEach(cp => {
+      raw.filter(p => p && p.id && !isSampleId(p.id) && (isAdminDevice() || !p.hidden)).forEach(cp => {
         try{
           const np = normalizeProduct(cp);
           if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
@@ -427,7 +437,7 @@ async function preloadCatalog(wantId){
         const data = await r.json();
         const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          list.filter(p => p && p.id && !isSampleId(p.id)).forEach(cp => {
+          list.filter(p => p && p.id && !isSampleId(p.id) && (isAdminDevice() || !p.hidden)).forEach(cp => {
             try{
               const np = normalizeProduct(cp);
               if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
@@ -982,6 +992,34 @@ function getResellers(){
 function saveResellers(list){
   try{ localStorage.setItem('sk_resellers', JSON.stringify(list || [])); }catch(e){}
 }
+/* 🔗 Firestore resellers cache — makes ?ref=CODE work on every visitor device */
+let __fsResellers = [];
+function setFsResellers(list){
+  __fsResellers = Array.isArray(list) ? list : [];
+  /* merge into local storage too so orders on THIS device can credit margin */
+  try{
+    const loc = getResellers();
+    let changed = false;
+    __fsResellers.forEach(fr => {
+      const i = loc.findIndex(x => x.code === fr.code);
+      if (i >= 0){
+        if ((fr.margin || 0) > (loc[i].margin || 0)){ loc[i].margin = fr.margin; changed = true; }
+        if ((fr.orders || 0) > (loc[i].orders || 0)){ loc[i].orders = fr.orders; changed = true; }
+      } else { loc.push(fr); changed = true; }
+    });
+    if (changed) saveResellers(loc);
+  }catch(e){}
+}
+function allResellers(){
+  const list = getResellers().slice();
+  __fsResellers.forEach(fr => {
+    if (!fr || !fr.code) return;
+    const i = list.findIndex(x => x.code === fr.code);
+    if (i >= 0) list[i] = Object.assign({}, list[i], fr);
+    else list.push(fr);
+  });
+  return list;
+}
 function makeResellerCode(name, phone){
   const n = String(name || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase() || 'RS';
   const p = String(phone || '').replace(/\D/g, '').slice(-4);
@@ -1004,7 +1042,7 @@ function addReseller(name, phone){
 function resellerByCode(code){
   if (!code) return null;
   const s = String(code).trim().toUpperCase();
-  return getResellers().find(r => String(r.code).trim().toUpperCase() === s) || null;
+  return allResellers().find(r => r && String(r.code).trim().toUpperCase() === s) || null;
 }
 /* the reseller's OWN code (this visitor registered as a reseller) */
 function myResellerCode(){
@@ -1052,7 +1090,16 @@ function recordResellerOrder(order){
     const r = order && order.reseller;
     if (!r || !r.code) return;
     const list = getResellers();
-    const i = list.findIndex(x => x.code === r.code);
+    /* if the code is known only from the cloud cache, add a local copy so the
+       margin is credited & visible in the admin panel */
+    let i = list.findIndex(x => x.code === r.code);
+    if (i < 0){
+      const cloud = allResellers().find(x => x.code === r.code);
+      if (cloud){
+        list.push({ code: cloud.code, name: cloud.name || r.name, phone: cloud.phone || r.phone, date: cloud.date || Date.now(), orders: 0, margin: 0 });
+        i = list.length - 1;
+      }
+    }
     if (i >= 0){
       list[i].orders = (list[i].orders || 0) + 1;
       list[i].margin = (list[i].margin || 0) + (order.margin || CONFIG.resellerMargin || 0);
@@ -1066,6 +1113,25 @@ function recordResellerOrder(order){
       }).catch(()=>{});
     }
   }catch(e){}
+}
+/* ✅ admin marks a reseller's commission as PAID → margin resets to 0
+   (paid history is kept so you can always see what was paid) */
+function markResellerPaid(code){
+  const list = getResellers();
+  const r = list.find(x => x.code === code);
+  if (!r) return false;
+  const paid = +(r.margin || 0);
+  r.paidTotal = (r.paidTotal || 0) + paid;
+  r.lastPaid = new Date().toISOString();
+  r.margin = 0;
+  saveResellers(list);
+  if (FS.enabled()){
+    FS._getDb().then(db => {
+      if (!db) return;
+      db.collection('resellers').doc(code).set({ code: code, paidTotal: r.paidTotal, lastPaid: r.lastPaid, margin: 0, updatedAt: Date.now() }, { merge: true }).catch(()=>{});
+    }).catch(()=>{});
+  }
+  return true;
 }
 /* GPay commission link for a reseller (pay to their phone @upi) */
 function resellerPayLink(r, amount){
@@ -1661,6 +1727,22 @@ const Sync = {
     }catch(e){}
   },
   /* ---- pull cloud products → local (BOTH show; schema-flexible) ---- */
+  /* 🔗 pull reseller codes from Firestore so ?ref=CODE works on EVERY device
+     (not just the device where the reseller registered) */
+  pullResellers(){
+    if (!FS.enabled()) return;
+    FS._getDb().then(db => {
+      if (!db) return;
+      db.collection('resellers').get().then(snap => {
+        const list = [];
+        snap.forEach(x => {
+          const d = x.data() || {};
+          if (d && d.code) list.push({ code: d.code, name: d.name || '', phone: d.phone || '', orders: +d.orders || 0, margin: +d.margin || 0, date: d.date || Date.now() });
+        });
+        if (list.length){ setFsResellers(list); }
+      }).catch(() => {});
+    }).catch(() => {});
+  },
   pullProducts(){
     if (!FS.enabled()) return;
     FS._getDb().then(db => {
@@ -1672,6 +1754,7 @@ const Sync = {
           d.id = d.id || d.sku || x.id;
           if (d.status && String(d.status).toLowerCase() !== 'active') return;
           if (isSampleId(d.id)) return;   /* never re-add demo products */
+          if (d.hidden && !isAdminDevice()) return;   /* 🚫 hidden products never re-appear for customers */
           cloud.push(d);
         });
         if (!cloud.length) return;
@@ -1744,6 +1827,7 @@ const Sync = {
   run(){
     this.saveLocal();
     this.pushCloud();
+    this.pullResellers();          /* 🔗 reseller codes known on every device */
     let pg = '';
     try{ pg = (document.body && document.body.dataset.page) || ''; }catch(e){}
     if (pg === 'admin'){

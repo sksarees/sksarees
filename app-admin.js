@@ -443,16 +443,19 @@ function renderProducts(){
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Upload</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="btnHideSel" style="flex:1;min-width:130px;color:#6b4c05;border:1.5px solid #e4c96a">🚫 Hide Selected (<span id="hideSelCount">0</span>)</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="btnShowSel" style="flex:1;min-width:130px;color:var(--green);border:1.5px solid #bfe6cf">👁️ Show Selected</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
+    '<p class="small muted" style="margin:2px 0 8px">🚫 Hidden products <b>never appear in the shop/feeds</b> and their links redirect customers to the home page. Use the checkboxes + Hide/Show/Delete buttons, or the 👁️/🚫 per-row toggle.</p>' +
     '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
-      '<p class="small muted" style="margin:6px 0">One per line: <b>Name, Price, MRP, Category, Image URL, Badge</b></p>' +
-      '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, soft-silk, https://…, New" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:90px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
-      '<button type="button" class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import</button>' +
+      '<p class="small muted" style="margin:6px 0">One product per line — <b>Name, Price, MRP, Image URL, Category, Badge</b> (SKU auto-generated <b>SK20001, SK20002…</b>). Or just paste an <b>image URL</b> alone — name &amp; price are auto-filled. <b>🎨 Colours are auto-detected from each photo.</b></p>' +
+      '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, https://…, soft-silk, New&#10;Wedding Kanjivaram, 2899, 4599, https://…, bridal-sarees, Bestseller&#10;https://www.sksaree.shop/images/products/kanchipuram-silk.jpg" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:110px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
+      '<button type="button" class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import &amp; Auto-detect Colours</button>' +
       '<p class="small" id="bulkResult" style="margin-top:8px"></p></div>' +
-    '<div class="prod-table-wrap"><table class="prod-table"><thead><tr><th style="width:38px"><input type="checkbox" id="prodSelAll" title="Select all"></th><th>Photo</th><th>Product</th><th>Price</th><th>Stock</th><th>Badge</th><th></th></tr></thead><tbody id="prodBody"></tbody></table></div>' +
+    '<div class="prod-table-wrap"><table class="prod-table"><thead><tr><th style="width:38px"><input type="checkbox" id="prodSelAll" title="Select all"></th><th>Photo</th><th>Product</th><th>Price</th><th>Stock</th><th>Badge</th><th>Status</th><th></th></tr></thead><tbody id="prodBody"></tbody></table></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap">' +
       '<p class="small muted" id="prodCount" style="margin:0"></p>' +
       '<button type="button" class="btn btn-outline btn-sm" id="moreProds" style="display:none">Load More Products ↓</button>' +
@@ -469,6 +472,18 @@ function renderProducts(){
     PRODUCTS = PRODUCTS.filter(p => !sel.includes(p.id));
     saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
   });
+  /* 🚫 hide selected / 👁️ show selected (bulk) */
+  const bulkHide = (hidden) => {
+    const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
+    if (!sel.length){ toast('⚠️ Tick products first'); return; }
+    PRODUCTS.forEach(p => { if (sel.includes(p.id)) p.hidden = hidden; });
+    saveProducts(PRODUCTS); refreshFeedCache(); renderProdBody();
+    toast(hidden ? '🚫 ' + sel.length + ' hidden — links go to home' : '👁️ ' + sel.length + ' shown again');
+  };
+  const btnHide = document.getElementById('btnHideSel');
+  if (btnHide) btnHide.addEventListener('click', () => bulkHide(true));
+  const btnShow = document.getElementById('btnShowSel');
+  if (btnShow) btnShow.addEventListener('click', () => bulkHide(false));
   /* select-all checkbox in the table header */
   const selAll = document.getElementById('prodSelAll');
   if (selAll) selAll.addEventListener('change', () => {
@@ -488,13 +503,15 @@ function renderProdBody(){
   const list = filteredProds();
   const visible = list.slice(0, prodPage * PROD_PAGE_SIZE);
   tbody.innerHTML = visible.map(p =>
-    '<tr><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"></td>' +
+    '<tr' + (p.hidden ? ' style="opacity:.55;background:var(--bg)"' : '') + '><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"' + (p.hidden ? ' data-hid="1"' : '') + '></td>' +
     '<td><img src="' + esc(p.img) + '" alt="" loading="lazy"></td>' +
-    '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + '</small></td>' +
+    '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + (p.hidden ? ' • 🚫 HIDDEN' : '') + '</small></td>' +
     '<td>' + money(p.price) + '</td>' +
     '<td class="' + (p.stock <= 5 ? 'low' : '') + '">' + (p.stock <= 5 ? '🔥 ' + p.stock : p.stock) + '</td>' +
     '<td>' + (p.badge ? esc(p.badge) : '—') + '</td>' +
+    '<td>' + (p.hidden ? '<span class="status-pill status-placed">🚫 Hidden</span>' : '<span class="status-pill status-delivered">👁️ Visible</span>') + '</td>' +
     '<td><div style="display:flex;gap:6px"><button type="button" class="btn btn-outline btn-sm" data-editprod="' + p.id + '">✏️ Edit</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm" data-togglehide="' + p.id + '" title="' + (p.hidden ? 'Show again' : 'Hide — link goes to home') + '">' + (p.hidden ? '👁️' : '🚫') + '</button>' +
     '<button type="button" class="btn btn-ghost btn-sm" data-delprod="' + p.id + '">✕</button></div></td></tr>').join('');
   const mo = document.getElementById('moreProds');
   if (mo){
@@ -531,6 +548,7 @@ function openAddProduct(){
     '<div class="field"><label>🎨 Colours (comma separated)</label><input id="apColors" placeholder="e.g. Red, Gold — or tap Auto-detect"></div>' +
     '<div class="field"><label>Colour-wise stock (optional — auto-deduct on order)</label><input id="apColStock" placeholder="e.g. Red:3, Blue:2 — leave empty to use single stock"></div>' +
     '<div class="field"><label>Stock</label><input id="apStock" type="number" value="10"></div>' +
+    '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:700;margin-bottom:10px"><input type="checkbox" id="apHidden" style="width:18px;height:18px"> 🚫 Hidden — customers get redirected to home, hidden from shop/feeds</label>' +
     '<button type="button" class="btn btn-maroon" id="apSave">💾 Add Product</button>');
   document.getElementById('apSave').addEventListener('click', () => {
     const name = document.getElementById('apName').value.trim();
@@ -545,6 +563,7 @@ function openAddProduct(){
       img3: document.getElementById('apImg3').value,
       colors: document.getElementById('apColors').value.split(',').map(s => s.trim()).filter(Boolean),
       colourStock: document.getElementById('apColStock').value,
+      hidden: document.getElementById('apHidden').checked,
     });
     PRODUCTS.unshift(np); saveProducts(PRODUCTS);
     refreshFeedCache();
@@ -553,17 +572,78 @@ function openAddProduct(){
   wireAutoColour('apImg', 'apColors', 'apAutoCol');
 }
 function importBulk(){
+  const res = document.getElementById('bulkResult'); if (!res) return;
   const lines = document.getElementById('bulkText').value.trim().split(/\r?\n/).filter(l => l.trim());
-  let added = 0, errors = [];
+  let added = 0, errors = [], imported = [];
   lines.forEach((line, i) => {
-    const parts = line.includes('\t') ? line.split('\t') : line.split(',').map(x => x.trim());
-    if (parts.length < 3){ errors.push('Line ' + (i + 1)); return; }
-    PRODUCTS.unshift(normalizeProduct({ name: parts[0], price: parts[1], mrp: parts[2], cat: parts[3], img: parts[4], badge: parts[5] }));
-    added++;
+    try{
+      const parts = line.includes('\t') ? line.split('\t').map(x => x.trim()) : line.split(',').map(x => x.trim()).filter(Boolean);
+      if (!parts.length){ errors.push('Line ' + (i + 1)); return; }
+      const url = (parts.find(x => /^https?:\/\//i.test(x)) || '').trim();
+      if (!url){ errors.push('Line ' + (i + 1) + ' (no image URL)'); return; }
+      let name, price, mrp, cat, badge, sku;
+      if (parts.length >= 3 && !/^https?:\/\//i.test(parts[0])){
+        /* standard: Name, Price, MRP, Image, Category, Badge, SKU(optional) */
+        name = parts[0];
+        price = +parts[1] || 0;
+        mrp = +parts[2] || 0;
+        cat = parts[3] || 'daily';
+        badge = parts[5] || '';
+        sku = parts[6] || '';
+      } else {
+        /* short line: image URL (+ optional name / price) */
+        const nonUrl = parts.filter(x => !/^https?:\/\//i.test(x));
+        const nums = nonUrl.map(x => +x).filter(Number.isFinite);
+        name = nonUrl.find(x => !Number.isFinite(+x)) || '';
+        price = nums[0] || 999;
+        mrp = nums[1] || Math.round(price * 1.6);
+        cat = 'daily';
+        badge = '';
+        sku = '';
+      }
+      if (!name){ sku = sku || nextSku(); name = 'Saree ' + sku; }   /* auto name with the SKU */
+      if (!(price > 0)) price = 999;
+      if (!(mrp > price)) mrp = Math.round(price * 1.6);
+      const np = normalizeProduct({ name, price, mrp, cat, img: url, badge, sku });
+      if (!np.id) throw new Error('no id');
+      PRODUCTS.unshift(np);
+      imported.push(np);
+      added++;
+    }catch(e){ errors.push('Line ' + (i + 1)); }
   });
   if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
-  document.getElementById('bulkResult').innerHTML = added ? '✅ Imported ' + added + (errors.length ? ' • ⚠️ ' + errors.join('; ') : '') : '⚠️ Nothing imported' + (errors.length ? ': ' + errors.join('; ') : '');
-  if (added) toast('📥 ' + added + ' imported');
+  if (!added){ res.innerHTML = '⚠️ Nothing imported' + (errors.length ? ': ' + errors.join('; ') : '') + ' — check the format (Name, Price, MRP, Image URL…)'; return; }
+  res.innerHTML = '✅ Imported <b>' + added + '</b> products' +
+    '<br><small class="muted">SKUs: ' + (imported[0] && imported[imported.length - 1] ? imported[imported.length - 1].sku + ' … ' : '') + 'auto-generated • 🎨 detecting colours from photos…</small>';
+  toast('📥 ' + added + ' imported — detecting colours…');
+  /* 🎨 auto-detect colours from each photo (async, sequential) */
+  let done = 0, okCol = 0;
+  const next = (idx) => {
+    if (idx >= imported.length){
+      res.innerHTML = '✅ Imported <b>' + added + '</b> products • 🎨 colours detected on <b>' + okCol + '/' + added + '</b>' + (errors.length ? ' • ⚠️ ' + errors.join('; ') : '');
+      toast('📥 ' + added + ' imported • 🎨 colours: ' + okCol + '/' + added);
+      return;
+    }
+    const p = imported[idx];
+    const nextOne = () => { done++; next(idx + 1); };
+    if (!p.img || (p.colors && p.colors.length > 1)){
+      nextOne(); return;
+    }
+    detectColoursFromImage(p.img, names => {
+      if (names && names.length){
+        p.colors = names;
+        p.color = names.join(' / ');
+        okCol++;
+      }
+      done++;
+      if (done % 5 === 0 || idx === imported.length - 1){
+        try{ saveProducts(PRODUCTS); refreshFeedCache(); renderProdBody(); }catch(e){}
+        res.innerHTML = '✅ Imported <b>' + added + '</b> products • 🎨 detecting colours… <b>' + done + '/' + added + '</b>';
+      }
+      next(idx + 1);
+    });
+  };
+  next(0);
 }
 
 function openEditProduct(id){
@@ -585,6 +665,7 @@ function openEditProduct(id){
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
     '<div class="field"><label>🎨 Colours (comma separated)</label><input id="epColors" value="' + esc((p.colors || []).join(', ')) + '"></div>' +
     '<div class="field"><label>Colour-wise stock (optional — auto-deduct on order)</label><input id="epColStock" value="' + esc(p.colourStock ? Object.keys(p.colourStock).map(k => k + ':' + p.colourStock[k]).join(', ') : '') + '" placeholder="e.g. Red:3, Blue:2"></div>' +
+    '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:700;margin-bottom:10px"><input type="checkbox" id="epHidden"' + (p.hidden ? ' checked' : '') + ' style="width:18px;height:18px"> 🚫 Hidden — customers get redirected to home, hidden from shop/feeds</label>' +
     '<button type="button" class="btn btn-maroon" id="epSave">💾 Save Changes</button>');
   document.getElementById('epSave').addEventListener('click', () => {
     const name = document.getElementById('epName').value.trim();
@@ -619,6 +700,7 @@ function openEditProduct(id){
         video: ytId(document.getElementById('epVideo').value),
         colors: document.getElementById('epColors').value.split(',').map(s => s.trim()).filter(Boolean),
         colourStock: csMap,
+        hidden: document.getElementById('epHidden').checked,
       });
       /* rebuild the gallery array from main + extra images */
       try{
@@ -800,9 +882,9 @@ function renderLeads(){
 function feedXml(){
   const escX = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
   /* 🔴 absolute site URL (not localhost) so GOOGLE can reach every product */
-  const base = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n<channel>\n<title>SK Sarees Catalog</title>\n<link>' + escX(location.origin + '/') + '</link>\n<description>Saree catalog for Facebook & Instagram Shopping</description>\n';
-  PRODUCTS.slice(0, 500).forEach(p => {
+  const base = feedBase();
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n<channel>\n<title>SK Sarees Catalog</title>\n<link>' + escX(base) + '</link>\n<description>Saree catalog for Facebook & Instagram Shopping</description>\n';
+  PRODUCTS.filter(p => !p.hidden).slice(0, 500).forEach(p => {
     const imgAbs = /^https?:/.test(p.img) ? p.img : (base + p.img.replace(/^\.?\//,''));
     xml += '<item>\n' +
       '<g:id>' + escX(p.id) + '</g:id>\n' +
@@ -830,10 +912,10 @@ function feedXml(){
    id,title,description,price,condition,link,availability,image_link */
 function feedTxt(){
   const escT = v => String(v == null ? '' : v).replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
-  /* 🔴 absolute site URL so Google Merchant Center can crawl products */
-  const base = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
+  /* 🔴 absolute site URL — same domain as Google Merchant Center (feedBase) */
+  const base = feedBase();
   const lines = ['id\ttitle\tdescription\tprice\tcondition\tlink\tavailability\timage_link'];
-  PRODUCTS.slice(0, 500).forEach(p => {
+  PRODUCTS.filter(p => !p.hidden).slice(0, 500).forEach(p => {
     const imgAbs = /^https?:/.test(p.img) ? p.img : (base + p.img.replace(/^\.?\//, ''));
     const row = [
       escT(p.id),
@@ -849,9 +931,21 @@ function feedTxt(){
   });
   return lines.join('\n');
 }
-/* catalog.json content (exact shape the store + Google/Meta can consume) */
+/* 🌐 feed domain — the SAME domain must be used in Google Merchant Center +
+   the feed links, or GMC shows "Website link mismatch". Pick whichever domain
+   you verified (with or without www) and it is used everywhere. */
+function feedBase(){
+  try{
+    const d = localStorage.getItem('sk_feed_domain');
+    if (d) return String(d).replace(/\/+$/, '') + '/';
+  }catch(e){}
+  return (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
+}
+function setFeedDomain(d){ try{ localStorage.setItem('sk_feed_domain', String(d || '').trim()); }catch(e){} }
+/* catalog.json content (exact shape the store + Google/Meta can consume) —
+   hidden products are NEVER included */
 function feedJson(){
-  return JSON.stringify(PRODUCTS.map(p => ({
+  return JSON.stringify(PRODUCTS.filter(p => !p.hidden).map(p => ({
     id: p.id, sku: p.sku, name: p.name, price: p.price, mrp: p.mrp, cat: p.cat,
     img: p.img, images: p.images || [p.img], stock: p.stock,
     fabric: p.fabric, color: p.color, colors: p.colors || [],
@@ -859,6 +953,22 @@ function feedJson(){
     border: p.border, blouse: p.blouse, length: p.length, weight: p.weight,
     wash: p.wash, desc: p.desc, rating: p.rating, reviews: p.reviews, badge: p.badge, status: 'Active',
   })));
+}
+/* 🔍 feed validation — final link + image URL per product, so you can spot
+   broken links / localhost / missing images before submitting to Google/Meta */
+function feedIssues(){
+  const base = feedBase();
+  const out = [];
+  PRODUCTS.filter(p => !p.hidden).slice(0, 200).forEach(p => {
+    const link = base + 'product.html?id=' + encodeURIComponent(p.id);
+    const img = /^https?:/.test(p.img) ? p.img : (base + p.img.replace(/^\.?\//, ''));
+    const issues = [];
+    if (/localhost|127\.0\.0\.1|file:\/\//i.test(link)) issues.push('🔴 link uses localhost');
+    if (!/^https:/i.test(link)) issues.push('⚠️ link not HTTPS');
+    if (!/^https:/i.test(img)) issues.push('⚠️ image not HTTPS');
+    out.push({ id: p.id, name: p.name, link, img, issues: issues.join(', ') });
+  });
+  return out;
 }
 /* 🔄 AUTO-UPDATE feeds: regenerate all 3 feed files into this browser whenever
    a product is saved/deleted/imported, so Admin → Catalog Feed and feed.html
@@ -879,7 +989,13 @@ function renderFeed(){
   body.innerHTML =
     '<div class="form-card"><h3>📦 Catalog Feed — Facebook / Instagram Shopping</h3>' +
       '<p class="small muted">Generate the product XML feed, upload it to your hosting root as <b>products-feed.xml</b>, then connect it in Meta Commerce Manager (Catalog → Data source → Product feed). This lets customers <b>tag &amp; buy sarees directly on Instagram/Facebook</b>.</p>' +
-      '<p class="small" style="margin-top:6px">Currently <b>' + count + '</b> products will be in the feed.</p>' +
+      '<p class="small" style="margin-top:6px">Currently <b>' + count + '</b> products will be in the feed (hidden products excluded).</p>' +
+      '<div class="field" style="margin-top:8px"><label>🌐 Feed domain — <b>must match your Google Merchant Center website</b></label>' +
+        '<select id="feedDomain" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff">' +
+          '<option value="https://www.sksaree.shop" data-www="1">https://www.sksaree.shop (with www)</option>' +
+          '<option value="https://sksaree.shop">https://sksaree.shop (without www)</option>' +
+        '</select>' +
+        '<p class="small" style="color:var(--red);font-weight:800;margin-top:4px">⚠️ If Google Merchant Center shows <b>"Website link mismatch"</b>: use the exact domain you verified in GMC here — the feed links will then match your GMC website and the error disappears.</p></div>' +
       '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
         '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:230px">⬇️ products-feed.xml</button>' +
         '<button type="button" class="btn btn-gold" id="feedTxtDownload" style="width:auto;min-width:240px">⬇️ Google Merchant (TXT)</button>' +
@@ -887,9 +1003,31 @@ function renderFeed(){
         '<button type="button" class="btn btn-outline" id="feedSave" style="width:auto;min-width:230px">💾 Save feeds to this browser</button>' +
         '<button type="button" class="btn btn-ghost" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
       '</div>' +
-      '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / import a product.</p>' +
-      '<p class="small muted" id="feedNote" style="margin-top:4px">1. Tap <b>💾 Save feeds to this browser</b> (or just save a product — it happens automatically). 2. Download the 3 files → upload to your host root (same folder as index.html). 3. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc((CONFIG.siteUrl || location.origin) + '/google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc((CONFIG.siteUrl || location.origin) + '/products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc((CONFIG.siteUrl || location.origin) + '/feed.html') + '</a></p></div>' +
-    '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>';
+      '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / hide / import a product.</p>' +
+      '<p class="small muted" id="feedNote" style="margin-top:4px">1. Pick the feed domain above. 2. Tap <b>💾 Save feeds to this browser</b> (or just save a product — automatic). 3. Download the 3 files → upload to your host root (same folder as index.html). 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
+    '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>' +
+    '<div class="form-card"><h3>🩺 Feed link check (first 15) — <span style="color:var(--green)">no localhost, all HTTPS</span></h3><div id="feedCheck" style="overflow:auto;max-height:280px;font-size:.72rem"></div></div>';
+  /* 🌐 domain picker — re-render feed preview + check with the chosen domain */
+  const domSel = document.getElementById('feedDomain');
+  if (domSel){
+    try{ const cur = localStorage.getItem('sk_feed_domain'); if (cur) domSel.value = cur; }catch(e){}
+    domSel.addEventListener('change', () => {
+      setFeedDomain(domSel.value);
+      renderFeed();
+      toast('🌐 Feed domain → ' + domSel.value);
+    });
+  }
+  /* 🩺 link check list */
+  try{
+    const fc = document.getElementById('feedCheck');
+    if (fc){
+      const rows = feedIssues().slice(0, 15).map(r =>
+        '<div style="padding:6px 0;border-bottom:1px dashed var(--line)"><b>' + esc(r.id) + '</b> — ' + esc(r.name) + (r.issues ? '<br><span style="color:var(--red)">' + esc(r.issues) + '</span>' : '<br><span style="color:var(--green)">✅ OK</span>') +
+        '<br><small class="muted">🔗 ' + esc(r.link) + '</small>' +
+        '<br><small class="muted">🖼️ ' + esc(r.img) + '</small></div>').join('');
+      fc.innerHTML = rows || '<p class="small muted">No products yet.</p>';
+    }
+  }catch(e){}
   const saveBtn = document.getElementById('feedSave');
   if (saveBtn) saveBtn.addEventListener('click', () => {
     const ok = refreshFeedCache();
@@ -937,14 +1075,7 @@ let fsResellers = [];
 function renderResellers(){
   const body = document.getElementById('tabBody');
   /* merge local + Firestore resellers (dedupe by code) */
-  const merged = getResellers().slice();
-  (fsResellers || []).forEach(fr => {
-    if (!fr || !fr.code) return;
-    const i = merged.findIndex(x => x.code === fr.code);
-    if (i >= 0) merged[i] = Object.assign({}, merged[i], fr);
-    else merged.push(fr);
-  });
-  const all = merged.slice().sort((a, b) => (b.margin || 0) - (a.margin || 0));
+  const all = allResellers().slice().sort((a, b) => (b.margin || 0) - (a.margin || 0));
   const totalMargin = all.reduce((s, r) => s + (r.margin || 0), 0);
   body.innerHTML =
     '<div class="form-card"><h3>💰 Resellers — Share &amp; Earn</h3>' +
@@ -962,11 +1093,13 @@ function renderResellers(){
       : '<p class="small muted" style="margin-top:4px">No local orders yet (cloud orders sync when Firestore is on).</p>';
     return '<div class="order-card">' +
       '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + '</span></div>' +
-      '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) + '</div>' +
+      '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) +
+        ((r.paidTotal || 0) > 0 ? ' • <span style="color:var(--green);font-weight:800">Paid so far: ' + money(r.paidTotal) + (r.lastPaid ? ' (' + fmtDate(r.lastPaid) + ')' : '') + '</span>' : '') + '</div>' +
       '<div class="oc-items" style="margin-top:6px"><b>📦 Orders via ' + esc(r.code) + ':</b>' + orderLines + '</div>' +
       '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
         '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('🎉 Hi ' + r.name + '! Your SK Sarees commission ' + money(r.margin||0) + ' for ' + (r.orders||0) + ' order(s) is ready. Please confirm your GPay details 🙏') + '" target="_blank" rel="noopener">💬 Notify on WhatsApp</a>' +
         '<a class="btn btn-gold btn-sm" style="width:auto" href="' + resellerPayLink(r, r.margin) + '">💸 Pay ' + money(r.margin||0) + ' via GPay</a>' +
+        (r.margin > 0 ? '<button type="button" class="btn btn-maroon btn-sm" style="width:auto" data-resetpaid="' + esc(r.code) + '">✅ Mark Paid &amp; Reset</button>' : '') +
         '<a class="btn btn-outline btn-sm" style="width:auto" href="tel:+91' + esc(r.phone) + '">📞 Call</a>' +
       '</div></div>';
   }).join('');
@@ -1133,6 +1266,17 @@ document.addEventListener('click', e => {
   if (copy){ copyText(copy.dataset.copy); return; }
   const editp = e.target.closest('[data-editprod]');
   if (editp){ openEditProduct(editp.dataset.editprod); return; }
+  /* 🚫/👁️ per-row hide toggle */
+  const th = e.target.closest('[data-togglehide]');
+  if (th){
+    const id = th.dataset.togglehide;
+    const p = byId(id);
+    if (!p) return;
+    p.hidden = !p.hidden;
+    saveProducts(PRODUCTS); refreshFeedCache(); renderProdBody();
+    toast(p.hidden ? '🚫 ' + id + ' hidden — links go to home' : '👁️ ' + id + ' visible again');
+    return;
+  }
   const delp = e.target.closest('[data-delprod]');
   if (delp){
     if (!confirm('Delete this product?')) return;
@@ -1157,6 +1301,16 @@ document.addEventListener('click', e => {
   }
   const delr = e.target.closest('[data-delreview]');
   if (delr){ deleteReview(delr.dataset.delreview); }
+  /* ✅ reseller margin paid → reset count */
+  const rp = e.target.closest('[data-resetpaid]');
+  if (rp){
+    if (confirm('Mark this commission as PAID and reset the margin count to ₹0?')){
+      const ok = markResellerPaid(rp.dataset.resetpaid);
+      toast(ok ? '✅ Paid recorded — margin reset to ₹0' : '⚠️ Reseller not found');
+      renderResellers();
+    }
+    return;
+  }
   /* send push to an abandoned cart */
   const ps = e.target.closest('[data-pushsend]');
   if (ps){ sendPushTo(+ps.dataset.pushsend); return; }

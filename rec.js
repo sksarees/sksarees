@@ -191,6 +191,7 @@ const REC = (function(){
   function buildIndex(){
     index = { fabric: {}, color: {}, occ: {}, id: new Map() };
     PRODUCTS.forEach(p => {
+      if (p.hidden) return;   /* 🚫 never recommend hidden products */
       const a = attrs(p); if (!a) return;
       index.id.set(p.id, a);
       (index.fabric[a.fabric] = index.fabric[a.fabric] || []).push(p.id);
@@ -208,7 +209,7 @@ const REC = (function(){
     add(index.color[a.color]);
     add(index.occ[a.occasion]);
     /* + same price band as a tiebreaker pool */
-    PRODUCTS.forEach(x => { if (attrs(x) && attrs(x).band === a.band) add([x.id]); });
+    PRODUCTS.forEach(x => { if (!x.hidden && attrs(x) && attrs(x).band === a.band) add([x.id]); });
     return ids.slice(0, 80);
   }
 
@@ -322,7 +323,7 @@ const REC = (function(){
       /* after-viewing = collaborative (view-history boosted) + popular */
       const after = all.slice().sort((a, b) => (b.score - a.score) || ((byId(a.id) || {}).reviews || 0) - ((byId(b.id) || {}).reviews || 0)).slice(0, 30);
       /* complete the look: blouse / accessories / same-colour pairings */
-      const look = PRODUCTS.filter(x => x.id !== p.id && ['blouse','accessories'].indexOf(x.cat) !== -1).slice(0, 10)
+      const look = PRODUCTS.filter(x => !x.hidden && x.id !== p.id && ['blouse','accessories'].indexOf(x.cat) !== -1).slice(0, 10)
         .map(x => ({ id: x.id, name: x.name, img: x.img, price: x.price, score: 80, reason: 'Completes the look' }));
       /* frequently bought together: top-rated + same price band */
       const fbt = all.slice().sort((a, b) => ((byId(b.id) || {}).reviews || 0) - ((byId(a.id) || {}).reviews || 0)).slice(0, 12);
