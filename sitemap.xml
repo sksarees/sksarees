@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.sksaree.shop/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.sksaree.shop/</loc><changefreq>daily</changefreq><priority>1</priority></url>
   <url><loc>https://www.sksaree.shop/shop.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://www.sksaree.shop/share-earn.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.sksaree.shop/blog.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -13,5 +13,23 @@
   <url><loc>https://www.sksaree.shop/catalog.json</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://www.sksaree.shop/products-feed.xml</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://www.sksaree.shop/google-merchant-feed.txt</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
-  <!-- Product URLs are added automatically when you regenerate the sitemap (Admin → SEO) -->
+  <url><loc>https://www.sksaree.shop/product/kanchipuram-red.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/banarasi-purple.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/soft-silk-rose.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/cotton-silk-emerald.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/handloom-mustard.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/printed-sky.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/georgette-turquoise.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/party-navy.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/organza-lavender.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/linen-beige.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/kanchipuram-peacock.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/fancy-net.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/half-saree-red.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/kids-lehenga.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/men-dhoti.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/blouse-material.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/zari-border.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/daily-printed.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sksaree.shop/product/SK20001.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
 </urlset>

@@ -448,10 +448,17 @@ function renderProducts(){
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
     '<p class="small muted" style="margin:2px 0 8px">🚫 Hidden products <b>never appear in the shop/feeds</b> and their links redirect customers to the home page. Use the checkboxes + Hide/Show/Delete buttons, or the 👁️/🚫 per-row toggle.</p>' +
+    '<p class="small" id="storeHint" style="margin:0 0 8px;color:var(--maroon);font-weight:800"></p>' +
     '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
       '<p class="small muted" style="margin:6px 0">One product per line — <b>Name, Price, MRP, Image URL, Category, Badge</b> (SKU auto-generated <b>SK20001, SK20002…</b>). Or just paste an <b>image URL</b> alone — name &amp; price are auto-filled. <b>🎨 Colours are auto-detected from each photo.</b></p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload CSV File</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="btnCatalog" style="width:auto">📦 Upload catalog.json</button>' +
+        '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for GitHub)</button>' +
+        '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ CSV template</a>' +
+      '</div>' +
       '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, https://…, soft-silk, New&#10;Wedding Kanjivaram, 2899, 4599, https://…, bridal-sarees, Bestseller&#10;https://www.sksaree.shop/images/products/kanchipuram-silk.jpg" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:110px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import &amp; Auto-detect Colours</button>' +
       '<p class="small" id="bulkResult" style="margin-top:8px"></p></div>' +
@@ -461,9 +468,57 @@ function renderProducts(){
       '<button type="button" class="btn btn-outline btn-sm" id="moreProds" style="display:none">Load More Products ↓</button>' +
     '</div>';
   renderProdBody();
+  /* 💾 storage hint — uploaded photos live in this browser (no server) */
+  try{
+    const h = document.getElementById('storeHint');
+    if (h){
+      const mb = storageMB();
+      const imgCount = PRODUCTS.filter(p => /^data:image\//.test(p.img || '')).length;
+      h.innerHTML = '💾 This browser stores <b>' + PRODUCTS.length + ' products</b>' +
+        (imgCount ? ' • <b>' + imgCount + ' uploaded photos</b>' : '') +
+        ' • used <b>' + mb.toFixed(1) + ' MB</b> of ~5 MB' +
+        (mb > 3.5 ? ' <span style="color:var(--red)">⚠️ getting full — use image URLs (https://…sksaree.shop/images/) for new products, or export catalog.json &amp; clear the browser once deployed.</span>' : '');
+    }
+  }catch(e){}
   document.getElementById('btnAddProd').addEventListener('click', openAddProduct);
   document.getElementById('btnBulk').addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
   document.getElementById('btnImport').addEventListener('click', importBulk);
+  /* ⬇️ export catalog.json for GitHub — refresh + download */
+  const expBtn = document.getElementById('btnExportCatalog');
+  if (expBtn) expBtn.addEventListener('click', () => {
+    refreshFeedCache();
+    const blob = new Blob([feedJson()], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'catalog.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('⚡ catalog.json downloaded — upload to your GitHub repo root');
+  });
+  /* 📄 CSV file upload */
+  const csvIn = document.createElement('input');
+  csvIn.type = 'file'; csvIn.accept = '.csv,.tsv,.txt'; csvIn.style.display = 'none';
+  document.body.appendChild(csvIn);
+  csvIn.addEventListener('change', () => { const f = csvIn.files && csvIn.files[0]; if (f) importCsvFile(f); csvIn.value = ''; });
+  document.getElementById('btnCsv').addEventListener('click', () => csvIn.click());
+  /* 📦 catalog.json upload */
+  const catIn = document.createElement('input');
+  catIn.type = 'file'; catIn.accept = '.json'; catIn.style.display = 'none';
+  document.body.appendChild(catIn);
+  catIn.addEventListener('change', () => { const f = catIn.files && catIn.files[0]; if (f) importCatalogFile(f); catIn.value = ''; });
+  document.getElementById('btnCatalog').addEventListener('click', () => catIn.click());
+  /* ⬇️ CSV template */
+  const tpl = document.getElementById('btnCsvTpl');
+  if (tpl) tpl.addEventListener('click', e => {
+    e.preventDefault();
+    const csv = 'Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://www.sksaree.shop/images/products/kanchipuram-silk.jpg,soft-silk,New,,10,"Red, Gold"\nWedding Kanjivaram,2899,4599,https://www.sksaree.shop/images/products/banarasi-purple.jpg,bridal-sarees,Bestseller,,8,Maroon\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sk-sarees-products-template.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  });
   document.getElementById('prodSearch').addEventListener('input', e => { prodSearch = e.target.value; prodPage = 1; renderProdBody(); });
   document.getElementById('btnDelSel').addEventListener('click', () => {
     const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
@@ -540,8 +595,12 @@ function openAddProduct(){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       '<div class="field"><label>Category *</label><select id="apCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Badge</label><select id="apBadge"><option value="">—</option><option>Bestseller</option><option>New</option><option>Sale</option><option>Limited Stock</option></select></div></div>' +
-    '<div class="field"><label>🖼️ Main Image URL *</label><input id="apImg" placeholder="https://…"></div>' +
-    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px"><button type="button" class="btn btn-ghost btn-sm" id="apAutoCol" style="width:auto;min-width:0;min-height:30px;padding:4px 12px;font-size:.72rem">🎨 Auto-detect colour from photo</button><small class="muted">photo-ila irukkura colours automatic-a fill aagum</small></div>' +
+    '<div class="field"><label>🖼️ Main Image — upload from phone/computer <b>or</b> paste URL</label><input id="apImg" placeholder="Paste https://… or tap Upload Photo"></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px">' +
+      '<button type="button" class="btn btn-maroon btn-sm" id="apPhoto" style="width:auto;min-width:0;min-height:32px;padding:5px 14px;font-size:.74rem">📷 Upload Photo</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="apAutoCol" style="width:auto;min-width:0;min-height:30px;padding:4px 12px;font-size:.72rem">🎨 Auto-detect colour from photo</button>' +
+      '<small class="muted" style="color:var(--green);font-weight:700" id="apPhotoHint" style="display:none">✅ Photo ready — auto-detect colours!</small>' +
+    '</div>' +
     '<div class="field"><label>➕ Extra Image 1 (optional — gallery thumbnail)</label><input id="apImg2" placeholder="https://…"></div>' +
     '<div class="field"><label>➕ Extra Image 2 (optional — gallery thumbnail)</label><input id="apImg3" placeholder="https://…"></div>' +
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="apVideo" placeholder="https://youtube.com/watch?v=…"></div>' +
@@ -570,6 +629,112 @@ function openAddProduct(){
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
   });
   wireAutoColour('apImg', 'apColors', 'apAutoCol');
+  wirePhotoUpload('apImg', 'apPhoto', 'apPhotoHint');
+}
+/* 📷 photo upload from phone/computer → resized data-URI (no server needed).
+   Max width/height 900px, JPEG q0.82 — small enough for localStorage & catalog.json */
+function photoToDataURI(file, cb){
+  try{
+    if (!file || !/^image\//.test(file.type)){ cb(null, '⚠️ Not an image file'); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try{
+          const MAX = 900;
+          let w = img.width, h = img.height;
+          if (Math.max(w, h) > MAX){ const s = MAX / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+          const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+          const ctx = cv.getContext('2d');
+          if (!ctx){ cb(null, '⚠️ Canvas not available'); return; }
+          ctx.drawImage(img, 0, 0, w, h);
+          const uri = cv.toDataURL('image/jpeg', 0.82);
+          cb(uri, null);
+        }catch(e){ cb(null, '⚠️ Could not process image'); }
+      };
+      img.onerror = () => cb(null, '⚠️ Could not read image');
+      img.src = String(rd.result || '');
+    };
+    rd.onerror = () => cb(null, '⚠️ Could not read file');
+    rd.readAsDataURL(file);
+  }catch(e){ cb(null, '⚠️ Upload failed'); }
+}
+function wirePhotoUpload(imgId, btnId, hintId){
+  const btn = document.getElementById(btnId);
+  const imgEl = document.getElementById(imgId);
+  const hint = document.getElementById(hintId);
+  if (!btn || !imgEl) return;
+  const fileIn = document.createElement('input');
+  fileIn.type = 'file';
+  fileIn.accept = 'image/*';
+  fileIn.style.display = 'none';
+  document.body.appendChild(fileIn);
+  fileIn.addEventListener('change', () => {
+    const f = fileIn.files && fileIn.files[0];
+    if (!f) return;
+    btn.disabled = true; btn.textContent = '⏳ Uploading…';
+    photoToDataURI(f, (uri, err) => {
+      btn.disabled = false; btn.textContent = '📷 Upload Photo';
+      if (err){ toast(err); return; }
+      imgEl.value = uri;
+      if (hint) hint.style.display = 'block';
+      toast('✅ Photo ready — now tap "🎨 Auto-detect colour from photo"');
+      /* auto-detect colours from the uploaded photo too */
+      try{
+        const colEl = document.getElementById(imgId === 'apImg' ? 'apColors' : 'epColors');
+        if (colEl && !colEl.value.trim() && typeof detectColoursFromImage === 'function'){
+          detectColoursFromImage(uri, names => { if (names && names.length) colEl.value = names.join(', '); });
+        }
+      }catch(e){}
+    });
+  });
+  btn.addEventListener('click', () => fileIn.click());
+}
+/* current localStorage usage (MB) — shows how much room photos have left */
+function storageMB(){
+  try{
+    let bytes = 0;
+    for (let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      bytes += (k.length + (localStorage.getItem(k) || '').length) * 2;
+    }
+    return bytes / (1024 * 1024);
+  }catch(e){ return 0; }
+}
+/* one bulk line/row → product (throws Error with message) */
+function bulkPartsToProduct(parts){
+  if (!parts || !parts.length) throw new Error('empty');
+  const url = (parts.find(x => /^https?:\/\//i.test(x)) || '').trim();
+  if (!url) throw new Error('no image URL');
+  let name, price, mrp, cat, badge, sku, stock, colors, colourStock;
+  if (parts.length >= 3 && !/^https?:\/\//i.test(parts[0])){
+    /* standard: Name, Price, MRP, Image, Category, Badge, SKU, Stock, Colours */
+    name = parts[0];
+    price = +parts[1] || 0;
+    mrp = +parts[2] || 0;
+    cat = parts[3] || 'daily';
+    badge = parts[5] || '';
+    sku = parts[6] || '';
+    stock = +parts[7];
+    colors = parts[8] || '';
+  } else {
+    /* short line: image URL (+ optional name / price) */
+    const nonUrl = parts.filter(x => !/^https?:\/\//i.test(x));
+    const nums = nonUrl.map(x => +x).filter(Number.isFinite);
+    name = nonUrl.find(x => !Number.isFinite(+x)) || '';
+    price = nums[0] || 999;
+    mrp = nums[1] || Math.round(price * 1.6);
+    cat = 'daily';
+    badge = '';
+    sku = '';
+    stock = 0;
+  }
+  if (!name){ sku = sku || nextSku(); name = 'Saree ' + sku; }
+  if (!(price > 0)) price = 999;
+  if (!(mrp > price)) mrp = Math.round(price * 1.6);
+  const np = normalizeProduct({ name, price, mrp, cat, img: url, badge, sku, stock: stock || undefined, colors: colors || undefined });
+  if (!np.id) throw new Error('no id');
+  return np;
 }
 function importBulk(){
   const res = document.getElementById('bulkResult'); if (!res) return;
@@ -577,46 +742,23 @@ function importBulk(){
   let added = 0, errors = [], imported = [];
   lines.forEach((line, i) => {
     try{
-      const parts = line.includes('\t') ? line.split('\t').map(x => x.trim()) : line.split(',').map(x => x.trim()).filter(Boolean);
-      if (!parts.length){ errors.push('Line ' + (i + 1)); return; }
-      const url = (parts.find(x => /^https?:\/\//i.test(x)) || '').trim();
-      if (!url){ errors.push('Line ' + (i + 1) + ' (no image URL)'); return; }
-      let name, price, mrp, cat, badge, sku;
-      if (parts.length >= 3 && !/^https?:\/\//i.test(parts[0])){
-        /* standard: Name, Price, MRP, Image, Category, Badge, SKU(optional) */
-        name = parts[0];
-        price = +parts[1] || 0;
-        mrp = +parts[2] || 0;
-        cat = parts[3] || 'daily';
-        badge = parts[5] || '';
-        sku = parts[6] || '';
-      } else {
-        /* short line: image URL (+ optional name / price) */
-        const nonUrl = parts.filter(x => !/^https?:\/\//i.test(x));
-        const nums = nonUrl.map(x => +x).filter(Number.isFinite);
-        name = nonUrl.find(x => !Number.isFinite(+x)) || '';
-        price = nums[0] || 999;
-        mrp = nums[1] || Math.round(price * 1.6);
-        cat = 'daily';
-        badge = '';
-        sku = '';
-      }
-      if (!name){ sku = sku || nextSku(); name = 'Saree ' + sku; }   /* auto name with the SKU */
-      if (!(price > 0)) price = 999;
-      if (!(mrp > price)) mrp = Math.round(price * 1.6);
-      const np = normalizeProduct({ name, price, mrp, cat, img: url, badge, sku });
-      if (!np.id) throw new Error('no id');
+      const parts = line.includes('\t') ? line.split('\t').map(x => x.trim()).filter(Boolean) : parseCsvLine(line);
+      const np = bulkPartsToProduct(parts);
       PRODUCTS.unshift(np);
       imported.push(np);
       added++;
     }catch(e){ errors.push('Line ' + (i + 1)); }
   });
+  finishBulkImport(imported, errors, added, res);
+}
+/* shared finish: save + refresh + 🎨 auto-detect colours from each photo */
+function finishBulkImport(imported, errors, added, res){
+  if (!res) res = document.getElementById('bulkResult');
   if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
   if (!added){ res.innerHTML = '⚠️ Nothing imported' + (errors.length ? ': ' + errors.join('; ') : '') + ' — check the format (Name, Price, MRP, Image URL…)'; return; }
   res.innerHTML = '✅ Imported <b>' + added + '</b> products' +
-    '<br><small class="muted">SKUs: ' + (imported[0] && imported[imported.length - 1] ? imported[imported.length - 1].sku + ' … ' : '') + 'auto-generated • 🎨 detecting colours from photos…</small>';
+    '<br><small class="muted">SKUs auto-generated • 🎨 detecting colours from photos…</small>';
   toast('📥 ' + added + ' imported — detecting colours…');
-  /* 🎨 auto-detect colours from each photo (async, sequential) */
   let done = 0, okCol = 0;
   const next = (idx) => {
     if (idx >= imported.length){
@@ -645,6 +787,78 @@ function importBulk(){
   };
   next(0);
 }
+/* 📄 CSV/TSV file upload — works with Excel-exported files */
+function importCsvFile(file){
+  const res = document.getElementById('bulkResult'); if (!res) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const text = String(rd.result || '');
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !/^\s*[,;\t]*\s*$/.test(l));
+      if (!lines.length){ res.innerHTML = '⚠️ CSV file is empty'; return; }
+      let imported = [], errors = [], added = 0, start = 0;
+      /* header row detection: name/product … price … image */
+      const first = parseCsvLine(lines[0]);
+      const isHeader = first.some(h => /^(name|product|title)$/i.test(h)) && first.some(h => /^price$/i.test(h));
+      if (isHeader) start = 1;
+      for (let i = start; i < lines.length; i++){
+        try{
+          const np = bulkPartsToProduct(parseCsvLine(lines[i]));
+          PRODUCTS.unshift(np);
+          imported.push(np);
+          added++;
+        }catch(e){ errors.push('Row ' + (i + 1)); }
+      }
+      if (isHeader) res.innerHTML = '📄 CSV imported';
+      finishBulkImport(imported, errors, added, res);
+    }catch(e){ res.innerHTML = '⚠️ Could not read CSV file'; }
+  };
+  rd.onerror = () => res.innerHTML = '⚠️ Could not read file';
+  rd.readAsText(file);
+}
+/* 📦 catalog.json upload — import the whole catalog from another device */
+function importCatalogFile(file){
+  const res = document.getElementById('bulkResult'); if (!res) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const data = JSON.parse(String(rd.result || ''));
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
+      if (!list.length){ res.innerHTML = '⚠️ No products found in catalog.json'; return; }
+      let added = 0, skipped = 0;
+      list.forEach(raw => {
+        try{
+          if (!raw || !raw.id) return;
+          if (isSampleId(raw.id)){ skipped++; return; }   /* never import demo products */
+          const np = normalizeProduct(raw);
+          const i = PRODUCTS.findIndex(x => x.id === np.id);
+          if (i >= 0) PRODUCTS[i] = np; else PRODUCTS.unshift(np);
+          added++;
+        }catch(e){ skipped++; }
+      });
+      if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
+      res.innerHTML = added ? '✅ catalog.json imported — <b>' + added + '</b> products loaded' + (skipped ? ' (' + skipped + ' demo/skipped)' : '') : '⚠️ Nothing to import';
+      toast('📦 catalog.json — ' + added + ' products');
+    }catch(e){ res.innerHTML = '⚠️ Invalid catalog.json — not a valid JSON file'; }
+  };
+  rd.onerror = () => res.innerHTML = '⚠️ Could not read file';
+  rd.readAsText(file);
+}
+/* tiny CSV line parser (handles quoted commas) */
+function parseCsvLine(line){
+  const out = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if (inQ){
+      if (ch === '"'){ if (line[i + 1] === '"'){ cur += '"'; i++; } else inQ = false; }
+      else cur += ch;
+    } else if (ch === '"') inQ = true;
+    else if (ch === ','){ out.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
 
 function openEditProduct(id){
   const p = byId(id); if (!p) return;
@@ -658,8 +872,12 @@ function openEditProduct(id){
       '<div class="field"><label>Category</label><select id="epCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Stock</label><input id="epStock" type="number" value="' + p.stock + '"></div></div>' +
     '<div class="field"><label>Badge</label><select id="epBadge"><option value=""' + (!p.badge ? ' selected' : '') + '>—</option><option' + (p.badge === 'Bestseller' ? ' selected' : '') + '>Bestseller</option><option' + (p.badge === 'New' ? ' selected' : '') + '>New</option><option' + (p.badge === 'Sale' ? ' selected' : '') + '>Sale</option><option' + (p.badge === 'Limited Stock' ? ' selected' : '') + '>Limited Stock</option></select></div>' +
-    '<div class="field"><label>🖼️ Main Image URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
-    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px"><button type="button" class="btn btn-ghost btn-sm" id="epAutoCol" style="width:auto;min-width:0;min-height:30px;padding:4px 12px;font-size:.72rem">🎨 Auto-detect colour from photo</button><small class="muted">photo-ila irukkura colours automatic-a fill aagum</small></div>' +
+    '<div class="field"><label>🖼️ Main Image — upload from phone/computer <b>or</b> paste URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px">' +
+      '<button type="button" class="btn btn-maroon btn-sm" id="epPhoto" style="width:auto;min-width:0;min-height:32px;padding:5px 14px;font-size:.74rem">📷 Upload Photo</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="epAutoCol" style="width:auto;min-width:0;min-height:30px;padding:4px 12px;font-size:.72rem">🎨 Auto-detect colour from photo</button>' +
+      '<small class="muted" style="color:var(--green);font-weight:700" id="epPhotoHint" style="display:none">✅ Photo ready — auto-detect colours!</small>' +
+    '</div>' +
     '<div class="field"><label>➕ Extra Image 1</label><input id="epImg2" value="' + esc((p.images || [])[1] || '') + '" placeholder="https://…"></div>' +
     '<div class="field"><label>➕ Extra Image 2</label><input id="epImg3" value="' + esc((p.images || [])[2] || '') + '" placeholder="https://…"></div>' +
     '<div class="field"><label>Video URL (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
@@ -716,6 +934,7 @@ function openEditProduct(id){
     }
   });
   wireAutoColour('epImg', 'epColors', 'epAutoCol');
+  wirePhotoUpload('epImg', 'epPhoto', 'epPhotoHint');
 }
 
 /* ============================ COUPONS ============================ */
@@ -819,7 +1038,7 @@ function maGenerate(){
   const coupon = document.getElementById('maCoupon').value.trim().toUpperCase();
   const page = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
   /* ✅ correct URL: product.html?id=X&coupon=Y — never a second ? */
-  const link = page + 'product.html?id=' + encodeURIComponent(p.id) + (coupon ? '&coupon=' + encodeURIComponent(coupon) : '');
+  const link = page + 'product/' + encodeURIComponent(p.id) + '.html' + (coupon ? '?coupon=' + encodeURIComponent(coupon) : '');
   const off = offPct(p);
   const price = money(p.price);
   const mrp = p.mrp ? money(p.mrp) : '';
@@ -878,6 +1097,129 @@ function renderLeads(){
   }).join('');
 }
 
+/* ============================ 🔗 PRETTY PRODUCT PAGES ============================
+   Each product gets its OWN page: product/SK75279.html
+   (https://www.sksaree.shop/product/SK75279.html) — ideal for ads, WhatsApp
+   shares and Google. Pages are generated from the live catalog and downloaded
+   as a ZIP; extract it and upload the "product" folder to your host root.
+   Old ?id= links keep working — every page also handles /product/SK.html. */
+function productPageHTML(p){
+  const site = (CONFIG.siteUrl || '').replace(/\/+$/, '');
+  const pretty = site + '/product/' + encodeURIComponent(p.id) + '.html';
+  const img = /^https?:/.test(p.img || '') ? p.img : (site + '/' + String(p.img || '').replace(/^\.?\//, ''));
+  const desc = String(p.desc || (p.name + ' — ' + (p.fabric || 'Premium') + ' saree from SK Sarees, Salem.')).replace(/"/g, "'");
+  const cat = catOf(p.cat);
+  const price = p.price || 0, mrp = p.mrp || 0;
+  const ld = {
+    '@context': 'https://schema.org', '@type': 'Product',
+    name: p.name, image: img, sku: p.sku || p.id,
+    brand: { '@type': 'Brand', name: 'SK Sarees' },
+    offers: { '@type': 'Offer', priceCurrency: 'INR', price: price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: pretty, itemCondition: 'https://schema.org/NewCondition' },
+  };
+  if (mrp > price) ld.offers.priceValidUntil = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+  return '<!doctype html>\n<html lang="en">\n<head>\n' +
+    '<meta charset="utf-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' +
+    '<meta name="theme-color" content="#8f1d3a">\n' +
+    '<base href="../">\n' +
+    '<link rel="manifest" href="manifest.webmanifest">\n' +
+    '<meta name="mobile-web-app-capable" content="yes">\n' +
+    '<meta name="apple-mobile-web-app-capable" content="yes">\n' +
+    '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n' +
+    '<meta name="apple-mobile-web-app-title" content="SK Sarees">\n' +
+    '<link rel="apple-touch-icon" href="icons/icon-192.png">\n' +
+    '<title>' + esc(p.name) + ' — SK Sarees</title>\n' +
+    '<meta name="description" content="' + esc(desc.slice(0, 155)) + '">\n' +
+    '<link rel="canonical" href="' + esc(pretty) + '">\n' +
+    '<meta property="og:type" content="product">\n' +
+    '<meta property="og:title" content="' + esc(p.name) + '">\n' +
+    '<meta property="og:description" content="' + esc(desc.slice(0, 155)) + '">\n' +
+    '<meta property="og:image" content="' + esc(img) + '">\n' +
+    '<meta property="og:url" content="' + esc(pretty) + '">\n' +
+    '<meta property="og:site_name" content="SK Sarees">\n' +
+    '<meta property="og:price:amount" content="' + price + '">\n' +
+    '<meta property="og:price:currency" content="INR">\n' +
+    '<meta property="og:availability" content="' + ((p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock') + '">\n' +
+    '<meta name="twitter:card" content="summary_large_image">\n' +
+    '<meta name="twitter:title" content="' + esc(p.name) + '">\n' +
+    '<meta name="twitter:image" content="' + esc(img) + '">\n' +
+    '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'20\' fill=\'%238f1d3a\'/%3E%3Ctext x=\'50\' y=\'68\' font-size=\'48\' text-anchor=\'middle\' fill=\'%23e8c66a\' font-family=\'Georgia\'%3ESK%3C/text%3E%3C/svg%3E">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
+    '<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap">\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'">\n' +
+    '<link rel="stylesheet" href="style.css">\n' +
+    '<script type="application/ld+json">' + JSON.stringify(ld) + '</script>\n' +
+    '</head>\n' +
+    '<body data-page="product">\n' +
+    '<script>window.__PRODUCT_ID = ' + JSON.stringify(p.id) + ';</script>\n' +
+    '<main id="app">\n  <div class="wrap pd-wrap" style="margin-top:12px" id="pdWrap"></div>\n  <div class="sticky-bar" id="stickyBar"></div>\n</main>\n' +
+    '<script src="data.js"></script>\n<script src="rec.js"></script>\n<script src="app.js"></script>\n' +
+    '</body>\n</html>\n';
+}
+/* ---- tiny ZIP writer (store method, no compression — perfect for small HTML) ---- */
+const __crcTable = (function(){
+  const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++){
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c;
+  }
+  return t;
+})();
+function __crc32(bytes){
+  let c = -1;
+  for (let i = 0; i < bytes.length; i++) c = __crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+}
+function buildZip(files){   /* files: [{name, data(Uint8Array)}] */
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  files.forEach(f => {
+    const nb = enc.encode(f.name), db = f.data;
+    const crc = __crc32(db);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true);
+    lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, db.length, true); lh.setUint32(22, db.length, true);
+    lh.setUint16(26, nb.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), nb, db);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, db.length, true); ch.setUint32(24, db.length, true);
+    ch.setUint16(28, nb.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true);
+    ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), nb);
+    offset += 30 + nb.length + db.length;
+  });
+  const cdSize = central.reduce((s, a) => s + a.length, 0);
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0, 0x06054b50, true); eocd.setUint16(4, 0, true); eocd.setUint16(6, 0, true);
+  eocd.setUint16(8, files.length, true); eocd.setUint16(10, files.length, true);
+  eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true); eocd.setUint16(20, 0, true);
+  const all = []; let size = 0;
+  parts.forEach(a => { size += a.length; }); central.forEach(a => { size += a.length; }); size += 22;
+  const out = new Uint8Array(size); let o = 0;
+  const put = a => { out.set(a, o); o += a.length; };
+  parts.forEach(put); central.forEach(put); out.set(new Uint8Array(eocd.buffer), o);
+  return out;
+}
+/* download the product-pages ZIP (uses window.__PRODUCT_ID pages for every product) */
+function downloadProductPages(){
+  const prods = PRODUCTS.filter(p => !p.hidden);
+  if (!prods.length){ toast('⚠️ No products yet'); return; }
+  const files = prods.map(p => ({ name: 'product/' + p.id + '.html', data: new TextEncoder().encode(productPageHTML(p)) }));
+  const zip = buildZip(files);
+  const blob = new Blob([zip], { type: 'application/zip' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'product-pages.zip';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('📦 product-pages.zip (' + files.length + ' pages) — extract & upload the "product" folder');
+}
+
 /* ============================ CATALOG FEED (Facebook/Instagram Shopping XML) ============================ */
 function feedXml(){
   const escX = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
@@ -890,7 +1232,7 @@ function feedXml(){
       '<g:id>' + escX(p.id) + '</g:id>\n' +
       '<g:title>' + escX(p.name) + '</g:title>\n' +
       '<g:description>' + escX((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' — ' + p.color) + '</g:description>\n' +
-      '<g:link>' + escX(base + 'product.html?id=' + encodeURIComponent(p.id)) + '</g:link>\n' +
+      '<g:link>' + escX(base + 'product/' + encodeURIComponent(p.id) + '.html') + '</g:link>\n' +
       '<g:image_link>' + escX(imgAbs) + '</g:image_link>\n' +
       '<g:availability>' + ((p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock') + '</g:availability>\n' +
       '<g:price>' + p.price + ' INR</g:price>\n' +
@@ -923,7 +1265,7 @@ function feedTxt(){
       escT((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' - ' + p.color),
       p.price + ' INR',
       'new',
-      escT(base + 'product.html?id=' + encodeURIComponent(p.id)),
+      escT(base + 'product/' + encodeURIComponent(p.id) + '.html'),
       (p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock',
       escT(imgAbs),
     ];
@@ -960,7 +1302,7 @@ function feedIssues(){
   const base = feedBase();
   const out = [];
   PRODUCTS.filter(p => !p.hidden).slice(0, 200).forEach(p => {
-    const link = base + 'product.html?id=' + encodeURIComponent(p.id);
+    const link = base + 'product/' + encodeURIComponent(p.id) + '.html';
     const img = /^https?:/.test(p.img) ? p.img : (base + p.img.replace(/^\.?\//, ''));
     const issues = [];
     if (/localhost|127\.0\.0\.1|file:\/\//i.test(link)) issues.push('🔴 link uses localhost');
@@ -1006,7 +1348,13 @@ function renderFeed(){
       '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / hide / import a product.</p>' +
       '<p class="small muted" id="feedNote" style="margin-top:4px">1. Pick the feed domain above. 2. Tap <b>💾 Save feeds to this browser</b> (or just save a product — automatic). 3. Download the 3 files → upload to your host root (same folder as index.html). 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
     '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>' +
-    '<div class="form-card"><h3>🩺 Feed link check (first 15) — <span style="color:var(--green)">no localhost, all HTTPS</span></h3><div id="feedCheck" style="overflow:auto;max-height:280px;font-size:.72rem"></div></div>';
+    '<div class="form-card"><h3>🩺 Feed link check (first 15) — <span style="color:var(--green)">no localhost, all HTTPS</span></h3><div id="feedCheck" style="overflow:auto;max-height:280px;font-size:.72rem"></div></div>' +
+    '<div class="form-card"><h3>🔗 Pretty Product Pages — separate URL for every saree</h3>' +
+      '<p class="small muted">Each product gets its own page: <b>' + esc((CONFIG.siteUrl || location.origin) + '/product/SK75279.html') + '</b> — perfect for ads, WhatsApp shares and Google. Generate the ZIP, extract it, and upload the <b>product</b> folder to your host root (same place as index.html). Old <b>?id=</b> links keep working too.</p>' +
+      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-maroon" id="btnProductPages" style="width:auto;min-width:280px">📦 Generate Product Pages (ZIP) — ' + count + ' products</button>' +
+      '</div>' +
+      '<p class="small muted" id="ppNote" style="margin-top:6px">⚠️ <b>Regenerate after adding/editing products</b> — new products get their own page when you re-download.</p></div>';
   /* 🌐 domain picker — re-render feed preview + check with the chosen domain */
   const domSel = document.getElementById('feedDomain');
   if (domSel){
@@ -1017,6 +1365,9 @@ function renderFeed(){
       toast('🌐 Feed domain → ' + domSel.value);
     });
   }
+  /* 🔗 pretty product pages ZIP */
+  const pp = document.getElementById('btnProductPages');
+  if (pp) pp.addEventListener('click', () => { try{ downloadProductPages(); }catch(e){ toast('⚠️ Could not generate pages'); } });
   /* 🩺 link check list */
   try{
     const fc = document.getElementById('feedCheck');

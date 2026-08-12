@@ -1,6 +1,38 @@
 # 🪡 SK Sarees — Premium Multi-Page Redesign
 
+## 🤖 AI Power Pack — order boosters (new)
+
+Everything runs **100% client-side** (no server, no API keys) — the site feels smart and sells more:
+
+- **🎨 AI colour detection shown to customers** — like Google Photos detecting faces, the admin's photo colour-detector feeds each product's colours, and the **product page shows real colour dots** (actual hex swatches) with an "AI-detected from photo" label. Customers see exactly the saree's colours at a glance.
+- **🤖 SK AI Assistant** — floating 🤖 button on every page opens a chat. Type "red silk saree under ₹1500", "wedding", "office"… it **recommends matching sarees with prices + Add-to-Cart + WhatsApp handoff**. Quick-chips included (Wedding, Office, Under ₹1500, Silk, Cotton, Best sellers). This is the #1 South-India-store differentiator.
+- **🎁 Smart upsell after Add to Cart** — Amazon-style "You may also like" popup with 2-3 similar sarees + Go to Cart (once per 60s, never spammy) → bigger carts, more orders.
+- **🤖 "Recommended for You" strip** — home page top, built from what the visitor **viewed or liked** (REC engine). No history → trending strip. So even without clicking, any saree they saw generates follow-up recommendations.
+- **🔍 Smart search suggestions** — shop search shows product names / colours / SKUs as you type (datalist).
+- **Similar Sarees + Explore sections** already on every product page (30 recommendations with AI match %).
+
+## 🔗 Pretty Product URLs — separate page per saree (new)
+
+Every saree now has its **own clean URL**: `https://www.sksaree.shop/product/SK75279.html` (instead of `product.html?id=SK75279`). Perfect for ads, WhatsApp shares and Google.
+
+- **73 product pages are already generated** in the `product/` folder of this repo — upload that folder to your host root alongside index.html.
+- **Regenerate anytime**: Admin → 📦 Catalog Feed → **"📦 Generate Product Pages (ZIP)"** — downloads `product-pages.zip` containing one HTML page per product (hidden products excluded). Extract & upload the `product` folder. **Always regenerate after adding/editing products.**
+- Each generated page has full SEO: title, description, **canonical** (pretty URL), **og:image/og:title/og:url**, Twitter card, and **JSON-LD Product schema** (price, availability, SKU) — Google Shopping & ads love these.
+- **Old links keep working** — `product.html?id=SK75279` and even broken share links still load; every page also handles `product/SK75279.html` paths.
+- **Copy link / WhatsApp share / Meta & Google feeds / sitemap now use the pretty URLs.**
+- Sitemap updated with one entry per product page.
+- Hosting on GitHub Pages: drag the whole `product/` folder into your repo (or commit it). No build step needed.
+
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
+
+## 📥 Bulk Upload (auto SKU + auto colour) · 🚫 Hidden Products · 💰 Reseller Pay · 🌐 Feed Domain (new)
+
+- **Bulk Upload upgraded** — one product per line: `Name, Price, MRP, Image URL, Category, Badge` — or just paste an **image URL alone** (name & price auto-filled). Every product gets an **auto SKU** (`SK20001, SK20002…`), and **🎨 colours are auto-detected from each photo** right after import (progress shown live).
+- **🚫 Hidden products** — tick products in the Admin table → **Hide Selected / Show Selected**, or use the per-row 👁️/🚫 toggle, or the checkbox in Add/Edit product. Hidden products: never appear in the shop / recommendations / feeds / catalog, and **their links redirect customers to the home page** ("no longer available"). Admin can still open them.
+- **💰 Reseller margin fixed + Mark Paid** — `?ref=CODE` now works on **every device** (codes are pulled from Firestore, not just the device where the reseller registered), so margins always reach the admin panel. New **"✅ Mark Paid & Reset"** button per reseller zeroes the margin and keeps a "Paid so far" history.
+- **🌐 Feed domain picker (Google Merchant "Website link mismatch" fix)** — in Admin → Catalog Feed choose **with-www or without-www**; every feed link (XML/TXT/catalog.json/feed page) uses that same domain. Set the same domain in Google Merchant Center → the mismatch error disappears.
+- **🩺 Feed link check** — the Feed tab now shows the final link + image URL per product and flags localhost / non-HTTPS before you submit to Google/Meta.
+- **Meta feed link fix** — feeds are generated with absolute HTTPS links (no localhost) and exclude hidden products; upload the regenerated `products-feed.xml` to your host and add that URL in Meta Commerce Manager.
 
 ## 🎨 Auto Colour Detection from Saree Photo (new)
 

@@ -31,8 +31,149 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
+  try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', init);
+
+/* ============================ 🤖 SK AI ASSISTANT ============================
+   Finds the right saree in seconds — type what you need (occasion, colour,
+   fabric, budget) and it recommends matching sarees with prices + links.
+   100% client-side, no server, works on any static host. */
+function aiCard(p){
+  return '<div class="ai-card"><a href="' + productUrl(p) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy"></a>' +
+    '<div class="ai-card-b"><b><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></b>' +
+    '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (offPct(p) ? '<span class="off">' + offPct(p) + '%</span>' : '') + '</div>' +
+    '<div style="display:flex;gap:6px;margin-top:6px"><button type="button" class="btn btn-maroon btn-sm" data-add="' + esc(p.id) + '">🛒 Add</button>' +
+    '<a class="btn btn-outline btn-sm" href="' + productUrl(p) + '">View</a></div></div></div>';
+}
+function aiMsgHTML(role, html){
+  return '<div class="ai-msg ' + role + '">' + html + '</div>';
+}
+function aiPushMsg(role, html){
+  const ms = document.getElementById('aiMsgs'); if (!ms) return;
+  ms.insertAdjacentHTML('beforeend', aiMsgHTML(role, html));
+  ms.scrollTop = ms.scrollHeight;
+}
+function aiRespond(q){
+  q = String(q || '').trim();
+  const input = q.replace(/[?.!]/g, ' ').toLowerCase();
+  const has = re => new RegExp(re).test(input);
+  let pool = [];
+  try{ pool = PRODUCTS.filter(p => !p.hidden && p.stock != null && p.stock > 0); }catch(e){}
+  const hint = has('wedding|bride|bridal|kalyana|marriage') ? 'Wedding collection' :
+               has('office|work|formal') ? 'Office wear' :
+               has('party|function|reception|birthday') ? 'Party wear' :
+               has('puja|festival|aadi|pongal|diwali|temple') ? 'Festival collection' :
+               has('gift|surprise') ? 'Gift picks' :
+               has('silk|kanjivaram|banarasi') ? 'Silk sarees' :
+               has('cotton') ? 'Cotton sarees' :
+               has('linen') ? 'Linen sarees' : '';
+  const score = (p) => {
+    let s = 0;
+    const t = (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + p.cat + ' ' + (p.desc || '')).toLowerCase();
+    if (has('wedding|bride|bridal|kalyana|marriage')){ if (/wedding|bridal|kalyana/.test(p.cat) || /bridal|wedding|bride/.test(t)) s += 4; }
+    if (has('office|work|formal')){ if (p.cat === 'office' || /office|formal/.test(t)) s += 4; }
+    if (has('party|function|reception|birthday')){ if (p.cat === 'party' || p.cat === 'fancy' || /party|reception/.test(t)) s += 4; }
+    if (has('puja|festival|aadi|pongal|diwali|temple')){ if (p.cat === 'festival' || /festival|puja|temple/.test(t)) s += 4; }
+    for (const fab of ['silk','cotton','linen','organza','georgette','net','kanjivaram','banarasi']) if (has(fab) && t.indexOf(fab) !== -1) s += 3;
+    for (const col of Object.keys(COLOUR_SWATCHES)) if (has(col) && t.indexOf(col) !== -1) s += 3;
+    const bm = input.match(/under\s*₹?\s*(\d+)|(\d+)\s*(?:rupees|rs)\b|below\s*(\d+)/);
+    if (bm){ const budget = +(bm[1] || bm[2] || bm[3]); if (p.price <= budget) s += 3; else s -= 2; }
+    if (has('cheap|budget|low price')){ if (p.price <= 1200) s += 3; }
+    if (has('gift')) s += 1;
+    return s;
+  };
+  let picks = pool.map(p => ({ p, s: score(p) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3).map(x => x.p);
+  if (!picks.length) picks = pool.slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 3);
+  if (!picks.length){ aiPushMsg('bot', '😊 We will get fresh stock soon! Meanwhile, <b>ask us on WhatsApp</b> — we will help you find the perfect saree.'); return; }
+  aiPushMsg('bot', (hint ? 'Here are <b>' + hint + '</b> picks for you: 🎯' : 'Here are your best matches: 🎯') +
+    '<div class="ai-cards">' + picks.map(aiCard).join('') + '</div>' +
+    '<a class="btn btn-wa btn-sm" style="margin-top:8px" href="' + waLink('Hi! I am looking for: ' + q + '. Please help me choose. 🙏') + '" target="_blank" rel="noopener">💬 Not sure? Ask us on WhatsApp</a>');
+}
+function openAIAssistant(){
+  const quick = ['👰 Wedding sarees', '💼 Office sarees', '💰 Under ₹1500', '✨ Silk', '🌾 Cotton', '⭐ Best sellers'];
+  openModal('<div class="ai-chat">' +
+    '<div class="ai-head">🤖 SK AI Assistant<small>Finds your perfect saree in seconds</small></div>' +
+    '<div class="ai-msgs" id="aiMsgs"></div>' +
+    '<div class="ai-quick">' + quick.map(x => '<button type="button" class="btn btn-outline btn-sm" data-aiq="' + esc(x) + '">' + esc(x) + '</button>').join('') + '</div>' +
+    '<div class="ai-input"><input id="aiIn" placeholder="e.g. red silk saree under 1500" maxlength="90" autocomplete="off"><button type="button" class="btn btn-maroon btn-sm" id="aiSend">➤</button></div>' +
+    '</div>');
+  aiPushMsg('bot', '👋 Vanakkam! Tell me what you need — <b>occasion, colour, fabric or budget</b> — and I will show sarees for you. Try: <i>"red silk saree under ₹1500"</i> 😊');
+  const send = () => {
+    const inp = document.getElementById('aiIn'); if (!inp) return;
+    const v = inp.value.trim(); if (!v) return;
+    aiPushMsg('user', esc(v));
+    inp.value = '';
+    setTimeout(() => aiRespond(v), 350);
+  };
+  const sb = document.getElementById('aiSend');
+  if (sb) sb.addEventListener('click', send);
+  const inp = document.getElementById('aiIn');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+  const qs = document.querySelectorAll('[data-aiq]');
+  qs.forEach(b => b.addEventListener('click', () => { aiPushMsg('user', esc(b.dataset.aiq)); setTimeout(() => aiRespond(b.dataset.aiq), 350); }));
+}
+
+/* 🛒 Smart upsell — right after "Add to Cart" show 2-3 similar sarees
+   (Amazon-style "You may also like") → bigger cart → more orders.
+   Shows once per 60s so it never feels spammy. */
+function maybeShowUpsell(id){
+  try{
+    const page = document.body.dataset.page;
+    if (page === 'cart' || page === 'checkout' || page === 'orders') return;   /* those pages already upsell */
+    try{ if (+sessionStorage.getItem('sk_upsell_t') && Date.now() - +sessionStorage.getItem('sk_upsell_t') < 60000) return; }catch(e){}
+    const p = byId(id); if (!p) return;
+    let recs = [];
+    try{
+      if (window.REC && REC.recommendFor) recs = REC.recommendFor(p, 4).map(r => byId(r.id)).filter(Boolean);
+    }catch(e){}
+    if (recs.length < 2) recs = PRODUCTS.filter(x => !x.hidden && x.id !== p.id && x.cat === p.cat && x.stock > 0).slice(0, 3);
+    recs = recs.filter(x => !Store.cart.some(c => c.id === x.id)).slice(0, 3);
+    if (recs.length < 2) return;
+    try{ sessionStorage.setItem('sk_upsell_t', String(Date.now())); }catch(e){}
+    openModal('<div class="upsell">' +
+      '<div class="upsell-ok">✅ <b>Added to cart!</b></div>' +
+      '<h3 style="font-size:1rem;margin:10px 0 2px">🎁 You may also like</h3>' +
+      '<p class="small muted" style="margin-bottom:10px">Customers who liked this also bought these…</p>' +
+      '<div class="prow">' + recs.map(cardHTML).join('') + '</div>' +
+      '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;margin-top:12px">' +
+        '<a class="btn btn-maroon" href="cart.html">🛒 Go to Cart</a>' +
+        '<button type="button" class="btn btn-outline" data-close>Continue Shopping</button>' +
+      '</div></div>');
+  }catch(e){}
+}
+
+/* 🤖 "Recommended for You" — top of the home page, powered by what this visitor
+   viewed / liked (REC engine). Falls back to a trending strip when no history. */
+function forYouHTML(){
+  try{
+    const recIds = viewedOrWishedProductIds();
+    const picks = [];
+    const seen = new Set();
+    if (recIds.length){
+      for (const id of recIds){
+        const p = byId(id); if (!p || p.hidden) continue;
+        try{
+          const r = (window.REC && REC.recommendFor) ? REC.recommendFor(p, 8) : [];
+          r.forEach(x => {
+            const pp = byId(x.id);
+            if (pp && !pp.hidden && pp.id !== id && !seen.has(pp.id) && !Store.cart.some(c => c.id === pp.id)){
+              seen.add(pp.id); picks.push(pp);
+            }
+          });
+        }catch(e){}
+        if (picks.length >= 4) break;
+      }
+    }
+    if (picks.length < 2){
+      /* no history → trending (best-rated) strip */
+      picks.push.apply(picks, PRODUCTS.filter(p => !p.hidden && p.stock > 0).slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 4));
+    }
+    if (picks.length < 2) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🤖 ' + (lang === 'ta' ? 'உங்களுக்கான பரிந்துரைகள்' : 'Recommended for You') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<div class="prow">' + picks.slice(0, 4).map(cardHTML).join('') + '</div></section>';
+  }catch(e){ return ''; }
+}
 
 /* ============================ FEED PAGE (public) ============================
    feed.html lists every machine-readable product feed (catalog.json for instant
@@ -203,7 +344,8 @@ function renderHome(){
   const best = PRODUCTS.filter(p => !p.hidden && p.badge === 'Bestseller').slice(0, 4);
   const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
-  app.innerHTML =
+  const forYou = forYouHTML();   /* 🤖 personalized strip (viewed/wishlist based) */
+  app.innerHTML = forYou +
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
@@ -309,12 +451,20 @@ function renderShop(){
     PRODUCTS.forEach(p => (p.colors || []).forEach(c => { c = String(c).trim(); if (c && allColours.indexOf(c) === -1) allColours.push(c); }));
   }catch(e){}
   const colOpts = allColours.map(c => '<option value="' + esc(c) + '"' + (shopState.colour === c ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
+  /* 🔍 smart suggestions — product names / SKUs / colours appear as you type */
+  const suggest = [];
+  try{
+    PRODUCTS.filter(p => !p.hidden).slice(0, 40).forEach(p => {
+      [p.name, p.color, p.sku].forEach(v => { v = String(v || '').trim(); if (v && suggest.indexOf(v) === -1) suggest.push(v); });
+    });
+  }catch(e){}
+  const datalist = suggest.length ? '<datalist id="searchSuggest">' + suggest.map(s => '<option value="' + esc(s) + '">').join('') + '</datalist>' : '';
   app.innerHTML =
     '<div class="wrap page">' +
       '<h1>🛍️ Shop All Sarees</h1>' +
       '<div style="display:flex;gap:8px">' +
-        '<input id="shopSearch" type="search" placeholder="🔍 Search sarees, fabric, colour…" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
-      '</div>' +
+        '<input id="shopSearch" list="searchSuggest" type="search" placeholder="🔍 Search sarees, fabric, colour… (suggestions as you type)" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
+      '</div>' + datalist +
       '<div class="cat-chips" id="catChips" style="margin-top:12px"></div>' +
       '<div class="pd-block" style="margin-top:12px"><div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Fabric</label>' +
@@ -522,9 +672,10 @@ function recentViewHTML(){
 /* ============================ PRODUCT ============================ */
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
-  /* 🔐 defensive id: safeParams already fixes broken links like
+  /* 🔐 defensive id: pretty pages (product/SK75279.html) set __PRODUCT_ID or
+     carry the id in the path; safeParams fixes broken links like
      product.html?id=SK75250?ref=SHA9088 → id=SK75250 & ref=SHA9088 */
-  const id = String(safeParams().get('id') || '').split('?')[0].trim();
+  const id = currentProductId();
   let p = byId(id);
   if (!p){
     /* Instant path: if a cached copy exists in the raw cloud cache, use it NOW
@@ -676,10 +827,11 @@ function renderProduct(){
         '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
         '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
         (p.colors && p.colors.length
-          ? '<div class="pd-colour-row"><b>🎨 Colour</b><div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
+          ? '<div class="pd-colour-row"><b>🎨 Colour</b> <small class="muted" style="font-weight:600">— AI-detected from photo</small>' +
+            '<div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
               const left = (p.colourStock && p.colourStock[c] != null) ? p.colourStock[c] : null;
               const dead = left === 0;
-              return '<button type="button" class="pd-colour' + (i === 0 && !dead ? ' on' : '') + '" data-colour="' + esc(c) + '"' + (dead ? ' disabled' : '') + '>' + esc(c) + (left != null ? ' <small>(' + left + ' left)</small>' : '') + '</button>';
+              return '<button type="button" class="pd-colour' + (i === 0 && !dead ? ' on' : '') + '" data-colour="' + esc(c) + '"' + (dead ? ' disabled' : '') + '><span class="sw-dot" style="background:' + swatchHex(c) + '"></span>' + esc(c) + (left != null ? ' <small>(' + left + ' left)</small>' : '') + '</button>';
             }).join('') + '</div></div>'
           : '') +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
@@ -1628,6 +1780,8 @@ document.addEventListener('click', function(e){
     /* 🛒 upsell "add more" on the cart page: refresh totals instantly so the
        amount shown always matches checkout */
     if (document.body.dataset.page === 'cart'){ try{ renderCartPage(); }catch(err){} }
+    /* 🎁 smart "you may also like" popup on product/shop adds */
+    try{ maybeShowUpsell(add.dataset.add); }catch(err2){}
     return;
   }
   /* 🎨 colour chip on product page */
@@ -1694,10 +1848,10 @@ document.addEventListener('click', function(e){
   if (copy){ e.preventDefault(); copyText(copy.dataset.copy); return; }
   /* 🎨 try-on preview */
   const tr = e.target.closest('#tryOpen');
-  if (tr){ e.preventDefault(); openTryOn(byId(safeParams().get('id'))); return; }
+  if (tr){ e.preventDefault(); openTryOn(byId(currentProductId())); return; }
   /* ⚡ fast order */
   const fo = e.target.closest('#foOpen');
-  if (fo){ e.preventDefault(); fastOrderModal(byId(safeParams().get('id'))); return; }
+  if (fo){ e.preventDefault(); fastOrderModal(byId(currentProductId())); return; }
   /* 🔁 order again */
   const ro = e.target.closest('[data-reorder]');
   if (ro){ e.preventDefault(); const o = myOrders().find(x => x.id === ro.dataset.reorder) || Store.orders.find(x => x.id === ro.dataset.reorder); if (o) orderAgain(o); return; }

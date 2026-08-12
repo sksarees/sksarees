@@ -1362,11 +1362,13 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .qty-row{display:flex;align-items:center;gap:12px;margin:14px 0}
 .pd-colour-row{margin:12px 0 2px}
 .pd-colour-row>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
-.pd-colour{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:8px 14px;font-size:.8rem;font-weight:800;color:#4a3f38;transition:all .15s}
+.pd-colour{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:8px 14px;font-size:.8rem;font-weight:800;color:#4a3f38;transition:all .15s}
 .pd-colour small{font-weight:700;color:var(--green)}
 .pd-colour.on{border-color:var(--maroon);background:var(--maroon);color:#fff;box-shadow:0 3px 10px rgba(143,29,58,.25)}
 .pd-colour.on small{color:#ffe9a8}
 .pd-colour:disabled{opacity:.45;text-decoration:line-through;cursor:not-allowed}
+/* 🎨 real colour dot (AI-detected) inside the colour chips */
+.sw-dot{display:inline-block;width:15px;height:15px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);flex:0 0 auto}
 .qty{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
 .qty button{width:42px;height:44px;font-size:1.25rem;font-weight:800;color:var(--maroon)}
 .qty button:active{background:var(--maroon-soft)}
@@ -1486,6 +1488,34 @@ footer{background:linear-gradient(180deg,#2b0a14,#1c060d);color:#e8cdd3;margin-t
 /* ---------- Floating WhatsApp ---------- */
 .wa-float{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:70;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2ee06f,var(--wa-d));display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(29,168,81,.5);animation:pulse 2.4s infinite}
 .wa-float span{font-size:1.7rem;position:relative;z-index:2}
+/* 🤖 SK AI Assistant floating button — sits just above the WhatsApp button */
+.ai-float{position:fixed;right:18px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:71;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;font-size:1.55rem;background:linear-gradient(135deg,#8f1d3a,#5c0f26);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(143,29,58,.45);animation:aiPulse 3s infinite}
+@keyframes aiPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+body.cartbar-on .ai-float{bottom:calc(146px + env(safe-area-inset-bottom))}
+@media(min-width:900px){.ai-float{width:58px;height:58px;font-size:1.7rem}}
+/* 🤖 AI assistant chat modal */
+.ai-chat{min-width:0;display:flex;flex-direction:column;height:min(70vh,520px)}
+.ai-head{display:flex;flex-direction:column;gap:2px;font-weight:800;color:var(--maroon);margin-bottom:8px}
+.ai-head small{font-weight:600;color:var(--muted);font-size:.72rem}
+.ai-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;background:var(--bg);border-radius:12px;border:1px solid var(--line);min-height:180px;max-height:360px}
+.ai-msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:.84rem;line-height:1.55;white-space:normal;word-wrap:break-word}
+.ai-msg.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
+.ai-msg.user{background:var(--maroon);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.ai-msg .btn{margin-top:4px}
+.ai-cards{display:grid;gap:8px;grid-template-columns:1fr;margin-top:6px}
+.ai-card{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:8px}
+.ai-card img{width:62px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto}
+.ai-card-b{flex:1;min-width:0;font-size:.78rem}
+.ai-card-b b a{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-card .price-row{font-size:.75rem}
+.ai-quick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.ai-input{display:flex;gap:8px;margin-top:6px}
+.ai-input input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;font-size:15px;background:#fff;outline:none}
+/* 🛒 smart upsell modal */
+.upsell .prow{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:640px){.upsell .prow{grid-template-columns:1fr 1fr 1fr}}
+.upsell-ok{color:var(--green);font-size:.95rem}
+.upsell .pcard{margin:0}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 .wa-bubble{position:fixed;right:16px;bottom:82px;z-index:69;background:#fff;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.18);padding:12px 14px;font-size:.8rem;font-weight:700;max-width:210px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.25s}
 .wa-bubble.show{opacity:1;transform:none}
