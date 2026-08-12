@@ -674,8 +674,7 @@ function recentViewHTML(){
 /* ============================ PRODUCT ============================ */
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
-  /* 🔐 defensive id: pretty pages (product/SK75279.html) set __PRODUCT_ID or
-     carry the id in the path; safeParams fixes broken links like
+  /* 🔐 defensive id: safeParams fixes broken links like
      product.html?id=SK75250?ref=SHA9088 → id=SK75250 & ref=SHA9088 */
   const id = currentProductId();
   let p = byId(id);

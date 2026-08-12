@@ -1040,7 +1040,7 @@ function maGenerate(){
   const coupon = document.getElementById('maCoupon').value.trim().toUpperCase();
   const page = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
   /* ✅ correct URL: product.html?id=X&coupon=Y — never a second ? */
-  const link = page + 'product/' + encodeURIComponent(p.id) + '.html' + (coupon ? '?coupon=' + encodeURIComponent(coupon) : '');
+  const link = page + 'product.html?id=' + encodeURIComponent(p.id) + (coupon ? '&coupon=' + encodeURIComponent(coupon) : '');
   const off = offPct(p);
   const price = money(p.price);
   const mrp = p.mrp ? money(p.mrp) : '';
@@ -1099,16 +1099,10 @@ function renderLeads(){
   }).join('');
 }
 
-/* ============================ 🔗 PRETTY PRODUCT PAGES ============================
-   Each product gets its OWN page: product/SK75279.html
-   (https://www.sksaree.shop/product/SK75279.html) — ideal for ads, WhatsApp
-   shares and Google. Pages are generated from the live catalog and downloaded
-   as a ZIP; extract it and upload the "product" folder to your host root.
-   Old ?id= links keep working — every page also handles /product/SK.html. */
 /* 🖼️ feed/product image URL — Google needs REAL image files at
    https://www.sksaree.shop/product/<sku>.jpg. data: URIs are NEVER used in
-   feeds/pages; a product photo that is a data URI is referenced as its
-   sku.jpg file instead (the ZIP includes that file). */
+   feeds; a product photo that is a data URI is referenced as its sku.jpg
+   file instead. (Product page links use the classic product.html?id= format.) */
 function feedImg(p, base){
   try{
     const raw = String(p && p.img || '').trim();
@@ -1117,241 +1111,6 @@ function feedImg(p, base){
     if (/^https?:/i.test(raw)) return raw;               /* already hosted remotely */
     return skuFile;                                      /* local relative → sku.jpg */
   }catch(e){ return (base || '') + 'product/' + (p && p.id) + '.jpg'; }
-}
-function productPageHTML(p, assets){
-  const site = (CONFIG.siteUrl || '').replace(/\/+$/, '');
-  const base = site + '/';
-  const pretty = site + '/product/' + encodeURIComponent(p.id) + '.html';
-  /* 🖼️ Google photo = product/<sku>.jpg (never a data URI) */
-  const img = feedImg(p, base);
-  /* ⚡ embed the product data so the page renders INSTANTLY — zero fetch,
-     no "Loading product…" */
-  const cleanData = Object.assign({}, p, { img: img, image: img, images: [img], hidden: false, colourStock: p.colourStock || null });
-  const desc = String(p.desc || (p.name + ' — ' + (p.fabric || 'Premium') + ' saree from SK Sarees, Salem.')).replace(/"/g, "'");
-  const price = p.price || 0, mrp = p.mrp || 0;
-  const ld = {
-    '@context': 'https://schema.org', '@type': 'Product',
-    name: p.name, image: img, sku: p.sku || p.id,
-    brand: { '@type': 'Brand', name: 'SK Sarees' },
-    offers: { '@type': 'Offer', priceCurrency: 'INR', price: price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: pretty, itemCondition: 'https://schema.org/NewCondition' },
-  };
-  if (mrp > price) ld.offers.priceValidUntil = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
-  const head = '<!doctype html>\n<html lang="en">\n<head>\n' +
-    '<meta charset="utf-8">\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' +
-    '<meta name="theme-color" content="#8f1d3a">\n' +
-    '<base href="../">\n' +
-    '<link rel="manifest" href="manifest.webmanifest">\n' +
-    '<meta name="mobile-web-app-capable" content="yes">\n' +
-    '<meta name="apple-mobile-web-app-capable" content="yes">\n' +
-    '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n' +
-    '<meta name="apple-mobile-web-app-title" content="SK Sarees">\n' +
-    '<link rel="apple-touch-icon" href="icons/icon-192.png">\n' +
-    '<title>' + esc(p.name) + ' — SK Sarees</title>\n' +
-    '<meta name="description" content="' + esc(desc.slice(0, 155)) + '">\n' +
-    '<link rel="canonical" href="' + esc(pretty) + '">\n' +
-    '<meta property="og:type" content="product">\n' +
-    '<meta property="og:title" content="' + esc(p.name) + '">\n' +
-    '<meta property="og:description" content="' + esc(desc.slice(0, 155)) + '">\n' +
-    '<meta property="og:image" content="' + esc(img) + '">\n' +
-    '<meta property="og:url" content="' + esc(pretty) + '">\n' +
-    '<meta property="og:site_name" content="SK Sarees">\n' +
-    '<meta property="og:price:amount" content="' + price + '">\n' +
-    '<meta property="og:price:currency" content="INR">\n' +
-    '<meta property="og:availability" content="' + ((p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock') + '">\n' +
-    '<meta name="twitter:card" content="summary_large_image">\n' +
-    '<meta name="twitter:title" content="' + esc(p.name) + '">\n' +
-    '<meta name="twitter:image" content="' + esc(img) + '">\n' +
-    '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'20\' fill=\'%238f1d3a\'/%3E%3Ctext x=\'50\' y=\'68\' font-size=\'48\' text-anchor=\'middle\' fill=\'%23e8c66a\' font-family=\'Georgia\'%3ESK%3C/text%3E%3C/svg%3E">\n' +
-    '<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
-    '<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap">\n' +
-    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'">\n' +
-    '<script type="application/ld+json">' + JSON.stringify(ld) + '</script>\n' +
-    '</head>\n';
-  const body = '<body data-page="product">\n' +
-    '<script>' + (assets ? PAGE_SHIM + '\n' : '') + 'window.__PRODUCT_ID = ' + JSON.stringify(p.id) + '; window.__PRODUCT_DATA = ' + JSON.stringify(cleanData) + ';</script>\n' +
-    '<main id="app">\n  <div class="wrap pd-wrap" style="margin-top:12px" id="pdWrap"></div>\n  <div class="sticky-bar" id="stickyBar"></div>\n</main>\n';
-  if (assets){
-    /* 🔥 SELF-CONTAINED: style + all JS inlined → opens anywhere, offline-proof */
-    return head +
-      '<style>\n' + assets.css + '\n</style>\n' +
-      body +
-      '<script>\n' + assets.data + '\n</script>\n' +
-      '<script>\n' + assets.rec + '\n</script>\n' +
-      '<script>\n' + assets.app + '\n</script>\n' +
-      '</body>\n</html>\n';
-  }
-  return head + '<link rel="stylesheet" href="style.css">\n' +
-    body +
-    '<script src="data.js"></script>\n<script src="rec.js"></script>\n<script src="app.js"></script>\n' +
-    '</body>\n</html>\n';
-}
-/* storage shim — pages still work inside sandboxed previews (no localStorage) */
-const PAGE_SHIM = '(function(){try{if(window.localStorage){try{window.localStorage.getItem("__t");return;}catch(e){throw 0;}}}catch(e){}try{var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){var ks=Object.keys(m);return ks[i]||null;},get length(){return Object.keys(m).length;}};Object.defineProperty(window,"localStorage",{value:s,configurable:true});var ms={},ss={getItem:function(k){return Object.prototype.hasOwnProperty.call(ms,k)?ms[k]:null;},setItem:function(k,v){ms[k]=String(v);},removeItem:function(k){delete ms[k];},clear:function(){ms={};},key:function(i){var ks=Object.keys(ms);return ks[i]||null;},get length(){return Object.keys(ms).length;}};Object.defineProperty(window,"sessionStorage",{value:ss,configurable:true});}catch(e){}})();\n';
-/* 📂 product/index.html — fixes "Not found: /product/" when someone opens the
-   folder URL. Lists every product with a link (relative → works under any host
-   subpath like github.io/sksaree/). */
-function productIndexHTML(prods){
-  const cards = prods.map(p => {
-    const price = p.price || 0, mrp = p.mrp || 0;
-    const off = (mrp > price) ? Math.round((1 - price / mrp) * 100) : 0;
-    return '<a class="card" href="' + encodeURIComponent(p.id) + '.html">' +
-      '<img src="' + encodeURIComponent(p.id) + '.jpg" alt="' + esc(p.name) + '" loading="lazy">' +
-      '<div class="cb"><b>' + esc(p.name) + '</b>' +
-      '<div class="pr"><span>₹' + price.toLocaleString('en-IN') + '</span>' + (mrp > price ? '<s>₹' + mrp.toLocaleString('en-IN') + '</s>' : '') + (off ? '<em>-' + off + '%</em>' : '') + '</div>' +
-      '<small>View saree →</small></div></a>';
-  }).join('');
-  return '<!doctype html>\n<html lang="en">\n<head>\n' +
-    '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>All Sarees — SK Sarees</title>\n' +
-    '<meta name="description" content="Browse every SK Sarees saree — Kanchipuram silk, soft silk, cotton, georgette, linen and more.">\n' +
-    '<style>\n' +
-    'body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#faf7f2;color:#33261f}\n' +
-    '.top{background:linear-gradient(135deg,#8f1d3a,#5c0f26);color:#fff;padding:26px 18px;text-align:center}\n' +
-    '.top h1{margin:0 0 4px;font-size:1.5rem;letter-spacing:.5px}\n' +
-    '.top p{margin:0;font-size:.85rem;opacity:.9}\n' +
-    '.grid{display:grid;gap:14px;padding:18px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));max-width:1080px;margin:0 auto}\n' +
-    '.card{background:#fff;border:1px solid #eadfcf;border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;box-shadow:0 2px 10px rgba(60,20,20,.06);transition:.18s}\n' +
-    '.card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(60,20,20,.14)}\n' +
-    '.card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#f3eadf}\n' +
-    '.cb{padding:10px 12px 12px}\n' +
-    '.cb b{display:block;font-size:.82rem;line-height:1.35;min-height:2.4em}\n' +
-    '.pr{margin:5px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}\n' +
-    '.pr span{color:#8f1d3a;font-weight:800;font-size:.95rem}\n' +
-    '.pr s{color:#a89a86;font-size:.75rem}\n' +
-    '.pr em{background:#ffe9a8;color:#6b4c05;font-style:normal;font-size:.68rem;font-weight:800;padding:2px 6px;border-radius:999px}\n' +
-    '.cb small{color:#8f1d3a;font-weight:700;font-size:.72rem}\n' +
-    '.back{display:block;text-align:center;padding:8px 0 26px;color:#8f1d3a;font-weight:800;text-decoration:none}\n' +
-    '</style>\n</head>\n<body>\n' +
-    '<div class="top"><h1>🪡 SK Sarees — All Products</h1><p>' + prods.length + ' sarees • Tap any saree for photos, price &amp; order</p></div>\n' +
-    '<div class="grid">' + cards + '</div>\n' +
-    '<a class="back" href="../shop.html">← Back to full shop</a>\n' +
-    '</body>\n</html>\n';
-}
-/* cached loader of the site assets (so every generated page is self-contained) */
-let __pageAssets = null;
-async function loadPageAssets(){
-  if (__pageAssets) return __pageAssets;
-  const get = async u => { try{ const r = await fetch(u, { cache: 'no-cache' }); return r.ok ? await r.text() : null; }catch(e){ return null; } };
-  const [css, data, rec, app] = await Promise.all([get('style.css'), get('data.js'), get('rec.js'), get('app.js')]);
-  __pageAssets = (css && data && rec && app) ? { css, data, rec, app } : null;
-  return __pageAssets;
-}
-/* ---- tiny ZIP writer (store method, no compression — perfect for small HTML) ---- */
-const __crcTable = (function(){
-  const t = new Int32Array(256);
-  for (let n = 0; n < 256; n++){
-    let c = n;
-    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-    t[n] = c;
-  }
-  return t;
-})();
-function __crc32(bytes){
-  let c = -1;
-  for (let i = 0; i < bytes.length; i++) c = __crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ -1) >>> 0;
-}
-function buildZip(files){   /* files: [{name, data(Uint8Array)}] */
-  const enc = new TextEncoder();
-  const parts = [], central = [];
-  let offset = 0;
-  files.forEach(f => {
-    const nb = enc.encode(f.name), db = f.data;
-    const crc = __crc32(db);
-    const lh = new DataView(new ArrayBuffer(30));
-    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true);
-    lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0, true);
-    lh.setUint32(14, crc, true); lh.setUint32(18, db.length, true); lh.setUint32(22, db.length, true);
-    lh.setUint16(26, nb.length, true); lh.setUint16(28, 0, true);
-    parts.push(new Uint8Array(lh.buffer), nb, db);
-    const ch = new DataView(new ArrayBuffer(46));
-    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
-    ch.setUint16(8, 0, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0, true);
-    ch.setUint32(16, crc, true); ch.setUint32(20, db.length, true); ch.setUint32(24, db.length, true);
-    ch.setUint16(28, nb.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true);
-    ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
-    central.push(new Uint8Array(ch.buffer), nb);
-    offset += 30 + nb.length + db.length;
-  });
-  const cdSize = central.reduce((s, a) => s + a.length, 0);
-  const eocd = new DataView(new ArrayBuffer(22));
-  eocd.setUint32(0, 0x06054b50, true); eocd.setUint16(4, 0, true); eocd.setUint16(6, 0, true);
-  eocd.setUint16(8, files.length, true); eocd.setUint16(10, files.length, true);
-  eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true); eocd.setUint16(20, 0, true);
-  const all = []; let size = 0;
-  parts.forEach(a => { size += a.length; }); central.forEach(a => { size += a.length; }); size += 22;
-  const out = new Uint8Array(size); let o = 0;
-  const put = a => { out.set(a, o); o += a.length; };
-  parts.forEach(put); central.forEach(put); out.set(new Uint8Array(eocd.buffer), o);
-  return out;
-}
-/* fetch one product photo → JPEG bytes for the ZIP (data URIs via canvas,
-   remote/relative via fetch). Returns null when the image can't be read.
-   🔥 ALWAYS resolves — a missing/broken photo can never hang the generator. */
-function productImageBytes(p){
-  return new Promise(resolve => {
-    let settled = false;
-    const finish = v => { if (settled) return; settled = true; resolve(v); };
-    const guard = new Promise(res => setTimeout(() => res(null), 8000));   /* 8s hard cap */
-    try{
-      const src = String(p && p.img || '').trim();
-      if (!src){ finish(null); return; }
-      if (/^data:image\//i.test(src)){
-        const im = new Image();
-        const t = setTimeout(() => finish(null), 8000);   /* broken data-URI never fires onload */
-        im.onload = () => {
-          clearTimeout(t);
-          try{
-            const cv = document.createElement('canvas');
-            cv.width = im.width || 800; cv.height = im.height || 600;
-            const ctx = cv.getContext('2d'); if (!ctx){ finish(null); return; }
-            ctx.drawImage(im, 0, 0);
-            cv.toBlob(b => {
-              if (!b){ finish(null); return; }
-              b.arrayBuffer().then(x => finish(new Uint8Array(x))).catch(() => finish(null));
-            }, 'image/jpeg', 0.85);
-          }catch(e){ finish(null); }
-        };
-        im.onerror = () => { clearTimeout(t); finish(null); };
-        im.src = src;
-        return;
-      }
-      const abs = /^https?:/.test(src) ? src : (location.origin + '/' + src.replace(/^\.?\//, ''));
-      Promise.race([
-        fetch(abs).then(r => { if (!r.ok) throw 0; return r.blob(); })
-          .then(b => b.arrayBuffer().then(x => new Uint8Array(x)).catch(() => null))
-          .catch(() => null),
-        guard,
-      ]).then(v => finish(v));
-    }catch(e){ finish(null); }
-  });
-}
-/* download the product-pages ZIP — one HTML page + one product/<sku>.jpg photo
-   per product (Google Merchant wants those real image files) */
-async function downloadProductPages(){
-  const prods = PRODUCTS.filter(p => !p.hidden);
-  if (!prods.length){ toast('⚠️ No products yet'); return; }
-  toast('⏳ Generating ' + prods.length + ' self-contained pages + photos…');
-  const enc = new TextEncoder();
-  const assets = await loadPageAssets();   /* inline style+js → pages open anywhere */
-  const files = [];
-  let imgOk = 0, imgFail = 0;
-  files.push({ name: 'product/index.html', data: enc.encode(productIndexHTML(prods)) });   /* fixes /product/ 404 */
-  for (const p of prods){
-    files.push({ name: 'product/' + p.id + '.html', data: enc.encode(productPageHTML(p, assets)) });
-    const bytes = await productImageBytes(p);
-    if (bytes){ files.push({ name: 'product/' + p.id + '.jpg', data: bytes }); imgOk++; }
-    else imgFail++;
-  }
-  const zip = buildZip(files);
-  const blob = new Blob([zip], { type: 'application/zip' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'product-pages.zip';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  toast('📦 product-pages.zip — ' + prods.length + ' pages + ' + imgOk + ' photos' + (imgFail ? ' ⚠️ ' + imgFail + ' photos missing (upload manually or fix image URL)' : ''));
 }
 
 /* ============================ CATALOG FEED (Facebook/Instagram Shopping XML) ============================ */
@@ -1366,7 +1125,7 @@ function feedXml(){
       '<g:id>' + escX(p.id) + '</g:id>\n' +
       '<g:title>' + escX(p.name) + '</g:title>\n' +
       '<g:description>' + escX((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' — ' + p.color) + '</g:description>\n' +
-      '<g:link>' + escX(base + 'product/' + encodeURIComponent(p.id) + '.html') + '</g:link>\n' +
+      '<g:link>' + escX(base + 'product.html?id=' + encodeURIComponent(p.id)) + '</g:link>\n' +
       '<g:image_link>' + escX(imgAbs) + '</g:image_link>\n' +
       '<g:availability>' + ((p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock') + '</g:availability>\n' +
       '<g:price>' + p.price + ' INR</g:price>\n' +
@@ -1399,7 +1158,7 @@ function feedTxt(){
       escT((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' - ' + p.color),
       p.price + ' INR',
       'new',
-      escT(base + 'product/' + encodeURIComponent(p.id) + '.html'),
+      escT(base + 'product.html?id=' + encodeURIComponent(p.id)),
       (p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock',
       escT(imgAbs),
     ];
@@ -1436,7 +1195,7 @@ function feedIssues(){
   const base = feedBase();
   const out = [];
   PRODUCTS.filter(p => !p.hidden).slice(0, 200).forEach(p => {
-    const link = base + 'product/' + encodeURIComponent(p.id) + '.html';
+    const link = base + 'product.html?id=' + encodeURIComponent(p.id);
     const img = feedImg(p, base);
     const issues = [];
     if (/localhost|127\.0\.0\.1|file:\/\//i.test(link)) issues.push('🔴 link uses localhost');
@@ -1483,12 +1242,7 @@ function renderFeed(){
       '<p class="small muted" id="feedNote" style="margin-top:4px">1. Pick the feed domain above. 2. Tap <b>💾 Save feeds to this browser</b> (or just save a product — automatic). 3. Download the 3 files → upload to your host root (same folder as index.html). 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
     '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>' +
     '<div class="form-card"><h3>🩺 Feed link check (first 15) — <span style="color:var(--green)">no localhost, all HTTPS</span></h3><div id="feedCheck" style="overflow:auto;max-height:280px;font-size:.72rem"></div></div>' +
-    '<div class="form-card"><h3>🔗 Pretty Product Pages — separate URL for every saree</h3>' +
-      '<p class="small muted">Each product gets its own page: <b>' + esc((CONFIG.siteUrl || location.origin) + '/product/SK75279.html') + '</b> — perfect for ads, WhatsApp shares and Google. Generate the ZIP, extract it, and upload the <b>product</b> folder to your host root (same place as index.html). Old <b>?id=</b> links keep working too.</p>' +
-      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-maroon" id="btnProductPages" style="width:auto;min-width:280px">📦 Generate Product Pages (ZIP) — ' + count + ' products</button>' +
-      '</div>' +
-      '<p class="small muted" id="ppNote" style="margin-top:6px">⚠️ <b>Regenerate after adding/editing products</b> — new products get their own page when you re-download.</p></div>';
+    '<p class="small muted" style="margin-top:6px">🔗 Product links use the classic format: <b>product.html?id=SK75279</b> — works everywhere, no extra files.</p>';
   /* 🌐 domain picker — re-render feed preview + check with the chosen domain */
   const domSel = document.getElementById('feedDomain');
   if (domSel){
@@ -1499,9 +1253,6 @@ function renderFeed(){
       toast('🌐 Feed domain → ' + domSel.value);
     });
   }
-  /* 🔗 pretty product pages ZIP */
-  const pp = document.getElementById('btnProductPages');
-  if (pp) pp.addEventListener('click', () => { try{ downloadProductPages(); }catch(e){ toast('⚠️ Could not generate pages'); } });
   /* 🩺 link check list */
   try{
     const fc = document.getElementById('feedCheck');

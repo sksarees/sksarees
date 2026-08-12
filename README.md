@@ -1,33 +1,27 @@
 # 🪡 SK Sarees — Premium Multi-Page Redesign
 
-## ✨ Photo Loading (cleaned) + 📂 product/ folder fix (new)
+## ✨ Photo Loading (cleaned) + 🔗 Classic Product URLs (new)
 
 - **0→100% progress counter REMOVED** (per request) — no percentage, no progress bar.
 - Photos still load attractively: **shimmer skeleton** behind each image + a **smooth fade-in** when the photo arrives. Clean, fast, no flash.
 - Placeholder is a clean **SK monogram** (no "coming soon" text).
-- **"Not found: /product/" FIXED** — a `product/index.html` is now generated alongside every product page. Opening the folder URL (e.g. `https://www.sksaree.shop/product/` or `github.io/sksaree/product/`) shows a **listing of all sarees** with links + prices. Included in the ZIP generator and `tools/generate-product-pages.js`.
-
-## 📄 Self-Contained Product Pages — they open EVERYWHERE (new)
-
-- **Every `product/<id>.html` is now fully self-contained**: `style.css`, `data.js`, `rec.js` and `app.js` are **inlined into each page** (plus the product's own data + a storage shim). The page needs **zero external files** — it opens in the file preview, offline, on any host, instantly, never blank.
-- Verified: pages load from `file://` with **all network blocked** — product name, price, Add to Cart, Buy Now, colour chips, AI assistant, WhatsApp float all render; missing photos fall back to the branded SK placeholder.
-- Each page ~450 KB (CSS + app JS + data), 19 pages + 19 photos in the `product/` folder. Upload the `product/` folder to your host root.
-- **Regenerate anytime**: Admin → 📦 Catalog Feed → **"📦 Generate Product Pages (ZIP)"** (now also self-contained) or run `node tools/generate-product-pages.js`. Always regenerate after adding/editing products.
+- **Pretty product pages REMOVED** (per request) — all product links use the classic format **`product.html?id=SK75279`** (copy link, WhatsApp share, shop cards, Meta & Google feeds, sitemap, ad builder).
+- The `product/` folder now contains **only the product photos** (`product/<id>.jpg`) that Google Merchant uses — no separate HTML pages, no `product/index.html`.
 
 ## 🛡️ No-Hang Guarantee — pages always load, even without product photos (new)
 
 - **Missing photo → page still loads** — every product image (gallery, cards, AI cards, recommendations, cart, orders, wishlist) has `onerror="imgSafe(this)"`. A missing/broken photo instantly swaps to the **branded SK placeholder** — never a broken icon, never a hang.
-- **Generator never freezes** — "Generate Product Pages (ZIP)" and photo upload have **8-second hard caps**; a broken data-URI or dead remote image is skipped with a warning instead of hanging the admin.
+- **Photo upload never freezes** — photo upload has an **8-second hard cap**; a broken file is rejected with a friendly message instead of hanging the admin.
 - **First paint never waits on the network** — `catalog.json` loading is raced with a 1.2s timeout in init; even if the catalog is slow or unreachable, shop/product pages render immediately from caches/embedded data.
 - `imgSafe()` is loop-proof (placeholder + onerror cleared after 2 tries).
 
 ## 🚀 SKU + Instant Load + Google Photos (new)
 
 - **New SKU format** — every new product gets `SK + today's date (MMDD) + 4 random digits`, e.g. 05 Jan 2026 → **SK01053212** (unique, collision-checked). Old SKUs keep working.
-- **Instant product pages (zero "Loading product…")** — every generated `product/<id>.html` embeds its own product data (`__PRODUCT_DATA`), so the page renders **immediately even with no network** — no spinner, no fetch. Shop/catalog still merge from the cached catalog for ?id= links.
-- **Google Merchant product photos at `product/<sku>.jpg`** — the generator now copies every saree photo to **`https://www.sksaree.shop/product/<sku>.jpg`** (feeds, og:image, sitemap all point there). Google needs real image files — now they exist.
-- **No data URIs anywhere** — photos uploaded as `data:image/jpeg;base64` are converted to real `.jpg` files in the ZIP / generator; feeds & Google never see a data URI.
-- **`tools/generate-product-pages.js`** — one command regenerates everything: product pages + photos, catalog.json (images → product/<sku>.jpg), products-feed.xml, google-merchant-feed.txt, sitemap.xml (with Google Images entries).
+- **Instant product pages (zero "Loading product…")** — product pages render immediately: `product.html?id=` is checked against the cached catalog first, then the static `catalog.json` (merged on every visit), then Firestore — no spinner hangs.
+- **Google Merchant product photos at `product/<sku>.jpg`** — the generator copies every saree photo to **`https://www.sksaree.shop/product/<sku>.jpg`** (feeds, og:image, sitemap all point there). Google needs real image files — now they exist.
+- **No data URIs anywhere** — photos uploaded as `data:image/jpeg;base64` are converted to real `.jpg` files by the generator; feeds & Google never see a data URI.
+- **`tools/generate-product-pages.js`** — one command regenerates everything: product photos (`product/<id>.jpg`), catalog.json (images → product/<id>.jpg), products-feed.xml, google-merchant-feed.txt, sitemap.xml (with Google Images entries, classic `product.html?id=` links).
 - Removed "(சராசரி)" from the skin-tone note.
 - **More AI for purchases** — checkout "🎁 Complete your look" (add matching sarees before paying), "✨ You may also love" on the order-success page, plus the existing AI Assistant, smart upsell, Recommended-for-You, search suggestions.
 
@@ -41,18 +35,6 @@ Everything runs **100% client-side** (no server, no API keys) — the site feels
 - **🤖 "Recommended for You" strip** — home page top, built from what the visitor **viewed or liked** (REC engine). No history → trending strip. So even without clicking, any saree they saw generates follow-up recommendations.
 - **🔍 Smart search suggestions** — shop search shows product names / colours / SKUs as you type (datalist).
 - **Similar Sarees + Explore sections** already on every product page (30 recommendations with AI match %).
-
-## 🔗 Pretty Product URLs — separate page per saree (new)
-
-Every saree now has its **own clean URL**: `https://www.sksaree.shop/product/SK75279.html` (instead of `product.html?id=SK75279`). Perfect for ads, WhatsApp shares and Google.
-
-- **73 product pages are already generated** in the `product/` folder of this repo — upload that folder to your host root alongside index.html.
-- **Regenerate anytime**: Admin → 📦 Catalog Feed → **"📦 Generate Product Pages (ZIP)"** — downloads `product-pages.zip` containing one HTML page per product (hidden products excluded). Extract & upload the `product` folder. **Always regenerate after adding/editing products.**
-- Each generated page has full SEO: title, description, **canonical** (pretty URL), **og:image/og:title/og:url**, Twitter card, and **JSON-LD Product schema** (price, availability, SKU) — Google Shopping & ads love these.
-- **Old links keep working** — `product.html?id=SK75279` and even broken share links still load; every page also handles `product/SK75279.html` paths.
-- **Copy link / WhatsApp share / Meta & Google feeds / sitemap now use the pretty URLs.**
-- Sitemap updated with one entry per product page.
-- Hosting on GitHub Pages: drag the whole `product/` folder into your repo (or commit it). No build step needed.
 
 Full redesign of the saree store as a **lightning-fast, mobile-first, multi-page HTML site** — no build step, no server needed. Open any page or upload the folder to Hostinger / Netlify / Vercel (static) / GitHub Pages.
 
