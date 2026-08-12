@@ -273,7 +273,7 @@ const REC = (function(){
         const prod = byId(r.id) || {};
         return '<article class="pcard rec-card">' +
           '<a class="pcard-img" href="product.html?id=' + encodeURIComponent(r.id) + '">' +
-            '<img src="' + esc(r.img) + '" alt="' + esc(r.name) + '" loading="lazy" decoding="async" width="800" height="600">' +
+            '<img src="' + esc(r.img) + '" alt="' + esc(r.name) + '" loading="lazy" decoding="async" width="800" height="600" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
             '<span class="match-chip">' + r.score + '% match</span>' +
           '</a>' +
           '<div class="pcard-body">' +
@@ -301,7 +301,7 @@ const REC = (function(){
         const prod = byId(r.id) || {};
         return '<article class="pcard">' +
           '<a class="pcard-img" href="product.html?id=' + encodeURIComponent(r.id) + '">' +
-            '<img src="' + esc(r.img) + '" alt="' + esc(r.name) + '" loading="lazy" decoding="async" width="800" height="600">' +
+            '<img src="' + esc(r.img) + '" alt="' + esc(r.name) + '" loading="lazy" decoding="async" width="800" height="600" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
             '<span class="match-chip">' + r.score + '%</span>' +
           '</a>' +
           '<div class="pcard-body"><h3><a href="product.html?id=' + encodeURIComponent(r.id) + '">' + esc(r.name) + '</a></h3>' +

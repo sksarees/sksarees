@@ -1,5 +1,36 @@
 # 🪡 SK Sarees — Premium Multi-Page Redesign
 
+## ✨ Photo Loading (cleaned) + 📂 product/ folder fix (new)
+
+- **0→100% progress counter REMOVED** (per request) — no percentage, no progress bar.
+- Photos still load attractively: **shimmer skeleton** behind each image + a **smooth fade-in** when the photo arrives. Clean, fast, no flash.
+- Placeholder is a clean **SK monogram** (no "coming soon" text).
+- **"Not found: /product/" FIXED** — a `product/index.html` is now generated alongside every product page. Opening the folder URL (e.g. `https://www.sksaree.shop/product/` or `github.io/sksaree/product/`) shows a **listing of all sarees** with links + prices. Included in the ZIP generator and `tools/generate-product-pages.js`.
+
+## 📄 Self-Contained Product Pages — they open EVERYWHERE (new)
+
+- **Every `product/<id>.html` is now fully self-contained**: `style.css`, `data.js`, `rec.js` and `app.js` are **inlined into each page** (plus the product's own data + a storage shim). The page needs **zero external files** — it opens in the file preview, offline, on any host, instantly, never blank.
+- Verified: pages load from `file://` with **all network blocked** — product name, price, Add to Cart, Buy Now, colour chips, AI assistant, WhatsApp float all render; missing photos fall back to the branded SK placeholder.
+- Each page ~450 KB (CSS + app JS + data), 19 pages + 19 photos in the `product/` folder. Upload the `product/` folder to your host root.
+- **Regenerate anytime**: Admin → 📦 Catalog Feed → **"📦 Generate Product Pages (ZIP)"** (now also self-contained) or run `node tools/generate-product-pages.js`. Always regenerate after adding/editing products.
+
+## 🛡️ No-Hang Guarantee — pages always load, even without product photos (new)
+
+- **Missing photo → page still loads** — every product image (gallery, cards, AI cards, recommendations, cart, orders, wishlist) has `onerror="imgSafe(this)"`. A missing/broken photo instantly swaps to the **branded SK placeholder** — never a broken icon, never a hang.
+- **Generator never freezes** — "Generate Product Pages (ZIP)" and photo upload have **8-second hard caps**; a broken data-URI or dead remote image is skipped with a warning instead of hanging the admin.
+- **First paint never waits on the network** — `catalog.json` loading is raced with a 1.2s timeout in init; even if the catalog is slow or unreachable, shop/product pages render immediately from caches/embedded data.
+- `imgSafe()` is loop-proof (placeholder + onerror cleared after 2 tries).
+
+## 🚀 SKU + Instant Load + Google Photos (new)
+
+- **New SKU format** — every new product gets `SK + today's date (MMDD) + 4 random digits`, e.g. 05 Jan 2026 → **SK01053212** (unique, collision-checked). Old SKUs keep working.
+- **Instant product pages (zero "Loading product…")** — every generated `product/<id>.html` embeds its own product data (`__PRODUCT_DATA`), so the page renders **immediately even with no network** — no spinner, no fetch. Shop/catalog still merge from the cached catalog for ?id= links.
+- **Google Merchant product photos at `product/<sku>.jpg`** — the generator now copies every saree photo to **`https://www.sksaree.shop/product/<sku>.jpg`** (feeds, og:image, sitemap all point there). Google needs real image files — now they exist.
+- **No data URIs anywhere** — photos uploaded as `data:image/jpeg;base64` are converted to real `.jpg` files in the ZIP / generator; feeds & Google never see a data URI.
+- **`tools/generate-product-pages.js`** — one command regenerates everything: product pages + photos, catalog.json (images → product/<sku>.jpg), products-feed.xml, google-merchant-feed.txt, sitemap.xml (with Google Images entries).
+- Removed "(சராசரி)" from the skin-tone note.
+- **More AI for purchases** — checkout "🎁 Complete your look" (add matching sarees before paying), "✨ You may also love" on the order-success page, plus the existing AI Assistant, smart upsell, Recommended-for-You, search suggestions.
+
 ## 🤖 AI Power Pack — order boosters (new)
 
 Everything runs **100% client-side** (no server, no API keys) — the site feels smart and sells more:

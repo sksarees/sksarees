@@ -149,16 +149,42 @@ const imgLocal = file => {
   if (/^[^/]*$/.test(clean)) return 'images/products/' + clean;
   return clean;
 };
-/* Branded placeholder — used only when BOTH remote and local copies fail
-   (e.g. offline preview). Never shows a broken image icon. */
+/* Branded placeholder — clean SK monogram ONLY (no "coming soon" text).
+   Used as the final fallback so a missing photo never shows a broken icon. */
 const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">' +
-  '<rect width="800" height="600" fill="#8f1d3a"/>' +
+  '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f1d3a"/><stop offset="1" stop-color="#5c0f26"/></linearGradient></defs>' +
+  '<rect width="800" height="600" fill="url(#g)"/>' +
   '<rect x="56" y="56" width="688" height="488" rx="18" fill="none" stroke="#e8c66a" stroke-width="5"/>' +
-  '<text x="400" y="265" text-anchor="middle" font-family="Georgia, serif" font-size="130" font-weight="bold" fill="#e8c66a">SK</text>' +
-  '<text x="400" y="345" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" letter-spacing="6" fill="#fff" opacity="0.95">SAREES &#8226; SALEM</text>' +
-  '<text x="400" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#e8c66a" opacity="0.9">Image coming soon</text>' +
+  '<text x="400" y="320" text-anchor="middle" font-family="Georgia, serif" font-size="170" font-weight="bold" fill="#e8c66a">SK</text>' +
+  '<text x="400" y="395" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" letter-spacing="8" fill="#fff" opacity="0.95">SAREES &#8226; SALEM</text>' +
   '</svg>');
+/* ⚡ safe image fallback (inline onerror). Tries webp→jpg, then the clean SK
+   placeholder. Never loops, never throws — a missing photo can't break the page. */
+function imgSafe(el){
+  try{
+    if (!el || !el.src) return;
+    const cur = String(el.src);
+    if (cur === IMG_PLACEHOLDER || cur.indexOf('data:image/svg+xml') === 0) return;
+    const n = +(el.dataset.fbk || 0);
+    if (n >= 2){ el.src = IMG_PLACEHOLDER; el.onerror = null; return; }
+    el.dataset.fbk = String(n + 1);
+    if (n === 0 && cur.indexOf('.webp') !== -1){
+      const m = cur.match(/\/images\/products\/([^/?#]+)\.webp/);
+      if (m){ el.src = 'images/products/' + m[1] + '.jpg'; return; }
+    }
+    if (n === 0 && cur.indexOf('/images/products/') !== -1){
+      const m = cur.match(/\/images\/products\/([^/?#]+)/);
+      if (m){ el.src = imgLocal(m[1]); return; }
+    }
+    el.src = IMG_PLACEHOLDER;
+    el.onerror = null;
+  }catch(e){ try{ el.onerror = null; }catch(e2){} }
+}
+/* ⚡ image finished loading → fade it in & remove the progress overlay */
+function imgLoaded(el){
+  try{ if (el) el.classList.add('img-ok'); }catch(e){}
+}
 /* Extract a YouTube video ID from a URL (or pass a raw 11-char ID through) */
 function ytId(u){
   const s = String(u || '').trim();
@@ -306,6 +332,16 @@ let PRODUCTS = (() => {
         const i = built.findIndex(x => x.id === np.id);
         if (i >= 0) built[i] = np; else built.unshift(np);
       });
+    }
+  }catch(e){}
+  /* ⚡ INSTANT product pages: product/<id>.html embeds its own product data
+     (window.__PRODUCT_DATA) so the page renders with ZERO fetching — no
+     "Loading product…" ever, even on a fresh browser. */
+  try{
+    if (window.__PRODUCT_DATA && window.__PRODUCT_DATA.id){
+      const np = normalizeProduct(window.__PRODUCT_DATA);
+      const i = built.findIndex(x => x.id === np.id);
+      if (i >= 0) built[i] = np; else built.unshift(np);
     }
   }catch(e){}
   /* when tests enable __KEEP_BASE, keep the demo catalog as-is; in production
@@ -564,9 +600,20 @@ function genOrderId(){
    Starts at 20000 so it never collides with the built-in catalog (SK10001+). */
 let skuSeq = (() => { try{ return +localStorage.getItem('sk_sku_seq') || 20000; }catch(e){ return 20000; } })();
 function nextSku(){
-  skuSeq += 1;
-  try{ localStorage.setItem('sk_sku_seq', String(skuSeq)); }catch(e){}
-  return 'SK' + String(skuSeq).padStart(5, '0');
+  /* 🔢 SKU = SK + today's date (MMDD) + 4 random digits, e.g. 05 Jan 2026 → SK01053212
+     Collision-checked against the live catalog so every SKU is unique. */
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const exists = id => {
+    try{ return !!PRODUCTS.find(p => String(p.id || p.sku) === String(id)); }catch(e){ return false; }
+  };
+  for (let i = 0; i < 12; i++){
+    const rnd = String(Math.floor(1000 + Math.random() * 9000));   /* 4 digits */
+    const id = 'SK' + mm + dd + rnd;
+    if (!exists(id)){ try{ localStorage.setItem('sk_sku_seq', id); }catch(e){} return id; }
+  }
+  return 'SK' + mm + dd + String(Date.now()).slice(-4);
 }
 /* Product ID for new/admin-added products = auto-increment SK number */
 function genProductId(name){ return nextSku(); }
@@ -1450,7 +1497,7 @@ function showPriceDrops(){
    recommendations per product colour. */
 const SKIN_TONES = {
   fair:   { label:'Fair (சிவப்பு நிறம்)',    colors:['red','pink','purple','blue','green','gold'] },
-  medium: { label:'Medium (சராசரி)',         colors:['gold','green','maroon','teal','purple','pink'] },
+  medium: { label:'Medium',         colors:['gold','green','maroon','teal','purple','pink'] },
   dusky:  { label:'Dusky (கருப்பு நிறம்)',    colors:['gold','orange','red','yellow','green','champagne'] },
 };
 function skinToneOf(colorFam){

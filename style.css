@@ -1516,6 +1516,11 @@ body.cartbar-on .ai-float{bottom:calc(146px + env(safe-area-inset-bottom))}
 @media(min-width:640px){.upsell .prow{grid-template-columns:1fr 1fr 1fr}}
 .upsell-ok{color:var(--green);font-size:.95rem}
 .upsell .pcard{margin:0}
+/* checkout "complete your look" strip */
+.co-upsell{border:1.5px dashed var(--gold);background:var(--gold-soft);border-radius:12px;padding:12px;margin-bottom:14px}
+.co-upsell h3{font-size:.85rem;font-weight:800;color:#6b4c05;margin-bottom:8px}
+.co-up-card{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px}
+.co-up-card img{width:52px;height:40px;object-fit:cover;border-radius:7px;flex:0 0 auto}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 .wa-bubble{position:fixed;right:16px;bottom:82px;z-index:69;background:#fff;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.18);padding:12px 14px;font-size:.8rem;font-weight:700;max-width:210px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.25s}
 .wa-bubble.show{opacity:1;transform:none}
@@ -1549,3 +1554,25 @@ body.cartbar-on .wa-float{bottom:calc(78px + env(safe-area-inset-bottom))}
 /* compact review delete button — small circular ✕ */
 [data-delreview]{min-height:28px!important;height:28px!important;width:28px!important;min-width:28px!important;padding:0!important;font-size:.85rem!important;line-height:1!important;border-radius:50%!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;background:#fff!important;border:1px solid var(--line)!important;color:var(--muted)!important}
 [data-delreview]:active{background:var(--maroon-soft)!important;color:var(--red)!important;transform:scale(.92)}
+
+/* ============================================================================
+   ✨ PHOTO LOADING — shimmer + smooth fade-in
+   (no progress counter — clean shimmer + fade-in)
+   ========================================================================== */
+@keyframes imgShimmer{to{background-position-x:-200%}}
+@keyframes imgIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.pd-gal .main{position:relative;background:linear-gradient(110deg,#f3eadf 8%,#faf3e9 18%,#f3eadf 33%);background-size:200% 100%;animation:imgShimmer 1.4s linear infinite}
+.pd-gal .main img{position:relative;z-index:2;opacity:0}
+.pd-gal .main img.img-ok{opacity:1;animation:imgIn .5s ease}
+
+
+
+
+.pcard-img{position:relative;background:linear-gradient(110deg,#f3eadf 8%,#faf3e9 18%,#f3eadf 33%);background-size:200% 100%;animation:imgShimmer 1.4s linear infinite}
+.pd-thumbs button{background:linear-gradient(110deg,#f3eadf 8%,#faf3e9 18%,#f3eadf 33%);background-size:200% 100%;animation:imgShimmer 1.4s linear infinite}
+.pd-thumbs img{opacity:0}
+.pd-thumbs img.img-ok{opacity:1}
+.pcard-img img{opacity:0}
+.pcard-img img.img-ok{opacity:1}
+.ai-card img,.co-up-card img,.cart-item img,.rev img{opacity:0}
+.ai-card img.img-ok,.co-up-card img.img-ok,.cart-item img.img-ok,.rev img.img-ok{opacity:1}

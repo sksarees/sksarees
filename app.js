@@ -17,8 +17,10 @@ async function init(){
   try{ Sync.run(); }catch(e){}
   try{ setTimeout(showPriceDrops, 3500); }catch(e){}   /* wishlist price-drop alert */
   /* ⚡ instant: load the static catalog (local file) before first render so
-     Firestore product pages appear immediately — no "Loading product…" */
-  try{ await preloadCatalog(); }catch(e){}
+     Firestore product pages appear immediately — no "Loading product…".
+     🔥 Never blocks first paint: if catalog.json is slow/unreachable, the page
+     renders after 1.2s max (product pages already have their own fast path). */
+  try{ await Promise.race([preloadCatalog(), new Promise(r => setTimeout(r, 1200))]); }catch(e){}
   const page = document.body.dataset.page;
   try{
     if (page === 'home') renderHome();
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', init);
    fabric, budget) and it recommends matching sarees with prices + links.
    100% client-side, no server, works on any static host. */
 function aiCard(p){
-  return '<div class="ai-card"><a href="' + productUrl(p) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy"></a>' +
+  return '<div class="ai-card"><a href="' + productUrl(p) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
     '<div class="ai-card-b"><b><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></b>' +
     '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (offPct(p) ? '<span class="off">' + offPct(p) + '%</span>' : '') + '</div>' +
     '<div style="display:flex;gap:6px;margin-top:6px"><button type="button" class="btn btn-maroon btn-sm" data-add="' + esc(p.id) + '">🛒 Add</button>' +
@@ -235,14 +237,14 @@ function cardHTML(p){
   const low = !out && p.stock <= 5;
   const badgeCls = out ? 'red' : p.badge === 'New' ? 'gold' : p.badge === 'Limited Stock' ? 'red' : p.badge === 'Sale' ? 'green' : '';
   return '<article class="pcard">' +
-    '<a class="pcard-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
-      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async" width="800" height="600">' +
+    '<a class="pcard-img" href="' + productUrl(p) + '">' +
+      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async" width="800" height="600" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
       (out ? '<span class="badge red">Out of Stock</span>' : (p.badge ? '<span class="badge ' + badgeCls + '">' + esc(p.badge) + '</span>' : '')) +
       (off && !out ? '<span class="offchip">-' + off + '%</span>' : '') +
       '<span class="card-heart' + (Store.wish.includes(p.id) ? ' on' : '') + '" data-wish="' + p.id + '" role="button" aria-label="Save to wishlist" title="Save to wishlist">' + (Store.wish.includes(p.id) ? '❤️' : '🤍') + '</span>' +
     '</a>' +
     '<div class="pcard-body">' +
-      '<h3><a href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(p.name) + '</a></h3>' +
+      '<h3><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></h3>' +
       starsHTML(p) +
       '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
       (low ? '<div class="lowchip">🔥 Only <b>' + p.stock + '</b> left — order soon!</div>' : (out ? '<div class="lowchip out">😞 Out of stock — ask on WhatsApp for next batch</div>' : '')) +
@@ -302,7 +304,7 @@ function dealOfDayHTML(){
       '<h3>' + esc(deal.name) + '</h3>' +
       '<div class="price-row"><b>' + money(deal.price) + '</b>' + (deal.mrp ? '<s>' + money(deal.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
       '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="product.html?id=' + encodeURIComponent(deal.id) + '">🛒 Grab It Now</a></div>' +
-      '<a class="dd-img" href="product.html?id=' + encodeURIComponent(deal.id) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy"></a></div>';
+      '<a class="dd-img" href="product.html?id=' + encodeURIComponent(deal.id) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>';
   }catch(e){ return ''; }
 }
 
@@ -554,7 +556,7 @@ function fastOrderModal(p){
     if (!p) return;
     openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">⚡ Fast Order — 30 seconds</h2>' +
       '<p class="small muted" style="margin-bottom:10px">Just your name &amp; number — we will confirm on WhatsApp. <b>No payment needed now.</b></p>' +
-      '<div style="display:flex;gap:8px;align-items:center;background:var(--bg);border-radius:10px;padding:8px;margin-bottom:10px"><img src="' + esc(p.img) + '" style="width:52px;height:40px;object-fit:cover;border-radius:8px"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(p.name) + '</b><br><small class="muted">' + money(p.price) + (p.mrp ? ' <s>' + money(p.mrp) + '</s>' : '') + '</small></div></div>' +
+      '<div style="display:flex;gap:8px;align-items:center;background:var(--bg);border-radius:10px;padding:8px;margin-bottom:10px"><img src="' + esc(p.img) + '" style="width:52px;height:40px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(p.name) + '</b><br><small class="muted">' + money(p.price) + (p.mrp ? ' <s>' + money(p.mrp) + '</s>' : '') + '</small></div></div>' +
       '<div class="field"><label>Your Name *</label><input id="foName" value="' + esc((Store.profile || {}).name || '') + '" placeholder="e.g. Lakshmi"></div>' +
       '<div class="field"><label>WhatsApp / Mobile *</label><input id="foPhone" value="' + esc((Store.profile || {}).phone || '') + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
       '<button type="button" class="btn btn-maroon" id="foGo" style="margin-top:4px">💬 Confirm on WhatsApp</button>');
@@ -783,7 +785,7 @@ function renderProduct(){
   const liked = Store.wish.includes(p.id);
   const out = p.stock != null && p.stock <= 0;
   const low = !out && p.stock <= 5;
-  const thumbs = gallery.map((u, i) => '<button type="button" class="pd-thumb' + (i === 0 ? ' on' : '') + '" data-thumb="' + i + '" aria-label="Photo ' + (i + 1) + '"><img src="' + esc(u) + '" alt="" loading="lazy"></button>').join('');
+  const thumbs = gallery.map((u, i) => '<button type="button" class="pd-thumb' + (i === 0 ? ' on' : '') + '" data-thumb="' + i + '" aria-label="Photo ' + (i + 1) + '"><img src="' + esc(u) + '" alt="" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></button>').join('');
   const vidBlock = p.video
     ? '<div class="pd-video"><h3>🎬 Product Video</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>'
     : '';
@@ -792,7 +794,7 @@ function renderProduct(){
       '<div>' +
         '<div class="pd-gal">' +
           '<div class="pd-heart"><button type="button" class="heart-btn' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist" title="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button></div>' +
-          '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async"></div>' +
+          '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></div>' +
           '<div class="pd-swipe-hint">👈 👉 swipe to see all photos</div>' +
           '<div class="pd-thumbs">' + thumbs + '</div>' +
         '</div>' +
@@ -1018,7 +1020,7 @@ function renderCartPage(){
       const p = byId(i.id); if (!p) return '';
       const lk = encodeURIComponent(p.id) + '::' + encodeURIComponent(i.colour || '');
       return '<div class="cart-item">' +
-        '<a href="product.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" width="200" height="150"></a>' +
+        '<a href="product.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" width="200" height="150" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
         '<div style="flex:1;min-width:0;padding-right:26px">' +
           '<h4><a href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(p.name) + '</a></h4>' +
           (i.colour ? '<div class="ci-col">🎨 ' + esc(i.colour) + '</div>' : '') +
@@ -1110,6 +1112,46 @@ function coTotals(){
   const grand = Math.max(0, itemsTotal - totalDisc) + codFee + shipping;
   return { itemsTotal, codFee, shipping, discount, bundle, pts, online, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
+/* 🎁 AI "Complete your look" — before paying, suggest matching sarees to add.
+   Keeps the cart growing → bigger orders. */
+function checkoutUpsellHTML(){
+  try{
+    const inCart = Store.cart.map(i => i.id);
+    let recs = [];
+    const seed = Store.cart.map(i => byId(i.id)).find(Boolean);
+    if (seed){
+      try{ if (window.REC && REC.recommendFor) recs = REC.recommendFor(seed, 5).map(r => byId(r.id)).filter(Boolean); }catch(e){}
+    }
+    if (recs.length < 2) recs = PRODUCTS.filter(x => !x.hidden && x.stock > 0 && !inCart.includes(x.id)).slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 2);
+    recs = recs.filter(x => !inCart.includes(x.id)).slice(0, 2);
+    if (recs.length < 2) return '';
+    return '<div class="co-upsell"><h3>🎁 Complete your look — add matching sarees</h3>' +
+      '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' + recs.map(p =>
+        '<div class="co-up-card"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+        '<div style="flex:1;min-width:0"><b style="font-size:.78rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.name) + '</b>' +
+        '<div class="price-row" style="font-size:.75rem"><b>' + money(p.price) + '</b></div>' +
+        '<button type="button" class="btn btn-maroon btn-sm" data-add="' + esc(p.id) + '">+ Add</button></div></div>').join('') + '</div></div>';
+  }catch(e){ return ''; }
+}
+/* ✨ "You may also love" on the order-success page — more sarees, next order */
+function orderSuccessRecs(o){
+  try{
+    const bought = (o && o.items || []).map(i => i.id);
+    const seedId = bought[0];
+    let recs = [];
+    try{
+      if (seedId && window.REC && REC.recommendFor){
+        const seed = byId(seedId);
+        if (seed) recs = REC.recommendFor(seed, 5).map(r => byId(r.id)).filter(Boolean);
+      }
+    }catch(e){}
+    if (recs.length < 3) recs = PRODUCTS.filter(x => !x.hidden && x.stock > 0 && !bought.includes(x.id)).slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 3);
+    recs = recs.filter(x => !bought.includes(x.id)).slice(0, 3);
+    if (recs.length < 2) return '';
+    return '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">✨ You may also love</h3>' +
+      '<div class="prow">' + recs.map(cardHTML).join('') + '</div></div>';
+  }catch(e){ return ''; }
+}
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
   const d = co.data;
@@ -1134,6 +1176,7 @@ function drawCo(){
         '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery — extra ₹' + CONFIG.codFee + '</small></span><span class="radio"></span></div>' +
       '</div></div>' +
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
+      checkoutUpsellHTML() +
       (d.payment === 'cod'
         ? '<button type="button" class="btn btn-wa btn-xl" data-confirm-wa><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Confirm Order on WhatsApp</button>'
         : '<button type="button" class="btn btn-maroon btn-xl" data-cont>Continue to Payment →</button>') +
@@ -1342,6 +1385,7 @@ function renderOrderComplete(o, viaWa){
       (viaWa ? '' : '<a class="btn btn-wa" style="grid-column:1/-1" href="' + waLink('Hi! I just placed order ' + o.id + '. Please confirm it.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Chat with Us on WhatsApp</a>') +
     '</div>' +
     '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">📦 Your Orders</h3>' + cards + '</div>' +
+    orderSuccessRecs(o) +
   '</div>';
 }
 
@@ -1518,7 +1562,7 @@ function showDetail(o){
   const items = (o.items || []).map(i => {
     const p = byId(i.id);
     return '<div style="display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:11px;padding:10px;margin-bottom:8px">' +
-      '<a href="product.html?id=' + encodeURIComponent(i.id) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto"></a>' +
+      '<a href="product.html?id=' + encodeURIComponent(i.id) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
       '<div style="flex:1;min-width:0"><a href="product.html?id=' + encodeURIComponent(i.id) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
       (i.colour ? '<small class="muted">🎨 ' + esc(i.colour) + '</small><br>' : '') +
       '<small class="muted">' + money(i.price) + ' × ' + i.qty + '</small></div><b>' + money(i.price * i.qty) + '</b></div>';
@@ -1695,7 +1739,7 @@ function renderProfilePage(){
   });
   const list = Store.wish.map(byId).filter(Boolean);
   document.getElementById('wishGrid').innerHTML = list.length
-    ? list.map(p => '<div class="pcard"><a class="pcard-img" href="product.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(p.img) + '" alt="" loading="lazy"></a>' +
+    ? list.map(p => '<div class="pcard"><a class="pcard-img" href="' + productUrl(p) + '"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
         '<div class="pcard-body"><h3>' + esc(p.name) + '</h3><div class="price-row"><b>' + money(p.price) + '</b></div>' +
         '<div class="p-actions"><button type="button" class="btn btn-outline" data-add="' + p.id + '">Add</button>' +
         '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a></div></div></div>').join('')
@@ -1780,8 +1824,10 @@ document.addEventListener('click', function(e){
     /* 🛒 upsell "add more" on the cart page: refresh totals instantly so the
        amount shown always matches checkout */
     if (document.body.dataset.page === 'cart'){ try{ renderCartPage(); }catch(err){} }
+    /* checkout "Complete your look" add → redraw with new totals */
+    else if (document.body.dataset.page === 'checkout'){ try{ drawCo(); }catch(err){} }
     /* 🎁 smart "you may also like" popup on product/shop adds */
-    try{ maybeShowUpsell(add.dataset.add); }catch(err2){}
+    else try{ maybeShowUpsell(add.dataset.add); }catch(err2){}
     return;
   }
   /* 🎨 colour chip on product page */
