@@ -1447,13 +1447,26 @@ function resellerProfileCard(){
     if (!r) return '';
     const pending = r.margin || 0;
     const paid = r.paidTotal || 0;
+    /* 📦 this reseller's orders (local orders tagged with their code) */
+    const myOrders = Store.orders.filter(o => o.reseller && o.reseller.code === code);
+    const orderRows = myOrders.length
+      ? myOrders.slice(0, 10).map(o => '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:5px 0;border-bottom:1px dashed var(--line)"><span>#' + esc(o.id) + ' • ' + fmtDT(o.date) + '</span><b style="color:var(--green)">+' + money(o.margin || 0) + '</b></div>').join('')
+      : '<p class="small muted">No referral orders on this device yet (orders placed by friends via your link appear here + are credited on your code).</p>';
+    /* 💸 commission received history */
+    let pays = [];
+    try{ pays = JSON.parse(localStorage.getItem('sk_reseller_payments') || '[]').filter(x => x.code === code); }catch(e){}
+    const payRows = pays.length
+      ? pays.slice().reverse().slice(0, 8).map(x => '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:5px 0;border-bottom:1px dashed var(--line)"><span>💸 ' + fmtDT(x.date) + '</span><b style="color:var(--green)">' + money(x.amount) + '</b></div>').join('')
+      : '<p class="small muted">No commission received yet.</p>';
     return '<div class="form-card"><h3>💰 My Commission</h3>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">' +
         '<div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Pending (to be paid)</span><b style="font-size:1.3rem;color:var(--maroon)">' + money(pending) + '</b></div>' +
         '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Paid so far</span><b style="font-size:1.3rem;color:var(--green)">' + money(paid) + '</b></div>' +
       '</div>' +
       '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ₹' + (CONFIG.resellerMargin || 50) + ' per order. Commission is paid via GPay after we confirm your orders.</p>' +
-      '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay via GPay. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a></div>';
+      '<h4 style="font-size:.85rem;margin:10px 0 4px">📦 My Referral Orders</h4>' + orderRows +
+      '<h4 style="font-size:.85rem;margin:10px 0 4px">💸 Commission Received</h4>' + payRows +
+      '<a class="btn btn-wa btn-sm" style="width:auto;margin-top:8px" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay via GPay. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a></div>';
   }catch(e){ return ''; }
 }
 
@@ -1981,6 +1994,14 @@ document.addEventListener('click', function(e){
   /* 📤 share product on WhatsApp (family/group) */
   const sw = e.target.closest('[data-share-wa]');
   if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
+  /* 📋 lead: visitor clicks a WhatsApp order/chat link with a saved phone */
+  const wao = e.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"]');
+  if (wao){
+    try{
+      const prof = Store.profile || {};
+      if (prof.phone) recordLead(prof.name || '', prof.phone, '');
+    }catch(err){}
+  }
   /* 📢 viral share to WhatsApp groups */
   const vl = e.target.closest('[data-viral]');
   if (vl){ e.preventDefault(); viralShareProduct(byId(vl.dataset.viral)); return; }

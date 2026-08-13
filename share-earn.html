@@ -229,6 +229,7 @@ Turn your WhatsApp into income today! 😍
       const phone = document.getElementById('rsPhone').value.trim();
       if (name.length < 2 || !validPhone(phone)){ toast('⚠️ Enter your name & valid 10-digit mobile'); return; }
       const r = addReseller(name, phone);
+      recordLead(name, phone, r.code);   /* 📋 lead collected (reseller join) */
       const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + r.code;
       document.getElementById('rsCode').textContent = r.code;
       document.getElementById('rsLink').value = link;

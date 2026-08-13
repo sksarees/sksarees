@@ -1219,6 +1219,12 @@ function markResellerPaid(code){
   r.lastPaid = new Date().toISOString();
   r.margin = 0;
   saveResellers(list);
+  /* 💸 payment log — the reseller can see "commission received" on their profile */
+  try{
+    const pays = JSON.parse(localStorage.getItem('sk_reseller_payments') || '[]');
+    pays.push({ code, amount: paid, date: r.lastPaid });
+    localStorage.setItem('sk_reseller_payments', JSON.stringify(pays.slice(-100)));
+  }catch(e){}
   if (FS.enabled()){
     FS._getDb().then(db => {
       if (!db) return;

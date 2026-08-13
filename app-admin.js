@@ -79,6 +79,8 @@ function adminInit(){
     renderAdmin();
     /* ensure Firestore collections exist (admins, cart, categories, ...) */
     try{ seedFirestoreCollections(); }catch(e){}
+    /* 🚚 auto-delivery watcher (every 30s) */
+    try{ setTimeout(adminAutoDeliver, 4000); setInterval(adminAutoDeliver, 30000); }catch(e){}
   } else {
     renderLogin();
   }
@@ -288,6 +290,27 @@ function renderDashboard(){
       '4. Manage products (add / bulk / XML feed), coupons, resellers &amp; reviews.</p></div>';
 }
 
+/* 🚚 AUTO-DELIVERY (admin): any shipped order whose 7-day window has passed is
+   auto-marked delivered (local + Firestore) — the owner never has to remember. */
+function adminAutoDeliver(){
+  try{
+    let changed = 0;
+    adminAllOrders().forEach(o => {
+      if (o.status !== 'shipped') return;
+      const by = o.deliverBy || (o.dispatchedAt ? new Date(new Date(o.dispatchedAt).getTime() + 7 * 864e5).toISOString() : '');
+      if (!by || Date.now() < new Date(by).getTime()) return;
+      o.status = 'delivered';
+      o.deliveredAt = o.deliveredAt || new Date().toISOString();
+      const fi = (fsOrders || []).findIndex(x => x.id === o.id);
+      if (fi >= 0) fsOrders[fi] = o;
+      else Store.saveOrders();
+      if (FS.enabled()) FS.updateStatus(o.id, 'delivered', { deliveredAt: o.deliveredAt }).catch(() => {});
+      changed++;
+      notifyAdmin('🚚 Auto-Delivered', o.id + ' — 7-day window passed', 'auto-deliver');
+    });
+    if (changed && adminTab === 'orders'){ renderFilters(); renderOrderList(); }
+  }catch(e){}
+}
 function adminAllOrders(){
   const localMap = {};
   Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; });
@@ -301,9 +324,9 @@ function renderFilters(){
   const counts = { all: all.length, placed: 0, pending: 0, confirmed: 0, shipped: 0, delivered: 0 };
   all.forEach(o => { const s = o.status || 'placed'; if (counts[s] !== undefined) counts[s]++; });
   const defs = [
-    ['all', '📦 All (' + counts.all + ')'], ['placed', '🆕 New (' + counts.placed + ')'],
     ['pending', '⏳ Payment Pending (' + counts.pending + ')'], ['confirmed', '✅ Confirmed (' + counts.confirmed + ')'],
     ['shipped', '🚚 Shipped (' + counts.shipped + ')'], ['delivered', '✔ Delivered (' + counts.delivered + ')'],
+    ['all', '📦 All (' + counts.all + ')'], ['placed', '🆕 New (' + counts.placed + ')'],
   ];
   document.getElementById('tabBody').innerHTML =
     '<input id="orderSearch" type="search" placeholder="🔍 Search orders — ID, customer name, phone…" autocomplete="off" value="' + esc(orderSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
@@ -386,7 +409,12 @@ function updateStatus(id, status){
   const o = fi >= 0 ? fsOrders[fi] : Store.orders.find(x => x.id === id);
   if (!o) return;
   o.status = status;
-  if (status === 'shipped') dispatchOrder(o);
+  if (status === 'shipped'){
+    dispatchOrder(o);
+    o.dispatchedAt = o.dispatchedAt || new Date().toISOString();
+    /* 🚚 auto-delivery: mark delivered automatically 7 days after dispatch */
+    if (!o.deliverBy) o.deliverBy = new Date(Date.now() + 7 * 864e5).toISOString();
+  }
   if (status === 'delivered') o.deliveredAt = o.deliveredAt || new Date().toISOString();
   if (fi >= 0){
     /* cloud order → update Firestore ONLY (never pollute sk_orders) */
@@ -1437,59 +1465,100 @@ function statusImage(p){
       /* gold inner border */
       ctx.strokeStyle = '#e8c66a'; ctx.lineWidth = 14;
       ctx.strokeRect(26, 26, W - 52, H - 52);
-      const load = () => {
+
+      const draw = (img, imgOk) => {
         try{
-          /* photo area (top third) */
-          const ph = 470, pad = 70;
-          ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(pad, 60, W - pad * 2, ph - 90);
-          const img = new Image();
-          img.crossOrigin = /^https:/i.test(String(p.img || '')) ? 'anonymous' : '';
-          const t = setTimeout(() => drawText(), 6000);
-          img.onload = () => {
-            clearTimeout(t);
-            try{
-              const iw = img.width || 800, ih = img.height || 600;
-              const boxW = W - pad * 2, boxH = ph - 90;
-              const s = Math.min(boxW / iw, boxH / ih);
-              const dw = iw * s, dh = ih * s;
-              ctx.drawImage(img, pad + (boxW - dw) / 2, 60 + (boxH - dh) / 2, dw, dh);
-            }catch(e){}
-            drawText();
-          };
-          img.onerror = () => { clearTimeout(t); drawText(); };
-          img.src = String(p.img || '');
-        }catch(e){ drawText(); }
-      };
-      const drawText = () => {
-        try{
-          const off = offPct(p);
-          const cx = W / 2;
-          let y = 620;
-          ctx.textAlign = 'center';
-          ctx.fillStyle = '#e8c66a'; ctx.font = 'bold 46px Georgia, serif';
-          ctx.fillText('🪡 SK SAREES — SALEM', cx, y); y += 70;
-          ctx.fillStyle = '#fff'; ctx.font = 'bold 62px Georgia, serif';
-          wrapText(ctx, String(p.name || 'Saree'), cx, y, W - 180, 68, 4); 
-          y += 200;
-          ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 78px Arial, sans-serif';
-          ctx.fillText('₹' + Number(p.price || 0).toLocaleString('en-IN'), cx, y);
-          if (p.mrp > p.price){
-            ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '44px Arial, sans-serif';
-            ctx.fillText('MRP ₹' + Number(p.mrp).toLocaleString('en-IN') + (off ? '   (' + off + '% OFF)' : ''), cx, y + 64);
+          /* 🖼️ ORIGINAL product photo — top area, cover-cropped into a rounded card */
+          const phTop = 74, phH = 470, phPad = 74, phW = W - phPad * 2;
+          ctx.fillStyle = '#faf7f2'; ctx.fillRect(phPad, phTop, phW, phH);
+          ctx.save();
+          roundRect(ctx, phPad, phTop, phW, phH, 24); ctx.clip();
+          if (imgOk && img){
+            const iw = img.width || 800, ih = img.height || 600;
+            const s = Math.max(phW / iw, phH / ih);
+            const dw = iw * s, dh = ih * s;
+            ctx.drawImage(img, phPad + (phW - dw) / 2, phTop + (phH - dh) / 2, dw, dh);
+          } else {
+            /* fallback: clean SK monogram */
+            ctx.fillStyle = 'rgba(143,29,58,.12)'; ctx.fillRect(phPad, phTop, phW, phH);
+            ctx.fillStyle = '#8f1d3a'; ctx.font = 'bold 190px Georgia, serif'; ctx.textAlign = 'center';
+            ctx.fillText('SK', W / 2, phTop + phH / 2 + 60);
           }
-          y += 150;
-          ctx.fillStyle = '#fff'; ctx.font = '40px Arial, sans-serif';
-          const lines = ['🚚 Free delivery above ₹999  •  💵 COD & UPI', '✅ 7-day returns  •  ⏱ 24–48h dispatch', '🏆 South India\'s #1 saree store'];
-          lines.forEach(l => { ctx.fillText(l, cx, y); y += 58; });
-          y += 40;
-          ctx.fillStyle = '#e8c66a'; ctx.font = 'bold 44px Arial, sans-serif';
+          ctx.restore();
+          ctx.strokeStyle = 'rgba(232,198,106,.6)'; ctx.lineWidth = 3;
+          roundRect(ctx, phPad, phTop, phW, phH, 24); ctx.stroke();
+
+          /* ✍️ TEXT — clean centered alignment with generous spacing */
+          const cx = W / 2;
+          let y = phTop + phH + 66;
+          ctx.textAlign = 'center';
+          /* store line */
+          ctx.fillStyle = '#e8c66a'; ctx.font = 'bold 44px Georgia, serif';
+          ctx.fillText('🪡 SK SAREES — SALEM', cx, y); y += 66;
+          /* saree name (wrapped, max 3 lines) */
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 60px Georgia, serif';
+          const nameLines = wrapLines(ctx, String(p.name || 'Saree'), W - 200, 3);
+          nameLines.forEach(l => { ctx.fillText(l, cx, y); y += 66; });
+          y += 16;
+          /* price + discount pill */
+          ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 84px Arial, sans-serif';
+          ctx.fillText('₹' + Number(p.price || 0).toLocaleString('en-IN'), cx, y); y += 40;
+          if (p.mrp > p.price){
+            ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = '44px Arial, sans-serif';
+            const off = offPct(p);
+            ctx.fillText('MRP ₹' + Number(p.mrp).toLocaleString('en-IN') + (off ? '   •   ' + off + '% OFF' : ''), cx, y); y += 10;
+          }
+          y += 26;
+          /* offers card */
+          const oy = y;
+          const oLines = ['🚚 Free delivery above ₹999  •  💵 COD & UPI', '✅ 7-day returns  •  ⏱ 24–48h dispatch'];
+          const oh = 46 * oLines.length + 44;
+          roundRect(ctx, 90, oy, W - 180, oh, 22);
+          ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fill();
+          ctx.strokeStyle = 'rgba(232,198,106,.5)'; ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = '#fff'; ctx.font = '38px Arial, sans-serif';
+          oLines.forEach((l, i) => ctx.fillText(l, cx, oy + 62 + i * 48));
+          y = oy + oh + 58;
+          /* bottom line */
+          ctx.fillStyle = '#e8c66a'; ctx.font = 'bold 46px Arial, sans-serif';
+          ctx.fillText("🏆 South India's #1 saree store", cx, y); y += 54;
+          ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 40px Arial, sans-serif';
           ctx.fillText('www.sksaree.shop', cx, y);
         }catch(e){}
         try{ resolve(cv.toDataURL('image/jpeg', 0.9)); }catch(e){ resolve(null); }
       };
-      load();
+
+      const img = new Image();
+      img.crossOrigin = /^https:/i.test(String(p.img || '')) ? 'anonymous' : '';
+      const t = setTimeout(() => draw(null, false), 6000);
+      img.onload = () => { clearTimeout(t); draw(img, true); };
+      img.onerror = () => { clearTimeout(t); draw(null, false); };
+      img.src = String(p.img || '');
     }catch(e){ resolve(null); }
   });
+}
+/* canvas rounded-rect helper */
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function wrapLines(ctx, text, maxW, maxLines){
+  const words = String(text).split(' ');
+  const out = []; let line = '';
+  for (const w of words){
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && line){
+      out.push(line); line = w;
+      if (out.length >= maxLines) return out;
+    } else line = test;
+  }
+  if (line) out.push(line);
+  return out;
 }
 function wrapText(ctx, text, x, y, maxW, lineH, maxLines){
   const words = String(text).split(' ');
@@ -1587,16 +1656,24 @@ function renderResellers(){
     return;
   }
   wrap.innerHTML = all.map((r, i) => {
-    const myOrders = Store.orders.filter(o => o.reseller && o.reseller.code === r.code);
-    const orderLines = myOrders.length
-      ? myOrders.slice(0, 8).map(o => '<div style="font-size:.75rem;padding:3px 0;border-bottom:1px dashed var(--line)">#' + esc(o.id) + ' • ' + fmtDT(o.date) + ' • ' + money((o.totals||{}).grand||0) + ' (' + esc(o.payment||'').toUpperCase() + ') • ' + esc((o.customer||{}).name||'') + '</div>').join('')
-      : '<p class="small muted" style="margin-top:4px">No local orders yet (cloud orders sync when Firestore is on).</p>';
+    /* 📦 ALL orders via this reseller (cloud + local, deduped by id) */
+    const allOrders = adminAllOrders().filter(o => o.reseller && o.reseller.code === r.code);
+    const orderLines = allOrders.length
+      ? allOrders.slice(0, 10).map(o => '<div style="font-size:.75rem;padding:3px 0;border-bottom:1px dashed var(--line)">#' + esc(o.id) + ' • ' + fmtDT(o.date) + ' • ' + money((o.totals||{}).grand||0) + ' (' + esc(o.payment||'').toUpperCase() + ') • ' + esc((o.customer||{}).name||'') + ' • <b style="color:var(--green)">+' + money(o.margin||0) + '</b></div>').join('')
+      : '<p class="small muted" style="margin-top:4px">No orders via this code yet.</p>';
+    /* 💸 commission send log (this browser) */
+    let pays = [];
+    try{ pays = JSON.parse(localStorage.getItem('sk_reseller_payments') || '[]').filter(x => x.code === r.code); }catch(e){}
+    const payLines = pays.length
+      ? pays.slice().reverse().slice(0, 6).map(x => '<div style="font-size:.75rem;padding:3px 0;border-bottom:1px dashed var(--line)">💸 Sent ' + fmtDT(x.date) + ' — <b style="color:var(--green)">' + money(x.amount) + '</b></div>').join('')
+      : '<p class="small muted" style="margin-top:4px">No commission sent yet.</p>';
     return '<div class="order-card">' +
       '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + '</span></div>' +
       '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) +
         ' • UPI: <b>' + esc(resellerUpiId(r)) + '</b>' +
         ((r.paidTotal || 0) > 0 ? ' • <span style="color:var(--green);font-weight:800">Paid so far: ' + money(r.paidTotal) + (r.lastPaid ? ' (' + fmtDate(r.lastPaid) + ')' : '') + '</span>' : '') + '</div>' +
-      '<div class="oc-items" style="margin-top:6px"><b>📦 Orders via ' + esc(r.code) + ':</b>' + orderLines + '</div>' +
+      '<div class="oc-items" style="margin-top:6px"><b>📦 Referral orders (' + allOrders.length + '):</b>' + orderLines + '</div>' +
+      '<div class="oc-items" style="margin-top:6px"><b>💸 Commission sent:</b>' + payLines + '</div>' +
       '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
         '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('🎉 Hi ' + r.name + '! Your SK Sarees commission ' + money(r.margin||0) + ' for ' + (r.orders||0) + ' order(s) is ready. Please confirm your GPay details 🙏') + '" target="_blank" rel="noopener">💬 Notify on WhatsApp</a>' +
         '<a class="btn btn-gold btn-sm" style="width:auto" href="' + resellerPayLink(r, r.margin) + '">💸 Pay ' + money(r.margin||0) + ' via GPay</a>' +
