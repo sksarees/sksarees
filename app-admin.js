@@ -6,6 +6,69 @@
 'use strict';
 const ADMIN_PIN = '1600'; /* 👉 change before going live */
 
+/* ============================ 🔔 NEW-ORDER ALERTS ============================
+   When a NEW order (or lead) arrives on the admin page, show a browser
+   notification + toast + beep — so the owner never misses an order. */
+let __seenOrders = (() => { try{ return JSON.parse(localStorage.getItem('sk_admin_seen_orders') || '[]'); }catch(e){ return []; } })();
+let __seenLeads = (() => { try{ return JSON.parse(localStorage.getItem('sk_admin_seen_leads') || '[]'); }catch(e){ return []; } })();
+function __saveSeenOrders(){ try{ localStorage.setItem('sk_admin_seen_orders', JSON.stringify(__seenOrders.slice(-200))); }catch(e){} }
+function __saveSeenLeads(){ try{ localStorage.setItem('sk_admin_seen_leads', JSON.stringify(__seenLeads.slice(-200))); }catch(e){} }
+function __beep(){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    [880, 1174].forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.18);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.4);
+      o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + i * 0.18); o.stop(ctx.currentTime + i * 0.18 + 0.45);
+    });
+  }catch(e){}
+}
+function notifyAdmin(title, body, tag){
+  /* browser notification (if allowed) */
+  try{
+    if ('Notification' in window && Notification.permission === 'granted'){
+      new Notification(title, { body, tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' });
+    }
+  }catch(e){}
+  /* in-page toast + beep so it is never missed */
+  try{ toast('🔔 ' + title + (body ? ' — ' + body : '')); }catch(e){}
+  try{ __beep(); }catch(e){}
+}
+function enableAdminAlerts(){
+  if (!('Notification' in window)){ toast('⚠️ This browser does not support notifications'); return; }
+  Notification.requestPermission().then(p => {
+    toast(p === 'granted' ? '🔔 Order alerts ON — new orders will notify you!' : '⚠️ Notifications blocked — enable in browser settings');
+  }).catch(() => {});
+}
+function watchNewOrders(list){
+  try{
+    (list || []).forEach(o => {
+      const id = o && o.id;
+      if (!id || __seenOrders.indexOf(id) !== -1) return;
+      __seenOrders.push(id);
+      const c = o.customer || {};
+      const t = o.totals || {};
+      const items = (o.items || []).map(i => i.name).join(', ');
+      notifyAdmin('🛒 New Order! ' + (o.id || ''), (c.name || '') + ' • ' + money(t.grand || 0) + (c.phone ? ' • ' + c.phone : '') + (items ? ' • ' + items : ''), 'new-order');
+    });
+    __saveSeenOrders();
+  }catch(e){}
+}
+function watchNewLeads(list){
+  try{
+    (list || []).forEach(l => {
+      const key = (l && (l.lid || (l.phone + '|' + (l.date || '')))) || '';
+      if (!key || __seenLeads.indexOf(key) !== -1) return;
+      __seenLeads.push(key);
+      notifyAdmin('📋 New Lead!', (l.name || '') + ' • ' + (l.phone || '') + (l.code ? ' • ' + l.code : ''), 'new-lead');
+    });
+    __saveSeenLeads();
+  }catch(e){}
+}
 function adminInit(){
   try{ injectChrome(); }catch(e){}
   try{ renderCartBadge(); }catch(e){}
@@ -19,8 +82,7 @@ function adminInit(){
   } else {
     renderLogin();
   }
-}
-document.addEventListener('DOMContentLoaded', adminInit);
+}document.addEventListener('DOMContentLoaded', adminInit);
 
 function renderLogin(){
   const app = document.getElementById('adminApp'); if (!app) return;
@@ -54,12 +116,13 @@ function renderAdmin(){
   const app = document.getElementById('adminApp'); if (!app) return;
   app.innerHTML =
     '<div class="admin-top"><h1>🛠️ SK Sarees — Admin</h1>' +
-    '<span class="sync-pill online" id="cloudPill">💾 Saved on device</span></div>' +
+    '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-outline btn-sm" id="btnAlerts" style="width:auto;min-width:0;padding:5px 10px;font-size:.72rem">🔔 Order Alerts</button><span class="sync-pill online" id="cloudPill">💾 Saved on device</span></div></div>' +
     '<div class="admin-tabs">' +
       '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
       '<button type="button" class="admin-tab" id="tabProducts">🛍️ Products</button>' +
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
       '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
+      '<button type="button" class="admin-tab" id="tabStatus">📱 Status Posts</button>' +
       '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
       '<button type="button" class="admin-tab" id="tabLeads">📋 Leads</button>' +
       '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Feed</button>' +
@@ -85,7 +148,10 @@ function renderAdmin(){
   document.getElementById('tabLeads').addEventListener('click', () => switchTab('leads'));
   document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
   document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
+  document.getElementById('tabStatus').addEventListener('click', () => switchTab('status'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
+  const ab = document.getElementById('btnAlerts');
+  if (ab) ab.addEventListener('click', () => enableAdminAlerts());
   /* Firestore: quiet status + live orders/reviews */
   if (FS.enabled()){
     const pill = document.getElementById('cloudPill');
@@ -98,8 +164,14 @@ function renderAdmin(){
     FS.listenOrders(list => {
       fsOrders = list && list.length ? list : [];
       fsOrders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      watchNewOrders(fsOrders);                    /* 🔔 new order alert */
       if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
     });
+    /* local device orders also trigger the alert */
+    try{
+      Store.orders.forEach(o => { if (o && o.id && __seenOrders.indexOf(o.id) === -1){ __seenOrders.push(o.id); notifyAdmin('🛒 New Order! ' + o.id, ((o.customer||{}).name||'') + ' • ' + money((o.totals||{}).grand||0), 'new-order'); } });
+      __saveSeenOrders();
+    }catch(e){}
     FS.listenReviews(list => { fsReviews = list || []; if (adminTab === 'reviews') renderReviews(); });
     FS._getDb().then(db => {
       if (!db) return;
@@ -113,7 +185,8 @@ function renderAdmin(){
       }, () => {});
       db.collection('leads').onSnapshot(snap => {
         const l = []; snap.forEach(x => l.push(Object.assign({}, x.data(), { lid: x.id })));
-        fsLeads = l; if (adminTab === 'leads') renderLeads();
+        fsLeads = l; watchNewLeads(l);             /* 🔔 new lead alert */
+        if (adminTab === 'leads') renderLeads();
       }, () => {});
     }).catch(() => {});
     FS._getDb().catch(() => {});
@@ -129,7 +202,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabPush','tabResellers','tabLeads','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabStatus','tabPush','tabResellers','tabLeads','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -144,6 +217,7 @@ function switchTab(t){
     else if (t === 'leads') renderLeads();
     else if (t === 'push') renderPush();
     else if (t === 'metaads') renderMetaAds();
+    else if (t === 'status') renderStatusPosts();
     else if (t === 'dashboard') renderDashboard();
   }catch(e){ body.innerHTML = '<div class="empty"><div class="e-ic">⚠️</div><b>Could not load</b></div>'; }
 }
@@ -268,12 +342,31 @@ function renderOrderList(){
 }
 function orderCard(o){
   const st = o.status || 'placed';
-  const items = (o.items || []).map(i => esc(i.name) + ' ×' + i.qty).join(', ');
   const c = o.customer || {}; const t = o.totals || {};
+  /* 🖼️ per-item rows: saree name, SKU, photo preview + WhatsApp share photo */
+  const rows = (o.items || []).map(i => {
+    const p = byId(i.id) || {};
+    const img = p.img || i.img || img('printed-cotton.jpg');
+    const sku = p.sku || i.sku || i.id || '';
+    const prodLink = (p.img ? (repoBase() + 'product.html?id=' + encodeURIComponent(i.id)) : '#');
+    /* generic share (no target number) → admin can forward to anyone / any group */
+    const shareMsg = 'https://wa.me/?text=' + encodeURIComponent('🪡 SK Sarees — ' + (i.name || '') + '\nSKU: ' + (sku || '') + '\nPrice: ' + money(i.price || 0) + (p.img ? '\n👉 ' + location.origin + prodLink : '') + '\n\nஉங்களுக்கு இந்த சேலை பிடிச்சிருக்கா? சொல்லுங்க! 😊');
+    return '<div class="order-item">' +
+      '<a href="' + prodLink + '" target="_blank" rel="noopener" title="Open product page"><img src="' + esc(img) + '" alt="' + esc(i.name) + '" loading="lazy" decoding="async" width="100" height="100" style="width:100px;height:100px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
+      '<div class="oi-info"><b>' + esc(i.name) + '</b>' +
+      '<small>SKU: ' + esc(sku) + (i.colour ? ' • 🎨 ' + esc(i.colour) : '') + '</small>' +
+      '<small>' + money(i.price || 0) + ' × ' + (i.qty || 1) + '</small></div>' +
+      '<a class="btn btn-wa btn-sm" style="width:auto;min-width:0;padding:6px 10px;font-size:.7rem" href="' + shareMsg + '" target="_blank" rel="noopener" title="Share saree photo on WhatsApp">📤 Share</a>' +
+    '</div>';
+  }).join('');
   return '<div class="order-card">' +
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace(/_/g, ' ')) + '</span></div>' +
-    '<div class="oc-items">' + fmtDT(o.date || o.createdAt) + ' • <b>' + esc(c.name || '') + '</b> • ' + esc(c.phone || '') + '<br>' +
-      esc(c.address || '') + ', ' + esc(c.pincode || '') + '<br>' + items + ' • <b>' + money(t.grand || 0) + '</b> (' + (o.payment || '').toUpperCase() + ')</div>' +
+    '<div class="oc-items">' + fmtDT(o.date || o.createdAt) + '<br>' +
+      '👤 <b>' + esc(c.name || '') + '</b><br>' +
+      '📞 ' + esc(c.phone || '') + '<br>' +
+      '🏠 ' + esc(c.address || '') + ' — ' + esc(c.pincode || '') + '<br>' +
+      '<b>' + money(t.grand || 0) + '</b> (' + (o.payment || '').toUpperCase() + ')</div>' +
+    '<div class="order-items">' + rows + '</div>' +
     '<select data-status="' + o.id + '">' +
       '<option value="placed"' + (st === 'placed' ? ' selected' : '') + '>Placed</option>' +
       '<option value="pending"' + (st === 'pending' ? ' selected' : '') + '>⏳ Payment Pending</option>' +
@@ -559,7 +652,7 @@ function renderProdBody(){
   const visible = list.slice(0, prodPage * PROD_PAGE_SIZE);
   tbody.innerHTML = visible.map(p =>
     '<tr' + (p.hidden ? ' style="opacity:.55;background:var(--bg)"' : '') + '><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"' + (p.hidden ? ' data-hid="1"' : '') + '></td>' +
-    '<td><img src="' + esc(p.img) + '" alt="" loading="lazy"></td>' +
+    '<td><img src="' + esc(p.img) + '" alt="" loading="lazy" decoding="async" width="100" height="100" style="width:100px;height:100px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"></td>' +
     '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + (p.hidden ? ' • 🚫 HIDDEN' : '') + '</small></td>' +
     '<td>' + money(p.price) + '</td>' +
     '<td class="' + (p.stock <= 5 ? 'low' : '') + '">' + (p.stock <= 5 ? '🔥 ' + p.stock : p.stock) + '</td>' +
@@ -1304,6 +1397,177 @@ function renderFeed(){
   });
 }
 
+/* ============================ 📱 DAILY STATUS POSTS ============================
+   Viral content for social media — a new post every day (auto-rotates by date).
+   Pick a saree (or 🎲 Surprise me) → ready viral Tamil+English caption →
+   copy text / share on WhatsApp / download a shareable STATUS IMAGE (1080×1080
+   with the saree photo, name, price & offers). Share daily on WhatsApp status,
+   Instagram, Facebook → more visitors & orders. */
+function statusPostFor(p){
+  const off = offPct(p);
+  const price = money(p.price), mrp = p.mrp ? money(p.mrp) : '';
+  const d = new Date();
+  const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
+  const link = (CONFIG.siteUrl || location.origin) + '/product.html?id=' + encodeURIComponent(p.id);
+  const text =
+    '🪡 ** இன்றைய சேலை ஸ்பெஷல் — ' + dateStr + ' ** 🎉\n\n' +
+    '✨ ' + p.name + '\n' +
+    '💰 விலை: ' + price + (off ? ' (' + off + '% OFF)' : '') + (mrp ? ' | MRP ' + mrp : '') + '\n' +
+    '🧵 ' + (p.fabric || 'Premium') + (p.color ? ' • ' + p.color : '') + '\n' +
+    '🚚 ₹999+ மேல இலவச டெலிவரி • 💵 COD & UPI உண்டு\n' +
+    '✅ 7 நாள் ரிட்டர்ன் • ⏱ 24–48 மணி நேர டிஸ்பாட்ச்\n' +
+    'South India-வின் நம்பர் 1 சேலை ஸ்டோர் 🏆\n\n' +
+    '👉 ' + link + '\n\n' +
+    '🔥 WhatsApp-ல பகிருங்க — உங்களுக்கும் ₹' + (CONFIG.resellerMargin || 50) + ' மார்கின்! 🎁\n' +
+    '#SKSarees #SareeOfTheDay #SalemSarees #SouthIndiaSarees #WeddingSarees #Pongal #Diwali';
+  return { text, link, dateStr, off };
+}
+/* render a 1080×1080 status image (canvas) → download as JPG */
+function statusImage(p){
+  return new Promise(resolve => {
+    try{
+      const W = 1080, H = 1080;
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+      if (!ctx){ resolve(null); return; }
+      /* background gradient */
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#8f1d3a'); g.addColorStop(1, '#5c0f26');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      /* gold inner border */
+      ctx.strokeStyle = '#e8c66a'; ctx.lineWidth = 14;
+      ctx.strokeRect(26, 26, W - 52, H - 52);
+      const load = () => {
+        try{
+          /* photo area (top third) */
+          const ph = 470, pad = 70;
+          ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(pad, 60, W - pad * 2, ph - 90);
+          const img = new Image();
+          img.crossOrigin = /^https:/i.test(String(p.img || '')) ? 'anonymous' : '';
+          const t = setTimeout(() => drawText(), 6000);
+          img.onload = () => {
+            clearTimeout(t);
+            try{
+              const iw = img.width || 800, ih = img.height || 600;
+              const boxW = W - pad * 2, boxH = ph - 90;
+              const s = Math.min(boxW / iw, boxH / ih);
+              const dw = iw * s, dh = ih * s;
+              ctx.drawImage(img, pad + (boxW - dw) / 2, 60 + (boxH - dh) / 2, dw, dh);
+            }catch(e){}
+            drawText();
+          };
+          img.onerror = () => { clearTimeout(t); drawText(); };
+          img.src = String(p.img || '');
+        }catch(e){ drawText(); }
+      };
+      const drawText = () => {
+        try{
+          const off = offPct(p);
+          const cx = W / 2;
+          let y = 620;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#e8c66a'; ctx.font = 'bold 46px Georgia, serif';
+          ctx.fillText('🪡 SK SAREES — SALEM', cx, y); y += 70;
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 62px Georgia, serif';
+          wrapText(ctx, String(p.name || 'Saree'), cx, y, W - 180, 68, 4); 
+          y += 200;
+          ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 78px Arial, sans-serif';
+          ctx.fillText('₹' + Number(p.price || 0).toLocaleString('en-IN'), cx, y);
+          if (p.mrp > p.price){
+            ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '44px Arial, sans-serif';
+            ctx.fillText('MRP ₹' + Number(p.mrp).toLocaleString('en-IN') + (off ? '   (' + off + '% OFF)' : ''), cx, y + 64);
+          }
+          y += 150;
+          ctx.fillStyle = '#fff'; ctx.font = '40px Arial, sans-serif';
+          const lines = ['🚚 Free delivery above ₹999  •  💵 COD & UPI', '✅ 7-day returns  •  ⏱ 24–48h dispatch', '🏆 South India\'s #1 saree store'];
+          lines.forEach(l => { ctx.fillText(l, cx, y); y += 58; });
+          y += 40;
+          ctx.fillStyle = '#e8c66a'; ctx.font = 'bold 44px Arial, sans-serif';
+          ctx.fillText('www.sksaree.shop', cx, y);
+        }catch(e){}
+        try{ resolve(cv.toDataURL('image/jpeg', 0.9)); }catch(e){ resolve(null); }
+      };
+      load();
+    }catch(e){ resolve(null); }
+  });
+}
+function wrapText(ctx, text, x, y, maxW, lineH, maxLines){
+  const words = String(text).split(' ');
+  let line = '', n = 0;
+  for (const w of words){
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && line){
+      ctx.fillText(line, x, y); y += lineH; line = w; n++;
+      if (n >= maxLines) return;
+    } else line = test;
+  }
+  if (line) ctx.fillText(line, x, y);
+}
+function renderStatusPosts(){
+  const body = document.getElementById('tabBody');
+  const pool = PRODUCTS.filter(p => !p.hidden && p.stock > 0 && p.img);
+  const day = Math.floor(Date.now() / 864e5);
+  const defId = pool.length ? pool[day % pool.length].id : '';
+  body.innerHTML =
+    '<div class="form-card"><h3>📱 Daily Status Post — viral content for social media</h3>' +
+      '<p class="small muted">Share this on <b>WhatsApp Status, Instagram, Facebook</b> every day — auto-rotates to a new saree daily. Customers see a fresh saree + offer → more visits & orders.</p>' +
+      '<div style="display:grid;gap:10px;grid-template-columns:1fr 1fr;margin-top:8px">' +
+        '<div class="field" style="margin:0"><label>🎀 Choose saree</label><select id="spProd" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff">' +
+          pool.map(x => '<option value="' + esc(x.id) + '"' + (x.id === defId ? ' selected' : '') + '>' + esc(x.name) + ' — ' + money(x.price) + '</option>').join('') +
+        '</select></div>' +
+        '<div class="field" style="margin:0"><label>🎲 or</label><button type="button" class="btn btn-outline" id="spSurprise" style="width:100%">🎲 Surprise Me (random saree)</button></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-maroon" id="spCopy" style="width:auto;min-width:170px">📋 Copy Caption</button>' +
+        '<button type="button" class="btn btn-wa" id="spWa" style="width:auto;min-width:220px">💬 Share on WhatsApp</button>' +
+        '<button type="button" class="btn btn-buy" id="spImg" style="width:auto;min-width:240px">🖼️ Download Status Image (JPG)</button>' +
+      '</div>' +
+      '<p class="small muted" id="spInfo" style="margin-top:8px"></p></div>' +
+    '<div class="form-card"><h3>📝 Caption preview</h3><textarea id="spText" rows="10" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:var(--bg);outline:none;font-family:inherit"></textarea></div>' +
+    '<div class="form-card"><h3>🖼️ Image preview</h3><img id="spPreview" alt="Status image preview" style="max-width:min(340px,100%);border-radius:12px;border:1px solid var(--line)"></div>';
+  const refill = () => {
+    const id = document.getElementById('spProd').value;
+    const p = byId(id);
+    if (!p) return;
+    const sp = statusPostFor(p);
+    document.getElementById('spText').value = sp.text;
+    document.getElementById('spInfo').innerHTML = '📅 Today: <b>' + sp.dateStr + '</b> • Saree of the day • Auto-rotates daily';
+    /* image preview + download */
+    statusImage(p).then(uri => {
+      const im = document.getElementById('spPreview');
+      if (im && uri) im.src = uri;
+      if (im && !uri) im.style.display = 'none';
+      document.getElementById('spImg').dataset.uri = uri || '';
+    });
+  };
+  document.getElementById('spProd').addEventListener('change', refill);
+  document.getElementById('spSurprise').addEventListener('click', () => {
+    const pool2 = PRODUCTS.filter(x => !x.hidden && x.stock > 0 && x.img);
+    if (!pool2.length) return;
+    const r = pool2[Math.floor(Math.random() * pool2.length)];
+    document.getElementById('spProd').value = r.id;
+    refill();
+    toast('🎲 ' + r.name);
+  });
+  document.getElementById('spCopy').addEventListener('click', () => {
+    copyText(document.getElementById('spText').value);
+    toast('📋 Caption copied — paste on WhatsApp Status!');
+  });
+  document.getElementById('spWa').addEventListener('click', () => {
+    const txt = document.getElementById('spText').value;
+    try{ window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); }catch(e){}
+  });
+  document.getElementById('spImg').addEventListener('click', () => {
+    const uri = document.getElementById('spImg').dataset.uri;
+    if (!uri){ toast('⏳ Image not ready yet — wait a second'); return; }
+    const a = document.createElement('a');
+    a.href = uri; a.download = 'sk-status-' + new Date().toISOString().slice(0, 10) + '.jpg';
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('🖼️ Status image downloaded — share it!');
+  });
+  refill();
+}
+
 /* ============================ RESELLERS (Share & Earn) ============================
    Shows every reseller: name, phone, code, orders count, total margin, and the
    order details they brought in — so the owner can pay commission via GPay. */
@@ -1330,11 +1594,13 @@ function renderResellers(){
     return '<div class="order-card">' +
       '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + '</span></div>' +
       '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) +
+        ' • UPI: <b>' + esc(resellerUpiId(r)) + '</b>' +
         ((r.paidTotal || 0) > 0 ? ' • <span style="color:var(--green);font-weight:800">Paid so far: ' + money(r.paidTotal) + (r.lastPaid ? ' (' + fmtDate(r.lastPaid) + ')' : '') + '</span>' : '') + '</div>' +
       '<div class="oc-items" style="margin-top:6px"><b>📦 Orders via ' + esc(r.code) + ':</b>' + orderLines + '</div>' +
       '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
         '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('🎉 Hi ' + r.name + '! Your SK Sarees commission ' + money(r.margin||0) + ' for ' + (r.orders||0) + ' order(s) is ready. Please confirm your GPay details 🙏') + '" target="_blank" rel="noopener">💬 Notify on WhatsApp</a>' +
         '<a class="btn btn-gold btn-sm" style="width:auto" href="' + resellerPayLink(r, r.margin) + '">💸 Pay ' + money(r.margin||0) + ' via GPay</a>' +
+        '<button type="button" class="btn btn-ghost btn-sm" style="width:auto" data-copyupi="' + esc(resellerUpiId(r)) + '">📋 Copy UPI</button>' +
         (r.margin > 0 ? '<button type="button" class="btn btn-maroon btn-sm" style="width:auto" data-resetpaid="' + esc(r.code) + '">✅ Mark Paid &amp; Reset</button>' : '') +
         '<a class="btn btn-outline btn-sm" style="width:auto" href="tel:+91' + esc(r.phone) + '">📞 Call</a>' +
       '</div></div>';
@@ -1538,6 +1804,8 @@ document.addEventListener('click', e => {
   const delr = e.target.closest('[data-delreview]');
   if (delr){ deleteReview(delr.dataset.delreview); }
   /* ✅ reseller margin paid → reset count */
+  const cu = e.target.closest('[data-copyupi]');
+  if (cu){ copyText(cu.dataset.copyupi); toast('📋 UPI ID copied: ' + cu.dataset.copyupi); return; }
   const rp = e.target.closest('[data-resetpaid]');
   if (rp){
     if (confirm('Mark this commission as PAID and reset the margin count to ₹0?')){

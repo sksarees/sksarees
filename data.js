@@ -596,24 +596,37 @@ function genOrderId(){
   }
   return 'ORD-' + mm + dd + '-' + hh + mi + ss + '-' + String(Date.now()).slice(-3);
 }
-/* Auto-increment SKU/Product ID counter → SK + 5 digits.
-   Starts at 20000 so it never collides with the built-in catalog (SK10001+). */
-let skuSeq = (() => { try{ return +localStorage.getItem('sk_sku_seq') || 20000; }catch(e){ return 20000; } })();
+/* Used SKU history (this browser) so random SKUs NEVER repeat, even across
+   page reloads. Also checks the live catalog + Firestore cache. */
+let __skuUsed = (() => {
+  try{ const u = JSON.parse(localStorage.getItem('sk_sku_used') || '[]'); return Array.isArray(u) ? u : []; }catch(e){ return []; }
+})();
+function __saveSkuUsed(){
+  try{ localStorage.setItem('sk_sku_used', JSON.stringify(__skuUsed.slice(-300))); }catch(e){}
+}
 function nextSku(){
-  /* 🔢 SKU = SK + today's date (MMDD) + 4 random digits, e.g. 05 Jan 2026 → SK01053212
-     Collision-checked against the live catalog so every SKU is unique. */
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
+  /* 🔢 SKU = SK + 4 random digits, e.g. SK7257 — never repeats.
+     Checks live catalog, Firestore cache, and this browser's used-SKU history. */
   const exists = id => {
-    try{ return !!PRODUCTS.find(p => String(p.id || p.sku) === String(id)); }catch(e){ return false; }
+    try{
+      if (__skuUsed.indexOf(id) !== -1) return true;
+      if (PRODUCTS.find(p => String(p.id || p.sku) === String(id))) return true;
+      const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
+      if (raw.some(p => String(p.id || p.sku) === String(id))) return true;
+    }catch(e){}
+    return false;
   };
-  for (let i = 0; i < 12; i++){
-    const rnd = String(Math.floor(1000 + Math.random() * 9000));   /* 4 digits */
-    const id = 'SK' + mm + dd + rnd;
-    if (!exists(id)){ try{ localStorage.setItem('sk_sku_seq', id); }catch(e){} return id; }
+  for (let i = 0; i < 20; i++){
+    const id = 'SK' + String(Math.floor(1000 + Math.random() * 9000));   /* SK + 4 random digits */
+    if (!exists(id)){
+      __skuUsed.push(id); __saveSkuUsed();
+      try{ localStorage.setItem('sk_sku_seq', id); }catch(e){}
+      return id;
+    }
   }
-  return 'SK' + mm + dd + String(Date.now()).slice(-4);
+  const id = 'SK' + String(Math.floor(1000 + Math.random() * 9000));
+  __skuUsed.push(id); __saveSkuUsed();
+  return id;
 }
 /* Product ID for new/admin-added products = auto-increment SK number */
 function genProductId(name){ return nextSku(); }
@@ -1215,12 +1228,21 @@ function markResellerPaid(code){
   return true;
 }
 /* GPay commission link for a reseller (pay to their phone @upi) */
+function resellerUpiId(r){
+  /* ✅ UPI handle for a reseller's phone — GPay phone handles are 91<10digit>@upi.
+     Normalises 10-digit / 91-prefixed / +91 inputs to one standard UPI ID. */
+  let p = String((r && r.phone) || '').replace(/\D/g, '');
+  if (p.length === 12 && p.indexOf('91') === 0) p = p.slice(2);
+  if (p.length === 10 && /^[6-9]/.test(p)) p = '91' + p;
+  return p + '@upi';
+}
 function resellerPayLink(r, amount){
-  const p = String(r.phone || '').replace(/\D/g, '');
+  const pa = resellerUpiId(r);
   const amt = Number(amount || CONFIG.resellerMargin || 0).toFixed(2);
   const note = encodeURIComponent('SK Sarees commission ' + (r.code || '') + ' — thank you!');
   const name = encodeURIComponent(r.name || 'Reseller');
-  return 'intent://pay?pa=' + p + '@upi&pn=' + name + '&am=' + amt + '&cu=INR&tn=' + note + '#Intent;scheme=upi;package=com.google.android.apps.nfcpay;S.browser_fallback_url=' + encodeURIComponent('https://pay.google.com/') + ';end';
+  /* GPay deep link + web fallback (works even without the GPay app) */
+  return 'intent://pay?pa=' + pa + '&pn=' + name + '&am=' + amt + '&cu=INR&tn=' + note + '#Intent;scheme=upi;package=com.google.android.apps.nfcpay;S.browser_fallback_url=' + encodeURIComponent('https://pay.google.com/gp/p/u/0/home/payments?amount=' + amt + '&currency=INR') + ';end';
 }
 
 /* ============================ 9d. WEB PUSH NOTIFICATIONS ============================
@@ -1284,17 +1306,24 @@ async function webPushSend(subJson, payload){
   const enc = new TextEncoder();
   const dec = new TextDecoder();
 
-  /* 1) VAPID JWT (ES256) signed with the private key */
-  const jwtB64 = s => btoa(String(s)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const header = jwtB64(JSON.stringify({ typ: 'JWT', alg: 'ES256' }));
+  /* 1) VAPID JWT (ES256) signed with the private key.
+     🔥 UTF-8-safe base64url: plain btoa crashes on non-Latin1 text (Tamil/emoji
+     and invalid-UTF8 signature bytes → U+FFFD). We always encode bytes. */
+  const bytesB64url = bytes => {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  };
+  const strB64url = str => bytesB64url(enc.encode(String(str)));
+  const header = strB64url(JSON.stringify({ typ: 'JWT', alg: 'ES256' }));
   const now = Math.floor(Date.now() / 1000);
-  const payloadB64 = jwtB64(JSON.stringify({ aud: new URL(sub.endpoint).origin, exp: now + 3600, sub: 'mailto:sk7867915699@example.com' }));
+  const payloadB64 = strB64url(JSON.stringify({ aud: new URL(sub.endpoint).origin, exp: now + 3600, sub: 'mailto:sk7867915699@example.com' }));
   const toSign = header + '.' + payloadB64;
 
   const privJwk = { crv: 'P-256', kty: 'EC', x: await b64ToJwkPart(VAPID_PUBLIC, 1), y: await b64ToJwkPart(VAPID_PUBLIC, 2), d: await b64ToJwkPart(vapidPrivate(), 3) };
   const privKey = await crypto.subtle.importKey('jwk', privJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privKey, enc.encode(toSign));
-  const sigB64 = jwtB64(dec.decode(sig));
+  const sigB64 = bytesB64url(new Uint8Array(sig));   /* 🔥 signature is raw bytes — never UTF-8 decode + btoa */
   const authorization = 'vapid t=' + toSign + '.' + sigB64 + ', k=' + VAPID_PUBLIC;
 
   /* 2) ECDH shared secret from the subscription's p256dh */
@@ -1366,6 +1395,25 @@ async function b64ToJwkPart(s, part){
 async function b64ToRaw(s){ return b64urlToBytes(s); }
 
 /* ---- abandoned-cart record (local + Firestore) so admin can push ---- */
+/* 📋 LEAD COLLECTION — any visitor who shares a name + number (Fast Order,
+   checkout, Notify-Me) is recorded as a lead: local list + Firestore, so the
+   admin's 📋 Leads tab and 🔔 new-lead alerts work. */
+function recordLead(name, phone, code){
+  try{
+    const ph = String(phone || '').replace(/\D/g, '');
+    if (ph.length < 10) return;
+    const lead = { name: String(name || '').trim() || 'Visitor', phone: ph, code: code || '', date: Date.now(), page: (document.body && document.body.dataset.page) || '' };
+    try{
+      const list = JSON.parse(localStorage.getItem('sk_lead_list') || '[]');
+      const i = list.findIndex(x => String(x.phone || '').replace(/\D/g, '') === ph);
+      if (i >= 0) list[i] = lead; else list.push(lead);
+      localStorage.setItem('sk_lead_list', JSON.stringify(list.slice(-200)));
+    }catch(e){}
+    if (FS.enabled()){
+      FS._getDb().then(db => { if (db) db.collection('leads').doc(ph).set(lead, { merge: true }).catch(()=>{}); }).catch(()=>{});
+    }
+  }catch(e){}
+}
 function saveAbandonedRecord(){
   try{
     if (!Store.cart.length) return;
@@ -1927,7 +1975,7 @@ window.refreshCloudProducts = function(){ try{ Sync.pullProducts(); }catch(e){} 
    admins · cart · categories · customers · inventory · orders · products ·
    promos · reviews · settings
    Each collection gets a seed document so it exists (and your rules apply). */
-const FS_COLLECTIONS = ['admins','cart','categories','counters','customers','inventory','orders','products','promos','reviews','settings'];
+const FS_COLLECTIONS = ['admins','cart','categories','counters','customers','inventory','leads','orders','products','promos','reviews','settings'];
 function seedFirestoreCollections(){
   if (!FS.enabled()) return;
   if (window.__seedDone) return;       /* in-page guard (prevents write loops) */
@@ -2306,7 +2354,7 @@ function injectChrome(){
   try{ renderStatsText(); }catch(e){}   /* fill footer stats after chrome renders */
   document.body.insertAdjacentHTML('beforeend', `
     <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>
-    <button class="ai-float" id="aiFloat" type="button" aria-label="SK AI Assistant — find your saree" title="🤖 SK AI Assistant">🤖</button>
+    <button class="ai-float" id="aiFloat" type="button" aria-label="SK AI Assistant — find your saree" title="SK AI Assistant — find your saree"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg></button>
     <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span></a>
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);

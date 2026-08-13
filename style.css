@@ -1576,3 +1576,31 @@ body.cartbar-on .wa-float{bottom:calc(78px + env(safe-area-inset-bottom))}
 .pcard-img img.img-ok{opacity:1}
 .ai-card img,.co-up-card img,.cart-item img,.rev img{opacity:0}
 .ai-card img.img-ok,.co-up-card img.img-ok,.cart-item img.img-ok,.rev img.img-ok{opacity:1}
+
+/* ============================================================================
+   📱 MOBILE-FRIENDLY AI + SHARE BUTTONS
+   ========================================================================== */
+.ai-quick .btn{padding:5px 9px;font-size:.68rem;min-height:0;line-height:1.3}
+.ai-quick{gap:5px;margin:6px 0}
+.ai-input input{font-size:14px;padding:9px 11px}
+.ai-input .btn{min-height:38px;padding:0 12px;font-size:.78rem}
+.ai-msg{font-size:.8rem;padding:8px 10px}
+.ai-cards{grid-template-columns:1fr}
+.ai-card img{width:52px;height:40px}
+.ai-float{width:46px;height:46px;font-size:1.35rem;right:12px;bottom:calc(74px + env(safe-area-inset-bottom))}
+body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
+@media(min-width:640px){
+  .ai-cards{grid-template-columns:1fr 1fr}
+  .ai-float{width:56px;height:56px;font-size:1.6rem}
+}
+.pd-share{display:flex;gap:6px;flex-wrap:wrap}
+.pd-share .btn{flex:1 1 auto;min-width:0;padding:8px 10px;font-size:.72rem;white-space:nowrap}
+
+/* ============================================================================
+   📤 SOCIAL SHARE CHIPS (product page)
+   ========================================================================== */
+.pd-social{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pd-social .soc{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:32px;padding:0 9px;border-radius:9px;font-size:.72rem;font-weight:800;color:#fff;text-decoration:none;border:none}
+.soc-fb{background:#1877f2}.soc-x{background:#111}.soc-tg{background:#229ed9;font-size:.85rem}
+.soc-wa{background:#25d366}.soc-pin{background:#e60023}.soc-in{background:#0a66c2}
+.pd-social .soc:active{transform:scale(.92)}

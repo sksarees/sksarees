@@ -485,6 +485,8 @@ function renderShop(){
       '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="loadMore" style="width:auto;min-width:200px">Load More ↓</button></div>' +
       '<div id="shopSentinel" style="height:1px"></div>' +
       '<div class="empty" id="empty" style="display:none"><div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.</div>' +
+      keepBrowsingHTML() +
+      recentViewHTML() +
     '</div>';
   drawChips();
   bindShop();
@@ -670,6 +672,17 @@ function recentViewHTML(){
       '<div class="prow">' + prods.map(cardHTML).join('') + '</div></section>';
   }catch(e){ return ''; }
 }
+/* 🔥 KEEP BROWSING — always shows more sarees below the shop grid (best-rated +
+   trending) so visitors never hit a dead end and never leave the page. */
+function keepBrowsingHTML(){
+  try{
+    const picks = PRODUCTS.filter(p => !p.hidden && p.stock > 0)
+      .slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 8);
+    if (picks.length < 2) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 Keep Browsing — Trending Sarees</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<div class="prow">' + picks.map(cardHTML).join('') + '</div></section>';
+  }catch(e){ return ''; }
+}
 
 /* ============================ PRODUCT ============================ */
 function renderProduct(){
@@ -850,10 +863,20 @@ function renderProduct(){
           '<button type="button" class="btn btn-outline btn-xl" id="tryOpen">🎨 Try-On — Preview Colours</button>' +
         '</div>' +
         '<div class="pd-share">' +
-          '<button type="button" class="btn btn-outline btn-sm" data-share-wa="' + esc(p.id) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Share (family/group)</button>' +
+          '<button type="button" class="btn btn-wa btn-sm" data-share-wa="' + esc(p.id) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Share</button>' +
+          '<button type="button" class="btn btn-maroon btn-sm" data-viral="' + esc(p.id) + '">📢 ' + (lang === 'ta' ? 'வாட்ஸ்அப் குரூப்பில் பகிர்' : 'WhatsApp Share — Groups') + '</button>' +
           '<button type="button" class="btn btn-outline btn-sm" data-dl-photo="' + esc(p.img) + '">📥 Download Photo</button>' +
           '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Share Photo</button>' +
           '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
+        '</div>' +
+        '<div class="pd-social">' +
+          '<span class="small muted" style="font-weight:800">📤 Share to:</span>' +
+          '<a class="soc soc-fb" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on Facebook">FB</a>' +
+          '<a class="soc soc-x" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on X (Twitter)">𝕏</a>' +
+          '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
+          '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + productUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
+          '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(productUrl(p)) + '&media=' + encodeURIComponent(p.img || '') + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
+          '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
         '</div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
@@ -878,8 +901,8 @@ function renderProduct(){
           '</div></div>' +
       '</div>' +
     '</div>' +
+    recentViewHTML() +
     '<div class="wrap" id="recSection"></div>' +
-    '<div class="wrap" id="exploreSection"></div>' +
     '<div class="sticky-bar">' +
       '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
       '<a class="btn btn-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>' +
@@ -899,7 +922,6 @@ function renderProduct(){
   }catch(e){}
   /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
-  try{ if (window.REC) REC.renderExplore(p, document.getElementById('exploreSection')); }catch(e){}
   /* 💰 Share & Earn box under the product */
   try{
     const earnWa = document.getElementById('earnWa');
@@ -977,7 +999,33 @@ function shareWaProduct(p){
   if (!p) return;
   const msg = '🛍️ Guess what I found on SK Sarees website!\n\n' + waProductMsg(p) +
     '\n\n📢 Share with your family & friends — they will love this saree too! Visit www.sksaree.shop for more 😍';
-  try{ window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+  try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+}
+/* 📢 VIRAL share — sends the saree to WhatsApp GROUPS with a viral caption.
+   Uses the native share sheet first (no blocking — customer picks any group),
+   falls back to the universal wa.me link. Works on mobile + desktop. */
+function viralShareProduct(p){
+  if (!p) return;
+  const url = productUrl(p);
+  const off = offPct(p);
+  const msg =
+    '🪡 ** சேலை பாருங்க! ** சேலை பாருங்க! 🎉\n\n' +
+    '✨ ' + p.name + '\n' +
+    '💰 விலை: ' + money(p.price) + (off ? ' (' + off + '% OFF)' : '') + (p.mrp ? ' (MRP ' + money(p.mrp) + ')' : '') + '\n' +
+    '🚚 ₹999+ மேல இலவச டெலிவரி • COD & UPI உண்டு\n' +
+    '✅ 7 நாள் ரிட்டர்ன் • South India-வின் நம்பர் 1 சேலை ஸ்டோர் 🏆\n\n' +
+    '👉 ' + url + '\n\n' +
+    '🔥 Group-ல உள்ள அனைவருக்கும் பகிருங்க — உங்களுக்கும் ரெசலர் மார்கின் ₹' + (CONFIG.resellerMargin || 50) + '! 🎁';
+  /* 📱 native share sheet → customer picks any WhatsApp group/chat (never blocked) */
+  try{
+    if (navigator.share){
+      navigator.share({ title: p.name, text: msg, url }).then(() => {}, () => {
+        try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+      });
+      return;
+    }
+  }catch(e){}
+  try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 /* share the saree PHOTO to WhatsApp Status (mobile: image → long-press → WhatsApp → My Status) */
 async function shareProductStatus(p){
@@ -1272,6 +1320,7 @@ function doPlaceOrder(payment){
   try{
     const d = co.data;
     if (!coValid()) return;
+    recordLead(d.name, d.phone, d.coupon || '');   /* 📋 lead collected */
     const t = coTotals();
     const couponUsed = d.coupon || '';
     const myReseller = currentReseller();
@@ -1386,6 +1435,26 @@ function renderOrderComplete(o, viaWa){
     '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">📦 Your Orders</h3>' + cards + '</div>' +
     orderSuccessRecs(o) +
   '</div>';
+}
+
+/* 💰 RESELLER COMMISSION CARD (profile page) — shows this visitor's reseller
+   code, orders brought, pending margin (to be paid) and total paid so far. */
+function resellerProfileCard(){
+  try{
+    const code = myResellerCode();
+    if (!code) return '';
+    const r = allResellers().find(x => x && x.code === code);
+    if (!r) return '';
+    const pending = r.margin || 0;
+    const paid = r.paidTotal || 0;
+    return '<div class="form-card"><h3>💰 My Commission</h3>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">' +
+        '<div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Pending (to be paid)</span><b style="font-size:1.3rem;color:var(--maroon)">' + money(pending) + '</b></div>' +
+        '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Paid so far</span><b style="font-size:1.3rem;color:var(--green)">' + money(paid) + '</b></div>' +
+      '</div>' +
+      '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ₹' + (CONFIG.resellerMargin || 50) + ' per order. Commission is paid via GPay after we confirm your orders.</p>' +
+      '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay via GPay. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a></div>';
+  }catch(e){ return ''; }
 }
 
 /* ============================ REPEAT-SALES HELPERS ============================ */
@@ -1666,13 +1735,14 @@ function renderProfilePage(){
         '<span style="font-size:2rem">⭐</span><div><b style="font-size:1.4rem;color:var(--maroon)" id="ptsBal">' + pointsBalance() + '</b>' +
         '<span class="muted small" style="display:block">points = ₹' + pointsRedeemable() + ' discount ready</span></div></div></div>' +
     '<div class="form-card"><h3>🤝 Refer &amp; Earn</h3>' +
-      '<p class="small muted" style="margin-bottom:8px">Share your code — when a friend orders with it, <b>you earn ₹50 margin</b> (paid via GPay) and they get ₹50 off with SHARE50!</p>' +
+      '<p class="small muted" style="margin-bottom:8px">Share your code — when a friend orders with it, <b>you earn ₹' + (CONFIG.resellerMargin || 50) + ' margin</b> (paid via GPay) and they get ₹50 off with SHARE50!</p>' +
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
         '<input id="refCode" readonly value="' + esc(myReferralCode() || genReferralCode()) + '" style="flex:1;min-width:140px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;background:var(--bg);outline:none;text-transform:uppercase;text-align:center;font-weight:800">' +
         '<button type="button" class="btn btn-maroon btn-sm" id="refCopy" style="width:auto;min-width:110px">📋 Copy</button>' +
       '</div>' +
       '<button type="button" class="btn btn-wa btn-sm" id="refWa" style="margin-top:8px;display:none">💬 Share on WhatsApp</button>' +
       '<p class="small muted" id="refNote" style="margin-top:6px"></p></div>' +
+    resellerProfileCard() +
     '<div class="form-card"><h3>📲 Install App (PWA)</h3>' +
       '<p class="small muted" style="margin-bottom:10px">Install SK Sarees as an app — one tap open, works offline-friendly, like a native app.</p>' +
       '<button type="button" class="btn btn-maroon" id="pfInstall">📲 Install App</button></div>' +
@@ -1911,6 +1981,9 @@ document.addEventListener('click', function(e){
   /* 📤 share product on WhatsApp (family/group) */
   const sw = e.target.closest('[data-share-wa]');
   if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
+  /* 📢 viral share to WhatsApp groups */
+  const vl = e.target.closest('[data-viral]');
+  if (vl){ e.preventDefault(); viralShareProduct(byId(vl.dataset.viral)); return; }
   /* 📥 download saree photo */
   const dlp = e.target.closest('[data-dl-photo]');
   if (dlp){
@@ -1985,6 +2058,7 @@ document.addEventListener('click', function(e){
     document.getElementById('ntSave').addEventListener('click', () => {
       const ph = document.getElementById('ntPhone').value.trim();
       if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
+      recordLead('', ph, '');   /* 📋 lead collected */
       /* store locally + open WhatsApp to the store with the request */
       let list = [];
       try{ list = JSON.parse(localStorage.getItem('sk_notify') || '[]'); }catch(e){}
