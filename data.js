@@ -1808,33 +1808,10 @@ const Stats = {
       }
     }catch(e){}
     this.refreshOrders();
-    /* 🔴 REAL totals: visitors from the shared Firestore counter,
-       orders = actual count of documents in the Firestore orders collection
-       (plus this device's local orders that may not be synced yet) */
-    try{
-      if (FS.enabled()){
-        FS._getDb().then(db => {
-          if (!db) return;
-          db.collection('counters').doc('site').onSnapshot(snap => {
-            if (!snap.exists) return;
-            const d = snap.data() || {};
-            if (d.visitors) this.visitors = d.visitors;
-            renderStatsText();
-          }, () => {});
-          /* true order count = Firestore orders docs + unsynced local orders */
-          db.collection('orders').get().then(snap => {
-            this.orders = (snap.size || 0);
-            this.orders += Store.orders.filter(o => !o.syncedCloud).length || 0;
-            renderStatsText();
-          }).catch(() => {});
-          /* keep it live with a listener */
-          db.collection('orders').onSnapshot(snap => {
-            this.orders = (snap && snap.size) || 0;
-            renderStatsText();
-          }, () => {});
-        }).catch(() => {});
-      }
-    }catch(e){}
+    /* 🔒 READ-OPTIMIZED: customer pages show LOCAL counters only — the old code
+       read the FULL orders collection + attached a live orders listener on every
+       page (huge reads: 143K/day). Admin gets the real totals via its own live
+       listeners in app-admin.js; customers never scan Firestore here. */
   },
   refreshOrders(){
     try{ this.orders = Store.orders.length; }catch(e){}
@@ -2096,6 +2073,37 @@ const FS = {
     });
     return () => un();
   },
+  /* 🔒 CUSTOMER ORDERS LISTENER — TARGETED (read-optimized):
+     · one-time query limited to THIS customer's phone (their docs only)
+     · then a cheap single-doc listener per known order id for live status
+     The OLD approach listened to the ENTIRE orders collection on every
+     customer's orders page → huge reads. Now it's ~their orders only. */
+  myOrdersSnapshot(phone, cb){
+    let un = () => {};
+    const unsubs = [];
+    const ph = String(phone || '').replace(/\D/g, '');
+    if (!/^[6-9]\d{9}$/.test(ph)) return un;
+    this._getDb().then(db => {
+      if (!db) return;
+      try{
+        db.collection('orders').where('customer.phone', '==', ph).limit(50).get().then(snap => {
+          const mine = [];
+          snap.forEach(x => { const d = x.data() || {}; if (d && d.id) mine.push(d); });
+          if (mine.length) cb(mine);
+          /* live status for each of MY orders via cheap single-doc listeners */
+          mine.forEach(o => {
+            unsubs.push(db.collection('orders').doc(o.id).onSnapshot(s => {
+              if (!s.exists) return;
+              const d = s.data() || {};
+              cb([d]);
+            }, () => {}));
+          });
+        }).catch(() => {});
+      }catch(e){}
+    });
+    un = () => { unsubs.forEach(u => { try{ u(); }catch(e){} }); };
+    return un;
+  },
   /* ---------- PRODUCTS (one-time fetch, used by product-page fallback) ---------- */
   /* Find one product by doc id / sku / id field. Returns null when missing. */
   async getProduct(id){
@@ -2309,17 +2317,37 @@ const Sync = {
      page needs (order listeners only where orders are displayed) ---- */
   /* 🌐 cross-browser user merge (defined above; bound for Sync.run) */
   pullUserCloud(){ try{ return window.pullUserCloud(); }catch(e){} },
+  /* 🔒 READ-GATED: remember when we last pulled each cloud collection, so we
+     only read it once per window instead of on every page load. */
+  __ttl(k, hours){
+    try{
+      const last = +(localStorage.getItem('sk_ttl_' + k) || 0);
+      const now = Date.now();
+      if (now - last < hours * 3600 * 1000) return false;   /* still fresh — skip the read */
+      localStorage.setItem('sk_ttl_' + k, String(now));
+      return true;
+    }catch(e){ return true; }
+  },
+  __bump(k){ try{ localStorage.setItem('sk_ttl_' + k, String(Date.now())); }catch(e){} },
   run(){
     this.saveLocal();
     this.pushCloud();
-    this.pullResellers();          /* 🔗 reseller codes known on every device */
     let pg = '';
     try{ pg = (document.body && document.body.dataset.page) || ''; }catch(e){}
     if (pg === 'admin'){
       this.pullCloud();           /* ADMIN ONLY: live orders (everyone's) + products */
+      /* admin also refreshes resellers via its live listener */
     } else {
-      this.pullProducts();        /* user pages: only products — orders stay DEVICE-LOCAL */
-      this.pullUserCloud && this.pullUserCloud();   /* 🌐 cross-browser user merge (silent) */
+      /* 🔒 CUSTOMER pages — minimal Firestore reads:
+         · products come from the static catalog.json + local cache (NO collection scan)
+         · resellers pulled only where needed (share-earn / profile / checkout) + 24h TTL
+         · user-cloud merge only on orders/profile/checkout pages + 6h TTL */
+      if ((pg === 'share-earn' || pg === 'profile' || pg === 'checkout') && this.__ttl('resellers', 24)){
+        try{ this.pullResellers(); }catch(e){}
+      }
+      if ((pg === 'orders' || pg === 'profile' || pg === 'checkout') && this.__ttl('usercloud', 6)){
+        try{ this.pullUserCloud(); }catch(e){}
+      }
     }
   },
 };

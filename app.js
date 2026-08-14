@@ -743,9 +743,9 @@ function renderProduct(){
         finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
         return;
       }
-      /* Firestore: 1) pull all active products (re-renders when done)
-                     2) one-time get by id/sku */
-      try{ Sync.pullProducts(); }catch(e){}
+      /* 🔒 READ-OPTIMIZED: read ONLY this product's document (1 doc), never the
+         whole products collection — catalog.json + local cache already cover
+         the store for browsing. */
       FS.getProduct(id).then(doc => {
         if (done) return;
         if (doc){
@@ -1674,9 +1674,13 @@ function renderOrdersPage(){
      orders are merged, so isolation is preserved. ---- */
   if (FS.enabled()){
     const myDev = deviceId();
+    const myPhone = String((Store.profile || {}).phone || '').replace(/\D/g, '');
     let prevStatuses = {};
     Store.orders.forEach(o => { prevStatuses[o.id] = o.status; });
-    FS.listenOrders(list => {
+    /* 🔒 READ-OPTIMIZED: listen ONLY to this customer's orders — a one-time
+       query by phone + a cheap per-doc listener per known order. The old code
+       subscribed to the ENTIRE orders collection here (huge reads). */
+    const applyUpdates = (list) => {
       if (!list || !list.length) return;
       let changed = false;
       list.forEach(f => {
@@ -1710,7 +1714,13 @@ function renderOrdersPage(){
           if (o) showDetail(o);
         }
       }
-    });
+    };
+    if (myPhone && /^[6-9]\d{9}$/.test(myPhone)){
+      /* customer with a saved phone → targeted listener (their orders only) */
+      FS.myOrdersSnapshot(myPhone, applyUpdates);
+    } else {
+      /* no phone yet → device-local orders only (no Firestore listener at all) */
+    }
   }
 }
 function statusTrack(o){
