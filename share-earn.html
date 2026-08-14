@@ -106,7 +106,7 @@
       <div class="form-card" style="background:var(--gold-soft);border:1.5px dashed var(--gold)">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <b style="font-size:1.1rem;color:var(--maroon)">💰 My code: <span id="myCodeTop">—</span></b>
-          <span class="muted small">Every order via this link earns me <b>₹50 margin</b></span>
+          <span class="muted small">Every order via this link earns me <b>5% margin</b></span>
         </div>
         <input id="myLinkTop" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:#fff;text-align:center;outline:none;margin-top:8px">
         <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap">
@@ -121,7 +121,7 @@
     <section class="sec" id="joinSec">
       <div class="sec-head"><h2><span class="tick"></span>🔗 Get Your Personal Share Link</h2></div>
       <div class="form-card">
-        <p class="small muted" style="margin-bottom:10px">Enter your name &amp; mobile number — we will create your <b>personal reseller code</b> and share link. When someone orders through your link, you earn <b>₹50 margin per sale</b> (tracked on our admin panel &amp; paid via GPay).</p>
+        <p class="small muted" style="margin-bottom:10px">Enter your name &amp; mobile number — we will create your <b>personal reseller code</b> and share link. When someone orders through your link, you earn <b>5% margin per sale</b> (tracked on our admin panel — paid via GPay or converted to loyalty points).</p>
         <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
           <div class="field"><label>Your Name *</label><input id="rsName" placeholder="e.g. Priya"></div>
           <div class="field"><label>WhatsApp / Mobile *</label><input id="rsPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>
@@ -130,7 +130,7 @@
         <div id="rsResult" style="display:none;margin-top:12px">
           <div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:14px;text-align:center">
             <b style="font-size:1.05rem;color:var(--maroon)">🎉 Your reseller code: <span id="rsCode">—</span></b>
-            <p class="small" style="color:#6b4c05;margin-top:6px">Share this link — every order via it earns you <b>₹50 margin</b>:</p>
+            <p class="small" style="color:#6b4c05;margin-top:6px">Share this link — every order via it earns you <b>5% margin</b>:</p>
             <input id="rsLink" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:#fff;text-align:center;outline:none">
             <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap">
               <button type="button" class="btn btn-maroon btn-sm" id="rsCopy" style="width:auto;min-width:150px">📋 Copy Link</button>
@@ -151,7 +151,7 @@
 
 ✨ Saree name & price here
 
-🎟️ Use my coupon code SHARE50 to get ₹50 OFF!
+🎟️ Use my coupon code SHARE50 to get 5% OFF!
 🚚 Free shipping above ₹999 • COD available
 📲 Order link: PASTE_SAREE_LINK_WITH_REF
 
@@ -171,8 +171,8 @@ Order through my link — I will help you choose the best one! 😊</textarea>
       <div class="pd-block">
         <p style="line-height:1.9;color:#4a3f38;font-size:.9rem">
           <b>💰 சேலை படத்தை பார்த்தீங்களா? Share பண்ணுங்க, Margin சம்பாதிங்க!</b><br><br>
-          உங்க friends &amp; family-க்கு நல்ல சேலை படங்களை WhatsApp-ல அனுப்புங்க. அவங்க அந்த link-ல இருந்து order பண்ணா, <b>ஒவ்வொரு order-க்கும் உங்களுக்கு ₹50 margin</b> கிடைக்கும்! 💸<br><br>
-          🎟️ உங்க customers-க்கு <b>SHARE50</b> coupon code — <b>₹50 discount</b>!<br>
+          உங்க friends &amp; family-க்கு நல்ல சேலை படங்களை WhatsApp-ல அனுப்புங்க. அவங்க அந்த link-ல இருந்து order பண்ணா, <b>ஒவ்வொரு order-க்கும் உங்களுக்கு 5% margin</b> கிடைக்கும்! 💸<br><br>
+          🎟️ உங்க customers-க்கு <b>SHARE50</b> coupon code — <b>5% discount</b>!<br>
           🚚 ₹999+ இருந்தா FREE shipping • 💵 COD available<br>
           📱 Order எடுக்க 2 நிமிடம் மட்டும்தான்!<br><br>
           <b>எப்படி?</b> மேலே உங்க பேரு + number குடுங்க → உங்க personal code கிடைக்கும் → எந்த product page-லயும் <b>?ref=உங்கCODE</b> சேர்த்து share பண்ணுங்க → order வந்தா margin நம்ம admin panel-ல record ஆகி, <b>GPay-ல உங்களுக்கு அனுப்புவோம்</b>! ✅<br><br>
@@ -283,7 +283,7 @@ Turn your WhatsApp into income today! 😍
         }
       }catch(e){}
       document.getElementById('rsWa').setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(
-        '🪡 Hi! I am a SK Sarees reseller 🎉\n\nMy code: ' + r.code + '\nShop sarees & get ₹50 off with coupon SHARE50!\n\n👉 ' + link + '\n\n(உங்களுக்கு இந்த link வேணா, எந்த சேலை படத்தோட ?ref=' + r.code + ' சேர்த்து அனுப்புங்க — உங்களுக்கு ₹50 margin கிடைக்கும்!)'));
+        '🪡 Hi! I am a SK Sarees reseller 🎉\n\nMy code: ' + r.code + '\nShop sarees & get 5% off with coupon SHARE50!\n\n👉 ' + link + '\n\n(உங்களுக்கு இந்த link வேணா, எந்த சேலை படத்தோட ?ref=' + r.code + ' சேர்த்து அனுப்புங்க — உங்களுக்கு 5% margin கிடைக்கும்!)'));
       toast('✅ Reseller registered: ' + r.code);
       if (window.refreshCustNote) window.refreshCustNote();
     });
@@ -320,7 +320,7 @@ Turn your WhatsApp into income today! 😍
         const mine = myResellerCode();
         let link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html';
         if (mine) link += '?ref=' + encodeURIComponent(mine);
-        ta.value = '🛍️ Hi! I found this beautiful saree on SK Sarees 🪡\n\n✨ Saree name & price here\n\n🎟️ Use my coupon code SHARE50 to get ₹50 OFF!\n🚚 Free shipping above ₹999 • COD available\n📲 Order link: ' + link + '\n\nOrder through my link — I will help you choose the best one! 😊';
+        ta.value = '🛍️ Hi! I found this beautiful saree on SK Sarees 🪡\n\n✨ Saree name & price here\n\n🎟️ Use my coupon code SHARE50 to get 5% OFF!\n🚚 Free shipping above ₹999 • COD available\n📲 Order link: ' + link + '\n\nOrder through my link — I will help you choose the best one! 😊';
         refreshCustNote();
         toast('✅ Share link inserted — edit & send!');
       });
@@ -335,5 +335,5 @@ Turn your WhatsApp into income today! 😍
   }catch(e){}
 })();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2ade5e5fa1b6cbd',t:'MTc4NjY4ODg5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
