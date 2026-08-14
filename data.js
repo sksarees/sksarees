@@ -676,6 +676,105 @@ function skuGen(id){
 }
 /* Each device gets a unique ID — orders are stamped with it so the user's
    "My Orders" page can always show ONLY this device's orders. */
+/* ============================ 12d. CROSS-BROWSER USER SYNC ============================
+   Chrome · Facebook browser · Google app — each has its OWN localStorage, so a
+   customer's cart/orders looked different per browser. Fix: a PHONE-based cloud
+   identity. Once the user's phone is saved, ALL their data (profile, cart,
+   wishlist, points, orders, reseller) is merged through Firestore — so the same
+   number on any browser shows the same cart & orders. Silent, debounced,
+   write-light (safe with the free Firestore quota). */
+function cloudUid(){
+  try{
+    const ph = String(((Store.profile || {}).phone) || (co && co.data ? co.data.phone : '') || '').replace(/\D/g, '');
+    if (/^[6-9]\d{9}$/.test(ph)) return 'u' + ph;          /* same phone → same cloud record on EVERY browser */
+  }catch(e){}
+  return 'd' + deviceId();                                    /* fallback: per-device (old behaviour) */
+}
+let __userSyncT = null;
+function syncUserCloud(){
+  try{
+    if (!FS.enabled()) return;
+    const uid = cloudUid();
+    if (!uid) return;
+    if (__userSyncT) clearTimeout(__userSyncT);
+    __userSyncT = setTimeout(() => {
+      try{
+        FS._getDb().then(db => {
+          if (!db) return;
+          const doc = {
+            profile: Store.profile || {},
+            cart: Store.cart.slice(),
+            wish: Store.wish.slice(),
+            points: pointsBalance(),
+            reseller: myResellerCode() || '',
+            updatedAt: Date.now(),
+          };
+          db.collection('users').doc(uid).set(doc, { merge: true }).catch(() => {});
+        }).catch(() => {});
+      }catch(e){}
+    }, 700);
+  }catch(e){}
+}
+/* pull the customer's cloud record + their own orders (from ANY browser) and
+   merge into local — safe, id-deduped, never wipes local-only items. */
+async function pullUserCloud(){
+  try{
+    if (!FS.enabled()) return;
+    const db = await FS._getDb();
+    if (!db) return;
+    const uid = cloudUid();
+    if (!uid) return;
+    try{
+      const snap = await db.collection('users').doc(uid).get();
+      if (snap.exists){
+        const d = snap.data() || {};
+        /* profile: fill empty fields only (local typed wins) */
+        if (d.profile){
+          const p = Object.assign({}, Store.profile || {});
+          ['name','phone','address','pincode'].forEach(k => { if (!p[k] && d.profile[k]) p[k] = d.profile[k]; });
+          Store.profile = p;
+        }
+        /* cart: merge — add cloud items we don't have (per id+colour), keep local qty for shared */
+        if (Array.isArray(d.cart) && d.cart.length){
+          const key = i => i.id + '::' + (i.colour || '');
+          const have = {};
+          Store.cart.forEach(i => { have[key(i)] = i.qty || 1; });
+          d.cart.forEach(i => {
+            const k = key(i);
+            if (!(k in have) && byId(i.id)) Store.cart.push({ id: i.id, qty: i.qty || 1, colour: i.colour || '' });
+          });
+        }
+        /* wishlist: union */
+        if (Array.isArray(d.wish)){
+          d.wish.forEach(id => { if (Store.wish.indexOf(id) === -1) Store.wish.push(id); });
+        }
+        /* points: take the higher balance */
+        if (d.points && (+d.points) > pointsBalance()){ try{ localStorage.setItem('sk_points', String(+d.points)); }catch(e){} }
+        /* reseller: if this browser has no code but cloud has one, adopt it */
+        if (d.reseller && !myResellerCode()){ try{ localStorage.setItem('sk_my_reseller', d.reseller); }catch(e){} }
+        Store.saveCart(); Store.saveWish(); Store.saveProfile();
+      }
+    }catch(e){}
+    /* 📦 pull THIS customer's own orders from the cloud (any browser placed them) */
+    try{
+      const ph = String((Store.profile || {}).phone || '').replace(/\D/g, '');
+      if (/^[6-9]\d{9}$/.test(ph)){
+        const osnap = await db.collection('orders').where('customer.phone', '==', ph).get();
+        let added = 0;
+        osnap.forEach(doc => {
+          try{
+            const o = doc.data() || {};
+            if (!o || !o.id || Store.orders.some(x => x.id === o.id)) return;
+            o.device = deviceId();          /* show as "my order" on this browser */
+            o.fromCloud = true;
+            Store.orders.push(o); added++;
+          }catch(e){}
+        });
+        if (added) Store.saveOrders();
+      }
+    }catch(e){}
+  }catch(e){}
+}
 function deviceId(){
   try{
     let id = localStorage.getItem('sk_device_id');
@@ -784,10 +883,11 @@ const Store = {
     LS.set('sk_cart', this.cart);
     try{ if (this.cart.length) localStorage.setItem('sk_cart_time', String(Date.now())); else localStorage.removeItem('sk_cart_time'); }catch(e){}
     renderCartBadge(); renderCartBar(); if (FS.enabled()) Sync.pushCloud();
+    try{ syncUserCloud(); }catch(e){}    /* 🌐 cross-browser cart merge */
   },
   saveOrders(){ LS.set('sk_orders', this.orders); }, /* no pushCloud here (avoids FS listener loop) */
-  saveWish(){ LS.set('sk_wish', this.wish); },
-  saveProfile(){ LS.set('sk_profile', this.profile); },
+  saveWish(){ LS.set('sk_wish', this.wish); try{ syncUserCloud(); }catch(e){} },
+  saveProfile(){ LS.set('sk_profile', this.profile); try{ syncUserCloud(); }catch(e){} },
 };
 function cartTotal(){ return Store.cart.reduce((s,i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0); }
 /* ---- STOCK (1 psc model) ----
@@ -2136,6 +2236,8 @@ const Sync = {
   },
   /* ---- call on every page: save local + push new orders + pull what the
      page needs (order listeners only where orders are displayed) ---- */
+  /* 🌐 cross-browser user merge (defined above; bound for Sync.run) */
+  pullUserCloud(){ try{ return window.pullUserCloud(); }catch(e){} },
   run(){
     this.saveLocal();
     this.pushCloud();
@@ -2146,6 +2248,7 @@ const Sync = {
       this.pullCloud();           /* ADMIN ONLY: live orders (everyone's) + products */
     } else {
       this.pullProducts();        /* user pages: only products — orders stay DEVICE-LOCAL */
+      this.pullUserCloud && this.pullUserCloud();   /* 🌐 cross-browser user merge (silent) */
     }
   },
 };
@@ -2158,7 +2261,7 @@ window.refreshCloudProducts = function(){ try{ Sync.pullProducts(); }catch(e){} 
    admins · cart · categories · customers · inventory · orders · products ·
    promos · reviews · settings
    Each collection gets a seed document so it exists (and your rules apply). */
-const FS_COLLECTIONS = ['admins','cart','categories','counters','customers','inventory','leads','orders','products','promos','reviews','settings'];
+const FS_COLLECTIONS = ['admins','cart','categories','counters','customers','inventory','leads','orders','products','promos','reviews','settings','users'];
 function seedFirestoreCollections(){
   if (!FS.enabled()) return;
   if (window.__seedDone) return;       /* in-page guard (prevents write loops) */
