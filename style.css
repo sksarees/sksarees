@@ -1604,3 +1604,16 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
 .soc-fb{background:#1877f2}.soc-x{background:#111}.soc-tg{background:#229ed9;font-size:.85rem}
 .soc-wa{background:#25d366}.soc-pin{background:#e60023}.soc-in{background:#0a66c2}
 .pd-social .soc:active{transform:scale(.92)}
+
+/* ============================================================================
+   📱 DEAL OF THE DAY — mobile alignment fix (contained image, tidy stack)
+   ========================================================================== */
+@media(max-width:520px){
+  .deal-day{flex-direction:column;text-align:center;align-items:center;padding:14px}
+  .deal-day .dd-img{order:1;flex:0 0 auto;width:100%;max-width:280px}
+  .deal-day .dd-img img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
+  .deal-day .dd-left{order:2;display:flex;flex-direction:column;align-items:center;width:100%}
+  .deal-day .dd-left h3{width:100%}
+  .deal-day .dd-left .price-row{justify-content:center}
+  .deal-day .dd-left .btn{margin:10px auto 0;width:100%;max-width:260px}
+}

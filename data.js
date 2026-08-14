@@ -1395,12 +1395,21 @@ function bumpResellerView(code){
     let list = getResellers();
     let i = list.findIndex(x => x.code === code);
     if (i < 0){
-      /* reseller may exist only in the cloud cache → add a local copy so the count persists */
+      /* reseller may exist only in the cloud cache → add a local copy so the count persists;
+         even a totally-unknown code gets a record so the view is never lost */
       const cloud = allResellers().find(x => x.code === code);
-      if (cloud){
-        list.push({ code: cloud.code, name: cloud.name || 'Reseller', phone: cloud.phone || '', date: cloud.date || Date.now(), orders: cloud.orders || 0, margin: cloud.margin || 0, pendingMargin: cloud.pendingMargin || 0, views: 0, upi: cloud.upi || '' });
-        i = list.length - 1;
-      }
+      list.push({
+        code: code,
+        name: (cloud && cloud.name) || 'Reseller',
+        phone: (cloud && cloud.phone) || '',
+        date: (cloud && cloud.date) || Date.now(),
+        orders: (cloud && cloud.orders) || 0,
+        margin: (cloud && cloud.margin) || 0,
+        pendingMargin: (cloud && cloud.pendingMargin) || 0,
+        views: 0,
+        upi: (cloud && cloud.upi) || '',
+      });
+      i = list.length - 1;
     }
     if (i >= 0){
       list[i].views = (list[i].views || 0) + 1;
@@ -1428,11 +1437,12 @@ function readRef(){
        order is claimed to the referrer and they earn commission. */
     try{ localStorage.setItem('sk_ref', code); }catch(e){}
     try{ sessionStorage.setItem('sk_ref', code); }catch(e){}
+    /* 👁 ALWAYS count the view when a ref code is present — even if the reseller
+       record isn't in the local cache yet (Firestore loads after init). The code
+       alone is enough; bumpResellerView creates a local record if needed. */
+    bumpResellerView(code);
     const r = resellerByCode(code);
-    if (r){
-      bumpResellerView(code);        /* 👁 count the share-link view (local + cloud, once per device) */
-      return r;
-    }
+    if (r) return r;
     return { code };   /* code may exist in Firestore cloud — orders still carry it */
   }catch(e){}
   return null;

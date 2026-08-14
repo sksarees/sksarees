@@ -1246,7 +1246,11 @@ function checkoutPerksHTML(){
       html += '<label style="display:flex;gap:8px;align-items:center;font-size:.82rem;font-weight:700;padding:6px 0;border-top:1px dashed var(--line);margin-top:8px"><input type="checkbox" id="usePts" style="width:18px;height:18px"' + (co.data.usePoints ? ' checked' : '') + '> ⭐ Use my ' + pts + ' loyalty points (−' + money(Math.min(pointsRedeemable(), t.itemsTotal - t.discount - t.bundle)) + ' on this order)</label>';
     }
     const res = currentReseller();
-    if (res && res.code){
+    /* 🤫 commission is PRIVATE — only show it when the person CHECKING OUT is
+       the reseller themself (their own device has sk_my_reseller = this code).
+       A friend who just clicked ?ref=KAV7474 must NOT see the referrer's
+       commission — they only see their own loyalty benefit. */
+    if (res && res.code && myResellerCode() === res.code){
       const comm = resellerMarginFor({ totals: { grand: t.grand } });
       html += '<p class="small" style="border:1px dashed var(--gold);border-radius:10px;padding:9px;background:var(--gold-soft);margin-top:8px">💰 Your reseller commission on this order: <b style="color:var(--maroon)">' + money(comm) + '</b> (' + (CONFIG.resellerMarginPct || 5) + '%) — code <b>' + esc(res.code) + '</b></p>';
     }
@@ -1387,8 +1391,10 @@ function doPlaceOrder(payment){
       totals: t,
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
       margin: 0,
-      /* UPI: paid but awaiting admin confirmation; COD: ₹70 booking paid now */
+      /* UPI: customer tapped "I've Paid" → paidConfirmed=true, awaiting admin
+         confirmation; COD: ₹70 booking paid now */
       status: payment === 'upi' ? 'pending' : 'placed',
+      paidConfirmed: payment === 'upi',          /* ✅ customer says they paid */
       bookingPaid: payment === 'cod' ? CONFIG.codFee : (payment === 'upi' ? t.grand : 0),
       device: deviceId(),
     };

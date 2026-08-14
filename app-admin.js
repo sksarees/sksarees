@@ -474,6 +474,7 @@ function orderCard(o){
   }).join('');
   return '<div class="order-card">' +
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace(/_/g, ' ')) + '</span></div>' +
+    (o.paidConfirmed ? '<div class="oc-items" style="color:var(--green);font-weight:800">✅ Customer says PAID — verify & confirm</div>' : '') +
     '<div class="oc-items">' + fmtDT(o.date || o.createdAt) + '<br>' +
       '👤 <b style="color:#000">' + esc(c.name || '') + '</b><br>' +
       '📞 ' + esc(c.phone || '') + '<br>' +
