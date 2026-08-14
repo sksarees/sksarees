@@ -88,6 +88,7 @@ function festivalName(slug){
 /* Which zone a PIN code belongs to (empty/unknown → Tamil Nadu default) */
 function deliveryZone(pincode){
   const p = String(pincode || '').replace(/\D/g, '');
+  if (!p) return 'tn';                        /* 🔧 unknown PIN → default Tamil Nadu (store home) so cart shows ₹30, not ₹60 */
   if (/^6[0-4]/.test(p)) return 'tn';        /* 60x–64x = Tamil Nadu */
   if (/^5[0-3]/.test(p)) return 'andra';     /* 50x–53x = Andhra/Telangana */
   if (/^5[6-9]/.test(p)) return 'karnataka'; /* 56x–59x = Karnataka */
@@ -949,9 +950,20 @@ function waCartMsg(){
   m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
   return m;
 }
-const TPL_CONFIRM = o => `🎉 Order Confirmed!\n\nHi ${o.customer.name}, your order ${o.id} (${money(o.totals.grand)}) has been confirmed ✅\nExpected delivery: ${o.totals.eta}\nWe will update you on WhatsApp once it is dispatched.\n\nThank you for shopping with SK SAREES! 🪡`;
-const TPL_DELIVERY = o => `🚚 Your beautiful Saree is out for delivery!\n\nExpected delivery: ${o.totals.eta}\nTrack your order: ${location.origin}/orders.html?id=${o.id}\n\nThank you for shopping with SK SAREES. 🪡`;
-const TPL_NOTIFY = o => `🆕 New Order — please confirm!\n\nOrder ID: ${o.id}\nCustomer: ${o.customer.name}\nPhone: ${o.customer.phone}\nAddress: ${o.customer.address}, ${o.customer.pincode}\nPayment: ${o.payment === 'upi' ? 'UPI' : 'COD (+₹' + CONFIG.codFee + ')'}\nTotal: ${money(o.totals.grand)}\nETA: ${o.totals.eta}\n\nItems:\n${o.items.map(i => `• ${i.name} ×${i.qty} — ${money(i.price*i.qty)}`).join('\n')}`;
+/* 💬 WhatsApp templates — fully defensive: any order (even with missing
+   customer/totals/items) produces a message instead of crashing the admin list. */
+const TPL_CONFIRM = o => {
+  const c = (o && o.customer) || {}, t = (o && o.totals) || {};
+  return `🎉 Order Confirmed!\n\nHi ${c.name || 'Customer'}, your order ${o && o.id || ''} (${money(t.grand || 0)}) has been confirmed ✅\nExpected delivery: ${t.eta || 'Dispatch 12-24h'}\nWe will update you on WhatsApp once it is dispatched.\n\nThank you for shopping with SK SAREES! 🪡`;
+};
+const TPL_DELIVERY = o => {
+  const t = (o && o.totals) || {};
+  return `🚚 Your beautiful Saree is out for delivery!\n\nExpected delivery: ${t.eta || 'Today'}\nTrack your order: ${location.origin}/orders.html?id=${(o && o.id) || ''}\n\nThank you for shopping with SK SAREES. 🪡`;
+};
+const TPL_NOTIFY = o => {
+  const c = (o && o.customer) || {}, t = (o && o.totals) || {}, items = (o && o.items) || [];
+  return `🆕 New Order — please confirm!\n\nOrder ID: ${(o && o.id) || ''}\nCustomer: ${c.name || 'Customer'}\nPhone: ${c.phone || ''}\nAddress: ${c.address || ''}, ${c.pincode || ''}\nPayment: ${(o && o.payment) === 'upi' ? 'UPI' : 'COD (+₹' + CONFIG.codFee + ')'}\nTotal: ${money(t.grand || 0)}\nETA: ${t.eta || 'Dispatch 12-24h'}\n\nItems:\n${items.map(i => `• ${(i && i.name) || 'Saree'} ×${(i && i.qty) || 1} — ${money(((i && i.price) || 0) * ((i && i.qty) || 1))}`).join('\n')}`;
+};
 
 /* ============================ 9. UPI ============================ */
 function upiLink(amount, note){
@@ -1123,8 +1135,8 @@ function addReseller(name, phone){
   const list = getResellers();
   const ph = String(phone || '').replace(/\D/g, '');
   const ex = list.find(r => r.phone === ph);
-  if (ex) return ex;                                   /* already registered */
-  const r = { code: makeResellerCode(name, ph), name: String(name || '').trim(), phone: ph, date: Date.now(), orders: 0, margin: 0 };
+  if (ex){ try{ localStorage.setItem('sk_my_reseller', ex.code); }catch(e){} return ex; }   /* already registered → still set this device */
+  const r = { code: makeResellerCode(name, ph), name: String(name || '').trim(), phone: ph, date: Date.now(), orders: 0, margin: 0, views: 0, upi: '' };
   list.push(r);
   saveResellers(list);
   try{ localStorage.setItem('sk_my_reseller', r.code); }catch(e){}   /* this device is a reseller now */
@@ -1132,6 +1144,34 @@ function addReseller(name, phone){
     if (FS.enabled()){ FS._getDb().then(db => { if (db) db.collection('resellers').doc(r.code).set(r, { merge: true }).catch(()=>{}); }).catch(()=>{}); }
   }catch(e){}
   return r;
+}
+/* 🤝 AUTO-RESELLER — whenever a user saves their name + number (profile,
+   checkout, fast order), they instantly get their own code, and EVERY share
+   link on their device automatically carries ?ref=CODE (so one registered
+   user sharing in family groups earns margin on all orders). */
+function autoRegisterReseller(name, phone){
+  try{
+    const ph = String(phone || '').replace(/\D/g, '');
+    if (ph.length !== 10 || !/^[6-9]/.test(ph)) return null;
+    const mine = myResellerCode();
+    if (mine){
+      const r = resellerByCode(mine);
+      if (r) return r;
+    }
+    return addReseller(String(name || '').trim() || 'Customer', ph);
+  }catch(e){ return null; }
+}
+/* 💳 reseller sets their own UPI for receiving margin (profile page) */
+function setResellerUpi(code, upi){
+  try{
+    const list = getResellers();
+    const r = list.find(x => x.code === code);
+    if (!r) return false;
+    r.upi = String(upi || '').trim();
+    saveResellers(list);
+    if (FS.enabled()){ FS._getDb().then(db => { if (db) db.collection('resellers').doc(code).set({ upi: r.upi }, { merge: true }).catch(()=>{}); }).catch(()=>{}); }
+    return true;
+  }catch(e){ return false; }
 }
 function resellerByCode(code){
   if (!code) return null;
@@ -1169,14 +1209,39 @@ function readRef(){
   try{
     const ref = safeParams().get('ref');
     if (!ref) return null;
-    const r = resellerByCode(ref);
-    if (r){ try{ sessionStorage.setItem('sk_ref', r.code); }catch(e){} return r; }
+    const code = String(ref).trim().toUpperCase();
+    /* 📌 store the ref on THIS device persistently (localStorage) — so even if
+       the customer leaves this page and orders later (or another page), the
+       order is claimed to the referrer and they earn commission. */
+    try{ localStorage.setItem('sk_ref', code); }catch(e){}
+    try{ sessionStorage.setItem('sk_ref', code); }catch(e){}
+    const r = resellerByCode(code);
+    if (r){
+      /* 👁 count a share-link view ONCE per device for this code */
+      try{
+        if (!localStorage.getItem('sk_ref_viewed_' + code)){
+          localStorage.setItem('sk_ref_viewed_' + code, '1');
+          r.views = (r.views || 0) + 1;
+          saveResellers(getResellers().map(x => x.code === r.code ? r : x));
+          if (FS.enabled()){ FS._getDb().then(db => { if (db) db.collection('resellers').doc(r.code).set({ views: r.views }, { merge: true }).catch(()=>{}); }).catch(()=>{}); }
+        }
+      }catch(e){}
+      return r;
+    }
+    return { code };   /* code may exist in Firestore cloud — orders still carry it */
   }catch(e){}
   return null;
 }
-/* reseller attached to the CURRENT visitor (from ?ref= they arrived with) */
+/* reseller attached to the CURRENT visitor — read from persistent localStorage
+   (set by any shared ?ref= link on this device), fallback to session */
 function currentReseller(){
-  try{ return resellerByCode(sessionStorage.getItem('sk_ref')); }catch(e){ return null; }
+  try{
+    let code = '';
+    try{ code = localStorage.getItem('sk_ref') || sessionStorage.getItem('sk_ref') || ''; }catch(e){ code = sessionStorage.getItem('sk_ref') || ''; }
+    if (!code) return null;
+    const r = resellerByCode(code);
+    return r || { code: String(code).trim().toUpperCase() };
+  }catch(e){ return null; }
 }
 /* after an order is placed: credit the reseller + persist to Firestore */
 function recordResellerOrder(order){
@@ -1190,7 +1255,12 @@ function recordResellerOrder(order){
     if (i < 0){
       const cloud = allResellers().find(x => x.code === r.code);
       if (cloud){
-        list.push({ code: cloud.code, name: cloud.name || r.name, phone: cloud.phone || r.phone, date: cloud.date || Date.now(), orders: 0, margin: 0 });
+        list.push({ code: cloud.code, name: cloud.name || r.name, phone: cloud.phone || r.phone, date: cloud.date || Date.now(), orders: 0, margin: 0, views: cloud.views || 0, upi: cloud.upi || '' });
+        i = list.length - 1;
+      } else {
+        /* code totally unknown (cloud not synced yet) → still credit a record so
+           the admin sees it and the margin is never lost */
+        list.push({ code: r.code, name: r.name || 'Reseller', phone: r.phone || '', date: Date.now(), orders: 0, margin: 0, views: 0, upi: '' });
         i = list.length - 1;
       }
     }
@@ -1235,8 +1305,20 @@ function markResellerPaid(code){
 }
 /* GPay commission link for a reseller (pay to their phone @upi) */
 function resellerUpiId(r){
-  /* ✅ UPI handle for a reseller's phone — GPay phone handles are 91<10digit>@upi.
-     Normalises 10-digit / 91-prefixed / +91 inputs to one standard UPI ID. */
+  /* ✅ UPI for receiving margin — prefers the reseller's own edited UPI
+     (profile → 💳 UPI ID), else derives from their phone (91<10digit>@upi). */
+  let u = String((r && r.upi) || '').trim();
+  if (u){
+    u = u.replace(/\s+/g, '');
+    if (u.indexOf('@') !== -1) return u;
+    if (/^\d{10,12}$/.test(u)){
+      let pp = u.replace(/\D/g, '');
+      if (pp.length === 12 && pp.indexOf('91') === 0) pp = pp.slice(2);
+      if (pp.length === 10 && /^[6-9]/.test(pp)) pp = '91' + pp;
+      return pp + '@upi';
+    }
+    return u + '@upi';
+  }
   let p = String((r && r.phone) || '').replace(/\D/g, '');
   if (p.length === 12 && p.indexOf('91') === 0) p = p.slice(2);
   if (p.length === 10 && /^[6-9]/.test(p)) p = '91' + p;
@@ -2360,8 +2442,8 @@ function injectChrome(){
   try{ renderStatsText(); }catch(e){}   /* fill footer stats after chrome renders */
   document.body.insertAdjacentHTML('beforeend', `
     <div class="wa-bubble" id="waBubble"><b>Need help?</b> Chat with us on WhatsApp — we reply in minutes!<div class="caret"></div></div>
-    <button class="ai-float" id="aiFloat" type="button" aria-label="SK AI Assistant — find your saree" title="SK AI Assistant — find your saree"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg></button>
-    <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span></a>
+    <button class="ai-float" id="aiFloat" type="button" aria-label="SK AI Assistant — find your saree" title="SK AI Assistant — find your saree"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z"/><path d="M19 14l1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14z" opacity=".75"/></svg></button>
+    <a class="wa-float" id="waFloat" href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><svg viewBox="0 0 24 24" width="32" height="32" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);
   try{ abandonedCartBanner(); }catch(e){}

@@ -69,6 +69,74 @@ function watchNewLeads(list){
     __saveSeenLeads();
   }catch(e){}
 }
+/* 🧾 COURIER LABEL — print/download a shipping label for an order:
+   From: SK Sarees (store) • To: customer address • product details. */
+function printOrderLabel(id){
+  try{
+    const o = adminAllOrders().find(x => x.id === id);
+    if (!o){ toast('⚠️ Order not found'); return; }
+    const c = o.customer || {};
+    const items = (o.items || []).map(i => {
+      const p = byId(i.id) || {};
+      return { name: i.name || p.name || 'Saree', sku: p.sku || i.sku || i.id || '', qty: i.qty || 1, price: i.price || p.price || 0 };
+    });
+    const rows = items.map(i => '<tr><td>' + esc(i.name) + '</td><td>' + esc(i.sku) + '</td><td>' + i.qty + '</td><td>' + money(i.price * i.qty) + '</td></tr>').join('');
+    const t = o.totals || {};
+    const label = '<!doctype html><html><head><meta charset="utf-8"><title>Courier Label ' + esc(o.id) + '</title>' +
+      '<style>' +
+      'body{font-family:Arial,sans-serif;margin:0;padding:18px;color:#000}' +
+      '.label{border:2px solid #000;border-radius:10px;padding:16px;max-width:760px;margin:0 auto}' +
+      'h2{margin:0 0 10px;font-size:1.3rem}' +
+      '.box{border:1px solid #999;border-radius:8px;padding:10px;margin-bottom:12px}' +
+      '.box b{font-size:1.05rem;display:block;margin-bottom:4px}' +
+      '.box p{margin:2px 0;font-size:.95rem}' +
+      '.from{background:#f0f0f0}.to{background:#fff8e1;border:2px solid #000}' +
+      'table{width:100%;border-collapse:collapse;font-size:.9rem}' +
+      'td,th{border:1px solid #999;padding:6px 8px;text-align:left}' +
+      '.foot{margin-top:12px;font-size:.85rem;text-align:center}' +
+      '@media print{body{padding:0}.label{border-radius:0}}' +
+      '</style></head><body><div class="label">' +
+      '<h2>📦 SK Sarees — Courier Label</h2>' +
+      '<div class="box from"><b>FROM — SK SAREES</b>' +
+        '<p>2/130, Thoothanoor, Edanganasalai, Salem, Tamil Nadu 637502</p>' +
+        '<p>📞 +91 78679 15699</p></div>' +
+      '<div class="box to"><b>TO — ' + esc(c.name || '') + '  •  📞 ' + esc(c.phone || '') + '</b>' +
+        '<p>' + esc(c.address || '') + (c.pincode ? ' — ' + esc(c.pincode) : '') + '</p>' +
+        '<p>PIN: ' + esc(c.pincode || '') + '</p></div>' +
+      '<div class="box"><b>Order ' + esc(o.id) + '</b>' +
+        '<p>' + fmtDT(o.date) + ' • Payment: ' + (o.payment || '').toUpperCase() + ' • Status: ' + esc((o.status || 'placed').replace('_', ' ')) + '</p>' +
+        '<table><thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Amount</th></tr></thead><tbody>' + rows +
+        '</tbody></table>' +
+        '<p style="margin-top:8px">Total: <b>' + money(t.grand || 0) + '</b> (incl. ship ' + money(t.shipping || 0) + (t.codFee ? ' + COD ' + money(t.codFee) : '') + ')</p></div>' +
+      '<p class="foot">SK Sarees • Edanganasalai, Salem • www.sksaree.shop • Thank you! 🪡</p>' +
+      '</div><script>window.onload = function(){ setTimeout(function(){ window.print(); }, 400); };<\/script></body></html>';
+    const win = window.open('', '_blank', 'width=820,height=900');
+    if (win){ win.document.write(label); win.document.close(); }
+    else { toast('⚠️ Pop-up blocked — allow pop-ups for this site'); }
+  }catch(e){ toast('⚠️ Could not open label'); }
+}
+/* 🔄 24-HR LIVE SYNC — any edit in the admin (this tab, another tab, or another
+   device via Firestore) reflects immediately: storage events, focus, and a
+   periodic refresh keep orders + products + resellers + leads live. */
+function enableLiveSync(){
+  try{
+    window.addEventListener('storage', () => { if (document.visibilityState === 'visible') refreshAdminTab(); });
+    window.addEventListener('focus', () => { refreshAdminTab(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshAdminTab(); });
+    setInterval(() => { try{ if (document.visibilityState === 'visible') refreshAdminTab(); }catch(e){} }, 60000);
+  }catch(e){}
+}
+function refreshAdminTab(){
+  try{
+    if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
+    else if (adminTab === 'products') renderProducts();
+    else if (adminTab === 'resellers') renderResellers();
+    else if (adminTab === 'leads') renderLeads();
+    else if (adminTab === 'push') renderPush();
+    else if (adminTab === 'coupons') renderCoupons();
+    else if (adminTab === 'feed') renderFeed();
+  }catch(e){}
+}
 function adminInit(){
   try{ injectChrome(); }catch(e){}
   try{ renderCartBadge(); }catch(e){}
@@ -81,6 +149,8 @@ function adminInit(){
     try{ seedFirestoreCollections(); }catch(e){}
     /* 🚚 auto-delivery watcher (every 30s) */
     try{ setTimeout(adminAutoDeliver, 4000); setInterval(adminAutoDeliver, 30000); }catch(e){}
+    /* 🔄 24-hr live sync */
+    try{ enableLiveSync(); }catch(e){}
   } else {
     renderLogin();
   }
@@ -313,10 +383,19 @@ function adminAutoDeliver(){
 }
 function adminAllOrders(){
   const localMap = {};
-  Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; });
-  const merged = (fsOrders || []).filter(f => orderAgeDays(f) <= 30).map(f => Object.assign({}, f, localMap[f.id] || {}))
-    .concat(Store.orders.filter(o => o && o.id && orderAgeDays(o) <= 30 && !(fsOrders || []).some(x => x.id === o.id)));
-  merged.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  try{ Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; }); }catch(e){}
+  const merged = [];
+  try{
+    (fsOrders || []).forEach(f => {
+      try{ if (f && f.id && orderAgeDays(f) <= 30) merged.push(Object.assign({}, f, localMap[f.id] || {})); }catch(e){}
+    });
+    try{
+      Store.orders.forEach(o => {
+        if (o && o.id && orderAgeDays(o) <= 30 && !merged.some(x => x.id === o.id)) merged.push(o);
+      });
+    }catch(e){}
+  }catch(e){}
+  merged.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   return merged;
 }
 function renderFilters(){
@@ -355,7 +434,11 @@ function renderOrderList(){
     return;
   }
   const visible = list.slice(0, orderPage * ORDER_PAGE_SIZE);
-  wrap.innerHTML = visible.map(o => orderCard(o)).join('');
+  const html = [];
+  visible.forEach(o => {
+    try{ html.push(orderCard(o)); }catch(e){ /* skip a corrupt order — never break the list */ }
+  });
+  wrap.innerHTML = html.join('') || '<div class="empty"><div class="e-ic">📭</div><b>No orders here yet</b></div>';
   const mo = document.getElementById('moreOrders');
   if (mo){
     const hasMore = orderPage * ORDER_PAGE_SIZE < list.length;
@@ -369,13 +452,16 @@ function orderCard(o){
   /* 🖼️ per-item rows: saree name, SKU, photo preview + WhatsApp share photo */
   const rows = (o.items || []).map(i => {
     const p = byId(i.id) || {};
-    const img = p.img || i.img || img('printed-cotton.jpg');
+    /* 🔧 fix TDZ shadowing: capture the global img() fallback BEFORE naming a
+       local const — a product missing from the catalog used to crash the card */
+    const fallbackPic = (typeof img === 'function') ? img('printed-cotton.jpg') : 'images/products/printed-cotton.jpg';
+    const pic = p.img || i.img || fallbackPic;
     const sku = p.sku || i.sku || i.id || '';
     const prodLink = (p.img ? (repoBase() + 'product.html?id=' + encodeURIComponent(i.id)) : '#');
     /* generic share (no target number) → admin can forward to anyone / any group */
     const shareMsg = 'https://wa.me/?text=' + encodeURIComponent('🪡 SK Sarees — ' + (i.name || '') + '\nSKU: ' + (sku || '') + '\nPrice: ' + money(i.price || 0) + (p.img ? '\n👉 ' + location.origin + prodLink : '') + '\n\nஉங்களுக்கு இந்த சேலை பிடிச்சிருக்கா? சொல்லுங்க! 😊');
     return '<div class="order-item">' +
-      '<a href="' + prodLink + '" target="_blank" rel="noopener" title="Open product page"><img src="' + esc(img) + '" alt="' + esc(i.name) + '" loading="lazy" decoding="async" width="100" height="100" style="width:100px;height:100px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
+      '<a href="' + prodLink + '" target="_blank" rel="noopener" title="Open product page"><img src="' + esc(pic) + '" alt="' + esc(i.name) + '" loading="lazy" decoding="async" width="100" height="100" style="width:100px;height:100px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
       '<div class="oi-info"><b>' + esc(i.name) + '</b>' +
       '<small>SKU: ' + esc(sku) + (i.colour ? ' • 🎨 ' + esc(i.colour) : '') + '</small>' +
       '<small>' + money(i.price || 0) + ' × ' + (i.qty || 1) + '</small></div>' +
@@ -385,9 +471,9 @@ function orderCard(o){
   return '<div class="order-card">' +
     '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace(/_/g, ' ')) + '</span></div>' +
     '<div class="oc-items">' + fmtDT(o.date || o.createdAt) + '<br>' +
-      '👤 <b>' + esc(c.name || '') + '</b><br>' +
+      '👤 <b style="color:#000">' + esc(c.name || '') + '</b><br>' +
       '📞 ' + esc(c.phone || '') + '<br>' +
-      '🏠 ' + esc(c.address || '') + ' — ' + esc(c.pincode || '') + '<br>' +
+      '🏠 <b style="color:#000;font-weight:800">' + esc(c.address || '') + ' — ' + esc(c.pincode || '') + '</b><br>' +
       '<b>' + money(t.grand || 0) + '</b> (' + (o.payment || '').toUpperCase() + ')</div>' +
     '<div class="order-items">' + rows + '</div>' +
     '<select data-status="' + o.id + '">' +
@@ -400,6 +486,7 @@ function orderCard(o){
     '<div class="oc-btns">' +
       '<a class="btn btn-wa btn-sm" href="' + waLink(TPL_CONFIRM(o), c.phone) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Send Confirmation</a>' +
       '<a class="btn btn-outline btn-sm" href="' + waLink(TPL_DELIVERY(o), c.phone) + '" target="_blank" rel="noopener">🚚 Send Delivery Reminder</a>' +
+      '<button type="button" class="btn btn-buy btn-sm" data-label="' + esc(o.id) + '" style="width:auto">🧾 Courier Label</button>' +
     '</div></div>';
 }
 
@@ -1668,7 +1755,7 @@ function renderResellers(){
       ? pays.slice().reverse().slice(0, 6).map(x => '<div style="font-size:.75rem;padding:3px 0;border-bottom:1px dashed var(--line)">💸 Sent ' + fmtDT(x.date) + ' — <b style="color:var(--green)">' + money(x.amount) + '</b></div>').join('')
       : '<p class="small muted" style="margin-top:4px">No commission sent yet.</p>';
     return '<div class="order-card">' +
-      '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + '</span></div>' +
+      '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + ' • 👁 ' + (r.views||0) + ' views</span></div>' +
       '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) +
         ' • UPI: <b>' + esc(resellerUpiId(r)) + '</b>' +
         ((r.paidTotal || 0) > 0 ? ' • <span style="color:var(--green);font-weight:800">Paid so far: ' + money(r.paidTotal) + (r.lastPaid ? ' (' + fmtDate(r.lastPaid) + ')' : '') + '</span>' : '') + '</div>' +
@@ -1881,6 +1968,8 @@ document.addEventListener('click', e => {
   const delr = e.target.closest('[data-delreview]');
   if (delr){ deleteReview(delr.dataset.delreview); }
   /* ✅ reseller margin paid → reset count */
+  const lbl = e.target.closest('[data-label]');
+  if (lbl){ printOrderLabel(lbl.dataset.label); return; }
   const cu = e.target.closest('[data-copyupi]');
   if (cu){ copyText(cu.dataset.copyupi); toast('📋 UPI ID copied: ' + cu.dataset.copyupi); return; }
   const rp = e.target.closest('[data-resetpaid]');

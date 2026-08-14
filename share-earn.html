@@ -100,8 +100,25 @@
       <p style="font-size:.8rem;margin-top:12px;opacity:.9">✅ Join free in 60 seconds &nbsp;•&nbsp; ✅ Share your first saree today &nbsp;•&nbsp; ✅ Earn margin on every confirmed order</p>
     </section>
 
+    <!-- ============ MY PERSONAL SHARE LINK (TOP) ============ -->
+    <section class="sec" id="myShareSec" style="display:none">
+      <div class="sec-head"><h2><span class="tick"></span>🔗 My Personal Share Link</h2><a href="#joinSec" style="color:var(--maroon);font-weight:800">+ New code</a></div>
+      <div class="form-card" style="background:var(--gold-soft);border:1.5px dashed var(--gold)">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <b style="font-size:1.1rem;color:var(--maroon)">💰 My code: <span id="myCodeTop">—</span></b>
+          <span class="muted small">Every order via this link earns me <b>₹50 margin</b></span>
+        </div>
+        <input id="myLinkTop" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:#fff;text-align:center;outline:none;margin-top:8px">
+        <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap">
+          <button type="button" class="btn btn-maroon btn-sm" id="myCopyTop" style="width:auto;min-width:150px">📋 Copy Link</button>
+          <a class="btn btn-wa btn-sm" id="myWaTop" href="#" target="_blank" rel="noopener" style="width:auto;min-width:150px">💬 Share on WhatsApp</a>
+          <a class="btn btn-gold btn-sm" href="profile.html" style="width:auto;min-width:150px">💰 My Commission</a>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ RESELLER JOIN ============ -->
-    <section class="sec">
+    <section class="sec" id="joinSec">
       <div class="sec-head"><h2><span class="tick"></span>🔗 Get Your Personal Share Link</h2></div>
       <div class="form-card">
         <p class="small muted" style="margin-bottom:10px">Enter your name &amp; mobile number — we will create your <b>personal reseller code</b> and share link. When someone orders through your link, you earn <b>₹50 margin per sale</b> (tracked on our admin panel &amp; paid via GPay).</p>
@@ -219,6 +236,27 @@ Turn your WhatsApp into income today! 😍
     if (sendBtn && ta) sendBtn.setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(ta.value));
   }catch(e){}
 })();
+/* show MY personal share link at the TOP if this device already has a code */
+(function(){
+  try{
+    const code = (typeof myResellerCode === 'function') ? myResellerCode() : (localStorage.getItem('sk_my_reseller') || '');
+    const sec = document.getElementById('myShareSec');
+    if (sec && code){
+      const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + encodeURIComponent(code);
+      document.getElementById('myCodeTop').textContent = code;
+      document.getElementById('myLinkTop').value = link;
+      document.getElementById('myWaTop').setAttribute('href', 'https://wa.me/?text=' + encodeURIComponent('🪡 Hi! Shop sarees on SK Sarees — use my link & get ₹50 off!\n👉 ' + link));
+      sec.style.display = '';
+      const cp = document.getElementById('myCopyTop');
+      if (cp) cp.addEventListener('click', () => {
+        const inp = document.getElementById('myLinkTop'); inp.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).catch(()=>{});
+        toast('✅ Link copied!');
+      });
+    }
+  }catch(e){}
+})();
 /* reseller join: name + phone → personal code + share link */
 (function(){
   try{
@@ -234,6 +272,16 @@ Turn your WhatsApp into income today! 😍
       document.getElementById('rsCode').textContent = r.code;
       document.getElementById('rsLink').value = link;
       document.getElementById('rsResult').style.display = 'block';
+      /* also refresh the TOP personal share link box */
+      try{
+        const sec = document.getElementById('myShareSec');
+        if (sec){
+          document.getElementById('myCodeTop').textContent = r.code;
+          document.getElementById('myLinkTop').value = link;
+          document.getElementById('myWaTop').setAttribute('href', 'https://wa.me/?text=' + encodeURIComponent('🪡 Hi! Shop sarees on SK Sarees — use my link & get ₹50 off!\n👉 ' + link));
+          sec.style.display = '';
+        }
+      }catch(e){}
       document.getElementById('rsWa').setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(
         '🪡 Hi! I am a SK Sarees reseller 🎉\n\nMy code: ' + r.code + '\nShop sarees & get ₹50 off with coupon SHARE50!\n\n👉 ' + link + '\n\n(உங்களுக்கு இந்த link வேணா, எந்த சேலை படத்தோட ?ref=' + r.code + ' சேர்த்து அனுப்புங்க — உங்களுக்கு ₹50 margin கிடைக்கும்!)'));
       toast('✅ Reseller registered: ' + r.code);

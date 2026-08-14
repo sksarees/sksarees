@@ -571,6 +571,7 @@ function fastOrderModal(p){
         Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || nm || '', phone: ph });
         Store.saveProfile(); saveCoDraft();
         renderHeader();
+        autoRegisterReseller(nm, ph);   /* 🤝 auto-reseller: every share link now carries this user's code */
       }catch(e){}
       const msg = '⚡ Fast Order — SK Sarees\n\n🪡 ' + p.name + ' — ' + money(p.price) + '\n👤 ' + (nm || 'Customer') + '\n📱 ' + ph + '\n\nPlease confirm my order. Thank you!';
       try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
@@ -1343,6 +1344,7 @@ function doPlaceOrder(payment){
     try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
+    try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
     Store.saveProfile();
     consumeStock(order.items);                 /* 1 psc model: stock goes down for next customer */
     Store.cart = []; Store.saveCart(); syncCartReservation();
@@ -1379,6 +1381,7 @@ function doWaOrder(){
     try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
+    try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
     Store.saveProfile();
     consumeStock(order.items);
     Store.cart = []; Store.saveCart(); syncCartReservation();
@@ -1447,6 +1450,9 @@ function resellerProfileCard(){
     if (!r) return '';
     const pending = r.margin || 0;
     const paid = r.paidTotal || 0;
+    const views = r.views || 0;
+    /* 🔗 this reseller's personal share link (carries ?ref=CODE) */
+    const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + encodeURIComponent(code);
     /* 📦 this reseller's orders (local orders tagged with their code) */
     const myOrders = Store.orders.filter(o => o.reseller && o.reseller.code === code);
     const orderRows = myOrders.length
@@ -1459,14 +1465,19 @@ function resellerProfileCard(){
       ? pays.slice().reverse().slice(0, 8).map(x => '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:5px 0;border-bottom:1px dashed var(--line)"><span>💸 ' + fmtDT(x.date) + '</span><b style="color:var(--green)">' + money(x.amount) + '</b></div>').join('')
       : '<p class="small muted">No commission received yet.</p>';
     return '<div class="form-card"><h3>💰 My Commission</h3>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">' +
-        '<div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Pending (to be paid)</span><b style="font-size:1.3rem;color:var(--maroon)">' + money(pending) + '</b></div>' +
-        '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Paid so far</span><b style="font-size:1.3rem;color:var(--green)">' + money(paid) + '</b></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">' +
+        '<div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Pending</span><b style="font-size:1.2rem;color:var(--maroon)">' + money(pending) + '</b></div>' +
+        '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Paid</span><b style="font-size:1.2rem;color:var(--green)">' + money(paid) + '</b></div>' +
+        '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Link views</span><b style="font-size:1.2rem;color:var(--maroon)">👁 ' + views + '</b></div>' +
       '</div>' +
-      '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ₹' + (CONFIG.resellerMargin || 50) + ' per order. Commission is paid via GPay after we confirm your orders.</p>' +
+      '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ₹' + (CONFIG.resellerMargin || 50) + ' per order.</p>' +
+      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input id="rcLink" readonly value="' + esc(link) + '" style="flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.75rem;background:var(--bg);outline:none"><button type="button" class="btn btn-maroon btn-sm" id="rcCopy" style="width:auto;min-width:90px">📋 Copy</button>' +
+      '<a class="btn btn-wa btn-sm" id="rcWa" style="width:auto;min-width:90px" href="https://wa.me/?text=' + encodeURIComponent('🪡 Hi! Shop sarees on SK Sarees — use my link & get ₹50 off!\n👉 ' + link) + '" target="_blank" rel="noopener">💬 Share</a></div>' +
       '<h4 style="font-size:.85rem;margin:10px 0 4px">📦 My Referral Orders</h4>' + orderRows +
       '<h4 style="font-size:.85rem;margin:10px 0 4px">💸 Commission Received</h4>' + payRows +
-      '<a class="btn btn-wa btn-sm" style="width:auto;margin-top:8px" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay via GPay. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a></div>';
+      '<h4 style="font-size:.85rem;margin:10px 0 4px">💳 My UPI for receiving margin</h4>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap"><input id="rcUpi" value="' + esc(r.upi || '') + '" placeholder="e.g. 9876500000@ybl (edit to receive commission)" style="flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.78rem;outline:none"><button type="button" class="btn btn-maroon btn-sm" id="rcUpiSave" style="width:auto;min-width:90px">💾 Save</button></div>' +
+      '<a class="btn btn-wa btn-sm" style="width:auto;margin-top:8px" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay to my UPI ' + (resellerUpiId(r)) + '. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a></div>';
   }catch(e){ return ''; }
 }
 
@@ -1771,6 +1782,17 @@ function renderProfilePage(){
       '<option value="kn"' + (lang === 'kn' ? ' selected' : '') + '>ಕನ್ನಡ</option></select></div>' +
     '<div class="form-card"><h3>🏠 Store Info</h3><p class="small" style="line-height:1.9">📍 2/130, Thoothanoor, Edanganasalai, Salem 637502<br>📞 <a href="tel:+917867915699" style="color:var(--maroon);font-weight:800">+91 78679 15699</a><br><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> <a href="' + waLink('Hi! I need help.') + '" target="_blank" rel="noopener" style="color:var(--wa-d);font-weight:800">Chat on WhatsApp</a><br>⏰ 9 AM – 9 PM, all days</p></div>' +
   '</div>';
+  /* 🔗 reseller card: copy link / share / save UPI */
+  try{
+    const rcC = document.getElementById('rcCopy');
+    if (rcC) rcC.addEventListener('click', () => { const v = document.getElementById('rcLink'); if (v){ copyText(v.value); toast('📋 Share link copied'); } });
+    const rcU = document.getElementById('rcUpiSave');
+    if (rcU) rcU.addEventListener('click', () => {
+      const inp = document.getElementById('rcUpi'); if (!inp) return;
+      const ok = setResellerUpi(myResellerCode(), inp.value.trim());
+      toast(ok ? '💳 UPI saved — commission will be paid to ' + resellerUpiId({ upi: inp.value.trim(), phone: (Store.profile||{}).phone || '' }) : '⚠️ Could not save UPI');
+    });
+  }catch(e){}
   document.getElementById('pfSave').addEventListener('click', () => {
     const name = document.getElementById('pfName').value.trim();
     const phone = document.getElementById('pfPhone').value.trim();
@@ -1779,6 +1801,8 @@ function renderProfilePage(){
     if (!name || !validPhone(phone)){ toast('⚠️ Enter valid name & 10-digit phone'); return; }
     Store.profile = { name, phone, address, pincode };
     Store.saveProfile();
+    const rr = autoRegisterReseller(name, phone);   /* 🤝 auto-reseller code for this device */
+    if (rr) toast('🎉 Reseller code ready: ' + rr.code + ' — your share links now earn you ₹' + (CONFIG.resellerMargin || 50) + ' per order!');
     toast('✅ Details saved');
   });
   document.getElementById('pfLang').addEventListener('change', e => setLang(e.target.value));
