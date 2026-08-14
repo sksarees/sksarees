@@ -284,7 +284,7 @@ function switchTab(t){
     else if (t === 'products') renderProducts();
     else if (t === 'reviews') renderReviews();
     else if (t === 'coupons') renderCoupons();
-    else if (t === 'resellers') renderResellers();
+    else if (t === 'resellers'){ rsPage = 1; renderResellers(); }
     else if (t === 'feed') renderFeed();
     else if (t === 'leads') renderLeads();
     else if (t === 'push') renderPush();
@@ -1736,6 +1736,8 @@ function renderStatusPosts(){
    Shows every reseller: name, phone, code, orders count, total margin, and the
    order details they brought in — so the owner can pay commission via GPay. */
 let fsResellers = [];
+let rsPage = 1;                        /* resellers pagination: 10 at a time */
+const RS_PAGE_SIZE = 10;
 function renderResellers(){
   const body = document.getElementById('tabBody');
   /* merge local + Firestore resellers (dedupe by code) */
@@ -1743,14 +1745,17 @@ function renderResellers(){
   const totalMargin = all.reduce((s, r) => s + (r.margin || 0), 0);
   body.innerHTML =
     '<div class="form-card"><h3>💰 Resellers — Share &amp; Earn</h3>' +
-      '<p class="small muted">Resellers earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> of every <b>UPI</b> order through their share link (<code>?ref=CODE</code>) — <b>confirmed when the order ships</b> (COD orders earn nothing). Paid via GPay <b>or</b> converted to loyalty points. Confirmed to pay: <b style="color:var(--green)">' + money(totalMargin) + '</b> <span class="muted">(pending: ' + money(all.reduce((s2, r2) => s2 + (r2.pendingMargin || 0), 0)) + ')</span>.</p></div>' +
-    '<div id="rsList"></div>';
+      '<p class="small muted">Resellers earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> of every <b>UPI</b> order through their share link (<code>?ref=CODE</code>) — <b>confirmed when the order ships</b> (COD orders earn nothing). Payout via <b>GPay only</b>, when a reseller\'s confirmed commission reaches <b>₹' + (CONFIG.resellerMinPayout || 100) + '</b>. Confirmed to pay: <b style="color:var(--green)">' + money(totalMargin) + '</b> <span class="muted">(pending: ' + money(all.reduce((s2, r2) => s2 + (r2.pendingMargin || 0), 0)) + ')</span>.</p></div>' +
+    '<div id="rsList"></div>' +
+    '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="moreResellers" style="width:auto;min-width:200px">Load More Resellers ↓</button></div>';
   const wrap = document.getElementById('rsList');
   if (!all.length){
     wrap.innerHTML = '<div class="empty"><div class="e-ic">💰</div><b>No resellers yet</b>Share the Share &amp; Earn page (share-earn.html) so people can join!</div>';
+    const mo2 = document.getElementById('moreResellers'); if (mo2) mo2.style.display = 'none';
     return;
   }
-  wrap.innerHTML = all.map((r, i) => {
+  const visibleRs = all.slice(0, rsPage * RS_PAGE_SIZE);
+  wrap.innerHTML = visibleRs.map((r, i) => {
     /* 📦 ALL orders via this reseller (cloud + local, deduped by id) */
     const allOrders = adminAllOrders().filter(o => o.reseller && o.reseller.code === r.code);
     const orderLines = allOrders.length
@@ -1775,10 +1780,16 @@ function renderResellers(){
         '<a class="btn btn-gold btn-sm" style="width:auto" href="' + resellerPayLink(r, r.margin) + '">💸 Pay ' + money(r.margin||0) + ' via GPay</a>' +
         '<button type="button" class="btn btn-ghost btn-sm" style="width:auto" data-copyupi="' + esc(resellerUpiId(r)) + '">📋 Copy UPI</button>' +
         (r.margin > 0 ? '<button type="button" class="btn btn-maroon btn-sm" style="width:auto" data-resetpaid="' + esc(r.code) + '">✅ Mark Paid &amp; Reset</button>' : '') +
-        (r.margin > 0 ? '<button type="button" class="btn btn-gold btn-sm" style="width:auto" data-convpts="' + esc(r.code) + '">⭐ Convert to Points</button>' : '') +
+
         '<a class="btn btn-outline btn-sm" style="width:auto" href="tel:+91' + esc(r.phone) + '">📞 Call</a>' +
       '</div></div>';
   }).join('');
+  const mo2 = document.getElementById('moreResellers');
+  if (mo2){
+    const hasMore = rsPage * RS_PAGE_SIZE < all.length;
+    mo2.style.display = hasMore ? 'inline-flex' : 'none';
+    mo2.onclick = () => { rsPage++; renderResellers(); };
+  }
 }
 
 /* ============================ PUSH NOTIFICATIONS ============================ */
@@ -1982,15 +1993,6 @@ document.addEventListener('click', e => {
   if (lbl){ printOrderLabel(lbl.dataset.label); return; }
   const cu = e.target.closest('[data-copyupi]');
   if (cu){ copyText(cu.dataset.copyupi); toast('📋 UPI ID copied: ' + cu.dataset.copyupi); return; }
-  const cp = e.target.closest('[data-convpts]');
-  if (cp){
-    if (confirm('Convert this reseller\'s pending margin to loyalty points (they can use it on their own orders)?')){
-      const ok = convertMarginToPoints(cp.dataset.convpts);
-      toast(ok ? '⭐ Margin converted to loyalty points' : '⚠️ No pending margin');
-      renderResellers();
-    }
-    return;
-  }
   const rp = e.target.closest('[data-resetpaid]');
   if (rp){
     if (confirm('Mark this commission as PAID and reset the margin count to ₹0?')){

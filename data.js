@@ -26,6 +26,7 @@ const CONFIG = {
      points) + ₹50-off promo coupon for customers */
   resellerMargin : 50,               // ₹50-off customer coupon value (SHARE50)
   resellerMarginPct : 5,             // 🔥 reseller earns 5% of every confirmed order
+  resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
   resellerCoupon : 'SHARE50',        // ₹50 off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
   onlineDiscount : 1,                 // 💳 1% off when paying ONLINE (UPI); COD = full price
@@ -529,6 +530,11 @@ async function preloadCatalog(wantId){
   try{ return have(wantId); }catch(e){ return false; }
 }
 
+/* ⚡ FIRST-VISIT SPEED: start fetching the static catalog as soon as this
+   script parses (not waiting for DOMContentLoaded) — by the time the page
+   renders, the products are usually already in memory. */
+try{ if (document.readyState !== 'complete'){ setTimeout(() => { try{ preloadCatalog(); }catch(e){} }, 0); } }catch(e){}
+
 /* ============================ 5. UTILITIES ============================ */
 const money = n => '₹' + Number(n).toLocaleString('en-IN');
 /* 🎨 colour name → real hex swatch (same palette the admin auto-detector uses,
@@ -701,15 +707,41 @@ function syncUserCloud(){
       try{
         FS._getDb().then(db => {
           if (!db) return;
-          const doc = {
-            profile: Store.profile || {},
-            cart: Store.cart.slice(),
-            wish: Store.wish.slice(),
-            points: pointsBalance(),
-            reseller: myResellerCode() || '',
-            updatedAt: Date.now(),
-          };
-          db.collection('users').doc(uid).set(doc, { merge: true }).catch(() => {});
+          /* 🔐 device-scoped: keep a list of devices that claimed this phone.
+             Only listed devices may merge the full profile (privacy = 1 mobile). */
+          db.collection('users').doc(uid).get().then(doc => {
+            const prev = (doc.exists && doc.data) ? (doc.data() || {}) : {};
+            const devices = Array.isArray(prev.devices) ? prev.devices.slice() : [];
+            const me = deviceId();
+            if (devices.indexOf(me) === -1){ devices.push(me); if (devices.length > 4) devices.shift(); }
+            /* 🌐 MERGE-ON-WRITE: never let an empty local cart/wish erase another
+               browser's items — union by id+colour (Chrome + FB browser share). */
+            const key = i => i.id + '::' + (i.colour || '');
+            const mergedCart = {};
+            (Array.isArray(prev.cart) ? prev.cart : []).forEach(i => { if (i && i.id) mergedCart[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; });
+            Store.cart.forEach(i => {
+              const k = key(i);
+              if (!mergedCart[k]) mergedCart[k] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' };
+              else mergedCart[k].qty = Math.max(mergedCart[k].qty, i.qty || 1);
+            });
+            const wish = (Array.isArray(prev.wish) ? prev.wish.slice() : []);
+            Store.wish.forEach(id => { if (wish.indexOf(id) === -1) wish.push(id); });
+            /* profile: fill empty local fields from the cloud copy (keep typed values) */
+            const mergedProfile = Object.assign({}, prev.profile || {});
+                        ['name','phone','address','pincode'].forEach(k => {
+              if ((Store.profile || {})[k]) mergedProfile[k] = Store.profile[k];
+            });
+            const rec = {
+              profile: mergedProfile,
+              cart: Object.keys(mergedCart).map(k => mergedCart[k]),
+              wish,
+              points: Math.max(+prev.points || 0, pointsBalance()),
+              reseller: myResellerCode() || prev.reseller || '',
+              devices,
+              updatedAt: Date.now(),
+            };
+            db.collection('users').doc(uid).set(rec, { merge: true }).catch(() => {});
+          }).catch(() => {});
         }).catch(() => {});
       }catch(e){}
     }, 700);
@@ -728,30 +760,32 @@ async function pullUserCloud(){
       const snap = await db.collection('users').doc(uid).get();
       if (snap.exists){
         const d = snap.data() || {};
-        /* profile: fill empty fields only (local typed wins) */
+        /* 🔐 privacy: full merge (cart/wish/points/orders) ONLY for devices that
+           claimed this phone (Chrome + FB browser on the SAME mobile both sync
+           their deviceId, so they share; a brand-new mobile does NOT inherit). */
+        const devices = Array.isArray(d.devices) ? d.devices : [deviceId()];
+        const mine = devices.indexOf(deviceId()) !== -1;
         if (d.profile){
           const p = Object.assign({}, Store.profile || {});
           ['name','phone','address','pincode'].forEach(k => { if (!p[k] && d.profile[k]) p[k] = d.profile[k]; });
           Store.profile = p;
         }
-        /* cart: merge — add cloud items we don't have (per id+colour), keep local qty for shared */
-        if (Array.isArray(d.cart) && d.cart.length){
-          const key = i => i.id + '::' + (i.colour || '');
-          const have = {};
-          Store.cart.forEach(i => { have[key(i)] = i.qty || 1; });
-          d.cart.forEach(i => {
-            const k = key(i);
-            if (!(k in have) && byId(i.id)) Store.cart.push({ id: i.id, qty: i.qty || 1, colour: i.colour || '' });
-          });
+        if (mine){
+          if (Array.isArray(d.cart) && d.cart.length){
+            const key = i => i.id + '::' + (i.colour || '');
+            const have = {};
+            Store.cart.forEach(i => { have[key(i)] = i.qty || 1; });
+            d.cart.forEach(i => {
+              const k = key(i);
+              if (!(k in have) && byId(i.id)) Store.cart.push({ id: i.id, qty: i.qty || 1, colour: i.colour || '' });
+            });
+          }
+          if (Array.isArray(d.wish)){
+            d.wish.forEach(id => { if (Store.wish.indexOf(id) === -1) Store.wish.push(id); });
+          }
+          if (d.points && (+d.points) > pointsBalance()){ try{ localStorage.setItem('sk_points', String(+d.points)); }catch(e){} }
+          if (d.reseller && !myResellerCode()){ try{ localStorage.setItem('sk_my_reseller', d.reseller); }catch(e){} }
         }
-        /* wishlist: union */
-        if (Array.isArray(d.wish)){
-          d.wish.forEach(id => { if (Store.wish.indexOf(id) === -1) Store.wish.push(id); });
-        }
-        /* points: take the higher balance */
-        if (d.points && (+d.points) > pointsBalance()){ try{ localStorage.setItem('sk_points', String(+d.points)); }catch(e){} }
-        /* reseller: if this browser has no code but cloud has one, adopt it */
-        if (d.reseller && !myResellerCode()){ try{ localStorage.setItem('sk_my_reseller', d.reseller); }catch(e){} }
         Store.saveCart(); Store.saveWish(); Store.saveProfile();
       }
     }catch(e){}
@@ -1349,6 +1383,41 @@ function safeParams(){
   }catch(e){ return { get: () => null }; }
 }
 /* capture ?ref= from the URL on any page (used by orders placed later) */
+/* 👁 SHARE-LINK VIEW COUNTER — counts ONCE per device for each code and keeps
+   the count in BOTH the local list and Firestore, so the admin's view count
+   actually works (old code only saved to the local list, missing cloud-only
+   resellers → stayed 0). */
+function bumpResellerView(code){
+  try{
+    if (!code) return;
+    if (localStorage.getItem('sk_ref_viewed_' + code)) return;   /* once per device */
+    localStorage.setItem('sk_ref_viewed_' + code, '1');
+    let list = getResellers();
+    let i = list.findIndex(x => x.code === code);
+    if (i < 0){
+      /* reseller may exist only in the cloud cache → add a local copy so the count persists */
+      const cloud = allResellers().find(x => x.code === code);
+      if (cloud){
+        list.push({ code: cloud.code, name: cloud.name || 'Reseller', phone: cloud.phone || '', date: cloud.date || Date.now(), orders: cloud.orders || 0, margin: cloud.margin || 0, pendingMargin: cloud.pendingMargin || 0, views: 0, upi: cloud.upi || '' });
+        i = list.length - 1;
+      }
+    }
+    if (i >= 0){
+      list[i].views = (list[i].views || 0) + 1;
+      saveResellers(list);
+    }
+    /* push the incremented count to Firestore (read current, +1, write) */
+    if (FS.enabled()){
+      FS._getDb().then(db => {
+        if (!db) return;
+        db.collection('resellers').doc(code).get().then(doc => {
+          const cur = (doc && doc.exists && doc.data && doc.data().views) || 0;
+          db.collection('resellers').doc(code).set({ views: (+cur) + 1, updatedAt: Date.now() }, { merge: true }).catch(()=>{});
+        }).catch(() => { db.collection('resellers').doc(code).set({ views: 1, updatedAt: Date.now() }, { merge: true }).catch(()=>{}); });
+      }).catch(()=>{});
+    }
+  }catch(e){}
+}
 function readRef(){
   try{
     const ref = safeParams().get('ref');
@@ -1361,15 +1430,7 @@ function readRef(){
     try{ sessionStorage.setItem('sk_ref', code); }catch(e){}
     const r = resellerByCode(code);
     if (r){
-      /* 👁 count a share-link view ONCE per device for this code */
-      try{
-        if (!localStorage.getItem('sk_ref_viewed_' + code)){
-          localStorage.setItem('sk_ref_viewed_' + code, '1');
-          r.views = (r.views || 0) + 1;
-          saveResellers(getResellers().map(x => x.code === r.code ? r : x));
-          if (FS.enabled()){ FS._getDb().then(db => { if (db) db.collection('resellers').doc(r.code).set({ views: r.views }, { merge: true }).catch(()=>{}); }).catch(()=>{}); }
-        }
-      }catch(e){}
+      bumpResellerView(code);        /* 👁 count the share-link view (local + cloud, once per device) */
       return r;
     }
     return { code };   /* code may exist in Firestore cloud — orders still carry it */
