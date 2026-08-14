@@ -400,11 +400,13 @@ function adminAllOrders(){
 }
 function renderFilters(){
   const all = adminAllOrders();
-  const counts = { all: all.length, placed: 0, pending: 0, confirmed: 0, shipped: 0, delivered: 0 };
+  const counts = { all: all.length, placed: 0, pending: 0, confirmed: 0, shipped: 0, delivered: 0, cod: 0, cancelled: 0 };
   all.forEach(o => { const s = o.status || 'placed'; if (counts[s] !== undefined) counts[s]++; });
+  all.forEach(o => { if ((o.payment || '') === 'cod') counts.cod++; });
   const defs = [
     ['pending', '⏳ Payment Pending (' + counts.pending + ')'], ['confirmed', '✅ Confirmed (' + counts.confirmed + ')'],
     ['shipped', '🚚 Shipped (' + counts.shipped + ')'], ['delivered', '✔ Delivered (' + counts.delivered + ')'],
+    ['cod', '💵 COD (' + counts.cod + ')'], ['cancelled', '❌ Cancelled (' + counts.cancelled + ')'],
     ['all', '📦 All (' + counts.all + ')'], ['placed', '🆕 New (' + counts.placed + ')'],
   ];
   document.getElementById('tabBody').innerHTML =
@@ -428,7 +430,9 @@ function renderOrderList(){
     const q = orderSearch.toLowerCase();
     all = all.filter(o => String((o.id || '') + ' ' + ((o.customer || {}).name || '') + ' ' + ((o.customer || {}).phone || '')).toLowerCase().includes(q));
   }
-  const list = orderFilter === 'all' ? all : all.filter(o => (o.status || 'placed') === orderFilter);
+  const list = orderFilter === 'all' ? all
+    : orderFilter === 'cod' ? all.filter(o => (o.payment || '') === 'cod')
+    : all.filter(o => (o.status || 'placed') === orderFilter);
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="e-ic">📭</div><b>No orders here yet</b></div>';
     return;
@@ -482,6 +486,7 @@ function orderCard(o){
       '<option value="confirmed"' + (st === 'confirmed' ? ' selected' : '') + '>Confirmed</option>' +
       '<option value="shipped"' + (st === 'shipped' ? ' selected' : '') + '>Shipped</option>' +
       '<option value="delivered"' + (st === 'delivered' ? ' selected' : '') + '>Delivered</option>' +
+      '<option value="cancelled"' + (st === 'cancelled' ? ' selected' : '') + '>❌ Cancelled</option>' +
     '</select>' +
     '<div class="oc-btns">' +
       '<a class="btn btn-wa btn-sm" href="' + waLink(TPL_CONFIRM(o), c.phone) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Send Confirmation</a>' +
@@ -501,8 +506,11 @@ function updateStatus(id, status){
     o.dispatchedAt = o.dispatchedAt || new Date().toISOString();
     /* 🚚 auto-delivery: mark delivered automatically 7 days after dispatch */
     if (!o.deliverBy) o.deliverBy = new Date(Date.now() + 7 * 864e5).toISOString();
+    /* 💰 order shipped → reseller margin confirmed (was pending) */
+    try{ confirmMarginOnShip(id); }catch(e){}
   }
   if (status === 'delivered') o.deliveredAt = o.deliveredAt || new Date().toISOString();
+  if (status === 'cancelled'){ try{ cancelResellerMargin(id); }catch(e){} }
   if (fi >= 0){
     /* cloud order → update Firestore ONLY (never pollute sk_orders) */
     fsOrders[fi] = o;
@@ -1295,14 +1303,14 @@ function renderLeads(){
   }
   wrap.innerHTML = merged.map((r, i) => {
     const when = r.date ? fmtDT(r.date) : '—';
-    const msg = '🎉 Hi ' + (r.name || 'there') + '! Your SK Sarees ₹50 OFF coupon (' + (r.code || 'SHARE50') + ') is ready — shop now & save! 🪡\n\n👉 https://www.sksaree.shop/shop.html';
+    const msg = '🎉 Hi ' + (r.name || 'there') + '! Your SK Sarees 5% OFF coupon (' + (r.code || 'SHARE50') + ') is ready — shop now & save! 🪡\n\n👉 https://www.sksaree.shop/shop.html';
     return '<div class="order-card">' +
       '<div class="oc-top"><b>👤 ' + esc(r.name || 'Customer') + '</b><span class="status-pill status-delivered">🎟️ ' + esc(r.code || 'SHARE50') + '</span></div>' +
       '<div class="oc-items">📱 ' + esc(r.phone) + ' • ' + when + '</div>' +
       '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
         '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink(msg, r.phone) + '" target="_blank" rel="noopener">💬 Send Offer</a>' +
         '<a class="btn btn-gold btn-sm" style="width:auto" href="tel:+91' + esc(String(r.phone).replace(/\D/g, '')) + '">📞 Call</a>' +
-        '<a class="btn btn-outline btn-sm" style="width:auto" href="sms:+91' + esc(String(r.phone).replace(/\D/g, '')) + '?body=' + encodeURIComponent('Hi! Your ₹50 OFF coupon is ready: ' + (r.code || 'SHARE50')) + '">📱 SMS</a>' +
+        '<a class="btn btn-outline btn-sm" style="width:auto" href="sms:+91' + esc(String(r.phone).replace(/\D/g, '')) + '?body=' + encodeURIComponent('Hi! Your 5% OFF coupon is ready: ' + (r.code || 'SHARE50')) + '">📱 SMS</a>' +
       '</div></div>';
   }).join('');
 }
@@ -1533,7 +1541,7 @@ function statusPostFor(p){
     '✅ 7 நாள் ரிட்டர்ன் • ⏱ 24–48 மணி நேர டிஸ்பாட்ச்\n' +
     'South India-வின் நம்பர் 1 சேலை ஸ்டோர் 🏆\n\n' +
     '👉 ' + link + '\n\n' +
-    '🔥 WhatsApp-ல பகிருங்க — உங்களுக்கும் ₹' + (CONFIG.resellerMargin || 50) + ' மார்கின்! 🎁\n' +
+    '🔥 WhatsApp-ல பகிருங்க — உங்களுக்கும் ' + (CONFIG.resellerMarginPct || 5) + '% மார்கின்! 🎁\n' +
     '#SKSarees #SareeOfTheDay #SalemSarees #SouthIndiaSarees #WeddingSarees #Pongal #Diwali';
   return { text, link, dateStr, off };
 }
@@ -1735,7 +1743,7 @@ function renderResellers(){
   const totalMargin = all.reduce((s, r) => s + (r.margin || 0), 0);
   body.innerHTML =
     '<div class="form-card"><h3>💰 Resellers — Share &amp; Earn</h3>' +
-      '<p class="small muted">Resellers earn <b>₹' + (CONFIG.resellerMargin || 50) + '</b> per confirmed order placed through their share link (<code>?ref=CODE</code>). Total margin to pay: <b style="color:var(--green)">' + money(totalMargin) + '</b>.</p></div>' +
+      '<p class="small muted">Resellers earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> of every <b>UPI</b> order through their share link (<code>?ref=CODE</code>) — <b>confirmed when the order ships</b> (COD orders earn nothing). Paid via GPay <b>or</b> converted to loyalty points. Confirmed to pay: <b style="color:var(--green)">' + money(totalMargin) + '</b> <span class="muted">(pending: ' + money(all.reduce((s2, r2) => s2 + (r2.pendingMargin || 0), 0)) + ')</span>.</p></div>' +
     '<div id="rsList"></div>';
   const wrap = document.getElementById('rsList');
   if (!all.length){
@@ -1755,7 +1763,8 @@ function renderResellers(){
       ? pays.slice().reverse().slice(0, 6).map(x => '<div style="font-size:.75rem;padding:3px 0;border-bottom:1px dashed var(--line)">💸 Sent ' + fmtDT(x.date) + ' — <b style="color:var(--green)">' + money(x.amount) + '</b></div>').join('')
       : '<p class="small muted" style="margin-top:4px">No commission sent yet.</p>';
     return '<div class="order-card">' +
-      '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + ' • 👁 ' + (r.views||0) + ' views</span></div>' +
+      '<div class="oc-top"><b>💰 ' + esc(r.name) + '</b><span class="status-pill status-delivered">' + (r.orders||0) + ' orders • ' + money(r.margin||0) + ' confirmed • 👁 ' + (r.views||0) + ' views</span></div>' +
+      ((r.pendingMargin||0) > 0 ? '<div class="oc-items" style="color:var(--maroon);font-weight:800">⏳ Pending (till shipped): ' + money(r.pendingMargin) + '</div>' : '') +
       '<div class="oc-items">📱 ' + esc(r.phone) + ' • Code: <b>' + esc(r.code) + '</b> • Joined ' + fmtDate(r.date) +
         ' • UPI: <b>' + esc(resellerUpiId(r)) + '</b>' +
         ((r.paidTotal || 0) > 0 ? ' • <span style="color:var(--green);font-weight:800">Paid so far: ' + money(r.paidTotal) + (r.lastPaid ? ' (' + fmtDate(r.lastPaid) + ')' : '') + '</span>' : '') + '</div>' +
@@ -1766,6 +1775,7 @@ function renderResellers(){
         '<a class="btn btn-gold btn-sm" style="width:auto" href="' + resellerPayLink(r, r.margin) + '">💸 Pay ' + money(r.margin||0) + ' via GPay</a>' +
         '<button type="button" class="btn btn-ghost btn-sm" style="width:auto" data-copyupi="' + esc(resellerUpiId(r)) + '">📋 Copy UPI</button>' +
         (r.margin > 0 ? '<button type="button" class="btn btn-maroon btn-sm" style="width:auto" data-resetpaid="' + esc(r.code) + '">✅ Mark Paid &amp; Reset</button>' : '') +
+        (r.margin > 0 ? '<button type="button" class="btn btn-gold btn-sm" style="width:auto" data-convpts="' + esc(r.code) + '">⭐ Convert to Points</button>' : '') +
         '<a class="btn btn-outline btn-sm" style="width:auto" href="tel:+91' + esc(r.phone) + '">📞 Call</a>' +
       '</div></div>';
   }).join('');
@@ -1972,6 +1982,15 @@ document.addEventListener('click', e => {
   if (lbl){ printOrderLabel(lbl.dataset.label); return; }
   const cu = e.target.closest('[data-copyupi]');
   if (cu){ copyText(cu.dataset.copyupi); toast('📋 UPI ID copied: ' + cu.dataset.copyupi); return; }
+  const cp = e.target.closest('[data-convpts]');
+  if (cp){
+    if (confirm('Convert this reseller\'s pending margin to loyalty points (they can use it on their own orders)?')){
+      const ok = convertMarginToPoints(cp.dataset.convpts);
+      toast(ok ? '⭐ Margin converted to loyalty points' : '⚠️ No pending margin');
+      renderResellers();
+    }
+    return;
+  }
   const rp = e.target.closest('[data-resetpaid]');
   if (rp){
     if (confirm('Mark this commission as PAID and reset the margin count to ₹0?')){

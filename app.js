@@ -364,7 +364,7 @@ function renderHome(){
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
-      '<p class="small">Share sarees, earn <b>₹' + (CONFIG.resellerMargin || 50) + '</b> margin on every sale. Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
       '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
@@ -883,10 +883,10 @@ function renderProduct(){
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
         '<div class="earn-box" id="earnBox">' +
-          '<b>💰 Share &amp; Earn ₹' + (CONFIG.resellerMargin || 50) + '</b>' +
-          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ₹' + (CONFIG.resellerMargin || 50) + ' margin</b>! Your customers also get <b>₹50 off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
+          '<b>💰 Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
+          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or as loyalty points)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
           '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
-            '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ₹' + (CONFIG.resellerMargin || 50) + '</button>' +
+            '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</button>' +
             '<button type="button" class="btn btn-outline btn-sm" id="earnCopy" style="flex:1;min-width:130px">📋 Copy Share Link</button>' +
             '<a class="btn btn-ghost btn-sm" id="earnCode" href="share-earn.html" style="flex:1;min-width:130px">🔗 Get My Code</a>' +
           '</div>' +
@@ -937,7 +937,7 @@ function renderProduct(){
         const codeLink = document.getElementById('earnCode');
         if (codeLink) codeLink.textContent = '🔗 My Code: ' + esc(mine);
       } else {
-        note.innerHTML = '🔗 No code yet? Tap <b>Get My Code</b> (30 seconds) — then every share you send earns you ₹' + (CONFIG.resellerMargin || 50) + '!';
+        note.innerHTML = '🔗 No code yet? Tap <b>Get My Code</b> (30 seconds) — then every share you send earns you ' + (CONFIG.resellerMarginPct || 5) + '%!';
       }
     }
   }catch(e){}
@@ -1016,7 +1016,7 @@ function viralShareProduct(p){
     '🚚 ₹999+ மேல இலவச டெலிவரி • COD & UPI உண்டு\n' +
     '✅ 7 நாள் ரிட்டர்ன் • South India-வின் நம்பர் 1 சேலை ஸ்டோர் 🏆\n\n' +
     '👉 ' + url + '\n\n' +
-    '🔥 Group-ல உள்ள அனைவருக்கும் பகிருங்க — உங்களுக்கும் ரெசலர் மார்கின் ₹' + (CONFIG.resellerMargin || 50) + '! 🎁';
+    '🔥 Group-ல உள்ள அனைவருக்கும் பகிருங்க — உங்களுக்கும் ரெசலர் மார்கின் ' + (CONFIG.resellerMarginPct || 5) + '%! 🎁';
   /* 📱 native share sheet → customer picks any WhatsApp group/chat (never blocked) */
   try{
     if (navigator.share){
@@ -1119,7 +1119,7 @@ function renderCartPage(){
 }
 
 /* ============================ CHECKOUT ============================ */
-let co = { step: 1, data: { name:'', phone:'', address:'', pincode:'', payment:'upi', coupon:'' } };
+let co = { step: 1, buyOnly: null, data: { name:'', phone:'', address:'', pincode:'', payment:'upi', coupon:'' } };
 function renderCheckoutPage(){
   const app = document.getElementById('app'); if (!app) return;
   /* prefill order: what you last typed (draft) → saved profile → empty */
@@ -1138,19 +1138,35 @@ function renderCheckoutPage(){
   const buy = qs.get('buy');
   const buyQty = Math.max(1, Math.min(10, +qs.get('qty') || 1));
   const buyCol = qs.get('colour') || '';
-  /* Buy Now → add the exact colour chosen on the product page (merge-safe) */
-  if (buy && !Store.cart.some(i => i.id === buy && (i.colour || '') === buyCol)) addToCart(buy, buyQty, buyCol);
-  if (!Store.cart.length){
+  /* ⚡ BUY-NOW mode: order contains ONLY this product — the existing cart is
+     left untouched (no merge). Clears after the order is placed. */
+  if (buy && byId(buy)) co.buyOnly = { id: buy, qty: buyQty, colour: buyCol || '' };
+  else co.buyOnly = null;
+  if (!coItems().length && !Store.cart.length){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1><div class="empty"><div class="e-ic">🛒</div><b>Your cart is empty</b>' +
       '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
     return;
   }
   drawCo();
 }
+/* items used for THIS checkout: buy-now → only the chosen product, else cart */
+function coItems(){
+  try{
+    if (co.buyOnly){
+      const p = byId(co.buyOnly.id);
+      if (!p) return [];
+      return [{ id: p.id, name: p.name, price: p.price, qty: co.buyOnly.qty || 1, colour: co.buyOnly.colour || '' }];
+    }
+  }catch(e){}
+  return Store.cart.slice();
+}
+function coCartTotal(){
+  return coItems().reduce((s, i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0);
+}
 function coTotals(){
-  const itemsTotal = cartTotal();
+  const itemsTotal = coCartTotal();
   const codFee = co.data.payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal, co.data.pincode, cartCount());
+  const shipping = shippingFor(itemsTotal, co.data.pincode, coItems().reduce((s, i) => s + (i.qty || 1), 0));
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = bundleDiscount();               /* buy 2+ → ₹50 off */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -1200,6 +1216,43 @@ function orderSuccessRecs(o){
       '<div class="prow">' + recs.map(cardHTML).join('') + '</div></div>';
   }catch(e){ return ''; }
 }
+/* 🧾 LIVE ORDER SUMMARY — items + price + courier details (zone/shipping/ETA
+   per pincode) shown ABOVE the payment method; refreshes as the user types. */
+function coSummaryHTML(){
+  try{
+    const t = coTotals();
+    const pin = co.data.pincode || '';
+    const zone = deliveryZone(pin);
+    const zn = ZONES[zone] || ZONES.tn;
+    const rows = coItems().map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
+    const courier = pin
+      ? '📦 Courier: <b>' + esc(zn.name) + '</b> • Ship ' + (t.shipping ? money(t.shipping) : 'FREE') + ' • ' + t.eta
+      : '📦 Enter your <b>PIN code</b> to see courier + delivery date';
+    return '<div class="form-card"><h3>🧾 Order Summary</h3>' +
+      (rows || '<p class="small muted">No items yet.</p>') +
+      (t.discount > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
+      '<div class="row"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+      '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
+      '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:9px;background:var(--bg);margin-top:8px">' + courier + '</p></div>';
+  }catch(e){ return ''; }
+}
+/* 🎟️ perks under the coupon: loyalty points to use + reseller commission on this order */
+function checkoutPerksHTML(){
+  try{
+    const t = coTotals();
+    let html = '';
+    const pts = pointsBalance();
+    if (pts > 0){
+      html += '<label style="display:flex;gap:8px;align-items:center;font-size:.82rem;font-weight:700;padding:6px 0;border-top:1px dashed var(--line);margin-top:8px"><input type="checkbox" id="usePts" style="width:18px;height:18px"' + (co.data.usePoints ? ' checked' : '') + '> ⭐ Use my ' + pts + ' loyalty points (−' + money(Math.min(pointsRedeemable(), t.itemsTotal - t.discount - t.bundle)) + ' on this order)</label>';
+    }
+    const res = currentReseller();
+    if (res && res.code){
+      const comm = resellerMarginFor({ totals: { grand: t.grand } });
+      html += '<p class="small" style="border:1px dashed var(--gold);border-radius:10px;padding:9px;background:var(--gold-soft);margin-top:8px">💰 Your reseller commission on this order: <b style="color:var(--maroon)">' + money(comm) + '</b> (' + (CONFIG.resellerMarginPct || 5) + '%) — code <b>' + esc(res.code) + '</b></p>';
+    }
+    return html;
+  }catch(e){ return ''; }
+}
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
   const d = co.data;
@@ -1208,7 +1261,7 @@ function drawCo(){
     '<div class="step-dot ' + (co.step > 1 ? 'done' : 'on') + '"><span class="dot">' + (co.step > 1 ? '✓' : '1') + '</span><span class="lbl">Details</span></div>' +
     '<div class="step-line ' + (co.step > 1 ? 'on' : '') + '"></div>' +
     '<div class="step-dot ' + (co.step === 2 ? 'on' : '') + '"><span class="dot">2</span><span class="lbl">Payment</span></div></div>';
-  const itemLines = Store.cart.map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
+  const itemLines = coItems().map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
   if (co.step === 1){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card"><h3>📋 Your Details <span class="muted small" style="font-weight:500">(no login needed)</span></h3>' +
@@ -1218,13 +1271,14 @@ function drawCo(){
         '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area, city…">' + esc(d.address) + '</textarea></div>' +
         '<div class="field"><label>PIN Code <span class="req">*</span></label><input id="coPin" value="' + esc(d.pincode) + '" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"></div>' +
         '<div class="field"><label>🎟️ Coupon Code (optional)</label><input id="coCoupon" value="' + esc(d.coupon || '') + '" placeholder="e.g. AADI10" style="text-transform:uppercase"></div>' +
+        checkoutPerksHTML() +
       '</div>' +
+      '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
       '<div class="form-card"><h3>💳 Payment Method</h3><div class="pay-grid">' +
         '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>UPI — Pay Online</b><small>GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
         '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery — extra ₹' + CONFIG.codFee + '</small></span><span class="radio"></span></div>' +
       '</div></div>' +
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
-      checkoutUpsellHTML() +
       (d.payment === 'cod'
         ? '<button type="button" class="btn btn-wa btn-xl" data-confirm-wa><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Confirm Order on WhatsApp</button>'
         : '<button type="button" class="btn btn-maroon btn-xl" data-cont>Continue to Payment →</button>') +
@@ -1327,17 +1381,18 @@ function doPlaceOrder(payment){
     const myReseller = currentReseller();
     const order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
-      items: Store.cart.map(safeItem),
+      items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
       payment,
       totals: t,
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
-      margin: myReseller ? (CONFIG.resellerMargin || 0) : 0,
+      margin: 0,
       /* UPI: paid but awaiting admin confirmation; COD: ₹70 booking paid now */
       status: payment === 'upi' ? 'pending' : 'placed',
       bookingPaid: payment === 'cod' ? CONFIG.codFee : (payment === 'upi' ? t.grand : 0),
       device: deviceId(),
     };
+    order.margin = myReseller ? resellerMarginFor(order) : 0;   /* 💰 5% of grand */
     const orderCount = order.items.reduce((s, i) => s + (i.qty || 1), 0);
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
@@ -1347,7 +1402,8 @@ function doPlaceOrder(payment){
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
     Store.saveProfile();
     consumeStock(order.items);                 /* 1 psc model: stock goes down for next customer */
-    Store.cart = []; Store.saveCart(); syncCartReservation();
+    if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
+    co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     if (couponUsed) useCoupon(couponUsed);     /* count coupon usage (before co reset) */
@@ -1367,14 +1423,15 @@ function doWaOrder(){
     const myReseller = currentReseller();
     const order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
-      items: Store.cart.map(safeItem),
+      items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
       payment: 'cod', totals: t, status: 'placed',
       bookingPaid: CONFIG.codFee,                 /* ₹70 courier booking paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
-      margin: myReseller ? (CONFIG.resellerMargin || 0) : 0,
+      margin: 0,
       device: deviceId(),
     };
+    order.margin = myReseller ? resellerMarginFor(order) : 0;   /* 💰 5% of grand */
     const couponUsed = d.coupon || '';
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
@@ -1384,7 +1441,8 @@ function doWaOrder(){
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
     Store.saveProfile();
     consumeStock(order.items);
-    Store.cart = []; Store.saveCart(); syncCartReservation();
+    if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
+    co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
@@ -1448,9 +1506,11 @@ function resellerProfileCard(){
     if (!code) return '';
     const r = allResellers().find(x => x && x.code === code);
     if (!r) return '';
-    const pending = r.margin || 0;
+    const pending = (r.pendingMargin || 0);       /* earned but not yet shipped */
+    const confirmed = (r.margin || 0);             /* confirmed on shipment — payable */
     const paid = r.paidTotal || 0;
     const views = r.views || 0;
+    const pendingMsg = pending > 0 ? ' <span style="color:var(--muted);font-weight:600">(confirms when order ships)</span>' : '';
     /* 🔗 this reseller's personal share link (carries ?ref=CODE) */
     const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + encodeURIComponent(code);
     /* 📦 this reseller's orders (local orders tagged with their code) */
@@ -1466,18 +1526,31 @@ function resellerProfileCard(){
       : '<p class="small muted">No commission received yet.</p>';
     return '<div class="form-card"><h3>💰 My Commission</h3>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">' +
-        '<div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Pending</span><b style="font-size:1.2rem;color:var(--maroon)">' + money(pending) + '</b></div>' +
+        '<div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Pending (till shipped)</span><b style="font-size:1.2rem;color:var(--maroon)">' + money(pending) + '</b></div>' +
+        '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Confirmed</span><b style="font-size:1.2rem;color:var(--green)">' + money(confirmed) + '</b></div>' +
         '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Paid</span><b style="font-size:1.2rem;color:var(--green)">' + money(paid) + '</b></div>' +
-        '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Link views</span><b style="font-size:1.2rem;color:var(--maroon)">👁 ' + views + '</b></div>' +
       '</div>' +
-      '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ₹' + (CONFIG.resellerMargin || 50) + ' per order.</p>' +
+      '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center;margin-top:8px"><span class="muted small" style="display:block">Link views</span><b style="font-size:1.2rem;color:var(--maroon)">👁 ' + views + '</b></div>' +
+      '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ' + (CONFIG.resellerMarginPct || 5) + '% per UPI order, confirmed when the order <b>ships</b>.</p>' +
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input id="rcLink" readonly value="' + esc(link) + '" style="flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.75rem;background:var(--bg);outline:none"><button type="button" class="btn btn-maroon btn-sm" id="rcCopy" style="width:auto;min-width:90px">📋 Copy</button>' +
       '<a class="btn btn-wa btn-sm" id="rcWa" style="width:auto;min-width:90px" href="https://wa.me/?text=' + encodeURIComponent('🪡 Hi! Shop sarees on SK Sarees — use my link & get ₹50 off!\n👉 ' + link) + '" target="_blank" rel="noopener">💬 Share</a></div>' +
       '<h4 style="font-size:.85rem;margin:10px 0 4px">📦 My Referral Orders</h4>' + orderRows +
       '<h4 style="font-size:.85rem;margin:10px 0 4px">💸 Commission Received</h4>' + payRows +
       '<h4 style="font-size:.85rem;margin:10px 0 4px">💳 My UPI for receiving margin</h4>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap"><input id="rcUpi" value="' + esc(r.upi || '') + '" placeholder="e.g. 9876500000@ybl (edit to receive commission)" style="flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.78rem;outline:none"><button type="button" class="btn btn-maroon btn-sm" id="rcUpiSave" style="width:auto;min-width:90px">💾 Save</button></div>' +
-      '<a class="btn btn-wa btn-sm" style="width:auto;margin-top:8px" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay to my UPI ' + (resellerUpiId(r)) + '. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a></div>';
+      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+        ((pending + confirmed) > 0 ? '<button type="button" class="btn btn-gold btn-sm" id="rcConv" style="width:auto">⭐ Convert ' + money(pending + confirmed) + ' to Loyalty Points</button>' : '') +
+        '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink('Hi! I am a SK Sarees reseller (' + r.code + '). My pending commission is ' + money(pending) + ' — please pay to my UPI ' + (resellerUpiId(r)) + '. 🙏') + '" target="_blank" rel="noopener">💬 Ask for Commission on WhatsApp</a>' +
+      '</div>' +
+      '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">⭐ My loyalty points: <b>' + pointsBalance() + '</b> = ₹' + pointsRedeemable() + ' off on my own saree orders (redeem at checkout).</p>' +
+      (function(){
+        let conv = [];
+        try{ conv = JSON.parse(localStorage.getItem('sk_reseller_convert') || '[]').filter(x => x.code === code); }catch(e){}
+        if (!conv.length) return '';
+        return '<h4 style="font-size:.85rem;margin:10px 0 4px">⭐ Converted to Points</h4>' +
+          conv.slice().reverse().slice(0, 6).map(x => '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:4px 0;border-bottom:1px dashed var(--line)"><span>⭐ ' + fmtDT(x.date) + '</span><b style="color:var(--green)">+' + x.amount + ' pts</b></div>').join('');
+      })() +
+      '</div>';
   }catch(e){ return ''; }
 }
 
@@ -1759,7 +1832,7 @@ function renderProfilePage(){
         '<span style="font-size:2rem">⭐</span><div><b style="font-size:1.4rem;color:var(--maroon)" id="ptsBal">' + pointsBalance() + '</b>' +
         '<span class="muted small" style="display:block">points = ₹' + pointsRedeemable() + ' discount ready</span></div></div></div>' +
     '<div class="form-card"><h3>🤝 Refer &amp; Earn</h3>' +
-      '<p class="small muted" style="margin-bottom:8px">Share your code — when a friend orders with it, <b>you earn ₹' + (CONFIG.resellerMargin || 50) + ' margin</b> (paid via GPay) and they get ₹50 off with SHARE50!</p>' +
+      '<p class="small muted" style="margin-bottom:8px">Share your code — when a friend orders with it, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or converted to loyalty points for your own orders) and they get 5% off with SHARE50!</p>' +
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
         '<input id="refCode" readonly value="' + esc(myReferralCode() || genReferralCode()) + '" style="flex:1;min-width:140px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;background:var(--bg);outline:none;text-transform:uppercase;text-align:center;font-weight:800">' +
         '<button type="button" class="btn btn-maroon btn-sm" id="refCopy" style="width:auto;min-width:110px">📋 Copy</button>' +
@@ -1786,6 +1859,12 @@ function renderProfilePage(){
   try{
     const rcC = document.getElementById('rcCopy');
     if (rcC) rcC.addEventListener('click', () => { const v = document.getElementById('rcLink'); if (v){ copyText(v.value); toast('📋 Share link copied'); } });
+    const rcCv = document.getElementById('rcConv');
+    if (rcCv) rcCv.addEventListener('click', () => {
+      const ok = convertMarginToPoints(myResellerCode());
+      toast(ok ? '⭐ Commission converted to loyalty points! Use them on your next saree order.' : '⚠️ No pending margin to convert');
+      renderProfilePage();
+    });
     const rcU = document.getElementById('rcUpiSave');
     if (rcU) rcU.addEventListener('click', () => {
       const inp = document.getElementById('rcUpi'); if (!inp) return;
@@ -1802,7 +1881,7 @@ function renderProfilePage(){
     Store.profile = { name, phone, address, pincode };
     Store.saveProfile();
     const rr = autoRegisterReseller(name, phone);   /* 🤝 auto-reseller code for this device */
-    if (rr) toast('🎉 Reseller code ready: ' + rr.code + ' — your share links now earn you ₹' + (CONFIG.resellerMargin || 50) + ' per order!');
+    if (rr) toast('🎉 Reseller code ready: ' + rr.code + ' — your share links now earn you ' + (CONFIG.resellerMarginPct || 5) + '% per order!');
     toast('✅ Details saved');
   });
   document.getElementById('pfLang').addEventListener('change', e => setLang(e.target.value));
@@ -1930,8 +2009,8 @@ document.addEventListener('click', function(e){
     /* 🛒 upsell "add more" on the cart page: refresh totals instantly so the
        amount shown always matches checkout */
     if (document.body.dataset.page === 'cart'){ try{ renderCartPage(); }catch(err){} }
-    /* checkout "Complete your look" add → redraw with new totals */
-    else if (document.body.dataset.page === 'checkout'){ try{ drawCo(); }catch(err){} }
+    /* checkout add → leave buy-now mode (order now uses the full cart) + redraw */
+    else if (document.body.dataset.page === 'checkout'){ co.buyOnly = null; try{ drawCo(); }catch(err){} }
     /* 🎁 smart "you may also like" popup on product/shop adds */
     else try{ maybeShowUpsell(add.dataset.add); }catch(err2){}
     return;
@@ -1969,7 +2048,11 @@ document.addEventListener('click', function(e){
   if (e.target.id === 'usePts'){
     co.data.usePoints = e.target.checked;
     saveCoDraft();
-    renderCartPage();
+    if (document.body.dataset.page === 'checkout'){
+      try{ if (document.getElementById('coSummaryBox')) document.getElementById('coSummaryBox').innerHTML = coSummaryHTML(); }catch(e){}
+    } else {
+      renderCartPage();
+    }
     return;
   }
   /* coupon apply (cart) */
@@ -2133,4 +2216,11 @@ document.addEventListener('input', function(e){
   else if (e.target.id === 'coCoupon') co.data.coupon = e.target.value.toUpperCase().trim();
   else return;
   saveCoDraft();   /* remember address/name/phone/coupon as the user types */
+  /* 🧾 live refresh the order summary (courier by pincode) + perks */
+  try{
+    if (document.body.dataset.page === 'checkout' && co.step === 1 && document.getElementById('coSummaryBox')){
+      const box = document.getElementById('coSummaryBox');
+      box.innerHTML = coSummaryHTML();
+    }
+  }catch(e){}
 });
