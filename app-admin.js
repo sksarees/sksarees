@@ -658,6 +658,26 @@ function wireAutoColour(imgId, colorsId, btnId){
 }
 
 /* ============================ PRODUCTS ============================ */
+/* 🔥 ADMIN PRODUCTS = FIRESTORE-NATIVE (single targeted doc ops):
+   saveProducts() only updates the local cache; these helpers do the actual
+   Firestore write/delete for ONE product, so:
+   · add / edit / hide / show  → that product's doc is set()
+   · delete                    → that product's doc is delete()d (never returns)
+   No whole-catalog push, no extra reads. Customer pages never call these. */
+function fsSaveProduct(p){
+  if (!p || !p.id) return;
+  try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.saveProduct(p).catch(() => {}); }catch(e){}
+}
+function fsSaveProducts(list){
+  (list || []).forEach(p => { try{ fsSaveProduct(p); }catch(e){} });
+}
+function fsDeleteProduct(id){
+  if (!id) return;
+  try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.deleteProduct(id).catch(() => {}); }catch(e){}
+}
+function fsDeleteProducts(ids){
+  (ids || []).forEach(id => { try{ fsDeleteProduct(id); }catch(e){} });
+}
 function renderProducts(){
   document.getElementById('tabBody').innerHTML =
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
@@ -668,6 +688,7 @@ function renderProducts(){
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
     '<p class="small muted" style="margin:2px 0 8px">🚫 Hidden products <b>never appear in the shop/feeds</b> and their links redirect customers to the home page. Use the checkboxes + Hide/Show/Delete buttons, or the 👁️/🚫 per-row toggle.</p>' +
+    '<p class="small muted" style="margin:0 0 8px">☁️ <b>Products here = Firestore</b> (add / edit / hide / delete write that product&#39;s doc directly). Customers load products <b>only from catalog.json</b> — after any change, download ⬇️ catalog.json &amp; upload it to your host so shoppers see it instantly.</p>' +
     '<p class="small" id="storeHint" style="margin:0 0 8px;color:var(--maroon);font-weight:800"></p>' +
     '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
@@ -748,14 +769,18 @@ function renderProducts(){
     if (!sel.length){ toast('⚠️ Select products first'); return; }
     if (!confirm('Delete ' + sel.length + ' selected product(s)?')) return;
     PRODUCTS = PRODUCTS.filter(p => !sel.includes(p.id));
-    saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
+    saveProducts(PRODUCTS);
+    fsDeleteProducts(sel);                  /* 🔥 Firestore: delete each doc */
+    refreshFeedCache(); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
   });
   /* 🚫 hide selected / 👁️ show selected (bulk) */
   const bulkHide = (hidden) => {
     const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
     if (!sel.length){ toast('⚠️ Tick products first'); return; }
     PRODUCTS.forEach(p => { if (sel.includes(p.id)) p.hidden = hidden; });
-    saveProducts(PRODUCTS); refreshFeedCache(); renderProdBody();
+    saveProducts(PRODUCTS);
+    fsSaveProducts(PRODUCTS.filter(p => sel.includes(p.id)));   /* 🔥 Firestore: update each doc */
+    refreshFeedCache(); renderProdBody();
     toast(hidden ? '🚫 ' + sel.length + ' hidden — links go to home' : '👁️ ' + sel.length + ' shown again');
   };
   const btnHide = document.getElementById('btnHideSel');
@@ -848,6 +873,7 @@ function openAddProduct(){
       hidden: document.getElementById('apHidden').checked,
     });
     PRODUCTS.unshift(np); saveProducts(PRODUCTS);
+    fsSaveProduct(np);                     /* 🔥 Firestore: create this product doc */
     refreshFeedCache();
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
   });
@@ -979,7 +1005,11 @@ function importBulk(){
 /* shared finish: save + refresh + 🎨 auto-detect colours from each photo */
 function finishBulkImport(imported, errors, added, res){
   if (!res) res = document.getElementById('bulkResult');
-  if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
+  if (added){
+    saveProducts(PRODUCTS);
+    fsSaveProducts(imported);              /* 🔥 Firestore: create/update each doc */
+    refreshFeedCache(); prodPage = 1; renderProdBody();
+  }
   if (!added){ res.innerHTML = '⚠️ Nothing imported' + (errors.length ? ': ' + errors.join('; ') : '') + ' — check the format (Name, Price, MRP, Image URL…)'; return; }
   res.innerHTML = '✅ Imported <b>' + added + '</b> products' +
     '<br><small class="muted">SKUs auto-generated • 🎨 detecting colours from photos…</small>';
@@ -1004,7 +1034,11 @@ function finishBulkImport(imported, errors, added, res){
       }
       done++;
       if (done % 5 === 0 || idx === imported.length - 1){
-        try{ saveProducts(PRODUCTS); refreshFeedCache(); renderProdBody(); }catch(e){}
+        try{
+          saveProducts(PRODUCTS);
+          fsSaveProducts(imported);        /* 🔥 Firestore: colours updated → re-save docs */
+          refreshFeedCache(); renderProdBody();
+        }catch(e){}
         res.innerHTML = '✅ Imported <b>' + added + '</b> products • 🎨 detecting colours… <b>' + done + '/' + added + '</b>';
       }
       next(idx + 1);
@@ -1087,7 +1121,11 @@ function importCsvFile(file){
       }
       added = newCount;
       if (isHeader) res.innerHTML = '📄 CSV processed: ' + updated + ' updated • ' + newCount + ' added';
-      if (updated){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
+      if (updated){
+        saveProducts(PRODUCTS);
+        fsSaveProducts(imported);          /* 🔥 Firestore: updated rows → save their docs */
+        refreshFeedCache(); prodPage = 1; renderProdBody();
+      }
       finishBulkImport(imported, errors, added, res);
     }catch(e){ res.innerHTML = '⚠️ Could not read CSV file'; }
   };
@@ -1103,7 +1141,7 @@ function importCatalogFile(file){
       const data = JSON.parse(String(rd.result || ''));
       const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
       if (!list.length){ res.innerHTML = '⚠️ No products found in catalog.json'; return; }
-      let added = 0, skipped = 0;
+      let added = 0, skipped = 0, touched = [];
       list.forEach(raw => {
         try{
           if (!raw || !raw.id) return;
@@ -1111,10 +1149,15 @@ function importCatalogFile(file){
           const np = normalizeProduct(raw);
           const i = PRODUCTS.findIndex(x => x.id === np.id);
           if (i >= 0) PRODUCTS[i] = np; else PRODUCTS.unshift(np);
+          touched.push(np);
           added++;
         }catch(e){ skipped++; }
       });
-      if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
+      if (added){
+        saveProducts(PRODUCTS);
+        fsSaveProducts(touched);           /* 🔥 Firestore: write each imported doc */
+        refreshFeedCache(); prodPage = 1; renderProdBody();
+      }
       res.innerHTML = added ? '✅ catalog.json imported — <b>' + added + '</b> products loaded' + (skipped ? ' (' + skipped + ' demo/skipped)' : '') : '⚠️ Nothing to import';
       toast('📦 catalog.json — ' + added + ' products');
     }catch(e){ res.innerHTML = '⚠️ Invalid catalog.json — not a valid JSON file'; }
@@ -1207,6 +1250,7 @@ function openEditProduct(id){
         PRODUCTS[idx].images = imgs;
       }catch(e){}
       saveProducts(PRODUCTS);
+      fsSaveProduct(PRODUCTS[idx]);        /* 🔥 Firestore: update this product doc */
       refreshFeedCache();
       closeModal(); renderProdBody(); toast('✅ Product updated');
     }
@@ -1547,7 +1591,9 @@ function renderFeed(){
         '<button type="button" class="btn btn-buy" id="feedJsonDownload" style="width:auto;min-width:220px">⚡ catalog.json (instant load)</button>' +
         '<button type="button" class="btn btn-outline" id="feedSave" style="width:auto;min-width:230px">💾 Save feeds to this browser</button>' +
         '<button type="button" class="btn btn-ghost" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
+        '<button type="button" class="btn btn-maroon" id="feedFsPush" style="width:auto;min-width:270px">☁️ Upload ALL products to Firestore</button>' +
       '</div>' +
+      '<p class="small muted" style="margin-top:6px">☁️ <b>First-time setup:</b> tap <b>Upload ALL products to Firestore</b> once — after that every add / edit / hide / delete in this Admin writes <b>directly</b> to Firestore (single doc each, no whole-catalog push).</p>' +
       '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / hide / import a product.</p>' +
       '<p id="catalogSyncNote"></p>' +
       '<p class="small muted" id="feedNote" style="margin-top:4px">1. Pick the feed domain above. 2. Tap <b>💾 Save feeds to this browser</b> (or just save a product — automatic). 3. Download the 3 files → upload to your host root (same folder as index.html). 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
@@ -1612,6 +1658,15 @@ function renderFeed(){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     toast('✅ google-merchant-feed.txt downloaded (' + PRODUCTS.length + ' products)');
+  });
+  /* ☁️ first-time setup: push the whole catalog to Firestore so Admin reads
+     every product from Firestore (after that, ops are single-doc) */
+  const fsPush = document.getElementById('feedFsPush');
+  if (fsPush) fsPush.addEventListener('click', () => {
+    if (!FS.enabled()){ toast('🔒 Firestore not connected here (sandbox preview) — works on the live site'); return; }
+    if (!confirm('Upload all ' + PRODUCTS.length + ' products to Firestore?\n\nAdmin then reads/deletes/updates products directly in Firestore (customers still load only catalog.json).')) return;
+    try{ Sync.pushProducts(); }catch(e){}
+    toast('☁️ Uploading all ' + PRODUCTS.length + ' products to Firestore…');
   });
   /* ⚠️ live catalog.json sync check — tells you when the site file is old */
   try{ checkCatalogSync(); }catch(e){}
@@ -2113,7 +2168,7 @@ document.addEventListener('click', e => {
     const p = byId(id);
     if (!p) return;
     p.hidden = !p.hidden;
-    saveProducts(PRODUCTS); refreshFeedCache(); renderProdBody();
+    saveProducts(PRODUCTS); fsSaveProduct(p); refreshFeedCache(); renderProdBody();
     toast(p.hidden ? '🚫 ' + id + ' hidden — links go to home' : '👁️ ' + id + ' visible again');
     return;
   }
@@ -2123,18 +2178,13 @@ document.addEventListener('click', e => {
     const id = delp.dataset.delprod;
     PRODUCTS = PRODUCTS.filter(p => p.id !== id);
     saveProducts(PRODUCTS);
+    fsDeleteProduct(id);                    /* 🔥 Firestore: delete the doc — never comes back */
     refreshFeedCache();
     /* remove it from the Firestore cache too, so it never comes back */
     try{
       const cached = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
       const nc = cached.filter(p => p.id !== id);
       localStorage.setItem('sk_products_cloud', JSON.stringify(nc));
-    }catch(e){}
-    /* mark Inactive in Firestore so pulls skip it */
-    try{
-      if (FS.enabled()){
-        FS._getDb().then(db => { if (db) db.collection('products').doc(String(id)).set({ status: 'Inactive', deletedAt: Date.now() }, { merge: true }).catch(() => {}); }).catch(() => {});
-      }
     }catch(e){}
     prodPage = 1; renderProdBody(); toast('🗑️ Deleted');
     return;
