@@ -707,66 +707,27 @@ function renderProduct(){
     }catch(e){}
   }
   if (!p){
-    /* Not cached at all — fetch from Firestore fast (pull + one-time get in parallel).
-       The product may exist in the cloud. */
-    window.__pdTry = (window.__pdTry || 0) + 1;
+    /* ⚡ catalog.json ONLY: the static catalog (merged on every visit) + local
+       cache are the ONLY product sources — NO Firestore product reads at all.
+       We still await the static catalog for a moment (local file, near-instant);
+       if it's not there either, show a clean not-found with a shop link. */
     let done = false;
-    const finish = (prod, msg) => {
+    const finish = (prod) => {
       if (done) return; done = true;
-      if (prod){
-        try{ PRODUCTS.unshift(prod); Sync.saveLocal(); }catch(e){ try{ PRODUCTS.unshift(prod); }catch(e2){} }
-        renderProduct();
-      } else {
+      if (prod){ try{ PRODUCTS.unshift(prod); }catch(e){} renderProduct(); }
+      else {
         app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic">🪡</div><b>Product not found</b>' +
-          '<span class="muted small" style="max-width:40ch">' + esc(msg || 'We could not find this saree in our collection.') + '</span>' +
+          '<span class="muted small" style="max-width:40ch">This saree is not in our current catalog. Browse our full collection below.</span>' +
           '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;max-width:340px;margin:14px auto 0">' +
           '<a class="btn btn-maroon" href="shop.html">🛍️ Back to Shop</a>' +
           '<button type="button" class="btn btn-outline" onclick="renderProduct()">🔄 Try Again</button></div></div></div>';
       }
     };
-    /* quick spinner while we fetch (usually <1s) */
     app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b></div></div>';
-    /* ⚡ INSTANT path: static catalog.json FIRST (local file — near-instant).
-       preloadCatalog(id) merges the uploaded catalog into PRODUCTS even when
-       other caches already exist, then tells us if THIS id is now found.
-       Only if the catalog still doesn't have it do we go to Firestore / give
-       up — so an uploaded catalog.json always fixes "Loading product…". */
-    const gate = Promise.race([
+    Promise.race([
       preloadCatalog(id),
       new Promise(res => setTimeout(() => res(false), 4000)),
-    ]);
-    gate.then(() => {
-      if (done) return;
-      const now = byId(id);
-      if (now){ finish(now); return; }
-      if (!FS.enabled()){
-        finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
-        return;
-      }
-      /* 🔒 READ-OPTIMIZED: read ONLY this product's document (1 doc), never the
-         whole products collection — catalog.json + local cache already cover
-         the store for browsing. */
-      FS.getProduct(id).then(doc => {
-        if (done) return;
-        if (doc){
-          try{ finish(normalizeProduct(doc)); }
-          catch(err){ finish(null); }
-        } else {
-          /* retry a couple of times before giving up (slow cloud) */
-          if (window.__pdTry < 3){
-            setTimeout(() => { if (!done) renderProduct(); }, 600);
-          } else {
-            finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
-          }
-        }
-      }).catch(() => {
-        if (done) return;
-        if (window.__pdTry < 3){ setTimeout(() => { if (!done) renderProduct(); }, 600); }
-        else finish(null, 'Cloud sync is not responding right now — please check your internet and try again.');
-      });
-      /* safety: never leave the spinner hanging */
-      setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 6000);
-    });
+    ]).then(() => { const now = byId(id); if (now) finish(now); else finish(null); });
     return;
   }
   window.__pdTry = 0;
@@ -1330,6 +1291,48 @@ function drawCo(){
     if (upiPay) setTimeout(drawUpiQR, 150); /* wait for DOM + qrcode lib */
   }
 }
+/* 💳 PENDING PAYMENT MODAL — from My Orders, a customer with a pending UPI
+   order can reopen the QR + UPI app links and confirm the payment there. */
+function openPendingPay(o){
+  try{
+    if (!o) return;
+    const grand = (o.totals || {}).grand || 0;
+    const note = 'Order ' + o.id + ' SK Sarees';
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">💳 Complete Payment — ' + esc(o.id) + '</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">Order total: <b style="color:var(--maroon);font-size:1.2rem">' + money(grand) + '</b> • Pay by UPI (GPay / PhonePe / Paytm) or scan the QR.</p>' +
+      '<div class="qr-box"><div id="ppQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
+      '<a class="btn btn-gold btn-xl" href="' + upiLink(grand, note) + '">📲 Pay Now — Open UPI App</a>' +
+      '<div style="display:grid;gap:8px;margin-top:10px">' +
+        '<a class="btn btn-xl" style="background:#1a73e8;color:#fff" href="' + upiAppLink('gpay', grand, note) + '">🟢 Google Pay — Pay ' + money(grand) + '</a>' +
+        '<a class="btn btn-xl" style="background:#5f259f;color:#fff" href="' + upiAppLink('phonepe', grand, note) + '">🟣 PhonePe — Pay ' + money(grand) + '</a>' +
+        '<a class="btn btn-xl" style="background:#002e6e;color:#fff" href="' + upiAppLink('paytm', grand, note) + '">🔷 Paytm — Pay ' + money(grand) + '</a>' +
+      '</div>' +
+      '<div class="verify-note" style="margin-top:8px">💳 After paying, tap below — we will confirm once the payment is received.</div>' +
+      '<button type="button" class="btn btn-maroon btn-xl" id="ppPaid" style="margin-top:8px">✅ I\'ve Paid — Waiting for Confirmation</button>');
+    /* render the QR */
+    setTimeout(() => {
+      const box = document.getElementById('ppQR'); if (!box) return;
+      const qrLib = (typeof qrcode !== 'undefined') ? qrcode : (window.qrcode || null);
+      if (!qrLib){ box.innerHTML = '<p class="small muted">Scan unavailable — use the UPI app buttons below.</p>'; return; }
+      try{
+        const qr = qrLib(0, 'M');
+        qr.addData(upiLink(grand, note));
+        qr.make();
+        box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+      }catch(e){ box.innerHTML = '<p class="small muted">Use the UPI app buttons below.</p>'; }
+    }, 150);
+    document.getElementById('ppPaid').addEventListener('click', () => {
+      o.paidConfirmed = true;
+      o.paidAt = new Date().toISOString();
+      const i = Store.orders.findIndex(x => x.id === o.id);
+      if (i >= 0){ Store.orders[i] = o; Store.saveOrders(); }
+      if (FS.enabled()) FS.saveOrder(o).then(ok => { if (ok) markOrderSynced(o.id); }).catch(() => {});
+      closeModal();
+      toast('✅ Payment confirmed — awaiting admin verification!');
+      renderOrdersPage();
+    });
+  }catch(e){}
+}
 function drawUpiQR(){
   const box = document.getElementById('upiQR'); if (!box) return;
   const qrLib = (typeof qrcode !== 'undefined') ? qrcode : (window.qrcode || null);
@@ -1375,6 +1378,43 @@ function loadCoDraft(){
   try{ const v = sessionStorage.getItem('sk_co_draft'); if (v && !d.name) d = JSON.parse(v) || {}; }catch(e){}
   return d;
 }
+/* 💳 UPI: build + save the order as PENDING (payment not made yet). Called when
+   the customer taps "Continue to Payment" with UPI selected — so the order lands
+   in "Payment Pending" even if they forget to confirm the payment. Idempotent:
+   if a pending order with the same id already exists, it is updated (no dupes). */
+function createPendingUpiOrder(){
+  try{
+    const d = co.data;
+    const t = coTotals();
+    const myReseller = currentReseller();
+    const id = co.pendingId || genOrderId();
+    co.pendingId = id;
+    const existing = Store.orders.findIndex(x => x.id === id);
+    const order = {
+      id: id, date: existing >= 0 ? Store.orders[existing].date : new Date().toISOString(),
+      items: coItems().map(safeItem),
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
+      payment: 'upi',
+      totals: t,
+      reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
+      margin: 0,
+      status: 'pending',                 /* ⏳ payment pending */
+      paidConfirmed: false,              /* customer has NOT confirmed payment yet */
+      bookingPaid: t.grand,
+      device: deviceId(),
+      pendingSince: existing >= 0 ? (Store.orders[existing].pendingSince || new Date().toISOString()) : new Date().toISOString(),
+    };
+    order.margin = myReseller ? resellerMarginFor(order) : 0;
+    if (existing >= 0) Store.orders[existing] = order;
+    else Store.orders.unshift(order);
+    Store.saveOrders();
+    recordResellerOrder(order);           /* credit pending margin */
+    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}
+    if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
+    try{ if (existing < 0) consumeStock(order.items); }catch(e){}   /* reserve stock once */
+    return order;
+  }catch(e){ return null; }
+}
 function doPlaceOrder(payment){
   try{
     const d = co.data;
@@ -1383,7 +1423,40 @@ function doPlaceOrder(payment){
     const t = coTotals();
     const couponUsed = d.coupon || '';
     const myReseller = currentReseller();
-    const order = {
+    let order;
+    if (payment === 'upi'){
+      /* UPI "I've Paid" — the pending order already exists (created on Continue).
+         Just confirm the payment on it; do NOT create a duplicate. */
+      const pid = co.pendingId || (Store.orders.find(o => o.payment === 'upi' && o.status === 'pending' && !o.paidConfirmed && o.device === deviceId() && (o.customer||{}).phone === d.phone.trim()) || {}).id;
+      const i = pid ? Store.orders.findIndex(x => x.id === pid) : -1;
+      if (i >= 0){
+        order = Store.orders[i];
+        order.paidConfirmed = true;
+        order.paidAt = new Date().toISOString();
+        order.totals = t;
+        order.items = coItems().map(safeItem);
+        order.status = 'pending';        /* stays pending until admin confirms */
+        Store.orders[i] = order;
+        Store.saveOrders();
+        if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
+        /* complete flow */
+        Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
+        try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}
+        Store.saveProfile();
+        if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
+        co.buyOnly = null;
+        co = { step: 1, buyOnly: null, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
+        saveCoDraft();
+        if (couponUsed) useCoupon(couponUsed);
+        try{ earnPoints(order); }catch(e){}
+        fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: order.items.length });
+        fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: order.items.length, content_ids: order.items.map(i => String(i.id)) });
+        try{ window.scrollTo(0, 0); }catch(e){}
+        renderOrderComplete(order, false);
+        return;
+      }
+    }
+    order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
@@ -1738,6 +1811,9 @@ function orderCard(o){
     '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
     '<button type="button" class="btn btn-outline btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button>' +
     '<button type="button" class="btn btn-maroon btn-sm" style="flex:1;min-width:130px" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
+    ((o.payment || '') === 'upi' && o.status === 'pending' && !o.paidConfirmed
+      ? '<button type="button" class="btn btn-gold btn-sm" style="flex:1;min-width:160px" data-paynow="' + esc(o.id) + '">💳 Pay Now — Complete Payment</button>'
+      : '') +
     '</div></div>';
 }
 /* Full order detail — rendered inline, opens/closes instantly, no page reload */
@@ -2094,7 +2170,18 @@ document.addEventListener('click', function(e){
   }
   /* checkout */
   const cont = e.target.closest('[data-cont]');
-  if (cont){ e.preventDefault(); if (coValid()){ co.step = 2; drawCo(); } return; }
+  if (cont){
+    e.preventDefault();
+    if (!coValid()) return;
+    if (co.data.payment === 'upi'){
+      /* 💳 UPI: create the order NOW (status pending — payment not yet made).
+         If the customer forgets "I've Paid", the order is still in My Orders →
+         Payment Pending and they can reopen the QR there. */
+      try{ createPendingUpiOrder(); }catch(e){}
+    }
+    co.step = 2; drawCo();
+    return;
+  }
   const back = e.target.closest('[data-back]');
   if (back){ e.preventDefault(); co.step = 1; drawCo(); return; }
   const pay = e.target.closest('[data-pay]');
@@ -2112,6 +2199,8 @@ document.addEventListener('click', function(e){
   const fo = e.target.closest('#foOpen');
   if (fo){ e.preventDefault(); fastOrderModal(byId(currentProductId())); return; }
   /* 🔁 order again */
+  const pn = e.target.closest('[data-paynow]');
+  if (pn){ e.preventDefault(); openPendingPay(Store.orders.find(x => x.id === pn.dataset.paynow) || null); return; }
   const ro = e.target.closest('[data-reorder]');
   if (ro){ e.preventDefault(); const o = myOrders().find(x => x.id === ro.dataset.reorder) || Store.orders.find(x => x.id === ro.dataset.reorder); if (o) orderAgain(o); return; }
   /* order detail fast toggle */
