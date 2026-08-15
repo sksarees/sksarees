@@ -1487,12 +1487,46 @@ function feedIssues(){
    Google Merchant Center / Meta (their scheduled fetch = automatic). */
 function refreshFeedCache(){
   try{
+    const json = feedJson();
+    const prev = localStorage.getItem('sk_feed_json') || '';
+    const changed = prev !== json;                 /* only remind when the catalog actually changed */
     localStorage.setItem('sk_feed_xml', feedXml());
     localStorage.setItem('sk_feed_txt', feedTxt());
-    localStorage.setItem('sk_feed_json', feedJson());
+    localStorage.setItem('sk_feed_json', json);
     localStorage.setItem('sk_feed_updated', new Date().toISOString());
+    if (changed){
+      try{ toast('⚠️ Catalog changed — tap ⬇️ Download catalog.json & upload to your host so www.sksaree.shop updates instantly'); }catch(e){}
+    }
     return true;
   }catch(e){ return false; }
+}
+/* ⚠️ Is the catalog.json LIVE on the site up to date with this browser's
+   products? (Run inside Admin → Catalog Feed.) If the uploaded catalog.json is
+   older, customers would not see new products — this flags it + says what to do. */
+async function checkCatalogSync(){
+  const el = document.getElementById('catalogSyncNote');
+  if (!el) return;
+  const mine = PRODUCTS.filter(p => !p.hidden);
+  const mineIds = new Set(mine.map(p => String(p.id)));
+  if (!mine.length){ el.innerHTML = ''; return; }
+  try{
+    const r = await fetch('catalog.json', { cache: 'no-cache' });
+    if (!r.ok){ el.innerHTML = '<p class="small muted" style="margin-top:6px">🩺 Could not read catalog.json from this site (status ' + r.status + '). It will work after upload.</p>'; return; }
+    const data = await r.json();
+    const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
+    const liveIds = new Set(list.map(p => p && p.id ? String(p.id) : '').filter(Boolean));
+    const missing = [...mineIds].filter(id => !liveIds.has(id));
+    const extra = [...liveIds].filter(id => !mineIds.has(id));
+    if (!missing.length && !extra.length){
+      el.innerHTML = '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">✅ catalog.json on this site is UP TO DATE — <b>' + liveIds.size + '</b> products, same as here. Customers see everything instantly.</p>';
+    } else {
+      el.innerHTML = '<p class="small" style="color:var(--red);font-weight:800;margin-top:6px">⚠️ <b>catalog.json is OUT OF DATE</b> — it has <b>' + liveIds.size + '</b> products but your Admin has <b>' + mineIds.size + '</b>.' +
+        (missing.length ? '<br>❌ Missing on the site: <b>' + missing.slice(0, 8).join(', ') + '</b>' + (missing.length > 8 ? '…' : '') : '') +
+        '<br>👉 Tap <b>⚡ catalog.json (instant load)</b> below, then upload the new file to your host root (same folder as index.html) — customers see the new sarees immediately.</p>';
+    }
+  }catch(e){
+    el.innerHTML = '<p class="small muted" style="margin-top:6px">🩺 catalog.json sync check needs the live site (works after upload). Here in preview it can\'t reach the file.</p>';
+  }
 }
 function renderFeed(){
   const body = document.getElementById('tabBody');
@@ -1515,6 +1549,7 @@ function renderFeed(){
         '<button type="button" class="btn btn-ghost" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
       '</div>' +
       '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / hide / import a product.</p>' +
+      '<p id="catalogSyncNote"></p>' +
       '<p class="small muted" id="feedNote" style="margin-top:4px">1. Pick the feed domain above. 2. Tap <b>💾 Save feeds to this browser</b> (or just save a product — automatic). 3. Download the 3 files → upload to your host root (same folder as index.html). 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
     '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>' +
     '<div class="form-card"><h3>🩺 Feed link check (first 15) — <span style="color:var(--green)">no localhost, all HTTPS</span></h3><div id="feedCheck" style="overflow:auto;max-height:280px;font-size:.72rem"></div></div>' +
@@ -1578,6 +1613,8 @@ function renderFeed(){
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     toast('✅ google-merchant-feed.txt downloaded (' + PRODUCTS.length + ' products)');
   });
+  /* ⚠️ live catalog.json sync check — tells you when the site file is old */
+  try{ checkCatalogSync(); }catch(e){}
 }
 
 /* ============================ 📈 GROWTH ============================

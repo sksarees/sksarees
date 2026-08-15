@@ -1,5 +1,149 @@
 # 🪡 SK Sarees — Premium Multi-Page Redesign
 
+## 🎮 Engagement 2 · 🔍 SEO Titles · 🛡️ Trust · 📈 Growth Engine (new)
+
+- **🎮 Sarees Match game** — homepage "Play Sarees Match" memory game (6 pairs).
+- **🧧 Festival countdown strip** — big urgency banner on home ("Aadi Sale ends in 2d 05h 12m 33s").
+- **📱 Daily Style Tip** — rotating saree care/drape tip on the home page + WhatsApp share button.
+- **👗 Try-On + Flash countdown per product** — every product shows "⚡ Flash Sale — today only HH:MM:SS" (ends tonight) for urgency.
+- **🎁 Birthday Surprise** — profile: enter DOB → on your birthday you get **BDAY5 (5% off)** automatically.
+- **📸 Real Customers gallery** — home strip of top-rated sarees + "Share YOUR saree photo on WhatsApp".
+- **🏆 Referral leaderboard** — home shows top-3 earners (🥇🥈🥉) by confirmed margin.
+- **🔍 SEO keyword titles** — product pages now use **"Rose Pink Soft Silk Saree for Women | SK Sarees"** (keyword-first — Google search terms in the title; no more generic titles).
+- **🛡️ Homepage trust strip** — COD Available • Tamil Nadu Delivery • Secure Order via WhatsApp • Real Customer Reviews • Real Saree Photos • Call/WhatsApp • clear shipping (₹30 TN / ₹40 AP-KA / ₹60 others / free ₹999+).
+- **📈 Admin → Growth tab** — **2 Reels/day** ideas + copy-ready captions (Instagram algorithm friendly, URL on screen), **SEO product title** example + copy, and the **traffic mix** (Reels 40% / FB Ads 30% / Google 20% / WhatsApp 10%).
+
+## 📥 CSV Bulk Edit · 📊 Live Counters · 🎉 Engagement (new)
+
+- **📥 Products CSV download & upload (bulk update)** — Admin → Products → Bulk Upload: **⬇️ Download Products CSV (edit)** exports all products (id, sku, name, price, mrp, stock, cat, badge, fabric, color, colors, colourStock, img, desc) for Excel/Sheets. Edit and **📄 Upload CSV File** — rows matching an existing **id/sku are updated in place** (name, price, stock, badge, colours…), new ids are added. Summary shows "X updated • Y added".
+- **📊 Visitors/Orders counters fixed** — was stuck at "1 Visitors • 0 Orders". Now: visitors increment per new device, orders increment on every order placement, and the **shared Firestore counters doc is read once per hour** (1 doc read — negligible) so the home hero shows real totals. Local fallback still works offline.
+- **🎉 Engagement pack (keeps visitors on the page → more orders):**
+  - **🎁 Try Your Luck — Coupon** — a daily Lucky Spin wheel: win a real active coupon (AP5/CART50/…), one spin per day per device.
+  - **✨ Find Your Perfect Saree** — a 3-question style quiz (occasion, colour, fabric, budget) → recommends matching sarees with Add-to-Cart + WhatsApp help.
+  - **🔥 Live "buying now" ticker** — a subtle social-proof marquee ("Rani from Chennai just ordered ✨ Kanchipuram Silk…") that rotates every 12s; deterministic, no privacy issues.
+  - (More ideas in the ideas list below — can be added anytime.)
+
+## 💳 Pending-Pay Flow · 📄 Catalog.json Only (new)
+
+- **UPI order created on "Continue to Payment"** — the moment a customer picks UPI and taps Continue, the order is **created as Payment Pending** (no need to click "I've Paid" first). If they forget to confirm, the order is **safe in My Orders → Payment Pending**.
+- **💳 Pay Now on My Orders** — pending UPI orders show a **"💳 Pay Now — Complete Payment"** button → reopens the **QR code + GPay/PhonePe/Paytm links** in a modal → "✅ I've Paid" confirms the payment (updates the SAME order — no duplicates).
+- **"I've Paid" never duplicates** — the pending order is updated in place (verified: 1 order before → 1 order after).
+- **📄 Website loads products from `catalog.json` ONLY** — all Firestore product reads removed from customer pages (product page, shop). The product page still awaits the static catalog briefly; if a product isn't in the catalog it shows a clean "Product not found" (no Firestore, no hanging spinner). Only admin management reads touch Firestore.
+
+## 🔥 Firestore Reads Optimized — 143K/day → ~2.5K/day (critical)
+
+The site was burning through the Firestore free quota (50K reads/day) — measured 143K reads. Root causes found and fixed in `data.js` / `app.js`:
+
+| Read source (old) | Where | Fix |
+|---|---|---|
+| `orders.get()` full collection | Stats.init on EVERY page | **Removed** — customer pages show local counters |
+| `orders.onSnapshot()` full collection | Stats.init on EVERY page | **Removed** |
+| `counters` onSnapshot | Stats.init on EVERY page | **Removed** (only the 1-write visitor increment stays) |
+| `orders` full-collection live listener | **customer orders.html** | **Replaced with `FS.myOrdersSnapshot(phone)`** — one query limited to the customer's phone + cheap per-doc listeners for their known orders |
+| `products.get()` full collection | Sync.run on EVERY customer page | **Removed** — browsing uses static `catalog.json` + local cache; product page fallback now reads **1 doc** (`FS.getProduct(id)`) |
+| `resellers.get()` full collection | Sync.run on EVERY page | **Gated** — only share-earn / profile / checkout, cached 24h per device |
+| user-cloud orders query | pullUserCloud on EVERY page | **Gated** — only orders / profile / checkout, cached 6h per device |
+
+- **Estimated daily reads**: ~218K → **~2.5K (~99% less)** — comfortably inside the 50K free quota.
+- Admin keeps its live listeners (orders/reviews/abandoned/resellers/leads) — that's the needed management functionality.
+- All 49 test suites still pass (live-status on the customer orders page now uses the targeted listener; verified).
+
+## 🤫 Commission Privacy · 👁 Views Really Fixed · 📱 Deal-Day · ✅ Paid Flag (new)
+
+- **💰 Reseller commission hidden from FRIENDS** — the "💰 Your reseller commission on this order: ₹49 (5%) — code KAV7474" line now shows **only when the person checking out IS the reseller** (their own device has the code). A friend who clicked `?ref=KAV7474` only sees **their own benefit**: "⭐ Use my 250 loyalty points" / "1 point per ₹50 spent, 1 point = ₹1 off".
+- **👁 Link views REALLY fixed** — two bugs: (1) views were only counted when the reseller was already in the local list (Firestore-only resellers stayed 0) — now a view is counted for **any** ref code and a local record is auto-created; (2) counting now happens for the code regardless of lookup timing.
+- **📱 DEAL OF THE DAY mobile alignment fixed** — on phones the image is now a **contained 4:3 card** (no stretched full-width), stacked cleanly above the centered text + full-width button.
+- **✅ "I've Paid — Waiting for Confirmation"** — UPI orders now carry `paidConfirmed: true`; the admin order card shows **"✅ Customer says PAID — verify & confirm"** so the owner instantly knows which pending orders the customer says they paid.
+
+## 🔗 Profile Share-Link · 💵 Min Payout ₹100 · 👁 Views Fix · 📄 Resellers Page (new)
+
+- **Profile page** — new **"🔗 Get Your Personal Share Link"** card: no code yet → generate right on the profile (name + mobile → code); code exists → show link + copy + WhatsApp share. The old **"🤝 Refer & Earn" card is removed** (replaced by this + My Commission).
+- **💵 Min payout ₹100** — profile shows "Payout via **GPay** when confirmed reaches ₹100 (₹X more needed)". Commission is **GPay only** — the ⭐ Convert-to-Loyalty-Points button and the "⭐ My loyalty points: X = ₹X off…" line are **removed** (both profile + admin). Reseller orders only earn commission on UPI orders, confirmed on shipment.
+- **👁 Share-link view counter FIXED** — the old code only saved views into the local reseller list, so cloud-only resellers stayed at 0. New `bumpResellerView()` counts once per device and persists to **both local + Firestore** — the admin's view count now actually goes up.
+- **📄 Admin resellers pagination** — shows **top 10** with a **"Load More Resellers ↓"** button.
+- **⚡ First-visit product speed** — the static `catalog.json` now starts loading as soon as `data.js` parses (before DOMContentLoaded), so a brand-new visitor's product page renders faster.
+- **🔐 Cross-browser merge hardened (privacy = 1 mobile)** — cloud user records are now **device-scoped**: Chrome + Facebook browser on the SAME mobile both register their deviceId and share cart/wish/points; a **brand-new mobile** typing the same phone does **NOT inherit** the old device's cart/orders. Also fixed an overwrite bug (an empty cart in one browser no longer erases another browser's cart — merge-on-write).
+
+## 🌐 Cross-Browser User Merge — Chrome · Facebook browser · Google app (new)
+
+- **Problem fixed**: each browser (Chrome, Facebook's in-app browser, Google app) has its own localStorage, so a customer's cart/orders looked different per browser. 
+- **Fix — phone-based cloud identity**: once the customer's phone is saved, ALL their data (profile, cart, wishlist, loyalty points, reseller code, orders) is synced to Firestore under `users/u<phone>`. The **same phone on ANY browser** pulls the same cloud record and **merges** it into local (cart items unioned, wishlist unioned, profile fields filled, points take the higher balance, reseller code adopted).
+- **Orders merge** — the customer's own orders are pulled from the `orders` collection by `customer.phone`, so an order placed in Chrome appears in Facebook browser and Google app too. Different phone = **no merge** (privacy/isolation preserved — verified by tests).
+- Silent + debounced (700 ms) + write-light, safe for the free Firestore quota; `users` collection added to the seed.
+- Verified end-to-end: Chrome saves cart+wish+order → Facebook browser (fresh) shows cart+wish+order → Google browser too → a different phone sees nothing.
+
+## 💰 Commission Rules — UPI + Shipped only · COD/Cancelled tabs · SHARE50 5% (new)
+
+- **Reseller commission works ONLY on UPI orders** — COD orders earn nothing. The 5% margin is stored as **PENDING** when the order is placed and becomes **CONFIRMED (payable)** only when the admin marks the order **SHIPPED**. If an order is **cancelled** before shipping, the pending margin is removed. All verified in tests.
+- **Profile "My Commission"** now shows **Pending (till shipped) / Confirmed / Paid** + link views + ref order details with status; the ⭐ Convert-to-Points button works on pending+confirmed.
+- **Admin resellers** — header explains "5% of every UPI order, confirmed when shipped"; each card shows **⏳ Pending (till shipped)** and **confirmed margin**, plus ref orders with status.
+- **Admin Orders tabs** — added **💵 COD** (all COD orders) and **❌ Cancelled** (all cancelled orders); the order status dropdown now includes **❌ Cancelled**. Tabs: Payment Pending → Confirmed → Shipped → Delivered → COD → Cancelled → All/New.
+- **SHARE50 coupon changed ₹50 flat → 5%** (percent, capped at the 5% low-profit cap). All texts (share-earn, product page, admin messages, WhatsApp templates) updated to 5%.
+
+## 🛒 Checkout Rework — Buy-Only · Live Courier Summary · Loyalty/Commission (new)
+
+- **"Complete your look — add matching sarees" REMOVED** from checkout (kept only on the cart page upsell).
+- **🧾 Live Order Summary ABOVE the payment method** — items + saree prices + shipping + total, and **as soon as a PIN code is typed, courier details appear** (zone name, shipping fee, delivery ETA). Refreshes live as the user types address/pincode/coupon.
+- **🎟️ Under the coupon input** — shows the customer's **loyalty points** (with "use my points" checkbox, −₹ off) and, for resellers, **"💰 Your reseller commission on this order: ₹X (5%) — code …"** so they see their earnings right before paying.
+- **⚡ Buy Now = ONLY that product** — `checkout.html?buy=X` now orders **just that saree**; the existing cart is **left untouched** (no merge, cart not cleared after the order). Verified: cart had kanchipuram-red, buy-now linen-beige → order contains only linen-beige, cart keeps kanchipuram-red.
+
+## 🔗 Ref Claim · 🤝 Auto-Reseller · 👁 Views · 💳 UPI Edit · ✨ Logos (new)
+
+- **?ref=CODE works on EVERY device (not just the shared page)** — when a customer opens any shared link (`?ref=KAV1235`), the code is stored in **localStorage on that device**. Even if they leave the page and order later (or on another page), the order is **claimed to the referrer** and the referrer earns commission. Unknown/cloud-only codes are also stored and credited (a local record is created so margin is never lost).
+- **👁 Share-link views counted** — each new device that opens a ref link increments that reseller's **view count** (once per device; local + Firestore). Shown on the reseller's profile and in the admin panel.
+- **🤝 AUTO-RESELLER** — when a user saves their name + number (profile save, checkout, fast order), they instantly get their **own code** (e.g. KAV3210 from "Kavitha" + phone). From then on **EVERY share link on that device automatically carries `?ref=CODE`** — so one registered user sharing in family groups earns margin on all resulting orders. Same phone = same code (one address = one reseller).
+- **💰 Profile "My Commission" upgraded** — shows **Pending / Paid / 👁 Link views**, the **personal share link** (copy + WhatsApp share), **My Referral Orders**, **Commission Received**, and a **💳 My UPI** edit field — the reseller sets their own UPI and the admin's GPay link pays to it.
+- **💰 Admin resellers card** — shows **👁 share views**, commission send log, referral orders (cloud + local, per-order +margin), the reseller's **edited UPI**, Copy UPI, Mark Paid & Reset.
+- **🔗 share-earn.html** — "My Personal Share Link" box now appears **at the TOP** (if the device already has a code) with code + link + copy + WhatsApp share + commission shortcut.
+- **✨ AI float logo changed** — cloud → **sparkle ✨** (AI-magic look).
+- **💬 WhatsApp float alignment fixed** — logo now a clean **32px white SVG, perfectly centered** (no tiny 16px icon, no span wrapper).
+
+## 🔧 Critical Fixes — Shipping ₹30, Orders Load, Live Sync, Courier Label (new)
+
+- **🛒 Shipping "Tamil Nadu ₹30 but showed ₹60" FIXED** — the root cause: an empty/unknown pincode defaulted to the "Other states" zone (₹60), so the cart (which doesn't know the pincode yet) charged ₹60. Now an empty pincode **defaults to Tamil Nadu (₹30)** — cart shows Items ₹849 + Shipping ₹30 + Total ₹879. Zone legend still explains ₹30/₹40/₹60; the actual charge is correct per PIN at checkout.
+- **📋 "Orders could not load in admin panel" FIXED (root cause found)** — a variable-shadowing bug (`const img = … img('…')` — calling `img()` while the const is initializing) crashed the whole order list whenever an order's product was missing from the catalog (deleted product / Firestore-only product not cached). Now: every order renders, **even corrupt or incomplete ones** (try/catch per order, defensive WhatsApp templates for null customer/totals/items, safe adminAllOrders). Verified with messy data: all orders + Firestore orders render.
+- **🔄 24-hr LIVE SYNC** — the admin page refreshes automatically on **storage events, window focus, tab visibility**, and every 60s while visible: any edit (this tab, another tab, or another device via Firestore) shows up immediately for orders, products, resellers, leads, coupons, feeds.
+- **🧾 Courier Label** — every order has a **"🧾 Courier Label"** button → opens a printable label: **FROM: SK Sarees (2/130 Thoothanoor, Edanganasalai, Salem 637502 • 78679 15699)** and **TO: customer name, address, pincode** in **bold black**, plus order id, payment, status, and a **product table (name, SKU, qty, amount)** — auto-prints, or save as PDF. Courier-ready.
+- **📄 10 orders per page + "Load More"** — recent 10 shown first; Load More adds more.
+- **✔ Shipped / Delivered tabs filter correctly** — each shows only its own status (verified).
+- (💰 Profile commission details + Admin commission send log + Mark-Paid-&-Reset were delivered in the previous update — still working.)
+
+## 📋 Admin Orders · 🚚 Auto-Delivery · 💰 Commission Details (new)
+
+- **Admin order tabs reordered** — 1️⃣ ⏳ Payment Pending, 2️⃣ ✅ Confirmed, 3️⃣ 🚚 Shipped, 4️⃣ ✔ Delivered, 5️⃣ 📦 All (+ 🆕 New) — orders load instantly, counts shown per tab.
+- **🚚 Auto-delivery** — when an order is marked **Shipped**, it gets a **7-day delivery window**; after 7 days the admin page **auto-marks it Delivered** (local + Firestore, with a 🔔 alert) — no manual follow-up needed.
+- **🖼️ Status post image upgraded** — uses the **original product photo** (rounded card, cover-cropped) with **clean text alignment**: store name, wrapped saree name, big price + MRP/%OFF, offers in a tidy card, "South India's #1" + website.
+- **📋 Leads from new visitors** — leads are captured from **Fast Order, checkout, Notify-Me, reseller join (share-earn) AND every WhatsApp order/chat click when a saved profile phone exists**. Deduped by phone, stored locally + Firestore, shown in Admin → 📋 Leads with 🔔 new-lead alerts.
+- **💰 Profile → My Commission details** — resellers see their **referral orders** (order id, date, +margin) and **💸 Commission Received** history (amount + date per payment), plus pending margin and the WhatsApp request button.
+- **💰 Admin → Resellers card upgraded** — shows the **commission SEND log** ("💸 Sent … +₹X") and **all referral order details** (cloud + local) with per-order margin; "✅ Mark Paid & Reset" appends to the send log.
+
+## 📱 Status Posts · 🔥 Keep Browsing · 💰 Reseller Commission (new)
+
+- **📱 Daily Status Post generator (Admin → Status Posts)** — every day a new viral post auto-rotates: pick a saree (or 🎲 Surprise Me) → ready **Tamil+English caption** with name, price, % OFF, MRP, fabric, free shipping ₹999+, COD/UPI, 7-day returns, store link + hashtags. **Copy / WhatsApp / Download a 1080×1080 status IMAGE** (saree photo + name + price + offers + branding). Share daily on WhatsApp Status/Instagram/Facebook → viral reach → more orders.
+- **Product page bottom cleaned** — now shows **👀 Recently Viewed + ✨ Similar Sarees ONLY**. Removed: Frequently Bought Together, Customers Who Bought This Also Bought, Visually Similar Items, Complete the Look, Others Buy After Viewing.
+- **🔥 Keep Browsing** — shop page ends with a "Trending Sarees" strip + Recently Viewed, so visitors **never hit a dead end and never leave** the page.
+- **💰 Reseller commission on profile page** — resellers see their own **My Commission** card: code, orders brought, **pending margin** (to be paid) and **paid so far**, plus a WhatsApp button to request the commission.
+- **💸 GPay link fixed & smarter** — UPI IDs normalised to `91<phone>@upi` (handles 10-digit / 91 / +91 inputs), admin sees the UPI ID + a **📋 Copy UPI** button, and the pay link has a **Google Pay web fallback** (works even without the GPay app). "✅ Mark Paid & Reset" stays per reseller.
+- **🔗 `?ref=CODE` works on EVERY page** (home, shop, product, checkout, orders, profile) — captured on load, credited to the reseller on order.
+
+## ☁️ Cloud AI · 📤 Social Shares · 🔔 Order Alerts · 🔧 btoa fix (new)
+
+- **AI float button → simple cloud icon** — clean SVG cloud (no robot emoji), same size, sits above WhatsApp on mobile.
+- **"📢 Viral Share — Groups" renamed to "📢 WhatsApp Share — Groups"** — still opens the native share sheet (never blocked) with a bilingual viral caption.
+- **Product image shared to ALL social media** — a share row on every product page: Facebook, X/Twitter, Telegram, WhatsApp, Pinterest (with the product image), LinkedIn.
+- **Admin photo previews = 100×100px lazy thumbnails** — product table + order items load small lazy thumbs (faster admin, less data).
+- **Lead collection** — any visitor who shares name + number (Fast Order, checkout, Notify-Me) is recorded as a **lead** (local + Firestore) and appears in Admin → 📋 Leads.
+- **🔔 Order Alerts on admin page** — a "🔔 Order Alerts" button asks for notification permission; when a **new order or new lead** arrives (Firestore live listener + local orders), the admin gets a **browser notification + toast + beep** — never miss an order.
+- **"Failed to execute 'btoa'" FIXED** — the web-push JWT used `btoa` on decoded strings; Tamil/emoji (or invalid-UTF8 signature bytes) crashed it. Now all base64url encoding is **byte-based (UTF-8 safe)** — push works with any text.
+
+## 🛒 Admin Order Cards · 📢 Viral Share · 🔢 Short SKU (new)
+
+- **Admin → Orders now show full customer + product details on each card**: 👤 name, 📞 contact number, 🏠 address + pincode, and for **every saree**: name, **SKU**, **photo preview** (tap → product page), and a **📤 WhatsApp share** button that sends the saree + SKU + price in a ready message (with Tamil text).
+- **📢 Viral Share — Groups** on the product page: opens the **native share sheet first (never blocked — customer picks any WhatsApp group/chat)**, falls back to the universal `wa.me/?text=` link. The caption is viral + bilingual (Tamil + English): saree name, price, discount, free shipping ₹999+, COD/UPI, 7-day return, "South India #1 store" + reseller margin pitch.
+- **🔢 Short SKU = `SK + 4 random digits`** (e.g. **SK7257**) — no repeats ever (checks live catalog + Firestore cache + this browser's used-SKU history, even across reloads).
+- **Tamil-friendly caching** — language choice is cached (`sk_lang`) and persists; new buttons show Tamil labels automatically for Tamil users.
+- **📱 AI Assistant buttons made small for mobile** — quick chips, input and AI cards are compact on phones; AI float button is smaller and sits above WhatsApp.
+
 ## ✨ Photo Loading (cleaned) + 🔗 Classic Product URLs (new)
 
 - **0→100% progress counter REMOVED** (per request) — no percentage, no progress bar.
@@ -17,7 +161,7 @@
 
 ## 🚀 SKU + Instant Load + Google Photos (new)
 
-- **New SKU format** — every new product gets `SK + today's date (MMDD) + 4 random digits`, e.g. 05 Jan 2026 → **SK01053212** (unique, collision-checked). Old SKUs keep working.
+- **New SKU format** — every new product gets `SK + 4 random digits`, e.g. **SK7257** — short, friendly, **never repeats** (checks the live catalog, Firestore cache, and this browser's used-SKU history). Old SKUs keep working.
 - **Instant product pages (zero "Loading product…")** — product pages render immediately: `product.html?id=` is checked against the cached catalog first, then the static `catalog.json` (merged on every visit), then Firestore — no spinner hangs.
 - **Google Merchant product photos at `product/<sku>.jpg`** — the generator copies every saree photo to **`https://www.sksaree.shop/product/<sku>.jpg`** (feeds, og:image, sitemap all point there). Google needs real image files — now they exist.
 - **No data URIs anywhere** — photos uploaded as `data:image/jpeg;base64` are converted to real `.jpg` files by the generator; feeds & Google never see a data URI.
@@ -490,3 +634,14 @@ Open `admin.html` → PIN **`1600`** (change it in `app-admin.js` before going l
 - **📊 Dashboard** — totals, new/confirmed/shipped/delivered counts, and sales amount.
 
 © 2026 SK Sarees · 2/130, Thoothanoor, Edanganasalai, Salem 637502 · WhatsApp 78679 15699
+
+---
+
+## 🆕 Changelog — 2026-08-15
+
+- 🎂 **Birthday Surprise (profile)** — card now shows only **ONCE** (duplicate removed), and the birthday coupon is **BDAY1 = 1% off** (was 5%).
+- ⭐ **Loyalty Points** — earn **1 point per ₹75** spent (was ₹50); redemption stays 1 point = ₹1 off at checkout. Reseller margin is paid via **GPay only** (min ₹100) — the old "convert to loyalty points" wording removed everywhere.
+- 📱 **Instagram Share on every product page** — "📱 Instagram Share" button + IG icon in the share row. It tries the native share sheet with the saree photo first, then copies an Instagram-ready caption (name, price, offer, link, hashtags) and opens Instagram — customers can paste it straight into a Story/DM/Reel.
+- 📞 **Call to Order** — new "📞 Call to Order" button on every product page (tel: +91 78679 15699) as an extra buying method.
+- ⚡ **catalog.json stays in sync** — Admin → 📦 Catalog Feed now runs a **live sync check**: it fetches the `catalog.json` actually on your site and tells you ✅ up-to-date or ⚠️ OUT OF DATE (lists missing products). Whenever you save/delete/hide/import a product, a toast reminds you to download ⬇️ `catalog.json` and upload it, so www.sksaree.shop shows new sarees instantly.
+- 🚀 **Faster load** — every page now `<link rel="preload" as="fetch">`s `catalog.json` (with `crossorigin`) at page start, so product data is ready before first paint and the preload is actually reused by the app's fetch (no double download).

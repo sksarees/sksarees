@@ -512,7 +512,7 @@ function renderStyleTip(){
     el.innerHTML = '💡 <b>Daily Style Tip:</b> ' + dailyStyleTip() + ' &nbsp;<a class="btn btn-wa btn-sm" style="width:auto;min-width:0;padding:4px 10px;font-size:.68rem" href="' + waLink('🪡 SK Sarees Style Tip: ' + dailyStyleTip()) + '" target="_blank" rel="noopener">Share 💬</a>';
   }catch(e){}
 }
-/* 🎂 BIRTHDAY COUPON */
+/* 🎂 BIRTHDAY COUPON — 1% off on your birthday (per store policy) */
 function birthdayCouponFor(dob){
   try{
     if (!dob) return null;
@@ -521,11 +521,11 @@ function birthdayCouponFor(dob){
     const now = new Date();
     if (d.getMonth() === now.getMonth() && d.getDate() === now.getDate()){
       const list = getCoupons();
-      if (!list.some(c => c.code === 'BDAY5')){
-        list.push({ code:'BDAY5', type:'percent', value:5, min:0, active:true, label:'🎂 Happy Birthday — 5% off', maxUses:0, expiry:'' });
+      if (!list.some(c => c.code === 'BDAY1')){
+        list.push({ code:'BDAY1', type:'percent', value:1, min:0, active:true, label:'🎂 Happy Birthday — 1% off', maxUses:0, expiry:'' });
         saveCoupons(list);
       }
-      return 'BDAY5';
+      return 'BDAY1';
     }
     return null;
   }catch(e){ return null; }
@@ -622,7 +622,7 @@ function renderHome(){
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
-      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (paid via GPay). Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
       '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
@@ -1083,6 +1083,7 @@ function renderProduct(){
         '<div class="pd-btns" style="margin-top:10px">' +
           '<button type="button" class="btn btn-wa2 btn-xl" id="foOpen">⚡ Fast Order — WhatsApp</button>' +
           '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I have a question about: ' + p.name + ' (' + money(p.price) + ') — is it available?') + '" target="_blank" rel="noopener">💬 Chat on WhatsApp</a>' +
+          '<a class="btn btn-ghost btn-xl" href="tel:+917867915699">📞 Call to Order</a>' +
           '<button type="button" class="btn btn-outline btn-xl" id="tryOpen">🎨 Try-On — Preview Colours</button>' +
         '</div>' +
         '<div class="pd-share">' +
@@ -1090,6 +1091,7 @@ function renderProduct(){
           '<button type="button" class="btn btn-maroon btn-sm" data-viral="' + esc(p.id) + '">📢 ' + (lang === 'ta' ? 'வாட்ஸ்அப் குரூப்பில் பகிர்' : 'WhatsApp Share — Groups') + '</button>' +
           '<button type="button" class="btn btn-outline btn-sm" data-dl-photo="' + esc(p.img) + '">📥 Download Photo</button>' +
           '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Share Photo</button>' +
+          '<button type="button" class="btn btn-insta btn-sm" data-share-insta="' + esc(p.id) + '">📱 Instagram Share</button>' +
           '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
         '</div>' +
         '<div class="pd-social">' +
@@ -1099,6 +1101,7 @@ function renderProduct(){
           '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
           '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + productUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
           '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(productUrl(p)) + '&media=' + encodeURIComponent(p.img || '') + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
+          '<a class="soc soc-insta" href="#" data-share-insta="' + esc(p.id) + '" title="Share on Instagram" style="color:#fff">IG</a>' +
           '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
         '</div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
@@ -1106,7 +1109,7 @@ function renderProduct(){
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
         '<div class="earn-box" id="earnBox">' +
           '<b>💰 Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
-          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or as loyalty points)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
+          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
           '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
             '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</button>' +
             '<button type="button" class="btn btn-outline btn-sm" id="earnCopy" style="flex:1;min-width:130px">📋 Copy Share Link</button>' +
@@ -1271,6 +1274,39 @@ async function shareProductStatus(p){
   /* fallback: open the photo full-size → long-press → Share → WhatsApp Status */
   try{ window.open(imgUrl, '_blank'); }catch(e){}
   toast('📸 Photo opened — long-press it → Share → WhatsApp Status');
+}
+/* 📱 INSTAGRAM SHARE — another way customers discover & buy: share the saree
+   photo + price + link to Instagram Story/DM/Reel. Instagram has no web share
+   intent, so we try the native share sheet with the actual photo first, then
+   copy an Instagram-ready caption and open the Instagram app. */
+function instaCaption(p){
+  try{
+    const off = offPct(p);
+    const tag = (p.cat || '').replace(/[^a-z0-9]/gi, '');
+    return '✨ ' + p.name + '\n💰 ' + money(p.price) + (off ? ' (' + off + '% OFF)' : '') + '\n📍 ' + (CONFIG.storeName || 'SK Sarees') + ' — Salem, Tamil Nadu\n💵 COD & UPI available • 🚚 fast delivery\n👉 Order: ' + shareUrl(p) + '\n\n#SKSarees #Saree' + (tag ? ' #' + tag : '') + ' #TamilNadu #SareeShopping';
+  }catch(e){ return '✨ ' + p.name + ' — ' + money(p.price) + '\n👉 ' + shareUrl(p); }
+}
+async function shareInstaProduct(p){
+  if (!p) return;
+  const imgUrl = p.img || ((p.images || [])[0]);
+  const caption = instaCaption(p);
+  /* 1) native share sheet WITH the photo → user picks Instagram (mobile) */
+  try{
+    if (imgUrl && navigator.canShare){
+      const blob = await fetch(imgUrl).then(r => r.blob()).catch(() => null);
+      if (blob){
+        const file = new File([blob], 'saree.jpg', { type: (blob.type || 'image/jpeg') });
+        if (navigator.canShare({ files: [file] })){
+          await navigator.share({ files: [file], title: p.name, text: caption });
+          return;
+        }
+      }
+    }
+  }catch(e){ /* cancelled / unsupported — fall through */ }
+  /* 2) fallback: copy the caption (photo + price + link) and open Instagram */
+  copyText(caption);
+  try{ window.open('https://www.instagram.com/', '_blank', 'noopener'); }catch(e){}
+  toast('📸 Caption copied — open Instagram & paste it in your Story / DM!');
 }
 
 /* ============================ CART ============================ */
@@ -1919,10 +1955,10 @@ function orderAgain(o){
     if (added) setTimeout(() => { location.href = 'cart.html'; }, 900);
   }catch(e){}
 }
-/* ⭐ Loyalty points — earn 1 point per ₹50 spent (redeemable ₹1 = 1 point at checkout) */
+/* ⭐ Loyalty points — earn 1 point per ₹75 spent (redeemable ₹1 = 1 point at checkout) */
 function earnPoints(order){
   try{
-    const pts = Math.floor(((order.totals || {}).grand || 0) / 50);
+    const pts = Math.floor(((order.totals || {}).grand || 0) / 75);
     if (pts <= 0) return;
     const cur = +localStorage.getItem('sk_points') || 0;
     localStorage.setItem('sk_points', String(cur + pts));
@@ -2191,15 +2227,11 @@ function renderProfilePage(){
       '<p class="small muted" style="margin-top:8px">🔒 Stored only on your device.</p>' +
     '</div>' +
     '<div class="form-card"><h3>🎂 Birthday Surprise</h3>' +
-      '<p class="small muted" style="margin-bottom:8px">Enter your birthday — on your day you get <b>5% off</b> automatically (code BDAY5) + a surprise!</p>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="pfDob" type="date" value="' + esc((Store.profile||{}).dob || '') + '" style="flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;font-size:15px"><button type="button" class="btn btn-maroon btn-sm" id="pfDobSave" style="width:auto">💾 Save</button></div>' +
-      '<p class="small muted" id="dobNote" style="margin-top:6px"></p></div>' +
-    '<div class="form-card"><h3>🎂 Birthday Surprise</h3>' +
-      '<p class="small muted" style="margin-bottom:8px">Enter your birthday — on your day you get <b>5% off</b> automatically (code BDAY5) + a surprise!</p>' +
+      '<p class="small muted" style="margin-bottom:8px">Enter your birthday — on your day you get <b>1% off</b> automatically (code BDAY1) + a surprise!</p>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="pfDob" type="date" value="' + esc((Store.profile||{}).dob || '') + '" style="flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;font-size:15px"><button type="button" class="btn btn-maroon btn-sm" id="pfDobSave" style="width:auto">💾 Save</button></div>' +
       '<p class="small muted" id="dobNote" style="margin-top:6px"></p></div>' +
     '<div class="form-card"><h3>⭐ Loyalty Points</h3>' +
-      '<p class="small" style="margin-bottom:6px">Earn <b>1 point per ₹50</b> spent. Redeem at checkout — <b>1 point = ₹1 off</b>.</p>' +
+      '<p class="small" style="margin-bottom:6px">Earn <b>1 point per ₹75</b> spent. Redeem at checkout — <b>1 point = ₹1 off</b>.</p>' +
       '<div style="display:flex;align-items:center;gap:12px;background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:12px">' +
         '<span style="font-size:2rem">⭐</span><div><b style="font-size:1.4rem;color:var(--maroon)" id="ptsBal">' + pointsBalance() + '</b>' +
         '<span class="muted small" style="display:block">points = ₹' + pointsRedeemable() + ' discount ready</span></div></div></div>' +
@@ -2242,8 +2274,8 @@ function renderProfilePage(){
       const c = birthdayCouponFor(v);
       const note = document.getElementById('dobNote');
       if (note){
-        if (v && c) note.innerHTML = '🎂 <b>Happy Birthday!</b> Coupon <b>BDAY5</b> (5% off) is active — use at checkout!';
-        else if (v) note.innerHTML = '✅ Saved! Come back on your birthday for 5% off 🎂';
+        if (v && c) note.innerHTML = '🎂 <b>Happy Birthday!</b> Coupon <b>BDAY1</b> (1% off) is active — use at checkout!';
+        else if (v) note.innerHTML = '✅ Saved! Come back on your birthday for 1% off 🎂';
         else note.innerHTML = '';
       }
       toast('✅ Birthday saved');
@@ -2527,6 +2559,9 @@ document.addEventListener('click', function(e){
   /* 📸 share saree photo on WhatsApp status */
   const ss = e.target.closest('[data-share-status]');
   if (ss){ e.preventDefault(); shareProductStatus(byId(ss.dataset.shareStatus)); return; }
+  /* 📱 share saree on Instagram (story / DM / reel) */
+  const isa = e.target.closest('[data-share-insta]');
+  if (isa){ e.preventDefault(); shareInstaProduct(byId(isa.dataset.shareInsta)); return; }
   /* 📍 PIN code delivery check */
   const pcb = e.target.closest('#pinCheckBtn');
   if (pcb){
