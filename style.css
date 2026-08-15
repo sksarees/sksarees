@@ -1617,3 +1617,42 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
   .deal-day .dd-left .price-row{justify-content:center}
   .deal-day .dd-left .btn{margin:10px auto 0;width:100%;max-width:260px}
 }
+
+/* ============================================================================
+   🎉 ENGAGEMENT — Lucky Spin · Style Quiz · Live Buying Ticker
+   ========================================================================== */
+.fun-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.buy-ticker{margin:10px auto 0;max-width:560px;background:rgba(255,255,255,.9);border:1px dashed var(--gold);border-radius:999px;padding:7px 14px;font-size:.72rem;color:#6b4c05;font-weight:700;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.spin-wrap{display:flex;flex-direction:column;align-items:center}
+.spin-wheel{position:relative;width:240px;height:240px;border-radius:50%;border:6px solid var(--maroon);overflow:hidden;transition:transform 4s cubic-bezier(.2,.8,.2,1);background:conic-gradient(#ffe9a8 0 45deg,#f5f0e6 45deg 90deg,#ffe9a8 90deg 135deg,#f5f0e6 135deg 180deg,#ffe9a8 180deg 225deg,#f5f0e6 225deg 270deg,#ffe9a8 270deg 315deg,#f5f0e6 315deg 360deg)}
+.spin-seg{position:absolute;left:50%;top:50%;width:0;height:0;transform-origin:0 0}
+.spin-seg span{position:absolute;left:-44px;top:-108px;width:88px;text-align:center;font-size:.72rem;font-weight:800;color:var(--maroon);display:block}
+.spin-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:var(--maroon);color:#ffe9a8;display:flex;align-items:center;justify-content:center;font-weight:900;z-index:3}
+.quiz-q{font-size:.95rem;margin-bottom:10px;color:#4a3f38}
+.quiz-opts{display:grid;gap:8px}
+@media(max-width:480px){.spin-wheel{width:210px;height:210px}.spin-seg span{top:-96px}}
+
+/* ============================================================================
+   🎉 ENGAGEMENT 2 — Match Game · Gallery · Leaderboard · Trust · Countdowns
+   ========================================================================== */
+.game-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:300px;margin:0 auto}
+.game-tile{height:64px;border-radius:12px;border:2px solid var(--line);background:linear-gradient(135deg,#f7f0e4,#fdf8ee);font-size:1.6rem;font-weight:800;color:var(--maroon);cursor:pointer;transition:.15s}
+.game-tile.on{background:#fff;border-color:var(--maroon)}
+.game-tile.done{background:var(--gold-soft);border-color:var(--gold);cursor:default}
+.gal-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.gal-card{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.gal-card img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.gal-card small{display:block;padding:6px 8px;font-size:.68rem;font-weight:700;color:var(--maroon)}
+.lb-row{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.lb-card{display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.lb-rank{font-size:1.4rem}
+.lb-card b{font-size:.8rem}
+.lb-card small{color:var(--muted);font-size:.66rem;font-weight:700}
+.trust-strip{display:flex;gap:6px 10px;flex-wrap:wrap;justify-content:center;margin-top:8px;font-size:.68rem;font-weight:700;color:#6b4c05}
+.trust-strip span{background:rgba(255,255,255,.85);border:1px solid var(--gold);border-radius:999px;padding:4px 10px}
+.style-tip{margin:10px auto 0;max-width:600px;background:#e9f7ef;border:1px dashed #7cc79a;border-radius:12px;padding:9px 14px;font-size:.78rem;color:#1f5e3a;text-align:center;font-weight:600}
+.fest-count{margin-top:10px;background:linear-gradient(135deg,#8f1d3a,#5c0f26);color:#fff;border-radius:12px;padding:10px 14px;text-align:center;font-size:.85rem}
+.fest-count b{color:#ffe9a8}
+.fest-count .fc-time{font-weight:900;font-size:1rem;letter-spacing:1px;margin-left:8px}
+.flash-prod{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe9c9);border:1.5px dashed #f26a1b;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:.78rem;font-weight:800;color:#a33d00}
+.flash-prod .fp-time{background:var(--maroon);color:#fff;border-radius:999px;padding:3px 10px;font-weight:900;letter-spacing:.5px;font-variant-numeric:tabular-nums}

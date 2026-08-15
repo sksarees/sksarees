@@ -1808,10 +1808,28 @@ const Stats = {
       }
     }catch(e){}
     this.refreshOrders();
-    /* 🔒 READ-OPTIMIZED: customer pages show LOCAL counters only — the old code
-       read the FULL orders collection + attached a live orders listener on every
-       page (huge reads: 143K/day). Admin gets the real totals via its own live
-       listeners in app-admin.js; customers never scan Firestore here. */
+    /* 📊 REAL COUNTERS (cheap): read the shared counters doc ONCE PER HOUR per
+       device (1 document read — negligible vs the old full-collection scans).
+       Home page shows the true visitor & order totals. */
+    try{
+      if (FS.enabled()){
+        const last = +(localStorage.getItem('sk_stats_ttl') || 0);
+        if (Date.now() - last > 3600 * 1000){
+          localStorage.setItem('sk_stats_ttl', String(Date.now()));
+          FS._getDb().then(db => {
+            if (!db) return;
+            db.collection('counters').doc('site').get().then(snap => {
+              if (snap.exists){
+                const d = snap.data() || {};
+                if (d.visitors) this.visitors = Math.max(this.visitors, +d.visitors || 0);
+                if (d.orders) this.orders = Math.max(this.orders, +d.orders || 0);
+                renderStatsText();
+              }
+            }).catch(() => {});
+          }).catch(() => {});
+        }
+      }
+    }catch(e){}
   },
   refreshOrders(){
     try{ this.orders = Store.orders.length; }catch(e){}
@@ -1819,6 +1837,16 @@ const Stats = {
   },
   text(){ return '👥 ' + (this.visitors || 0).toLocaleString('en-IN') + '+ visitors · 📦 ' + (this.orders || 0).toLocaleString('en-IN') + '+ orders'; }
 };
+/* 📦 bump the shared order counter in Firestore (1 increment write per order) */
+function bumpOrdersCounter(){
+  try{
+    if (!FS.enabled()) return;
+    FS._getDb().then(db => {
+      if (!db) return;
+      db.collection('counters').doc('site').set({ orders: window.firebase.firestore.FieldValue.increment(1), updatedAt: Date.now() }, { merge: true }).catch(() => {});
+    }).catch(() => {});
+  }catch(e){}
+}
 function renderStatsText(){
   try{
     const v = document.getElementById('statV'); if (v) v.textContent = (Stats.visitors || 0).toLocaleString('en-IN');

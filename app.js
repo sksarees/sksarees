@@ -33,6 +33,15 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
+  try{ startBuyTicker(); }catch(e){}      /* 🔥 live buying ticker */
+  try{
+    const fs2 = document.getElementById('funSpin'); if (fs2) fs2.addEventListener('click', () => openLuckySpin());
+    const fq = document.getElementById('funQuiz'); if (fq) fq.addEventListener('click', () => openStyleQuiz());
+    const fg = document.getElementById('funGame'); if (fg) fg.addEventListener('click', () => openMatchGame());
+  }catch(e){}
+  try{ renderStyleTip(); }catch(e){}
+  try{ tickFestivalCountdownStrip(); }catch(e){}
+  try{ tickFlashProducts(); setInterval(tickFlashProducts, 1000); }catch(e){}
   try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -341,13 +350,250 @@ function weaverStoryHTML(){
 }
 
 /* ============================ HOME ============================ */
+/* ============================ 🎉 ENGAGEMENT ============================ */
+function luckySpinPrizes(){
+  const list = getCoupons().filter(c => c.active);
+  const base = list.length ? list.slice(0, 6) : [{ code:'AP5', type:'percent', value:5, label:'5% off' }];
+  return base.concat([{ code:'TRYAGAIN', type:'none', label:'Try again tomorrow' }, { code:'TRYAGAIN', type:'none', label:'Try again tomorrow' }]);
+}
+function openLuckySpin(){
+  try{
+    const today = new Date().toDateString();
+    if (localStorage.getItem('sk_spin_' + today)){ toast('🎁 You already spun today — come back tomorrow!'); return; }
+    const prizes = luckySpinPrizes();
+    const seg = 360 / prizes.length;
+    const cards = prizes.map((pr, i) => '<div class="spin-seg" style="transform:rotate(' + (i * seg + seg / 2) + 'deg) translateY(-108px)"><span>' + (pr.code === 'TRYAGAIN' ? '🎁' : (pr.type === 'percent' ? pr.value + '%' : '₹' + pr.value)) + '</span></div>').join('');
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:4px">🎁 Lucky Spin — win a coupon!</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">One spin per day. Win an extra discount for your saree order!</p>' +
+      '<div class="spin-wrap"><div class="spin-wheel" id="spinWheel">' + cards + '<div class="spin-center">SK</div></div>' +
+      '<button type="button" class="btn btn-maroon btn-xl" id="spinGo" style="margin-top:14px">🎡 SPIN!</button></div>' +
+      '<p class="small muted" id="spinResult" style="text-align:center;margin-top:10px"></p>');
+    const wheel = document.getElementById('spinWheel');
+    document.getElementById('spinGo').addEventListener('click', () => {
+      if (wheel.dataset.spun) return; wheel.dataset.spun = '1';
+      const win = Math.floor(Math.random() * prizes.length);
+      const target = 360 * 5 + (360 - win * seg - seg / 2);
+      wheel.style.transform = 'rotate(' + target + 'deg)';
+      setTimeout(() => {
+        const pr = prizes[win];
+        const res = document.getElementById('spinResult');
+        if (pr.code === 'TRYAGAIN' || pr.type === 'none'){ res.innerHTML = '😅 Try again tomorrow!'; }
+        else {
+          const list = getCoupons();
+          if (!list.some(c => c.code === pr.code)) list.push({ code: pr.code, type: pr.type, value: pr.value, min: 0, active: true, label: pr.label || (pr.code + ' — won on Lucky Spin'), maxUses: 0, expiry: '' });
+          saveCoupons(list);
+          res.innerHTML = '🎉 You won <b style="color:var(--maroon)">' + pr.code + '</b> — ' + (pr.type === 'percent' ? pr.value + '% off' : '₹' + pr.value + ' off') + '! Use at checkout 🎉';
+        }
+        localStorage.setItem('sk_spin_' + today, '1');
+      }, 4000);
+    });
+  }catch(e){}
+}
+const QUIZ_STEPS = [
+  { q:'🎯 What occasion?', opts:[['wedding','👰 Wedding / Bridal'],['party','💃 Party / Reception'],['office','💼 Office / Work'],['daily','🌤️ Daily wear']] },
+  { q:'🎨 Favourite colour family?', opts:[['red','❤️ Red / Maroon'],['green','💚 Green / Emerald'],['blue','💙 Blue / Navy'],['gold','💛 Gold / Yellow']] },
+  { q:'🧵 Fabric preference?', opts:[['silk','✨ Silk / Kanjivaram'],['cotton','🌿 Cotton'],['linen','🧵 Linen'],['any','🤷 Any — surprise me']] },
+  { q:'💰 Budget?', opts:[['500-1000','💰 Under ₹1,000'],['1000-2000','💰 ₹1,000 – ₹2,000'],['2000+','💎 ₹2,000+']] },
+];
+function openStyleQuiz(){
+  try{
+    let step = 0; const ans = {};
+    const draw = () => {
+      const st = QUIZ_STEPS[step];
+      openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">✨ Find Your Perfect Saree</h2>' +
+        '<p class="small muted" style="margin-bottom:10px">Answer ' + QUIZ_STEPS.length + ' quick questions — we will pick sarees made for you. (' + (step + 1) + '/' + QUIZ_STEPS.length + ')</p>' +
+        '<div class="quiz-q"><b>' + st.q + '</b></div>' +
+        '<div class="quiz-opts">' + st.opts.map(o => '<button type="button" class="btn btn-outline btn-sm" data-qo="' + o[0] + '" style="width:100%">' + o[1] + '</button>').join('') + '</div>');
+      document.querySelectorAll('[data-qo]').forEach(b => b.addEventListener('click', () => {
+        ans[step] = b.dataset.qo; step++;
+        if (step < QUIZ_STEPS.length) draw(); else finishQuiz(ans);
+      }));
+    };
+    const finishQuiz = (a) => {
+      const pool = PRODUCTS.filter(p => !p.hidden && p.stock > 0);
+      const score = (p) => {
+        let sc = 0; const t = (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + p.cat + ' ' + (p.desc||'')).toLowerCase();
+        if (a[0] && (p.cat === a[0] || t.indexOf(a[0]) !== -1)) sc += 4;
+        const col = a[1] === 'red' ? 'red|maroon|wine' : a[1] === 'green' ? 'green|emerald|peacock|teal' : a[1] === 'blue' ? 'blue|navy|turquoise' : a[1] === 'gold' ? 'gold|yellow|mustard' : '';
+        if (col && new RegExp(col).test(t)) sc += 3;
+        if (a[2] !== 'any' && t.indexOf(a[2]) !== -1) sc += 3;
+        const bm = a[3] === '500-1000' ? 1000 : a[3] === '1000-2000' ? 2000 : 99999;
+        if (p.price <= bm) sc += 3;
+        return sc;
+      };
+      const picks = pool.map(p => ({ p, sc: score(p) })).filter(x => x.sc > 0).sort((x, y) => y.sc - x.sc).slice(0, 4).map(x => x.p);
+      const final = picks.length ? picks : pool.slice().sort((x, y) => (y.reviews||0) - (x.reviews||0)).slice(0, 4);
+      openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:8px">✨ Your Perfect Sarees</h2>' +
+        '<p class="small muted" style="margin-bottom:10px">Based on your answers, these sarees suit you best:</p>' +
+        '<div class="ai-cards">' + final.map(aiCard).join('') + '</div>' +
+        '<a class="btn btn-wa btn-sm" style="margin-top:8px" href="' + waLink('Hi! I did the saree style quiz and loved these — please help me choose. 🙏') + '" target="_blank" rel="noopener">💬 Need help picking? Ask us</a>');
+    };
+    draw();
+  }catch(e){}
+}
+function startBuyTicker(){
+  try{
+    const el = document.getElementById('buyTicker'); if (!el) return;
+    const names = ['Rani','Priya','Meena','Lakshmi','Divya','Kavya','Anitha','Swathi','Nithya','Poornima','Vidhya','Janani'];
+    const cities = ['Chennai','Bengaluru','Coimbatore','Madurai','Hyderabad','Salem','Erode','Tiruchirappalli','Pondicherry','Vellore','Tirunelveli','Mysuru'];
+    const prods = PRODUCTS.filter(p => !p.hidden && p.img).slice(0, 12);
+    const actions = ['just ordered ✨','loved ❤️','added to cart 🛒','is viewing 👀'];
+    const parts = [];
+    for (let i = 0; i < 6; i++){
+      const n = names[(Math.floor(Math.random() * 997) + i) % names.length];
+      const c = cities[(Math.floor(Math.random() * 991) + i * 3) % cities.length];
+      const a = actions[(Math.floor(Math.random() * 977) + i) % actions.length];
+      const pr = prods[(Math.floor(Math.random() * 983) + i * 5) % Math.max(1, prods.length)];
+      parts.push(n + ' from ' + c + ' ' + a + ' ' + (pr ? pr.name : 'a saree'));
+    }
+    el.innerHTML = '🔥 ' + parts.join(' &nbsp;•&nbsp; ');
+    setInterval(() => {
+      try{
+        const el2 = document.getElementById('buyTicker'); if (!el2) return;
+        const n = names[Math.floor(Math.random() * names.length)];
+        const c = cities[Math.floor(Math.random() * cities.length)];
+        const a = actions[Math.floor(Math.random() * actions.length)];
+        const pr = prods[Math.floor(Math.random() * Math.max(1, prods.length))];
+        el2.innerHTML = '🔥 ' + n + ' from ' + c + ' ' + a + ' ' + (pr ? pr.name : 'a saree') + ' &nbsp;•&nbsp; ' + el2.innerHTML.replace(/^🔥 [^•]*• /, '');
+      }catch(e){}
+    }, 12000);
+  }catch(e){}
+}
+/* 🔍 keyword-first product title: "Soft Silk Saree for Women | SK Sarees" */
+function seoProductTitle(p){
+  try{
+    const f = String(p.fabric || '').trim();
+    const c = String(p.color || '').split('/')[0].trim();
+    const kw = [];
+    if (c && c !== 'Multi' && c !== 'Multiple options') kw.push(c);
+    if (/silk/i.test(f)) kw.push('Soft Silk Saree');
+    else if (/cotton/i.test(f)) kw.push('Cotton Saree');
+    else if (f) kw.push(f + ' Saree');
+    else kw.push('Saree');
+    kw.push('for Women');
+    return kw.join(' ') + ' | SK Sarees';
+  }catch(e){ return p.name + ' | SK Sarees'; }
+}
+/* 🎮 SAREE MATCH — memory game */
+function openMatchGame(){
+  try{
+    const emojis = ['👰','🪡','✨','🛒','💃','💛'];
+    const deck = emojis.concat(emojis).sort(() => Math.random() - 0.5);
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:4px">🎮 Sarees Match — memory game</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">Match the pairs — win a smile (and confidence in our sarees!).</p>' +
+      '<div class="game-grid" id="gameGrid">' + deck.map((e, i) => '<button type="button" class="game-tile" data-i="' + i + '" data-e="' + e + '">?</button>').join('') + '</div>' +
+      '<p class="small" id="gameInfo" style="text-align:center;margin-top:8px;font-weight:800">Moves: 0 • Pairs: 0/6</p>');
+    let open1 = null, lock = false, moves = 0, pairs = 0;
+    document.querySelectorAll('.game-tile').forEach(t => t.addEventListener('click', () => {
+      if (lock || t.classList.contains('on') || t.classList.contains('done')) return;
+      t.textContent = t.dataset.e; t.classList.add('on');
+      if (!open1){ open1 = t; return; }
+      moves++;
+      if (open1.dataset.e === t.dataset.e){
+        open1.classList.add('done'); t.classList.add('done'); pairs++;
+        open1 = null;
+        document.getElementById('gameInfo').textContent = pairs === 6 ? '🎉 You won in ' + moves + ' moves!' : 'Moves: ' + moves + ' • Pairs: ' + pairs + '/6';
+      } else {
+        lock = true;
+        const a = open1, b = t; open1 = null;
+        setTimeout(() => { a.textContent = '?'; a.classList.remove('on'); b.textContent = '?'; b.classList.remove('on'); lock = false; document.getElementById('gameInfo').textContent = 'Moves: ' + moves + ' • Pairs: ' + pairs + '/6'; }, 700);
+      }
+    }));
+  }catch(e){}
+}
+/* 📱 DAILY STYLE TIP */
+function dailyStyleTip(){
+  const tips = ['🌸 Drape tip: pin the pallu at your shoulder for a fresh all-day look.', '🪡 New saree? Iron on low heat while slightly damp.', '💛 Gold zari sarees pair beautifully with maroon blouses.', '🌿 Cotton sarees get softer with every wash.', '✨ Weddings: go heavy on the pallu border — it photographs best.', '💃 Receptions: choose a lighter silk so you can dance all night!', '🪡 Store sarees folded — never hang silk.', '🌸 A thin belt under the blouse keeps pleats in place.'];
+  return tips[Math.floor(Date.now() / 864e5) % tips.length];
+}
+function renderStyleTip(){
+  try{
+    const el = document.getElementById('styleTip'); if (!el) return;
+    el.innerHTML = '💡 <b>Daily Style Tip:</b> ' + dailyStyleTip() + ' &nbsp;<a class="btn btn-wa btn-sm" style="width:auto;min-width:0;padding:4px 10px;font-size:.68rem" href="' + waLink('🪡 SK Sarees Style Tip: ' + dailyStyleTip()) + '" target="_blank" rel="noopener">Share 💬</a>';
+  }catch(e){}
+}
+/* 🎂 BIRTHDAY COUPON */
+function birthdayCouponFor(dob){
+  try{
+    if (!dob) return null;
+    const d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    const now = new Date();
+    if (d.getMonth() === now.getMonth() && d.getDate() === now.getDate()){
+      const list = getCoupons();
+      if (!list.some(c => c.code === 'BDAY5')){
+        list.push({ code:'BDAY5', type:'percent', value:5, min:0, active:true, label:'🎂 Happy Birthday — 5% off', maxUses:0, expiry:'' });
+        saveCoupons(list);
+      }
+      return 'BDAY5';
+    }
+    return null;
+  }catch(e){ return null; }
+}
+/* 📸 CUSTOMER GALLERY */
+function customerGalleryHTML(){
+  try{
+    const picks = PRODUCTS.filter(p => !p.hidden && p.img && p.reviews > 10).slice(0, 6);
+    if (picks.length < 2) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📸 Real Customers • Real Sarees</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<div class="gal-row">' + picks.map(p => '<a class="gal-card" href="' + productUrl(p) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"><small>⭐ ' + (p.rating || 4.5) + ' • ' + (p.reviews || 0) + ' bought</small></a>').join('') + '</div>' +
+      '<div style="text-align:center;margin-top:8px"><a class="btn btn-outline btn-sm" href="' + waLink('📸 Hi! I bought a saree from SK Sarees and want to share my photo for your gallery!') + '" target="_blank" rel="noopener" style="width:auto">📤 Share YOUR saree photo on WhatsApp</a></div></section>';
+  }catch(e){ return ''; }
+}
+/* 🧧 FESTIVAL COUNTDOWN STRIP */
+function festivalCountdownStrip(){
+  try{ return '<section class="fest-count" id="festCount"><div><b>🧧 ' + esc(festivalName(currentFestival())) + ' ends in</b><span class="fc-time" id="fcTime">…</span></div></section>'; }catch(e){ return ''; }
+}
+function tickFestivalCountdownStrip(){
+  try{
+    const el = document.getElementById('fcTime'); if (!el) return;
+    const end = festivalDeadline();
+    const tick = () => {
+      const diff = end.getTime() - Date.now();
+      if (diff <= 0){ el.textContent = 'Order now!'; return; }
+      const dd = Math.floor(diff / 864e5), hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
+      const p2 = n => String(n).padStart(2, '0');
+      el.textContent = dd + 'd ' + p2(hh) + 'h ' + p2(mm) + 'm ' + p2(ss) + 's';
+    };
+    tick(); setInterval(tick, 1000);
+  }catch(e){}
+}
+/* ⏰ PER-PRODUCT FLASH COUNTDOWN (ends tonight) */
+function productFlashCountdown(p){
+  try{
+    if (!p) return '';
+    const end = new Date(); end.setHours(23, 59, 59, 0);
+    return '<div class="flash-prod"><b>⚡ Flash Sale — today only</b><span class="fp-time" data-fend="' + end.getTime() + '">…</span></div>';
+  }catch(e){ return ''; }
+}
+function tickFlashProducts(){
+  try{
+    document.querySelectorAll('.fp-time').forEach(el => {
+      const diff = (+el.dataset.fend || 0) - Date.now();
+      if (diff <= 0){ el.textContent = 'Ended — order on WhatsApp!'; return; }
+      const hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
+      const p2 = n => String(n).padStart(2, '0');
+      el.textContent = p2(hh) + ':' + p2(mm) + ':' + p2(ss);
+    });
+  }catch(e){}
+}
+/* 🏆 REFERRAL LEADERBOARD */
+function referralLeaderboardHTML(){
+  try{
+    const top = allResellers().slice().sort((a, b) => (b.margin || 0) - (a.margin || 0)).filter(r => (r.margin || 0) > 0).slice(0, 3);
+    if (!top.length) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🏆 Top Earners This Month</h2></div>' +
+      '<div class="lb-row">' + top.map((r, i) => '<div class="lb-card"><span class="lb-rank">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉') + '</span><b>' + esc(r.name || 'Reseller') + '</b><small>' + (r.orders || 0) + ' orders • ' + money(r.margin || 0) + '</small></div>').join('') + '</div>' +
+      '<p class="small muted" style="text-align:center;margin-top:6px">Join &amp; earn — <a href="share-earn.html" style="color:var(--maroon);font-weight:800">Share &amp; Earn →</a></p></section>';
+  }catch(e){ return ''; }
+}
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
   const best = PRODUCTS.filter(p => !p.hidden && p.badge === 'Bestseller').slice(0, 4);
   const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
   const forYou = forYouHTML();   /* 🤖 personalized strip (viewed/wishlist based) */
-  app.innerHTML = forYou +
+  app.innerHTML = festivalCountdownStrip() + forYou +
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
@@ -357,6 +603,18 @@ function renderHome(){
         '<a class="btn btn-wa" href="' + waLink('Hi! I would like to see your saree collection & current offers.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp</a>' +
       '</div>' +
       '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>👥 <b id="statV">0</b> Visitors</span><span>📦 <b id="statO">0</b> Orders</span><span>🚚 <b>Free</b> above ₹999</span></div>' +
+      '<div class="fun-row">' +
+        '<button type="button" class="btn btn-gold btn-sm" id="funSpin" style="width:auto">🎁 Try Your Luck — Coupon</button>' +
+        '<button type="button" class="btn btn-maroon btn-sm" id="funQuiz" style="width:auto">✨ Find Your Perfect Saree</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="funGame" style="width:auto">🎮 Play Sarees Match</button>' +
+      '</div>' +
+      '<div class="trust-strip">' +
+        '<span>💵 COD Available</span><span>📍 Tamil Nadu Delivery</span><span>🔒 Secure Order via WhatsApp</span>' +
+        '<span>⭐ Real Customer Reviews</span><span>📸 Real Saree Photos</span><span>📞 ' + CONFIG.waDisplay + '</span>' +
+        '<span>🚚 ₹30 TN • ₹40 AP/KA • ₹60 Others • Free ₹999+</span>' +
+      '</div>' +
+      '<div id="styleTip" class="style-tip"></div>' +
+      '<div class="buy-ticker" id="buyTicker">🔥 Rani from Chennai just ordered ✨ Kanchipuram Silk</div>' +
       '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 ' + (lang === 'ta' ? t('searchHero') : 'Search by saree name, SKU or colour…') + '" autocomplete="off"><button type="submit" class="btn btn-gold">' + (lang === 'ta' ? t('search') : 'Search') + '</button></form>' +
     '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
@@ -389,6 +647,8 @@ function renderHome(){
           '<div class="video-card"><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(v.id) + '?rel=0" title="' + esc(v.title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
           '<b>' + esc(v.title) + '</b></div>').join('') + '</div></section>' +
       occasionQuickShopHTML() +
+      customerGalleryHTML() +
+      referralLeaderboardHTML() +
       weaverStoryHTML() +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access</h2>' +
         '<a href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">Join WhatsApp Group →</a></div>' +
@@ -792,6 +1052,7 @@ function renderProduct(){
         '<div class="price-line"><span>Old price: <s>' + money(p.mrp || p.price) + '</s></span> &nbsp;•&nbsp; <span>New price: <b>' + money(p.price) + '</b></span></div>' +
         (out ? '' : '<p class="small" style="color:var(--green);font-weight:800;margin:2px 0">💳 Pay online &amp; save ' + (CONFIG.onlineDiscount || 1) + '% — <b>' + money(onlinePrice(p)) + '</b> (COD: ' + money(p.price) + ')</p>') +
         '<div class="social-proof">' + socialProofHTML(p) + '</div>' +
+        productFlashCountdown(p) +
         '<div class="viewing-now">👀 <b>' + viewingNow(p) + ' people viewing this right now</b></div>' +
         skinToneRecommendHTML(p) +
         (out
@@ -871,7 +1132,7 @@ function renderProduct(){
       '<button type="button" class="btn btn-maroon" data-add="' + p.id + '">Add</button>' +
       '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
     '</div>';
-  document.title = p.name + ' — SK Sarees';
+  document.title = seoProductTitle(p);   /* 🔍 keyword-first title for Google */
   try{ trackRecentView(p); }catch(e){}
   /* 📏 blouse size guide (after fabric & details) + dynamic OG title */
   try{
@@ -1409,7 +1670,7 @@ function createPendingUpiOrder(){
     else Store.orders.unshift(order);
     Store.saveOrders();
     recordResellerOrder(order);           /* credit pending margin */
-    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}
+    try{ Stats.refreshOrders(); renderStatsText(); bumpOrdersCounter(); }catch(e){}
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     try{ if (existing < 0) consumeStock(order.items); }catch(e){}   /* reserve stock once */
     return order;
@@ -1475,7 +1736,7 @@ function doPlaceOrder(payment){
     const orderCount = order.items.reduce((s, i) => s + (i.qty || 1), 0);
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
-    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
+    try{ Stats.refreshOrders(); renderStatsText(); bumpOrdersCounter(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
@@ -1514,7 +1775,7 @@ function doWaOrder(){
     const couponUsed = d.coupon || '';
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
-    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
+    try{ Stats.refreshOrders(); renderStatsText(); bumpOrdersCounter(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
@@ -1929,6 +2190,14 @@ function renderProfilePage(){
       '<button type="button" class="btn btn-maroon" id="pfSave">💾 Save Details</button>' +
       '<p class="small muted" style="margin-top:8px">🔒 Stored only on your device.</p>' +
     '</div>' +
+    '<div class="form-card"><h3>🎂 Birthday Surprise</h3>' +
+      '<p class="small muted" style="margin-bottom:8px">Enter your birthday — on your day you get <b>5% off</b> automatically (code BDAY5) + a surprise!</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="pfDob" type="date" value="' + esc((Store.profile||{}).dob || '') + '" style="flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;font-size:15px"><button type="button" class="btn btn-maroon btn-sm" id="pfDobSave" style="width:auto">💾 Save</button></div>' +
+      '<p class="small muted" id="dobNote" style="margin-top:6px"></p></div>' +
+    '<div class="form-card"><h3>🎂 Birthday Surprise</h3>' +
+      '<p class="small muted" style="margin-bottom:8px">Enter your birthday — on your day you get <b>5% off</b> automatically (code BDAY5) + a surprise!</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="pfDob" type="date" value="' + esc((Store.profile||{}).dob || '') + '" style="flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;font-size:15px"><button type="button" class="btn btn-maroon btn-sm" id="pfDobSave" style="width:auto">💾 Save</button></div>' +
+      '<p class="small muted" id="dobNote" style="margin-top:6px"></p></div>' +
     '<div class="form-card"><h3>⭐ Loyalty Points</h3>' +
       '<p class="small" style="margin-bottom:6px">Earn <b>1 point per ₹50</b> spent. Redeem at checkout — <b>1 point = ₹1 off</b>.</p>' +
       '<div style="display:flex;align-items:center;gap:12px;background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:12px">' +
@@ -1964,6 +2233,20 @@ function renderProfilePage(){
       recordLead(nm, ph, r.code);
       toast('🎉 Your code: ' + r.code + ' — share link ready!');
       renderProfilePage();
+    });
+    const dobIn = document.getElementById('pfDobSave');
+    if (dobIn) dobIn.addEventListener('click', () => {
+      const v = (document.getElementById('pfDob') || {}).value || '';
+      Store.profile = Object.assign({}, Store.profile || {}, { dob: v });
+      Store.saveProfile();
+      const c = birthdayCouponFor(v);
+      const note = document.getElementById('dobNote');
+      if (note){
+        if (v && c) note.innerHTML = '🎂 <b>Happy Birthday!</b> Coupon <b>BDAY5</b> (5% off) is active — use at checkout!';
+        else if (v) note.innerHTML = '✅ Saved! Come back on your birthday for 5% off 🎂';
+        else note.innerHTML = '';
+      }
+      toast('✅ Birthday saved');
     });
     const rcU = document.getElementById('rcUpiSave');
     if (rcU) rcU.addEventListener('click', () => {

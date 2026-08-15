@@ -195,6 +195,7 @@ function renderAdmin(){
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
       '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
       '<button type="button" class="admin-tab" id="tabStatus">📱 Status Posts</button>' +
+      '<button type="button" class="admin-tab" id="tabGrowth">📈 Growth</button>' +
       '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
       '<button type="button" class="admin-tab" id="tabLeads">📋 Leads</button>' +
       '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Feed</button>' +
@@ -221,6 +222,7 @@ function renderAdmin(){
   document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
   document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
   document.getElementById('tabStatus').addEventListener('click', () => switchTab('status'));
+  document.getElementById('tabGrowth').addEventListener('click', () => switchTab('growth'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
   const ab = document.getElementById('btnAlerts');
   if (ab) ab.addEventListener('click', () => enableAdminAlerts());
@@ -274,7 +276,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabStatus','tabPush','tabResellers','tabLeads','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabStatus','tabGrowth','tabPush','tabResellers','tabLeads','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -290,6 +292,7 @@ function switchTab(t){
     else if (t === 'push') renderPush();
     else if (t === 'metaads') renderMetaAds();
     else if (t === 'status') renderStatusPosts();
+    else if (t === 'growth') renderGrowth();
     else if (t === 'dashboard') renderDashboard();
   }catch(e){ body.innerHTML = '<div class="empty"><div class="e-ic">⚠️</div><b>Could not load</b></div>'; }
 }
@@ -669,9 +672,10 @@ function renderProducts(){
     '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
-      '<p class="small muted" style="margin:6px 0">One product per line — <b>Name, Price, MRP, Image URL, Category, Badge</b> (SKU auto-generated <b>SK20001, SK20002…</b>). Or just paste an <b>image URL</b> alone — name &amp; price are auto-filled. <b>🎨 Colours are auto-detected from each photo.</b></p>' +
+      '<p class="small muted" style="margin:6px 0">One product per line — <b>Name, Price, MRP, Image URL, Category, Badge</b> (SKU auto-generated). <b>To EDIT existing products</b>: download the CSV, edit, re-upload — rows matching an existing <b>SKU/id are updated</b> (name, price, stock, badge…), new ids are added. <b>🎨 Colours are auto-detected from each photo.</b></p>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
-        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload CSV File</button>' +
+        '<button type="button" class="btn btn-maroon btn-sm" id="btnExportCsv" style="width:auto">⬇️ Download Products CSV (edit)</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload CSV File (add/update)</button>' +
         '<button type="button" class="btn btn-outline btn-sm" id="btnCatalog" style="width:auto">📦 Upload catalog.json</button>' +
         '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for GitHub)</button>' +
         '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ CSV template</a>' +
@@ -701,6 +705,8 @@ function renderProducts(){
   document.getElementById('btnBulk').addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
   document.getElementById('btnImport').addEventListener('click', importBulk);
   /* ⬇️ export catalog.json for GitHub — refresh + download */
+  const expCsv = document.getElementById('btnExportCsv');
+  if (expCsv) expCsv.addEventListener('click', () => { try{ exportProductsCsv(); }catch(e){ toast('⚠️ Export failed'); } });
   const expBtn = document.getElementById('btnExportCatalog');
   if (expBtn) expBtn.addEventListener('click', () => {
     refreshFeedCache();
@@ -1007,8 +1013,30 @@ function finishBulkImport(imported, errors, added, res){
   next(0);
 }
 /* 📄 CSV/TSV file upload — works with Excel-exported files */
+/* ⬇️ EXPORT products → CSV (edit in Excel/Sheets, re-upload to update) */
+function exportProductsCsv(){
+  try{
+    const cols = ['id','sku','name','price','mrp','stock','cat','badge','fabric','color','colors','colourStock','img','desc'];
+    const esc = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+    const rows = [cols.join(',')];
+    PRODUCTS.filter(p => !p.hidden).forEach(p => {
+      rows.push([p.id, p.sku || p.id, p.name, p.price, p.mrp || '', p.stock != null ? p.stock : '', p.cat || 'daily', p.badge || '',
+        p.fabric || '', p.color || '', (p.colors || []).join('|'), p.colourStock ? Object.keys(p.colourStock).map(k=>k+':'+p.colourStock[k]).join('|') : '', p.img || '', p.desc || ''].map(esc).join(','));
+    });
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sk-sarees-products-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('⬇️ Products CSV downloaded (' + (PRODUCTS.filter(p=>!p.hidden).length) + ' rows) — edit & re-upload');
+  }catch(e){ toast('⚠️ Could not export CSV'); }
+}
 function importCsvFile(file){
-  const res = document.getElementById('bulkResult'); if (!res) return;
+  let res = document.getElementById('bulkResult');
+  if (!res){ /* panel not open — create a hidden result target so import still works */
+    res = document.createElement('p'); res.id = 'bulkResult'; res.style.display = 'none'; document.body.appendChild(res);
+  }
   const rd = new FileReader();
   rd.onload = () => {
     try{
@@ -1020,15 +1048,46 @@ function importCsvFile(file){
       const first = parseCsvLine(lines[0]);
       const isHeader = first.some(h => /^(name|product|title)$/i.test(h)) && first.some(h => /^price$/i.test(h));
       if (isHeader) start = 1;
+      let updated = 0, newCount = 0;
       for (let i = start; i < lines.length; i++){
         try{
-          const np = bulkPartsToProduct(parseCsvLine(lines[i]));
-          PRODUCTS.unshift(np);
-          imported.push(np);
-          added++;
+          const parts = parseCsvLine(lines[i]);
+          if (!parts || !parts.length) continue;
+          /* EDIT mode first: if the FIRST column matches an existing product
+             id or sku → update that product in place (name, price, stock…).
+             Otherwise treat the row as a new product (add format). */
+          const existing = PRODUCTS.find(x => x.id === parts[0] || x.sku === parts[0]);
+          let np;
+          if (existing){
+            const c = existing;
+            if (parts[1]) c.name = parts[1];
+            if (parts[2]) c.price = Math.max(0, +parts[2] || c.price);
+            if (parts[3]) c.mrp = Math.max(c.price, +parts[3] || c.mrp || c.price);
+            if (parts[4] !== '') c.stock = Math.max(0, +parts[4] || c.stock || 0);
+            if (parts[5]) c.cat = parts[5];
+            if (parts[6] !== undefined) c.badge = parts[6] || '';
+            if (parts[7]) c.fabric = parts[7];
+            if (parts[8]) c.color = parts[8];
+            if (parts[9]) c.colors = String(parts[9]).split('|').map(x=>x.trim()).filter(Boolean);
+            if (parts[10]){
+              const m = {};
+              String(parts[10]).split('|').forEach(kv => { const x = kv.split(':'); if (x.length===2){ const k=x[0].trim(); m[k]=Math.max(0,+x[1]||0); } });
+              c.colourStock = m;
+            }
+            if (parts[11]) c.img = parts[11];
+            if (parts[12]) c.desc = parts[12];
+            imported.push(c); updated++;
+          } else {
+            np = bulkPartsToProduct(parts);
+            PRODUCTS.unshift(np);
+            imported.push(np);
+            newCount++;
+          }
         }catch(e){ errors.push('Row ' + (i + 1)); }
       }
-      if (isHeader) res.innerHTML = '📄 CSV imported';
+      added = newCount;
+      if (isHeader) res.innerHTML = '📄 CSV processed: ' + updated + ' updated • ' + newCount + ' added';
+      if (updated){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
       finishBulkImport(imported, errors, added, res);
     }catch(e){ res.innerHTML = '⚠️ Could not read CSV file'; }
   };
@@ -1519,6 +1578,62 @@ function renderFeed(){
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     toast('✅ google-merchant-feed.txt downloaded (' + PRODUCTS.length + ' products)');
   });
+}
+
+/* ============================ 📈 GROWTH ============================
+   Daily marketing engine: 2 Reels/day ideas + captions (Instagram algorithm
+   friendly), SEO keyword titles, and traffic-source plan. All copy-ready. */
+function growthDaily(){
+  const d = new Date();
+  const dayIdx = Math.floor(Date.now() / 864e5);
+  const prod = PRODUCTS.filter(p => !p.hidden && p.img)[dayIdx % Math.max(1, PRODUCTS.filter(p=>!p.hidden&&p.img).length)];
+  const reels = [
+    { title: '₹999 Soft Silk Saree', idea: 'Show the saree + price card. Fast cuts, trending audio.', caption: 'இந்த சேலை முழு collection பார்க்க 👇\n\nsksaree.shop\n\n#SKSarees #SoftSilkSaree #SareeUnder1000' },
+    { title: 'New Collection வந்தாச்சு', idea: 'Quick montage of 3-4 new sarees with countdown sticker.', caption: 'New Collection 🎉 full பார்க்க 👇\n\nsksaree.shop\n\n#NewSareeCollection #SKSarees' },
+    { title: 'இந்த color எப்படி இருக்கு?', idea: 'Colour close-ups + poll sticker (Red vs Green).', caption: 'எந்த color ரொம்ப நல்லா இருக்கு? Comment பண்ணுங்க 👇\n\nsksaree.shop\n\n#SareeColours #SKSarees' },
+    { title: 'COD Available', idea: 'Show the COD badge + packing → delivery clip.', caption: '💵 COD Available • UPI உண்டு • Fast Delivery 🚚\n\nsksaree.shop\n\n#CODSaree #SKSarees' },
+    { title: 'Tamil Nadu Full Delivery', idea: 'Map/states animation + "Order from anywhere".', caption: '📍 Tamil Nadu Full Delivery • All India 🚚\n\nsksaree.shop\n\n#SKSarees #TamilNadu' },
+    { title: 'Deal of the Day', idea: 'Show the discounted saree + "today only" urgency.', caption: '🔥 Deal of the day — today only! 👇\n\nsksaree.shop\n\n#SareeDeal #SKSarees' },
+  ];
+  const r1 = reels[dayIdx % reels.length];
+  const r2 = reels[(dayIdx + 1) % reels.length];
+  return { r1, r2, prod, link: (CONFIG.siteUrl || location.origin) + '/product.html?id=' + (prod ? encodeURIComponent(prod.id) : '') };
+}
+function renderGrowth(){
+  const body = document.getElementById('tabBody');
+  const g = growthDaily();
+  const seoTitle = g.prod ? (String(g.prod.fabric || '').indexOf('Silk') !== -1 ? 'Soft Silk Saree for Women | SK Sarees' : (g.prod.name + ' | SK Sarees')) : 'Soft Silk Saree for Women | SK Sarees';
+  body.innerHTML =
+    '<div class="form-card"><h3>📈 Daily Growth Engine — 2 Reels / day</h3>' +
+      '<p class="small muted">Instagram algorithm loves <b>daily short Reels with trending audio + keyword captions + your URL on screen</b>. Post these 2 reels today — fastest reach for a saree business.</p>' +
+      '<div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
+        '<div style="border:1px solid var(--line);border-radius:12px;padding:10px"><b>🎬 Reel 1 — ' + esc(g.r1.title) + '</b><p class="small muted" style="margin:6px 0">' + esc(g.r1.idea) + '</p>' +
+          '<textarea id="gCap1" rows="5" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px;font-size:.72rem;background:var(--bg);outline:none;font-family:inherit">' + esc(g.r1.caption.replace('sksaree.shop', (CONFIG.siteUrl || location.origin).replace(/^https?:\/\//,'') + ' • ' + g.link)) + '</textarea>' +
+          '<button type="button" class="btn btn-maroon btn-sm" data-copy-g="gCap1" style="margin-top:6px">📋 Copy Caption</button></div>' +
+        '<div style="border:1px solid var(--line);border-radius:12px;padding:10px"><b>🎬 Reel 2 — ' + esc(g.r2.title) + '</b><p class="small muted" style="margin:6px 0">' + esc(g.r2.idea) + '</p>' +
+          '<textarea id="gCap2" rows="5" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px;font-size:.72rem;background:var(--bg);outline:none;font-family:inherit">' + esc(g.r2.caption.replace('sksaree.shop', (CONFIG.siteUrl || location.origin).replace(/^https?:\/\//,'') + ' • ' + g.link)) + '</textarea>' +
+          '<button type="button" class="btn btn-maroon btn-sm" data-copy-g="gCap2" style="margin-top:6px">📋 Copy Caption</button></div>' +
+      '</div>' +
+      '<p class="small muted" style="margin-top:8px">💡 <b>In the video, show the website URL</b> on screen for 3+ seconds — viewers who see the URL are 2× more likely to visit.</p></div>' +
+    '<div class="form-card"><h3>🔍 SEO Product Titles (Google)</h3>' +
+      '<p class="small muted">Keyword-first titles rank better. Example: <b>❌ "Saree 101"</b> → <b>✅ "Soft Silk Saree for Women | SK Sarees"</b> or <b>"Elampillai Semi Silk Saree Online Tamil Nadu | SK Sarees"</b>.</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="flex:1;min-width:200px">' + esc(seoTitle) + '</b><button type="button" class="btn btn-outline btn-sm" data-copy-g="seoTxt" style="width:auto">📋 Copy</button></div>' +
+      '<p class="small muted" id="seoTxt" style="display:none">' + esc(seoTitle) + '</p>' +
+      '<p class="small muted" style="margin-top:6px">Titles are generated automatically on each product page (Admin → add/edit product → the product page <code>&lt;title&gt;</code> uses fabric+colour keywords).</p></div>' +
+    '<div class="form-card"><h3>🎯 Recommended Traffic Mix</h3>' +
+      '<div style="display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:8px">' +
+        '<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center"><b style="font-size:1.3rem;color:var(--maroon)">40%</b><span class="muted small" style="display:block">📱 Instagram Reels</span></div>' +
+        '<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center"><b style="font-size:1.3rem;color:var(--maroon)">30%</b><span class="muted small" style="display:block">📣 Facebook Ads</span></div>' +
+        '<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center"><b style="font-size:1.3rem;color:var(--maroon)">20%</b><span class="muted small" style="display:block">🔍 Google Search (SEO)</span></div>' +
+        '<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center"><b style="font-size:1.3rem;color:var(--maroon)">10%</b><span class="muted small" style="display:block">💬 WhatsApp Sharing</span></div>' +
+      '</div></div>' +
+    '<div class="form-card"><h3>✅ Homepage Trust (already live)</h3><p class="small muted">COD Available • Tamil Nadu Delivery • Secure Order via WhatsApp • Customer Reviews • Real Saree Photos • Call &amp; WhatsApp buttons • Clear shipping charges (₹30 TN / ₹40 AP/KA / ₹60 others / free ₹999+) — all shown on the homepage trust strip.</p></div>';
+  document.querySelectorAll('[data-copy-g]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.copyG;
+    const el = document.getElementById(id);
+    if (el) copyText(el.value || el.textContent);
+    toast('📋 Copied!');
+  }));
 }
 
 /* ============================ 📱 DAILY STATUS POSTS ============================
