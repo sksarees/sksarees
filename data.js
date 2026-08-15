@@ -391,7 +391,10 @@ function saveProducts(list){
   PRODUCTS = list;
   LS.set('sk_products', list);
   try{ if (window.REC) REC.invalidate(); }catch(e){}   /* recompute similarity on change */
-  if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }  /* admin edits only */
+  /* 🔥 ADMIN PRODUCTS ARE FIRESTORE-NATIVE: saveProducts() only saves LOCAL
+     cache. The admin page calls FS.saveProduct(p) / FS.deleteProduct(id) for
+     the actual Firestore write, so each add/edit/hide/delete is a single
+     targeted doc op (no whole-catalog push, deleted docs never come back). */
 }
 function resetProducts(){ PRODUCTS = (() => { let built = BASE.map(b => Object.assign({}, b)); BASE.forEach(b => { VARIANTS.slice(0,3).forEach((v,i)=>{ built.push(Object.assign({}, b, { id: b.id + '-v' + (i+1), name: b.name.replace(/—[^-]*$/, '— ' + v.color), color: v.color + ' variant', price: Math.round(b.price * (1 - v.off/100)), mrp: b.mrp, rating: b.rating, reviews: b.reviews, stock: Math.max(2, b.stock - i*4), badge: b.badge === 'Bestseller' ? '' : b.badge })); }); }); return built; })(); try{ localStorage.removeItem('sk_products'); }catch(e){} }
 function genProductId(name){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
@@ -1002,7 +1005,12 @@ function consumeStock(items){
   });
   try{ LS.set('sk_products', PRODUCTS); }catch(e){}
   try{ if (window.REC) REC.invalidate(); }catch(e){}
-  if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }
+  /* 🔢 QTY SYNC — customers only touch qty in Firestore: decrement each bought
+     product's doc (stock + colour stock) via a targeted increment. No
+     whole-catalog push, no collection read — quota-safe. */
+  if (FS.enabled()){
+    (items || []).forEach(i => { try{ FS.decrementStock(i.id, i.qty, i.colour).catch(() => {}); }catch(e){} });
+  }
 }
 function addToCart(id, qty = 1, colour){
   const p = byId(id); if (!p) return;
@@ -2162,6 +2170,43 @@ const FS = {
       return true;
     }catch(e){ return false; }
   },
+  /* ---------- PRODUCTS — TARGETED Firestore ops (Admin source of truth) ----------
+     Admin uses ONLY these three for products: saveProduct (add/update one doc),
+     deleteProduct (remove one doc), and pullProducts (read the collection).
+     Customer pages NEVER call these — their products come from catalog.json. */
+  async saveProduct(p){
+    if (!p || !p.id) return false;
+    const db = await this._getDb(); if (!db) return false;
+    try{
+      const clean = Object.assign({}, p);
+      delete clean.img2; delete clean.img3;   /* stored inside images[] */
+      await db.collection('products').doc(String(p.id)).set(Object.assign({}, clean, { updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }), { merge: true });
+      return true;
+    }catch(e){ return false; }
+  },
+  async deleteProduct(id){
+    if (!id) return false;
+    const db = await this._getDb(); if (!db) return false;
+    try{
+      await db.collection('products').doc(String(id)).delete();
+      return true;
+    }catch(e){ return false; }
+  },
+  /* 🔢 QTY — the ONLY product write a customer page does: after an order,
+     decrement exactly the bought saree(s) in Firestore (stock + colour stock).
+     Uses FieldValue.increment so concurrent orders never clash. */
+  async decrementStock(id, qty, colour){
+    if (!id) return false;
+    const db = await this._getDb(); if (!db) return false;
+    try{
+      const n = Math.max(1, +qty || 1);
+      const up = { updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() };
+      up.stock = window.firebase.firestore.FieldValue.increment(-n);
+      if (colour) up['colourStock.' + String(colour)] = window.firebase.firestore.FieldValue.increment(-n);
+      await db.collection('products').doc(String(id)).set(up, { merge: true });
+      return true;
+    }catch(e){ return false; }
+  },
   async getProductReviews(productId){
     const db = await this._getDb(); if (!db) return [];
     try{
@@ -2380,8 +2425,19 @@ const Sync = {
   },
 };
 
-/* Manual refresh helper (used by a shop-page button) */
-window.refreshCloudProducts = function(){ try{ Sync.pullProducts(); }catch(e){} };
+/* Manual refresh helper — customers refresh products from catalog.json ONLY
+   (never Firestore). Re-reads the static catalog and re-renders the page. */
+window.refreshCloudProducts = function(){
+  try{
+    window.__catalogLoaded = false;   /* force a fresh catalog.json fetch */
+    preloadCatalog().then(() => {
+      const pg = (document.body && document.body.dataset.page) || '';
+      if (pg === 'shop') renderShop();
+      else if (pg === 'home') renderHome();
+      else if (pg === 'product') renderProduct();
+    });
+  }catch(e){}
+};
 
 /* ============================ 12c. FIRESTORE COLLECTIONS SETUP ============================
    Creates the full database structure in your Firestore project:
