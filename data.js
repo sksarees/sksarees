@@ -361,8 +361,7 @@ let PRODUCTS = (() => {
       return custom.filter(notSample);
     }
   }catch(e){}
-  /* 2. Cached Firestore products merge silently — so cloud-only products
-     appear instantly on every visit, no network needed (samples filtered) */
+  /* 2. Cached products merge silently — instant on every visit (samples filtered) */
   try{
     const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
     if (Array.isArray(cached) && cached.length){
@@ -385,16 +384,25 @@ let PRODUCTS = (() => {
   }catch(e){}
   /* when tests enable __KEEP_BASE, keep the demo catalog as-is; in production
      only real (non-sample) products from admin/Firestore caches are shown */
-  return window.__KEEP_BASE ? built : built.filter(notSample);
+  const finalList = window.__KEEP_BASE ? built : built.filter(notSample);
+  /* 🔖 all product images are ABSOLUTE https URLs (no local jpg files) —
+     BASE/variant demo products use relative images/products/ paths, rewrite
+     them so every card points at the live-host URL */
+  try{
+    finalList.forEach(p => {
+      if (p.img && !/^(https?:|data:)/i.test(String(p.img))) p.img = 'https://www.sksaree.shop/' + String(p.img).replace(/^\.?\//, '');
+      if (Array.isArray(p.images)) p.images = p.images.map(u => (!/^(https?:|data:)/i.test(String(u)) ? 'https://www.sksaree.shop/' + String(u).replace(/^\.?\//, '') : u));
+    });
+  }catch(e){}
+  return finalList;
 })();
 function saveProducts(list){
   PRODUCTS = list;
   LS.set('sk_products', list);
   try{ if (window.REC) REC.invalidate(); }catch(e){}   /* recompute similarity on change */
-  /* 🔥 ADMIN PRODUCTS ARE FIRESTORE-NATIVE: saveProducts() only saves LOCAL
-     cache. The admin page calls FS.saveProduct(p) / FS.deleteProduct(id) for
-     the actual Firestore write, so each add/edit/hide/delete is a single
-     targeted doc op (no whole-catalog push, deleted docs never come back). */
+  /* 📦 Products live in catalog.json only — this saves the LOCAL working set.
+     After editing, use Admin → ⬇️ Download catalog.json & upload it to the
+     host so customers see the change (no Firestore writes for products). */
 }
 function resetProducts(){ PRODUCTS = (() => { let built = BASE.map(b => Object.assign({}, b)); BASE.forEach(b => { VARIANTS.slice(0,3).forEach((v,i)=>{ built.push(Object.assign({}, b, { id: b.id + '-v' + (i+1), name: b.name.replace(/—[^-]*$/, '— ' + v.color), color: v.color + ' variant', price: Math.round(b.price * (1 - v.off/100)), mrp: b.mrp, rating: b.rating, reviews: b.reviews, stock: Math.max(2, b.stock - i*4), badge: b.badge === 'Bestseller' ? '' : b.badge })); }); }); return built; })(); try{ localStorage.removeItem('sk_products'); }catch(e){} }
 function genProductId(name){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
@@ -481,17 +489,17 @@ function normalizeProduct(raw){
   };
 }
 
-/* ============================ 4b. INSTANT CATALOG LOAD ============================
-   Static catalog.json ships with the site (regenerate from Admin → Catalog Feed).
-   catalog.json is merged into PRODUCTS on EVERY visit (before first render) so
-   Firestore product pages render immediately — no "Loading product…". Firestore
-   pull still refreshes the cache in the background for freshness.
+/* ============================ 4b. INSTANT PRODUCT LOAD ============================
+   📦 Products load ONLY from catalog.json (the static file that ships with the
+   site — regenerate from Admin → 📦 Catalog Feed / ⬇️ Download catalog.json).
+   catalog.json is merged on EVERY visit (preloaded in <head>) so product pages
+   render immediately — no "Loading product…". ❌ NO Firestore reads at all.
    wantId (optional): when given, returns true only once that product is found,
    so the product page can render instantly from the static catalog. */
 async function preloadCatalog(wantId){
   const have = id => { try{ return !id || PRODUCTS.some(p => String(p.id) === String(id)); }catch(e){ return false; } };
   try{ if (have(wantId)) return true; }catch(e){}
-  /* 1) raw cloud cache (device copy of Firestore products) — silent merge */
+  /* 1) raw cloud cache (device copy) — silent merge */
   try{
     const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
     if (Array.isArray(raw) && raw.length){
@@ -508,6 +516,7 @@ async function preloadCatalog(wantId){
      so an uploaded catalog fixes missing products even if other caches exist.
      Accepts both a bare array and { products: [...] }. */
   if (!window.__catalogLoaded){
+    let okLoad = false;
     const tryLoad = async url => {
       try{
         const r = await fetch(url, { cache: 'no-cache' });
@@ -515,12 +524,14 @@ async function preloadCatalog(wantId){
         const data = await r.json();
         const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          list.filter(p => p && p.id && !isSampleId(p.id) && (isAdminDevice() || !p.hidden)).forEach(cp => {
+          list.filter(p => p && p.id && (isAdminDevice() || !p.hidden)).forEach(cp => {
             try{
               const np = normalizeProduct(cp);
-              if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
+              const i = PRODUCTS.findIndex(x => x.id === np.id);
+              if (i >= 0) PRODUCTS[i] = np; else PRODUCTS.push(np);
             }catch(e){}
           });
+          okLoad = true;
           return true;
         }
       }catch(e){}
@@ -528,7 +539,7 @@ async function preloadCatalog(wantId){
     };
     try{ await tryLoad('catalog.json'); }catch(e){}
     window.__catalogLoaded = true;
-    if (PRODUCTS.length){ try{ LS.set('sk_products_cloud', PRODUCTS); }catch(e){} }
+    if (okLoad && PRODUCTS.length){ try{ LS.set('sk_products_cloud', PRODUCTS); }catch(e){} }
   }
   try{ return have(wantId); }catch(e){ return false; }
 }
@@ -834,7 +845,7 @@ const byId = id => {
       || PRODUCTS.find(p => String(p.id).toLowerCase() === s.toLowerCase());
 };
 const catOf = slug => CATEGORIES.find(c => c.slug === slug);
-const catImage = slug => { const p = PRODUCTS.find(x => x.cat === slug && x.img); return p ? p.img : img('kanchipuram-silk.jpg'); };
+const catImage = slug => { const p = PRODUCTS.find(x => x.cat === slug && x.img); return p ? p.img : 'https://www.sksaree.shop/images/products/kanchipuram-silk.jpg'; };
 const realReviewCount = id => { try{ return (LS.get('sk_reviews_' + id, [])).length; }catch(e){ return 0; } };
 /* Shipping = zone fee × number of sarees (1 saree TN ₹30, 2 sarees ₹60, …).
    Free above ₹999. Falls back to 1 unit when no count given. */
@@ -1102,6 +1113,15 @@ function waLink(text, num = CONFIG.waNumber){
 function repoBase(){
   try{ return location.pathname.replace(/[^/]*$/, ''); }catch(e){ return '/'; }
 }
+/* 🔖 absolute image URL (og:image / Pinterest need https — never relative) */
+function absImg(u){
+  try{
+    if (!u) return '';
+    const s = String(u);
+    if (/^https?:/i.test(s) || /^data:/i.test(s)) return s;
+    return location.origin + repoBase() + s.replace(/^\.?\//, '');
+  }catch(e){ return String(u || ''); }
+}
 function productUrl(p){
   try{ return location.origin + repoBase() + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){ return 'product.html?id=' + encodeURIComponent(p.id); }
 }
@@ -1124,7 +1144,7 @@ function waProductMsg(p){
 }
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
-  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}${location.pathname.replace(/[^/]*$/, '')}product.html?id=${encodeURIComponent(p.id)}`; });
+  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${productUrl(p)}`; });
   const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
   m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
   return m;
@@ -1368,7 +1388,9 @@ function resellerByCode(code){
 function myResellerCode(){
   try{ const c = localStorage.getItem('sk_my_reseller'); return c || ''; }catch(e){ return ''; }
 }
-/* product share URL that carries the reseller's ?ref= on ANY page */
+/* product share URL — carries the reseller's ?ref= on ANY page.
+   Uses the classic product page product.html?id=<id> (products load from
+   catalog.json; no extra files). */
 function shareUrl(p){
   const base = productUrl(p);
   const mine = myResellerCode();
@@ -1894,7 +1916,7 @@ function showPriceDrops(){
     const drops = trackWishPrices();
     if (!drops.length) return;
     let list = '';
-    drops.forEach(d => { list += '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><img src="' + esc(d.img) + '" style="width:54px;height:42px;object-fit:cover;border-radius:8px"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(d.name) + '</b><br><small><s>' + money(d.from) + '</s> <b style="color:var(--green)">' + money(d.to) + '</b> 🔥 Price dropped!</small></div><a class="btn btn-outline btn-sm" style="width:auto;min-height:34px;padding:6px 10px" href="product.html?id=' + encodeURIComponent(d.id) + '">View</a></div>'; });
+    drops.forEach(d => { list += '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><img src="' + esc(d.img) + '" style="width:54px;height:42px;object-fit:cover;border-radius:8px"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(d.name) + '</b><br><small><s>' + money(d.from) + '</s> <b style="color:var(--green)">' + money(d.to) + '</b> 🔥 Price dropped!</small></div><a class="btn btn-outline btn-sm" style="width:auto;min-height:34px;padding:6px 10px" href="' + productUrl({ id: d.id, sku: d.sku || d.id }) + '">View</a></div>'; });
     openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">💸 Price Drop Alert!</h2>' +
       '<p class="small muted" style="margin-bottom:4px">Your wishlist sarees are cheaper now:</p>' + list +
       '<a class="btn btn-maroon" style="margin-top:10px" href="shop.html">🛍️ Shop More Deals</a>');
@@ -2170,10 +2192,11 @@ const FS = {
       return true;
     }catch(e){ return false; }
   },
-  /* ---------- PRODUCTS — TARGETED Firestore ops (Admin source of truth) ----------
+  /* ---------- PRODUCTS — TARGETED Firestore ops (source of truth) ----------
      Admin uses ONLY these three for products: saveProduct (add/update one doc),
      deleteProduct (remove one doc), and pullProducts (read the collection).
-     Customer pages NEVER call these — their products come from catalog.json. */
+     Customer pages call pullProducts ONCE per device per 24h (TTL) — no
+     catalog.json anymore. */
   async saveProduct(p){
     if (!p || !p.id) return false;
     const db = await this._getDb(); if (!db) return false;
@@ -2411,10 +2434,12 @@ const Sync = {
       this.pullCloud();           /* ADMIN ONLY: live orders (everyone's) + products */
       /* admin also refreshes resellers via its live listener */
     } else {
-      /* 🔒 CUSTOMER pages — minimal Firestore reads:
-         · products come from the static catalog.json + local cache (NO collection scan)
-         · resellers pulled only where needed (share-earn / profile / checkout) + 24h TTL
-         · user-cloud merge only on orders/profile/checkout pages + 6h TTL */
+      /* 🔒 CUSTOMER pages — NO Firestore product reads at all.
+         Products load ONLY from catalog.json (static file, preloaded in <head>)
+         + local caches (sk_products / sk_products_cloud). Firestore is used
+         ONLY for qty, reviews & orders.
+         Resellers pulled only where needed (share-earn / profile / checkout) + 24h TTL.
+         User-cloud merge only on orders/profile/checkout pages + 6h TTL. */
       if ((pg === 'share-earn' || pg === 'profile' || pg === 'checkout') && this.__ttl('resellers', 24)){
         try{ this.pullResellers(); }catch(e){}
       }

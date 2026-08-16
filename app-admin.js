@@ -658,26 +658,6 @@ function wireAutoColour(imgId, colorsId, btnId){
 }
 
 /* ============================ PRODUCTS ============================ */
-/* 🔥 ADMIN PRODUCTS = FIRESTORE-NATIVE (single targeted doc ops):
-   saveProducts() only updates the local cache; these helpers do the actual
-   Firestore write/delete for ONE product, so:
-   · add / edit / hide / show  → that product's doc is set()
-   · delete                    → that product's doc is delete()d (never returns)
-   No whole-catalog push, no extra reads. Customer pages never call these. */
-function fsSaveProduct(p){
-  if (!p || !p.id) return;
-  try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.saveProduct(p).catch(() => {}); }catch(e){}
-}
-function fsSaveProducts(list){
-  (list || []).forEach(p => { try{ fsSaveProduct(p); }catch(e){} });
-}
-function fsDeleteProduct(id){
-  if (!id) return;
-  try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.deleteProduct(id).catch(() => {}); }catch(e){}
-}
-function fsDeleteProducts(ids){
-  (ids || []).forEach(id => { try{ fsDeleteProduct(id); }catch(e){} });
-}
 function renderProducts(){
   document.getElementById('tabBody').innerHTML =
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
@@ -688,7 +668,7 @@ function renderProducts(){
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
     '<p class="small muted" style="margin:2px 0 8px">🚫 Hidden products <b>never appear in the shop/feeds</b> and their links redirect customers to the home page. Use the checkboxes + Hide/Show/Delete buttons, or the 👁️/🚫 per-row toggle.</p>' +
-    '<p class="small muted" style="margin:0 0 8px">☁️ <b>Products here = Firestore</b> (add / edit / hide / delete write that product&#39;s doc directly). Customers load products <b>only from catalog.json</b> — after any change, download ⬇️ catalog.json &amp; upload it to your host so shoppers see it instantly.</p>' +
+    '<p class="small muted" style="margin:0 0 8px">📦 <b>Customers load products ONLY from catalog.json</b> — after any add / edit / hide / delete here, tap <b>⬇️ Download catalog.json</b> (below) &amp; upload it to your host root (same folder as index.html). Firestore is used ONLY for qty, reviews &amp; orders.</p>' +
     '<p class="small" id="storeHint" style="margin:0 0 8px;color:var(--maroon);font-weight:800"></p>' +
     '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
@@ -698,7 +678,7 @@ function renderProducts(){
         '<button type="button" class="btn btn-maroon btn-sm" id="btnExportCsv" style="width:auto">⬇️ Download Products CSV (edit)</button>' +
         '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload CSV File (add/update)</button>' +
         '<button type="button" class="btn btn-outline btn-sm" id="btnCatalog" style="width:auto">📦 Upload catalog.json</button>' +
-        '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for GitHub)</button>' +
+        '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for website)</button>' +
         '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ CSV template</a>' +
       '</div>' +
       '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, https://…, soft-silk, New&#10;Wedding Kanjivaram, 2899, 4599, https://…, bridal-sarees, Bestseller&#10;https://www.sksaree.shop/images/products/kanchipuram-silk.jpg" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:110px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
@@ -719,17 +699,24 @@ function renderProducts(){
       h.innerHTML = '💾 This browser stores <b>' + PRODUCTS.length + ' products</b>' +
         (imgCount ? ' • <b>' + imgCount + ' uploaded photos</b>' : '') +
         ' • used <b>' + mb.toFixed(1) + ' MB</b> of ~5 MB' +
-        (mb > 3.5 ? ' <span style="color:var(--red)">⚠️ getting full — use image URLs (https://…sksaree.shop/images/) for new products, or export catalog.json &amp; clear the browser once deployed.</span>' : '');
+        (mb > 3.5 ? ' <span style="color:var(--red)">⚠️ getting full — use image URLs (https://…sksaree.shop/images/) for new products,</span>' : '');
     }
   }catch(e){}
   document.getElementById('btnAddProd').addEventListener('click', openAddProduct);
   document.getElementById('btnBulk').addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
   document.getElementById('btnImport').addEventListener('click', importBulk);
-  /* ⬇️ export catalog.json for GitHub — refresh + download */
+  /* ⬇️ CSV export — edit in Excel/Sheets, re-upload to update */
   const expCsv = document.getElementById('btnExportCsv');
   if (expCsv) expCsv.addEventListener('click', () => { try{ exportProductsCsv(); }catch(e){ toast('⚠️ Export failed'); } });
-  const expBtn = document.getElementById('btnExportCatalog');
-  if (expBtn) expBtn.addEventListener('click', () => {
+  /* 📄 CSV file upload */
+  const csvIn = document.createElement('input');
+  csvIn.type = 'file'; csvIn.accept = '.csv,.tsv,.txt'; csvIn.style.display = 'none';
+  document.body.appendChild(csvIn);
+  csvIn.addEventListener('change', () => { const f = csvIn.files && csvIn.files[0]; if (f) importCsvFile(f); csvIn.value = ''; });
+  document.getElementById('btnCsv').addEventListener('click', () => csvIn.click());
+  /* ⬇️ Download catalog.json — the file customers load (upload to your host root) */
+  const expCat = document.getElementById('btnExportCatalog');
+  if (expCat) expCat.addEventListener('click', () => {
     refreshFeedCache();
     const blob = new Blob([feedJson()], { type: 'application/json' });
     const a = document.createElement('a');
@@ -737,15 +724,9 @@ function renderProducts(){
     a.download = 'catalog.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    toast('⚡ catalog.json downloaded — upload to your GitHub repo root');
+    toast('⚡ catalog.json downloaded — upload it to your host root so customers see your latest sarees');
   });
-  /* 📄 CSV file upload */
-  const csvIn = document.createElement('input');
-  csvIn.type = 'file'; csvIn.accept = '.csv,.tsv,.txt'; csvIn.style.display = 'none';
-  document.body.appendChild(csvIn);
-  csvIn.addEventListener('change', () => { const f = csvIn.files && csvIn.files[0]; if (f) importCsvFile(f); csvIn.value = ''; });
-  document.getElementById('btnCsv').addEventListener('click', () => csvIn.click());
-  /* 📦 catalog.json upload */
+  /* 📦 Upload catalog.json — import the whole catalog (another device / backup) */
   const catIn = document.createElement('input');
   catIn.type = 'file'; catIn.accept = '.json'; catIn.style.display = 'none';
   document.body.appendChild(catIn);
@@ -770,7 +751,6 @@ function renderProducts(){
     if (!confirm('Delete ' + sel.length + ' selected product(s)?')) return;
     PRODUCTS = PRODUCTS.filter(p => !sel.includes(p.id));
     saveProducts(PRODUCTS);
-    fsDeleteProducts(sel);                  /* 🔥 Firestore: delete each doc */
     refreshFeedCache(); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
   });
   /* 🚫 hide selected / 👁️ show selected (bulk) */
@@ -779,7 +759,6 @@ function renderProducts(){
     if (!sel.length){ toast('⚠️ Tick products first'); return; }
     PRODUCTS.forEach(p => { if (sel.includes(p.id)) p.hidden = hidden; });
     saveProducts(PRODUCTS);
-    fsSaveProducts(PRODUCTS.filter(p => sel.includes(p.id)));   /* 🔥 Firestore: update each doc */
     refreshFeedCache(); renderProdBody();
     toast(hidden ? '🚫 ' + sel.length + ' hidden — links go to home' : '👁️ ' + sel.length + ' shown again');
   };
@@ -830,8 +809,9 @@ function renderProdBody(){
   updateDelSelCount();
 }
 function updateDelSelCount(){
+  const n = document.querySelectorAll('.prod-sel:checked').length;
   const c = document.getElementById('delSelCount');
-  if (c) c.textContent = document.querySelectorAll('.prod-sel:checked').length;
+  if (c) c.textContent = n;
 }
 function openAddProduct(){
   const catOpts = CATEGORIES.map(c => '<option value="' + c.slug + '">' + c.name + '</option>').join('');
@@ -873,7 +853,6 @@ function openAddProduct(){
       hidden: document.getElementById('apHidden').checked,
     });
     PRODUCTS.unshift(np); saveProducts(PRODUCTS);
-    fsSaveProduct(np);                     /* 🔥 Firestore: create this product doc */
     refreshFeedCache();
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
   });
@@ -881,7 +860,7 @@ function openAddProduct(){
   wirePhotoUpload('apImg', 'apPhoto', 'apPhotoHint');
 }
 /* 📷 photo upload from phone/computer → resized data-URI (no server needed).
-   Max width/height 900px, JPEG q0.82 — small enough for localStorage & catalog.json */
+   Max width/height 900px, JPEG q0.82 — small enough for localStorage */
 function photoToDataURI(file, cb){
   try{
     if (!file || !/^image\//.test(file.type)){ cb(null, '⚠️ Not an image file'); return; }
@@ -1007,7 +986,6 @@ function finishBulkImport(imported, errors, added, res){
   if (!res) res = document.getElementById('bulkResult');
   if (added){
     saveProducts(PRODUCTS);
-    fsSaveProducts(imported);              /* 🔥 Firestore: create/update each doc */
     refreshFeedCache(); prodPage = 1; renderProdBody();
   }
   if (!added){ res.innerHTML = '⚠️ Nothing imported' + (errors.length ? ': ' + errors.join('; ') : '') + ' — check the format (Name, Price, MRP, Image URL…)'; return; }
@@ -1036,7 +1014,6 @@ function finishBulkImport(imported, errors, added, res){
       if (done % 5 === 0 || idx === imported.length - 1){
         try{
           saveProducts(PRODUCTS);
-          fsSaveProducts(imported);        /* 🔥 Firestore: colours updated → re-save docs */
           refreshFeedCache(); renderProdBody();
         }catch(e){}
         res.innerHTML = '✅ Imported <b>' + added + '</b> products • 🎨 detecting colours… <b>' + done + '/' + added + '</b>';
@@ -1123,44 +1100,10 @@ function importCsvFile(file){
       if (isHeader) res.innerHTML = '📄 CSV processed: ' + updated + ' updated • ' + newCount + ' added';
       if (updated){
         saveProducts(PRODUCTS);
-        fsSaveProducts(imported);          /* 🔥 Firestore: updated rows → save their docs */
         refreshFeedCache(); prodPage = 1; renderProdBody();
       }
       finishBulkImport(imported, errors, added, res);
     }catch(e){ res.innerHTML = '⚠️ Could not read CSV file'; }
-  };
-  rd.onerror = () => res.innerHTML = '⚠️ Could not read file';
-  rd.readAsText(file);
-}
-/* 📦 catalog.json upload — import the whole catalog from another device */
-function importCatalogFile(file){
-  const res = document.getElementById('bulkResult'); if (!res) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const data = JSON.parse(String(rd.result || ''));
-      const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
-      if (!list.length){ res.innerHTML = '⚠️ No products found in catalog.json'; return; }
-      let added = 0, skipped = 0, touched = [];
-      list.forEach(raw => {
-        try{
-          if (!raw || !raw.id) return;
-          if (isSampleId(raw.id)){ skipped++; return; }   /* never import demo products */
-          const np = normalizeProduct(raw);
-          const i = PRODUCTS.findIndex(x => x.id === np.id);
-          if (i >= 0) PRODUCTS[i] = np; else PRODUCTS.unshift(np);
-          touched.push(np);
-          added++;
-        }catch(e){ skipped++; }
-      });
-      if (added){
-        saveProducts(PRODUCTS);
-        fsSaveProducts(touched);           /* 🔥 Firestore: write each imported doc */
-        refreshFeedCache(); prodPage = 1; renderProdBody();
-      }
-      res.innerHTML = added ? '✅ catalog.json imported — <b>' + added + '</b> products loaded' + (skipped ? ' (' + skipped + ' demo/skipped)' : '') : '⚠️ Nothing to import';
-      toast('📦 catalog.json — ' + added + ' products');
-    }catch(e){ res.innerHTML = '⚠️ Invalid catalog.json — not a valid JSON file'; }
   };
   rd.onerror = () => res.innerHTML = '⚠️ Could not read file';
   rd.readAsText(file);
@@ -1181,6 +1124,38 @@ function parseCsvLine(line){
   return out;
 }
 
+/* 📦 catalog.json upload — import the whole catalog from another device /
+   restore from a downloaded copy (customers load ONLY this file) */
+function importCatalogFile(file){
+  const res = document.getElementById('bulkResult'); if (!res) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const data = JSON.parse(String(rd.result || ''));
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
+      if (!list.length){ res.innerHTML = '⚠️ No products found in catalog.json'; return; }
+      let added = 0, skipped = 0;
+      list.forEach(raw => {
+        try{
+          if (!raw || !raw.id) return;
+          if (isSampleId(raw.id)){ skipped++; return; }   /* never import demo products */
+          const np = normalizeProduct(raw);
+          const i = PRODUCTS.findIndex(x => x.id === np.id);
+          if (i >= 0) PRODUCTS[i] = np; else PRODUCTS.unshift(np);
+          added++;
+        }catch(e){ skipped++; }
+      });
+      if (added){
+        saveProducts(PRODUCTS);
+        refreshFeedCache(); prodPage = 1; renderProdBody();
+      }
+      res.innerHTML = added ? '✅ catalog.json imported — <b>' + added + '</b> products loaded' + (skipped ? ' (' + skipped + ' demo/skipped)' : '') : '⚠️ Nothing to import';
+      toast('📦 catalog.json — ' + added + ' products');
+    }catch(e){ res.innerHTML = '⚠️ Invalid catalog.json — not a valid JSON file'; }
+  };
+  rd.onerror = () => res.innerHTML = '⚠️ Could not read file';
+  rd.readAsText(file);
+}
 function openEditProduct(id){
   const p = byId(id); if (!p) return;
   const catOpts = CATEGORIES.map(c => '<option value="' + c.slug + '"' + (p.cat === c.slug ? ' selected' : '') + '>' + c.name + '</option>').join('');
@@ -1250,7 +1225,6 @@ function openEditProduct(id){
         PRODUCTS[idx].images = imgs;
       }catch(e){}
       saveProducts(PRODUCTS);
-      fsSaveProduct(PRODUCTS[idx]);        /* 🔥 Firestore: update this product doc */
       refreshFeedCache();
       closeModal(); renderProdBody(); toast('✅ Product updated');
     }
@@ -1359,8 +1333,8 @@ function maGenerate(){
   const p = byId(id); if (!p) return;
   const coupon = document.getElementById('maCoupon').value.trim().toUpperCase();
   const page = (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
-  /* ✅ correct URL: product.html?id=X&coupon=Y — never a second ? */
-  const link = page + 'product.html?id=' + encodeURIComponent(p.id) + (coupon ? '&coupon=' + encodeURIComponent(coupon) : '');
+  /* ✅ correct URL: product.html?id=<id> — classic, works everywhere */
+  const link = page + 'product.html?id=' + encodeURIComponent(p.id);
   const off = offPct(p);
   const price = money(p.price);
   const mrp = p.mrp ? money(p.mrp) : '';
@@ -1420,9 +1394,9 @@ function renderLeads(){
 }
 
 /* 🖼️ feed/product image URL — Google needs REAL image files at
-   https://www.sksaree.shop/product/<sku>.jpg. data: URIs are NEVER used in
+   https://www.sksaree.shop/images/products/x.jpg (absolute). data: URIs are NEVER used in
    feeds; a product photo that is a data URI is referenced as its sku.jpg
-   file instead. (Product page links use the classic product.html?id= format.) */
+   file instead. (Product page links use classic product.html?id=.) */
 function feedImg(p, base){
   try{
     const raw = String(p && p.img || '').trim();
@@ -1445,7 +1419,7 @@ function feedXml(){
       '<g:id>' + escX(p.id) + '</g:id>\n' +
       '<g:title>' + escX(p.name) + '</g:title>\n' +
       '<g:description>' + escX((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' — ' + p.color) + '</g:description>\n' +
-      '<g:link>' + escX(base + 'product.html?id=' + encodeURIComponent(p.id)) + '</g:link>\n' +
+      '<g:link>' + escX(feedLink(p, base)) + '</g:link>\n' +
       '<g:image_link>' + escX(imgAbs) + '</g:image_link>\n' +
       '<g:availability>' + ((p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock') + '</g:availability>\n' +
       '<g:price>' + p.price + ' INR</g:price>\n' +
@@ -1478,7 +1452,7 @@ function feedTxt(){
       escT((p.desc || p.name + ' from SK Sarees.') + ' ' + p.fabric + ' - ' + p.color),
       p.price + ' INR',
       'new',
-      escT(base + 'product.html?id=' + encodeURIComponent(p.id)),
+      escT(feedLink(p, base)),
       (p.stock != null && p.stock <= 0) ? 'out of stock' : 'in stock',
       escT(imgAbs),
     ];
@@ -1497,8 +1471,12 @@ function feedBase(){
   return (CONFIG.siteUrl || (location.origin + location.pathname.replace(/[^/]*$/, ''))) + '/';
 }
 function setFeedDomain(d){ try{ localStorage.setItem('sk_feed_domain', String(d || '').trim()); }catch(e){} }
-/* catalog.json content (exact shape the store + Google/Meta can consume) —
-   hidden products are NEVER included */
+/* 🔗 feed link — classic format product.html?id=<id> */
+function feedLink(p, base){
+  try{ return base + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){ return base + 'product.html?id=' + encodeURIComponent(p.id); }
+}
+/* JSON product list (hidden products NEVER included) — used internally for
+   the feed cache on this device */
 function feedJson(){
   return JSON.stringify(PRODUCTS.filter(p => !p.hidden).map(p => ({
     id: p.id, sku: p.sku, name: p.name, price: p.price, mrp: p.mrp, cat: p.cat,
@@ -1515,7 +1493,7 @@ function feedIssues(){
   const base = feedBase();
   const out = [];
   PRODUCTS.filter(p => !p.hidden).slice(0, 200).forEach(p => {
-    const link = base + 'product.html?id=' + encodeURIComponent(p.id);
+    const link = feedLink(p, base);
     const img = feedImg(p, base);
     const issues = [];
     if (/localhost|127\.0\.0\.1|file:\/\//i.test(link)) issues.push('🔴 link uses localhost');
@@ -1538,39 +1516,8 @@ function refreshFeedCache(){
     localStorage.setItem('sk_feed_txt', feedTxt());
     localStorage.setItem('sk_feed_json', json);
     localStorage.setItem('sk_feed_updated', new Date().toISOString());
-    if (changed){
-      try{ toast('⚠️ Catalog changed — tap ⬇️ Download catalog.json & upload to your host so www.sksaree.shop updates instantly'); }catch(e){}
-    }
     return true;
   }catch(e){ return false; }
-}
-/* ⚠️ Is the catalog.json LIVE on the site up to date with this browser's
-   products? (Run inside Admin → Catalog Feed.) If the uploaded catalog.json is
-   older, customers would not see new products — this flags it + says what to do. */
-async function checkCatalogSync(){
-  const el = document.getElementById('catalogSyncNote');
-  if (!el) return;
-  const mine = PRODUCTS.filter(p => !p.hidden);
-  const mineIds = new Set(mine.map(p => String(p.id)));
-  if (!mine.length){ el.innerHTML = ''; return; }
-  try{
-    const r = await fetch('catalog.json', { cache: 'no-cache' });
-    if (!r.ok){ el.innerHTML = '<p class="small muted" style="margin-top:6px">🩺 Could not read catalog.json from this site (status ' + r.status + '). It will work after upload.</p>'; return; }
-    const data = await r.json();
-    const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
-    const liveIds = new Set(list.map(p => p && p.id ? String(p.id) : '').filter(Boolean));
-    const missing = [...mineIds].filter(id => !liveIds.has(id));
-    const extra = [...liveIds].filter(id => !mineIds.has(id));
-    if (!missing.length && !extra.length){
-      el.innerHTML = '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">✅ catalog.json on this site is UP TO DATE — <b>' + liveIds.size + '</b> products, same as here. Customers see everything instantly.</p>';
-    } else {
-      el.innerHTML = '<p class="small" style="color:var(--red);font-weight:800;margin-top:6px">⚠️ <b>catalog.json is OUT OF DATE</b> — it has <b>' + liveIds.size + '</b> products but your Admin has <b>' + mineIds.size + '</b>.' +
-        (missing.length ? '<br>❌ Missing on the site: <b>' + missing.slice(0, 8).join(', ') + '</b>' + (missing.length > 8 ? '…' : '') : '') +
-        '<br>👉 Tap <b>⚡ catalog.json (instant load)</b> below, then upload the new file to your host root (same folder as index.html) — customers see the new sarees immediately.</p>';
-    }
-  }catch(e){
-    el.innerHTML = '<p class="small muted" style="margin-top:6px">🩺 catalog.json sync check needs the live site (works after upload). Here in preview it can\'t reach the file.</p>';
-  }
 }
 function renderFeed(){
   const body = document.getElementById('tabBody');
@@ -1588,18 +1535,14 @@ function renderFeed(){
       '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
         '<button type="button" class="btn btn-maroon" id="feedDownload" style="width:auto;min-width:230px">⬇️ products-feed.xml</button>' +
         '<button type="button" class="btn btn-gold" id="feedTxtDownload" style="width:auto;min-width:240px">⬇️ Google Merchant (TXT)</button>' +
-        '<button type="button" class="btn btn-buy" id="feedJsonDownload" style="width:auto;min-width:220px">⚡ catalog.json (instant load)</button>' +
         '<button type="button" class="btn btn-outline" id="feedSave" style="width:auto;min-width:230px">💾 Save feeds to this browser</button>' +
         '<button type="button" class="btn btn-ghost" id="feedCopy" style="width:auto;min-width:180px">📋 Copy XML</button>' +
-        '<button type="button" class="btn btn-maroon" id="feedFsPush" style="width:auto;min-width:270px">☁️ Upload ALL products to Firestore</button>' +
       '</div>' +
-      '<p class="small muted" style="margin-top:6px">☁️ <b>First-time setup:</b> tap <b>Upload ALL products to Firestore</b> once — after that every add / edit / hide / delete in this Admin writes <b>directly</b> to Firestore (single doc each, no whole-catalog push).</p>' +
       '<p class="small" style="margin-top:8px;color:var(--green);font-weight:800">🔄 Feeds auto-refresh whenever you save / delete / hide / import a product.</p>' +
-      '<p id="catalogSyncNote"></p>' +
-      '<p class="small muted" id="feedNote" style="margin-top:4px">1. Pick the feed domain above. 2. Tap <b>💾 Save feeds to this browser</b> (or just save a product — automatic). 3. Download the 3 files → upload to your host root (same folder as index.html). 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily = automatic updates. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
+      '<p class="small muted" id="feedNote" style="margin-top:4px">These <b>2 files are ONLY for Meta &amp; Google ads</b> — the website itself uses <b>catalog.json</b> (download it from 🛍️ Products). 1. Pick the feed domain above. 2. Tap <b>⬇️ products-feed.xml</b> / <b>⬇️ Google Merchant (TXT)</b> — they auto-refresh when you save a product. 3. Upload to your host root. 4. <b>Google Merchant Center:</b> Products → Feeds → scheduled fetch → <b>' + esc(feedBase() + 'google-merchant-feed.txt') + '</b> → refresh daily. <b>Meta:</b> Commerce Manager → add feed URL <b>' + esc(feedBase() + 'products-feed.xml') + '</b>. Public feed page: <a href="feed.html" target="_blank" style="color:var(--maroon);font-weight:800">' + esc(feedBase() + 'feed.html') + '</a></p></div>' +
     '<div class="form-card"><h3>🔍 Feed preview (first 3)</h3><div style="overflow:auto;max-height:260px;font-size:.68rem;background:var(--bg);border-radius:10px;padding:10px"><pre style="white-space:pre-wrap">' + esc(feedXml().slice(0, 2000)) + '</pre></div></div>' +
     '<div class="form-card"><h3>🩺 Feed link check (first 15) — <span style="color:var(--green)">no localhost, all HTTPS</span></h3><div id="feedCheck" style="overflow:auto;max-height:280px;font-size:.72rem"></div></div>' +
-    '<p class="small muted" style="margin-top:6px">🔗 Product links use the classic format: <b>product.html?id=SK75279</b> — works everywhere, no extra files.</p>';
+    '<p class="small muted" style="margin-top:6px">🔗 Feed product links use the classic format: <b>product.html?id=SK75279</b> — works everywhere. Product pages load from <b>catalog.json</b> (no Firestore).</p>';
   /* 🌐 domain picker — re-render feed preview + check with the chosen domain */
   const domSel = document.getElementById('feedDomain');
   if (domSel){
@@ -1637,17 +1580,6 @@ function renderFeed(){
     toast('✅ products-feed.xml downloaded (' + count + ' products)');
   });
   document.getElementById('feedCopy').addEventListener('click', () => { copyText(feedXml()); });
-  const jsonBtn = document.getElementById('feedJsonDownload');
-  if (jsonBtn) jsonBtn.addEventListener('click', () => {
-    refreshFeedCache();
-    const blob = new Blob([feedJson()], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'catalog.json';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    toast('⚡ catalog.json downloaded — upload to site root for instant product load!');
-  });
   const txtBtn = document.getElementById('feedTxtDownload');
   if (txtBtn) txtBtn.addEventListener('click', () => {
     refreshFeedCache();
@@ -1659,17 +1591,6 @@ function renderFeed(){
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     toast('✅ google-merchant-feed.txt downloaded (' + PRODUCTS.length + ' products)');
   });
-  /* ☁️ first-time setup: push the whole catalog to Firestore so Admin reads
-     every product from Firestore (after that, ops are single-doc) */
-  const fsPush = document.getElementById('feedFsPush');
-  if (fsPush) fsPush.addEventListener('click', () => {
-    if (!FS.enabled()){ toast('🔒 Firestore not connected here (sandbox preview) — works on the live site'); return; }
-    if (!confirm('Upload all ' + PRODUCTS.length + ' products to Firestore?\n\nAdmin then reads/deletes/updates products directly in Firestore (customers still load only catalog.json).')) return;
-    try{ Sync.pushProducts(); }catch(e){}
-    toast('☁️ Uploading all ' + PRODUCTS.length + ' products to Firestore…');
-  });
-  /* ⚠️ live catalog.json sync check — tells you when the site file is old */
-  try{ checkCatalogSync(); }catch(e){}
 }
 
 /* ============================ 📈 GROWTH ============================
@@ -2168,7 +2089,6 @@ document.addEventListener('click', e => {
     const p = byId(id);
     if (!p) return;
     p.hidden = !p.hidden;
-    saveProducts(PRODUCTS); fsSaveProduct(p); refreshFeedCache(); renderProdBody();
     toast(p.hidden ? '🚫 ' + id + ' hidden — links go to home' : '👁️ ' + id + ' visible again');
     return;
   }
@@ -2178,7 +2098,6 @@ document.addEventListener('click', e => {
     const id = delp.dataset.delprod;
     PRODUCTS = PRODUCTS.filter(p => p.id !== id);
     saveProducts(PRODUCTS);
-    fsDeleteProduct(id);                    /* 🔥 Firestore: delete the doc — never comes back */
     refreshFeedCache();
     /* remove it from the Firestore cache too, so it never comes back */
     try{

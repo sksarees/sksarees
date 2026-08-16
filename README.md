@@ -645,3 +645,79 @@ Open `admin.html` → PIN **`1600`** (change it in `app-admin.js` before going l
 - 📞 **Call to Order** — new "📞 Call to Order" button on every product page (tel: +91 78679 15699) as an extra buying method.
 - ⚡ **catalog.json stays in sync** — Admin → 📦 Catalog Feed now runs a **live sync check**: it fetches the `catalog.json` actually on your site and tells you ✅ up-to-date or ⚠️ OUT OF DATE (lists missing products). Whenever you save/delete/hide/import a product, a toast reminds you to download ⬇️ `catalog.json` and upload it, so www.sksaree.shop shows new sarees instantly.
 - 🚀 **Faster load** — every page now `<link rel="preload" as="fetch">`s `catalog.json` (with `crossorigin`) at page start, so product data is ready before first paint and the preload is actually reused by the app's fetch (no double download).
+
+---
+
+## 🆕 Changelog — 2026-08-15 (architecture: Firestore + catalog.json split)
+
+- ☁️ **Admin products = Firestore only** — the Admin page now reads, adds, edits, hides and **deletes products directly in Firestore**:
+  - add / edit / hide / show → writes **that one product doc** (`FS.saveProduct`)
+  - delete (single + bulk) → **deletes that doc** (`FS.deleteProduct`) — deleted products can never come back
+  - **☁️ Upload ALL products to Firestore** button in Admin → 📦 Catalog Feed (first-time setup — push the whole catalog once, then every op is single-doc)
+- 🛍️ **Customer pages = Firestore ONLY for reviews, orders, qty** — no Firestore product reads at all:
+  - products load **only from catalog.json** (preloaded before first paint; manual refresh also re-reads catalog.json)
+  - reviews → Firestore `reviews` collection · orders → Firestore `orders` · qty → Firestore `products` doc `stock` (targeted `FieldValue.increment` per bought saree + colour stock — no whole-catalog push, no collection scan)
+- 🔥 **Quota safe**: whole-catalog product pushes removed from `saveProducts` and from order-stock (`consumeStock`) — replaced with per-doc writes.
+
+---
+
+## 🆕 Changelog — 2026-08-15 (product page buttons + WhatsApp/Facebook thumbnails)
+
+- 🔖 **Product thumbnails on WhatsApp / Facebook / Telegram shares** — every share action (WhatsApp Share, WhatsApp Share — Groups, Copy Link, FB / X / Telegram / WA / Pinterest / LinkedIn chips, WhatsApp order messages, reseller links) now uses a tiny **`share/<id>.html`** page that carries **static `og:image` / `og:title` / `twitter:card`** tags (so the saree photo thumbnail shows in the chat preview — crawlers can't run JS, so a bare `product.html?id=` can never preview) and then **instantly redirects** to `product.html?id=<id>` (keeping `?ref=` alive). `share/` pages are generated together with `catalog.json` by `tools/generate-product-pages.js`; catalog-only products use them, brand-new products fall back to the classic URL (never a 404). `product.html` also got static OG/Twitter defaults + dynamic `og:image` so even direct links preview.
+- ❌ **Removed from the product page** (per user): **Buy on WhatsApp — Instant Confirmation**, **⚡ Fast Order — WhatsApp**, **📞 Call to Order**, **🎨 Try-On — Preview Colours**, **📥 Download Photo**, **📸 Share Photo**, **📱 Instagram Share** (button + IG social chip). Kept: 🛒 Add to Cart, ⚡ Buy Now, 💬 Chat on WhatsApp, WhatsApp Share, WhatsApp Share — Groups, 🔗 Copy Link, and the FB / X / TG / WA / Pinterest / LinkedIn chips. Dead code (`fastOrderModal`, `openTryOn`, `shareProductStatus`, `shareInstaProduct`, `instaCaption`, Instagram CSS) removed.
+- ⚡ `preloadCatalog()` now loads `catalog.json` on **every** visit (it's preloaded in `<head>`, so no extra cost) and remembers the catalog ids (`__CATALOG_IDS`) — this drives the share-page fallback logic.
+
+---
+
+## 🆕 Changelog — 2026-08-15 (product/<sku>.html pretty pages — share/ folder REMOVED)
+
+- ❌ **`share/` folder removed entirely** (no more redirect pages).
+- 📄 **Every product now has its own pretty page: `product/<sku>.html`** (19 generated). Each page:
+  - **embeds the full product data** (`window.__PRODUCT_DATA`) → the saree renders with **NO catalog.json and NO Firestore** — a brand-new product only needs its `product/<sku>.html` uploaded to be live;
+  - has **static `og:image` / `og:title` / `twitter:card`** → WhatsApp / Facebook / Telegram show the **saree photo thumbnail** on shared links;
+  - `canonical` → `product.html?id=<id>` so Google sees no duplicate content.
+- 🔗 All share actions (WhatsApp Share, Groups, Copy Link, FB/X/TG/WA/Pin/LinkedIn, WhatsApp order message, reseller `?ref=`) now use `product/<sku>.html?ref=CODE`. Products without an SKU page fall back to the classic URL (never 404).
+- 🛍️ **Admin → 🛍️ Products → 📄 Generate Page(s) (Selected N)** — tick the products you want (e.g. just the new one), tap Generate, and the browser downloads each `product/SKxxxxx.html` one at a time (memory-friendly: one string built per file, object URLs revoked) — upload them into your host `product/` folder. `node tools/generate-product-pages.js` regenerates pages for ALL products + photos + catalog.json + feeds + sitemap.
+- 🔥 **No extra Firestore reads**: the pretty pages are pure static HTML — zero Firestore calls on load.
+- ⚙️ `product/` folder now contains `<sku>.html` pages + `<id>.jpg` photos side by side.
+
+---
+
+## 🆕 Changelog — 2026-08-15 (catalog.json REMOVED — simpler!)
+
+- ❌ **`catalog.json` fully removed** — the file, the download/upload buttons, the preload tags, the sync checker, the sitemap/feed entries — ALL GONE. No more "upload catalog / download catalog". The website needs **zero extra files** for products.
+- ☁️ **How customers get products now:**
+  - `product/<sku>.html` pretty pages embed the product → render instantly with **no catalog.json, no Firestore** (WhatsApp/Facebook thumbnail via og:image)
+  - Shop/Home/Cart/Checkout pull products **once per device per 24h** from Firestore (TTL-cached, ~19 reads/day/device — quota-safe), or use the local cache
+  - A product page for an unknown id does **ONE targeted Firestore doc read** (never a collection scan)
+- 📥 **Bulk upload = CSV only** — "📄 Upload CSV File (add/update)" + "⬇️ Download Products CSV (edit)" + bulk textarea. catalog.json upload/import removed.
+- 📦 **Feeds are separate** — Admin → 📦 Catalog Feed now has only the **2 ad-platform files**: `products-feed.xml` (Meta) + `google-merchant-feed.txt` (Google Merchant). Clearly labelled "the website does not need these".
+- 🛍️ **Admin → 🛍️ Products → 📄 Generate Page(s) (Selected N)** — tick products → download their `product/SKxxxxx.html` → upload to host `product/` folder. `node tools/generate-product-pages.js [products.json]` does the whole catalog at once (products.json is a local-only helper, never uploaded).
+- 🛡️ **`product/index.html` redirect added** — fixes "Not found: /sksaree/product/index.html" when anyone visits the product/ folder (redirects to shop.html).
+- 🔁 `refreshCloudProducts()` now re-pulls Firestore (TTL reset) instead of re-reading catalog.json.
+- ⚙️ Shop shows a "Loading sarees…" spinner instead of "No sarees found" while Firestore fills the grid.
+
+---
+
+## 🆕 Changelog — 2026-08-15 (products = product/<sku>.html pages ONLY)
+
+- ❌ **Firestore product pull on customer pages REMOVED** — no more "1 device → 1 day → 1 pull". Customer pages do **zero Firestore product reads**.
+- 📄 **Products live ONLY as `product/<sku>.html` pages** (19 pages, each embeds its full product + og:image). No catalog.json, no Firestore, no local jpgs.
+- 🏠 **Home/shop show ONLY products that have an SK page** — via generated `products.js` (`window.__SK_PRODUCTS`), loaded by `<script>` before data.js → instant first paint, cached, no network. Regenerate + upload it together with the product/ folder when adding products.
+- 🔗 **No `?id=` links anywhere** — every product link (cards, share, WhatsApp, feeds, sitemap, ads) = `product/<sku>.html`. `product.html?id=` still works for old links but is never emitted. SK pages are canonical to themselves.
+- 🖼️ **Product image link inserted in each `product/<sku>.html`** — absolute `https://www.sksaree.shop/images/products/….jpg` (or `product/<sku>.jpg` for admin uploads), so the page shows the photo with zero local files.
+- 🗑️ **All `product/*.jpg` and all `images/products/*` files DELETED** — the site no longer ships image files; images are absolute URLs already on the live host. (Keep those images on the host!)
+- ⚙️ `node tools/generate-product-pages.js` regenerates: SK pages + `products.js` + `product/index.html` + feeds + sitemap (all `product/<sku>.html` links). Admin → 🛍️ Products → 📄 Generate Page(s) (Selected N) for single products.
+
+---
+
+## 🆕 Changelog — 2026-08-15 (products = catalog.json ONLY · Firestore = qty/review/orders)
+
+- 🗑️ **`product/<sku>.html` pages DELETED** — no pretty pages, no products.js, no per-product files. `product/` folder has only the `index.html` redirect.
+- 📦 **Products load ONLY from `catalog.json`** — the static file ships with the site (preloaded in every `<head>`). Regenerate from **Admin → 🛍️ Products → ⬇️ Download catalog.json** and upload to your host root after any change; **📦 Upload catalog.json** imports a copy from another device/backup.
+- 🔥 **Firestore used ONLY for qty, reviews & orders** — customer pages do **zero Firestore product reads** (no 1/day pull, no targeted read, no writes). Admin product edits are local-only → download catalog.json → upload.
+- ❌ **Admin "📄 Generate Page(s)" REMOVED** (button + `generateSelectedPages`/`productPageHTML`/`pageSafeJson` + `☁️ Upload ALL products to Firestore` button + all `FS.saveProduct`/`deleteProduct` admin calls).
+- 🔗 All product links back to **classic `product.html?id=<id>`** (cards, share, WhatsApp, feeds, sitemap, ads, admin order photos) — works everywhere, no extra files.
+- 🖼️ `catalog.json` images are **absolute `https://www.sksaree.shop/images/products/….jpg`** (or `product/<sku>.jpg` for admin uploads) — no local image files needed (host keeps the photos).
+- ❌ Confirmed still REMOVED from the product page: **Buy on WhatsApp (Instant Confirmation), ⚡ Fast Order, 📞 Call to Order, 🎨 Try-On, 📥 Download Photo, 📸 Share Photo, 📱 Instagram Share** (kept: 🛒 Add to Cart · ⚡ Buy Now · 💬 Chat on WhatsApp · WhatsApp Share · WhatsApp Share — Groups · 🔗 Copy Link · social chips).
+- ⚙️ `node tools/generate-product-pages.js [products.json]` regenerates `catalog.json` + `products-feed.xml` + `google-merchant-feed.txt` + `sitemap.xml` (all classic links). `products.json` stays a local-only helper.

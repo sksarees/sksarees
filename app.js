@@ -16,10 +16,11 @@ async function init(){
   try{ setTimeout(maybeAutoDeliver, 2000); setInterval(maybeAutoDeliver, 30000); }catch(e){}
   try{ Sync.run(); }catch(e){}
   try{ setTimeout(showPriceDrops, 3500); }catch(e){}   /* wishlist price-drop alert */
-  /* ⚡ instant: load the static catalog (local file) before first render so
-     Firestore product pages appear immediately — no "Loading product…".
-     🔥 Never blocks first paint: if catalog.json is slow/unreachable, the page
-     renders after 1.2s max (product pages already have their own fast path). */
+  /* ⚡ instant: merge local product caches before first render so product
+     pages appear immediately — no "Loading product…".
+     🔥 Never blocks first paint: if a product is missing, preloadCatalog does
+     ONE targeted Firestore doc read (or the 24h TTL pull fills the grid in the
+     background) — the page renders after 1.2s max. */
   try{ await Promise.race([preloadCatalog(), new Promise(r => setTimeout(r, 1200))]); }catch(e){}
   const page = document.body.dataset.page;
   try{
@@ -187,10 +188,11 @@ function forYouHTML(){
 }
 
 /* ============================ FEED PAGE (public) ============================
-   feed.html lists every machine-readable product feed (catalog.json for instant
-   load, products-feed.xml for Meta, google-merchant-feed.txt for Google Merchant
-   Center) with download links + last-updated time. Auto-refreshes from the
-   latest feeds the admin regenerates in Admin → Catalog Feed. */
+   feed.html lists the machine-readable feeds for the AD PLATFORMS only
+   (products-feed.xml for Meta, google-merchant-feed.txt for Google Merchant
+   Center). These are SEPARATE from the website — the store itself needs no
+   feed files. Auto-refreshes from the latest feeds the admin regenerates in
+   Admin → Catalog Feed. */
 function renderFeedPage(){
   const app = document.getElementById('app'); if (!app) return;
   let base = (CONFIG.siteUrl || location.origin) + '/';
@@ -202,14 +204,13 @@ function renderFeedPage(){
     if (u) updated = new Date(u).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }catch(e){}
   const files = [
-    { name: 'catalog.json', icon: '⚡', desc: 'Instant product load — powers every product page. Upload to your site root.', url: 'catalog.json', meta: 'JSON · ' + feedCount + ' products' },
     { name: 'products-feed.xml', icon: '📦', desc: 'Facebook / Instagram Shopping catalogue (Meta Commerce Manager → Data source → Product feed).', url: 'products-feed.xml', meta: 'XML · RSS 2.0 + Google namespace' },
     { name: 'google-merchant-feed.txt', icon: '🛒', desc: 'Google Merchant Center product feed — submit this URL in GMC → Products → Feeds.', url: 'google-merchant-feed.txt', meta: 'TXT · TSV, exact Google columns' },
   ];
   app.innerHTML =
     '<div class="wrap page">' +
-      '<h1>📦 SK Sarees — Product Feeds</h1>' +
-      '<p class="muted small" style="max-width:60ch">Machine-readable catalog files so <b>Google Shopping, Meta (Facebook/Instagram)</b> and this website always show your latest sarees. Regenerate in <a href="admin.html#feed" style="color:var(--maroon);font-weight:800">Admin → Catalog Feed</a> and upload to your hosting root.</p>' +
+      '<h1>📦 SK Sarees — Product Feeds (Meta & Google)</h1>' +
+      '<p class="muted small" style="max-width:60ch">These 2 files are <b>only for advertising platforms</b> — <b>the website does not need them</b>. Use <b>Admin → 📦 Catalog Feed</b> to download the latest and connect them to <b>Meta (Facebook/Instagram)</b> and <b>Google Merchant Center</b>.</p>' +
       '<div class="pd-block" style="margin-top:14px"><h3>🕒 Last updated: <span style="color:var(--maroon)">' + esc(updated) + '</span></h3>' +
         '<p class="small muted">Products in feed: <b>' + feedCount + '</b> • Site: <a href="' + esc(base) + '" style="color:var(--maroon)">' + esc(base) + '</a></p></div>' +
       '<div style="display:grid;gap:12px;margin-top:14px">' + files.map(f =>
@@ -220,12 +221,12 @@ function renderFeedPage(){
             '<small class="muted">' + esc(f.desc) + '</small><br>' +
             '<small style="color:var(--green);font-weight:700">' + esc(f.meta) + '</small>' +
           '</div>' +
-          '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:120px" href="' + esc(f.url) + '" download>' + (f.url === 'catalog.json' ? '⚡ Download' : '⬇️ Download') + '</a>' +
+          '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:120px" href="' + esc(f.url) + '" download>⬇️ Download</a>' +
         '</div>').join('') + '</div>' +
       '<div class="pd-block" style="margin-top:16px"><h3>📋 How to connect</h3>' +
         '<ol class="small" style="line-height:1.9;padding-left:20px">' +
-          '<li>Open <b>Admin → Catalog Feed</b>, save a product or tap "💾 Save feeds to this browser" — the 3 files regenerate automatically.</li>' +
-          '<li>Download &amp; upload them to your hosting root (same folder as index.html).</li>' +
+          '<li>Open <b>Admin → 📦 Catalog Feed</b>, tap the download buttons — the 2 feed files regenerate automatically whenever you save a product.</li>' +
+          '<li>Upload them to your hosting root (same folder as index.html).</li>' +
           '<li><b>Google Merchant Center:</b> Products → Feeds → add primary feed → choose <i>Google Sheets or scheduled fetch</i> → paste <b>' + esc(base + 'google-merchant-feed.txt') + '</b> → set refresh to daily (auto-update).</li>' +
           '<li><b>Meta:</b> Commerce Manager → Data sources → Product feed → paste <b>' + esc(base + 'products-feed.xml') + '</b>.</li>' +
           '<li>Submit <a href="sitemap.xml" style="color:var(--maroon)">sitemap.xml</a> in Google Search Console for fast page discovery.</li>' +
@@ -312,8 +313,8 @@ function dealOfDayHTML(){
     return '<div class="deal-day"><div class="dd-left"><span class="dd-badge">🔥 DEAL OF THE DAY</span>' +
       '<h3>' + esc(deal.name) + '</h3>' +
       '<div class="price-row"><b>' + money(deal.price) + '</b>' + (deal.mrp ? '<s>' + money(deal.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="product.html?id=' + encodeURIComponent(deal.id) + '">🛒 Grab It Now</a></div>' +
-      '<a class="dd-img" href="product.html?id=' + encodeURIComponent(deal.id) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>';
+      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="' + productUrl(deal) + '">🛒 Grab It Now</a></div>' +
+      '<a class="dd-img" href="' + productUrl(deal) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>';
   }catch(e){ return ''; }
 }
 
@@ -806,87 +807,14 @@ function updateShopList(){
   const visible = shopState.list.slice(0, shopState.shown);
   grid.innerHTML = visible.map(cardHTML).join('');
   const cl = document.getElementById('countLbl'); if (cl) cl.textContent = shopState.list.length + ' sarees';
-  const empty = document.getElementById('empty'); if (empty) empty.style.display = visible.length ? 'none' : 'block';
+  const empty = document.getElementById('empty'); if (empty){
+    if (visible.length){ empty.style.display = 'none'; }
+    else {
+      empty.style.display = 'block';
+      empty.innerHTML = '<div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.';
+    }
+  }
   const lm = document.getElementById('loadMore'); if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';
-}
-
-/* ============================ FAST ORDER (ads → WhatsApp, no friction) ============================
-   Ad visitors often bounce at full checkout. Fast Order asks ONLY name + phone,
-   then opens WhatsApp with the full order — the seller confirms & closes. */
-function fastOrderModal(p){
-  try{
-    if (!p) return;
-    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">⚡ Fast Order — 30 seconds</h2>' +
-      '<p class="small muted" style="margin-bottom:10px">Just your name &amp; number — we will confirm on WhatsApp. <b>No payment needed now.</b></p>' +
-      '<div style="display:flex;gap:8px;align-items:center;background:var(--bg);border-radius:10px;padding:8px;margin-bottom:10px"><img src="' + esc(p.img) + '" style="width:52px;height:40px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(p.name) + '</b><br><small class="muted">' + money(p.price) + (p.mrp ? ' <s>' + money(p.mrp) + '</s>' : '') + '</small></div></div>' +
-      '<div class="field"><label>Your Name *</label><input id="foName" value="' + esc((Store.profile || {}).name || '') + '" placeholder="e.g. Lakshmi"></div>' +
-      '<div class="field"><label>WhatsApp / Mobile *</label><input id="foPhone" value="' + esc((Store.profile || {}).phone || '') + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
-      '<button type="button" class="btn btn-maroon" id="foGo" style="margin-top:4px">💬 Confirm on WhatsApp</button>');
-    document.getElementById('foGo').addEventListener('click', () => {
-      const nm = document.getElementById('foName').value.trim();
-      const ph = document.getElementById('foPhone').value.trim();
-      if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
-      /* save customer */
-      try{
-        Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || nm || '', phone: ph });
-        Store.saveProfile(); saveCoDraft();
-        renderHeader();
-        autoRegisterReseller(nm, ph);   /* 🤝 auto-reseller: every share link now carries this user's code */
-      }catch(e){}
-      const msg = '⚡ Fast Order — SK Sarees\n\n🪡 ' + p.name + ' — ' + money(p.price) + '\n👤 ' + (nm || 'Customer') + '\n📱 ' + ph + '\n\nPlease confirm my order. Thank you!';
-      try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
-      closeModal();
-      toast('✅ WhatsApp opened — send it!');
-    });
-  }catch(e){}
-}
-
-/* 🎨 AI-style colour preview — see the saree design in other shades (try-on feel) */
-const TRY_COLORS = [
-  { n:'Classic', css:'' }, { n:'Red', css:'hue-rotate(0deg) saturate(1.1)' },
-  { n:'Maroon', css:'hue-rotate(-18deg) saturate(1.05) brightness(.92)' },
-  { n:'Gold', css:'hue-rotate(35deg) saturate(1.4) brightness(1.08)' },
-  { n:'Green', css:'hue-rotate(90deg) saturate(1.15)' },
-  { n:'Blue', css:'hue-rotate(160deg) saturate(1.1)' },
-  { n:'Purple', css:'hue-rotate(230deg) saturate(1.1)' },
-  { n:'Pink', css:'hue-rotate(-30deg) saturate(1.15) brightness(1.05)' },
-  { n:'Peacock', css:'hue-rotate(120deg) saturate(1.2)' },
-];
-function openTryOn(p){
-  try{
-    if (!p) return;
-    const img = p.img || (p.images || [])[0];
-    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:4px">🎨 Try-On Preview</h2>' +
-      '<p class="small muted" style="margin-bottom:10px">See how <b>' + esc(p.name) + '</b> looks in other shades — tap a colour!</p>' +
-      '<div style="text-align:center;background:var(--bg);border-radius:14px;padding:12px">' +
-        '<img id="tryImg" src="' + esc(img) + '" alt="Try-on preview" style="max-height:280px;width:auto;border-radius:12px;transition:filter .3s">' +
-      '</div>' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px">' +
-        TRY_COLORS.map((c, i) => '<button type="button" class="try-swatch' + (i === 0 ? ' on' : '') + '" data-try="' + i + '" style="background:' + swatchBg(c.css) + '"><span>' + c.n + '</span></button>').join('') +
-      '</div>' +
-      '<p class="small muted" style="text-align:center;margin-top:10px">💡 Colour may vary by screen. Ask us on WhatsApp for real photos.</p>');
-    document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click', () => {
-      const c = TRY_COLORS[+b.dataset.try];
-      const im = document.getElementById('tryImg');
-      if (im) im.style.filter = c.css;
-      document.querySelectorAll('[data-try]').forEach(x => x.classList.toggle('on', x === b));
-    }));
-  }catch(e){}
-}
-function swatchBg(css){
-  if (!css) return 'linear-gradient(135deg,#eee,#fff)';
-  /* approximate swatch color per hue — keep simple: return a tint */
-  const map = {
-    'hue-rotate(0deg) saturate(1.1)':'#d0342c',
-    'hue-rotate(-18deg) saturate(1.05) brightness(.92)':'#8f1d3a',
-    'hue-rotate(35deg) saturate(1.4) brightness(1.08)':'#c99a2e',
-    'hue-rotate(90deg) saturate(1.15)':'#1d8a4e',
-    'hue-rotate(160deg) saturate(1.1)':'#1565c0',
-    'hue-rotate(230deg) saturate(1.1)':'#6a1b9a',
-    'hue-rotate(-30deg) saturate(1.15) brightness(1.05)':'#e91e63',
-    'hue-rotate(120deg) saturate(1.2)':'#00695c',
-  };
-  return map[css] || '#ddd';
 }
 
 /* ============================ TRUST + ENGAGEMENT HELPERS ============================ */
@@ -967,10 +895,9 @@ function renderProduct(){
     }catch(e){}
   }
   if (!p){
-    /* ⚡ catalog.json ONLY: the static catalog (merged on every visit) + local
-       cache are the ONLY product sources — NO Firestore product reads at all.
-       We still await the static catalog for a moment (local file, near-instant);
-       if it's not there either, show a clean not-found with a shop link. */
+    /* ⚡ products load ONLY from catalog.json (preloaded in <head>) + local
+       cache — no Firestore reads on customer pages. preloadCatalog merges
+       them instantly; if it's still missing, show a clean not-found. */
     let done = false;
     const finish = (prod) => {
       if (done) return; done = true;
@@ -1078,31 +1005,23 @@ function renderProduct(){
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
           (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-btns" style="margin-top:10px">' +
-          '<button type="button" class="btn btn-wa2 btn-xl" id="foOpen">⚡ Fast Order — WhatsApp</button>' +
           '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I have a question about: ' + p.name + ' (' + money(p.price) + ') — is it available?') + '" target="_blank" rel="noopener">💬 Chat on WhatsApp</a>' +
-          '<a class="btn btn-ghost btn-xl" href="tel:+917867915699">📞 Call to Order</a>' +
-          '<button type="button" class="btn btn-outline btn-xl" id="tryOpen">🎨 Try-On — Preview Colours</button>' +
         '</div>' +
         '<div class="pd-share">' +
           '<button type="button" class="btn btn-wa btn-sm" data-share-wa="' + esc(p.id) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Share</button>' +
           '<button type="button" class="btn btn-maroon btn-sm" data-viral="' + esc(p.id) + '">📢 ' + (lang === 'ta' ? 'வாட்ஸ்அப் குரூப்பில் பகிர்' : 'WhatsApp Share — Groups') + '</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-dl-photo="' + esc(p.img) + '">📥 Download Photo</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Share Photo</button>' +
-          '<button type="button" class="btn btn-insta btn-sm" data-share-insta="' + esc(p.id) + '">📱 Instagram Share</button>' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(shareUrl(p)) + '">🔗 Copy Link</button>' +
         '</div>' +
         '<div class="pd-social">' +
           '<span class="small muted" style="font-weight:800">📤 Share to:</span>' +
-          '<a class="soc soc-fb" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on Facebook">FB</a>' +
-          '<a class="soc soc-x" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on X (Twitter)">𝕏</a>' +
-          '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
-          '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + productUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
-          '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(productUrl(p)) + '&media=' + encodeURIComponent(p.img || '') + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
-          '<a class="soc soc-insta" href="#" data-share-insta="' + esc(p.id) + '" title="Share on Instagram" style="color:#fff">IG</a>' +
-          '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
+          '<a class="soc soc-fb" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl(p)) + '" target="_blank" rel="noopener" title="Share on Facebook">FB</a>' +
+          '<a class="soc soc-x" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(shareUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on X (Twitter)">𝕏</a>' +
+          '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(shareUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
+          '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + shareUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
+          '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(shareUrl(p)) + '&media=' + encodeURIComponent(absImg(p.img)) + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
+          '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(shareUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
         '</div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
@@ -1145,6 +1064,12 @@ function renderProduct(){
     if (ogt) ogt.setAttribute('content', document.title);
     const ogd = document.querySelector('meta[property="og:description"]');
     if (ogd && p.desc) ogd.setAttribute('content', String(p.desc).slice(0, 150));
+    /* 🔖 product thumbnail for in-app previews — keeps the live page's og:image
+       in sync so shares show the saree photo when the crawler follows the link. */
+    const ogi = document.querySelector('meta[property="og:image"]');
+    if (ogi && p.img) ogi.setAttribute('content', absImg(p.img));
+    const twi = document.querySelector('meta[name="twitter:image"]');
+    if (twi && p.img) twi.setAttribute('content', absImg(p.img));
   }catch(e){}
   /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
@@ -1232,7 +1157,7 @@ function shareWaProduct(p){
    falls back to the universal wa.me link. Works on mobile + desktop. */
 function viralShareProduct(p){
   if (!p) return;
-  const url = productUrl(p);
+  const url = shareUrl(p);   /* 🔖 share page → WhatsApp/FB show the photo thumbnail */
   const off = offPct(p);
   const msg =
     '🪡 ** சேலை பாருங்க! ** சேலை பாருங்க! 🎉\n\n' +
@@ -1254,61 +1179,6 @@ function viralShareProduct(p){
   try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 /* share the saree PHOTO to WhatsApp Status (mobile: image → long-press → WhatsApp → My Status) */
-async function shareProductStatus(p){
-  if (!p) return;
-  const imgUrl = p.img || ((p.images || [])[0]);
-  if (!imgUrl){ toast('⚠️ No photo to share'); return; }
-  /* try the Web Share API with the actual image file (mobile status picker) */
-  try{
-    if (navigator.canShare){
-      const blob = await fetch(imgUrl).then(r => r.blob()).catch(() => null);
-      if (blob){
-        const file = new File([blob], 'saree.jpg', { type: (blob.type || 'image/jpeg') });
-        if (navigator.canShare({ files: [file] })){
-          await navigator.share({ files: [file], title: p.name, text: p.name + ' — SK Sarees' });
-          return;
-        }
-      }
-    }
-  }catch(e){ /* user cancelled or API failed — fall through */ }
-  /* fallback: open the photo full-size → long-press → Share → WhatsApp Status */
-  try{ window.open(imgUrl, '_blank'); }catch(e){}
-  toast('📸 Photo opened — long-press it → Share → WhatsApp Status');
-}
-/* 📱 INSTAGRAM SHARE — another way customers discover & buy: share the saree
-   photo + price + link to Instagram Story/DM/Reel. Instagram has no web share
-   intent, so we try the native share sheet with the actual photo first, then
-   copy an Instagram-ready caption and open the Instagram app. */
-function instaCaption(p){
-  try{
-    const off = offPct(p);
-    const tag = (p.cat || '').replace(/[^a-z0-9]/gi, '');
-    return '✨ ' + p.name + '\n💰 ' + money(p.price) + (off ? ' (' + off + '% OFF)' : '') + '\n📍 ' + (CONFIG.storeName || 'SK Sarees') + ' — Salem, Tamil Nadu\n💵 COD & UPI available • 🚚 fast delivery\n👉 Order: ' + shareUrl(p) + '\n\n#SKSarees #Saree' + (tag ? ' #' + tag : '') + ' #TamilNadu #SareeShopping';
-  }catch(e){ return '✨ ' + p.name + ' — ' + money(p.price) + '\n👉 ' + shareUrl(p); }
-}
-async function shareInstaProduct(p){
-  if (!p) return;
-  const imgUrl = p.img || ((p.images || [])[0]);
-  const caption = instaCaption(p);
-  /* 1) native share sheet WITH the photo → user picks Instagram (mobile) */
-  try{
-    if (imgUrl && navigator.canShare){
-      const blob = await fetch(imgUrl).then(r => r.blob()).catch(() => null);
-      if (blob){
-        const file = new File([blob], 'saree.jpg', { type: (blob.type || 'image/jpeg') });
-        if (navigator.canShare({ files: [file] })){
-          await navigator.share({ files: [file], title: p.name, text: caption });
-          return;
-        }
-      }
-    }
-  }catch(e){ /* cancelled / unsupported — fall through */ }
-  /* 2) fallback: copy the caption (photo + price + link) and open Instagram */
-  copyText(caption);
-  try{ window.open('https://www.instagram.com/', '_blank', 'noopener'); }catch(e){}
-  toast('📸 Caption copied — open Instagram & paste it in your Story / DM!');
-}
-
 /* ============================ CART ============================ */
 function renderCartPage(){
   const app = document.getElementById('app'); if (!app) return;
@@ -2127,8 +1997,8 @@ function showDetail(o){
   const items = (o.items || []).map(i => {
     const p = byId(i.id);
     return '<div style="display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:11px;padding:10px;margin-bottom:8px">' +
-      '<a href="product.html?id=' + encodeURIComponent(i.id) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
-      '<div style="flex:1;min-width:0"><a href="product.html?id=' + encodeURIComponent(i.id) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
+      '<a href="' + (p ? productUrl(p) : ('product.html?id=' + encodeURIComponent(i.id))) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
+      '<div style="flex:1;min-width:0"><a href="' + (p ? productUrl(p) : ('product.html?id=' + encodeURIComponent(i.id))) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
       (i.colour ? '<small class="muted">🎨 ' + esc(i.colour) + '</small><br>' : '') +
       '<small class="muted">' + money(i.price) + ' × ' + i.qty + '</small></div><b>' + money(i.price * i.qty) + '</b></div>';
   }).join('');
@@ -2507,12 +2377,6 @@ document.addEventListener('click', function(e){
   if (cwa){ e.preventDefault(); doWaOrder(); return; }
   const copy = e.target.closest('[data-copy]');
   if (copy){ e.preventDefault(); copyText(copy.dataset.copy); return; }
-  /* 🎨 try-on preview */
-  const tr = e.target.closest('#tryOpen');
-  if (tr){ e.preventDefault(); openTryOn(byId(currentProductId())); return; }
-  /* ⚡ fast order */
-  const fo = e.target.closest('#foOpen');
-  if (fo){ e.preventDefault(); fastOrderModal(byId(currentProductId())); return; }
   /* 🔁 order again */
   const pn = e.target.closest('[data-paynow]');
   if (pn){ e.preventDefault(); openPendingPay(Store.orders.find(x => x.id === pn.dataset.paynow) || null); return; }
@@ -2540,28 +2404,6 @@ document.addEventListener('click', function(e){
   /* 📢 viral share to WhatsApp groups */
   const vl = e.target.closest('[data-viral]');
   if (vl){ e.preventDefault(); viralShareProduct(byId(vl.dataset.viral)); return; }
-  /* 📥 download saree photo */
-  const dlp = e.target.closest('[data-dl-photo]');
-  if (dlp){
-    e.preventDefault();
-    const url = dlp.dataset.dlPhoto;
-    try{
-      fetch(url).then(r => r.blob()).then(blob => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sk-sarees-photo.jpg';
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-      }).catch(() => { try{ window.open(url, '_blank'); }catch(e2){} });
-    }catch(err){ try{ window.open(url, '_blank'); }catch(e2){} }
-    return;
-  }
-  /* 📸 share saree photo on WhatsApp status */
-  const ss = e.target.closest('[data-share-status]');
-  if (ss){ e.preventDefault(); shareProductStatus(byId(ss.dataset.shareStatus)); return; }
-  /* 📱 share saree on Instagram (story / DM / reel) */
-  const isa = e.target.closest('[data-share-insta]');
-  if (isa){ e.preventDefault(); shareInstaProduct(byId(isa.dataset.shareInsta)); return; }
   /* 📍 PIN code delivery check */
   const pcb = e.target.closest('#pinCheckBtn');
   if (pcb){
