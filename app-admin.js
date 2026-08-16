@@ -180,6 +180,7 @@ let orderSearch = '';   /* Orders tab: search query (id / customer / phone) */
 const ORDER_PAGE_SIZE = 10;
 let prodSearch = '';         /* Products tab: search query */
 let prodPage = 1;            /* Products tab: pagination */
+let prodCategory = 'all';     /* Products category filter */
 const PROD_PAGE_SIZE = 10;
 let revPage = 1;             /* Reviews tab: pagination */
 const REV_PAGE_SIZE = 10;
@@ -187,7 +188,7 @@ const REV_PAGE_SIZE = 10;
 function renderAdmin(){
   const app = document.getElementById('adminApp'); if (!app) return;
   app.innerHTML =
-    '<div class="admin-top"><h1>🛠️ SK Sarees — Admin</h1>' +
+    '<div class="admin-top"><div><span class="admin-eyebrow">SK SAREES • STORE CONTROL</span><h1>Store Admin</h1><p class="admin-sub">Orders, products and customer tools — all in one place.</p></div>' +
     '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-outline btn-sm" id="btnAlerts" style="width:auto;min-width:0;padding:5px 10px;font-size:.72rem">🔔 Order Alerts</button><span class="sync-pill online" id="cloudPill">💾 Saved on device</span></div></div>' +
     '<div class="admin-tabs">' +
       '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
@@ -658,10 +659,11 @@ function renderProducts(){
   document.getElementById('tabBody').innerHTML =
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
-      '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Upload</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Add</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="btnChangeCategory" style="flex:1;min-width:150px">🏷️ Change Category</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
-    '<input id="prodSearch" type="search" placeholder="🔍 Search products — name, SKU, category, colour…" autocomplete="off" value="' + esc(prodSearch) + '" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:#fff;outline:none;margin-bottom:10px;font-size:15px">' +
+    '<div class="product-toolbar"><input id="prodSearch" type="search" placeholder="🔍 Search name, SKU or colour…" autocomplete="off" value="' + esc(prodSearch) + '"><select id="prodCategory"><option value="all">All categories</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '"' + (prodCategory === c.slug ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select></div>' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
       '<p class="small muted" style="margin:6px 0">One product per line — <b>Name, Price, MRP, Image URL, Category, Badge</b> (SKU auto-generated <b>SK20001, SK20002…</b>). Or just paste an <b>image URL</b> alone — name &amp; price are auto-filled. <b>🎨 Colours are auto-detected from each photo.</b></p>' +
@@ -713,6 +715,8 @@ function renderProducts(){
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   });
   document.getElementById('prodSearch').addEventListener('input', e => { prodSearch = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('prodCategory').addEventListener('change', e => { prodCategory = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('btnChangeCategory').addEventListener('click', openBulkCategoryChange);
   document.getElementById('btnDelSel').addEventListener('click', () => {
     const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
     if (!sel.length){ toast('⚠️ Select products first'); return; }
@@ -730,9 +734,8 @@ function renderProducts(){
 }
 /* filter by the search box (name, SKU, category, colour) */
 function filteredProds(){
-  if (!prodSearch) return PRODUCTS;
   const q = prodSearch.toLowerCase();
-  return PRODUCTS.filter(p => String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q));
+  return PRODUCTS.filter(p => (prodCategory === 'all' || p.cat === prodCategory) && (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)));
 }
 /* show FIRST 10 products, "Load More" → next 10 */
 function renderProdBody(){
@@ -760,6 +763,18 @@ function renderProdBody(){
   const selAll = document.getElementById('prodSelAll');
   if (selAll) selAll.checked = visible.length > 0 && document.querySelectorAll('.prod-sel:checked').length === visible.length;
   updateDelSelCount();
+}
+function openBulkCategoryChange(){
+  const selected = Array.from(document.querySelectorAll('.prod-sel:checked')).map(x => x.value);
+  if (!selected.length){ toast('⚠️ முதலில் products select செய்யுங்கள்'); return; }
+  const opts = CATEGORIES.map(c => '<option value="' + esc(c.slug) + '">' + esc(c.name) + '</option>').join('');
+  openModal('<h2 style="font-size:1.1rem;margin-bottom:7px">🏷️ Change Product Category</h2><p class="small muted" style="margin-bottom:12px">' + selected.length + ' selected products will move to this category.</p><div class="field"><label>New Category</label><select id="bulkCategorySelect">' + opts + '</select></div><button type="button" id="saveBulkCategory" class="btn btn-maroon">✅ Update ' + selected.length + ' Products</button>');
+  document.getElementById('saveBulkCategory').addEventListener('click', () => {
+    const cat = document.getElementById('bulkCategorySelect').value;
+    PRODUCTS.forEach(p => { if (selected.includes(p.id)) p.cat = cat; });
+    saveProducts(PRODUCTS); refreshFeedCache(); closeModal(); prodPage = 1; renderProdBody();
+    toast('✅ ' + selected.length + ' products category updated');
+  });
 }
 function updateDelSelCount(){
   const c = document.getElementById('delSelCount');
