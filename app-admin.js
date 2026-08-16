@@ -1817,7 +1817,7 @@ function renderAbandonedList(list){
     const when = r.time ? fmtDT(r.time) : '—';
     const hasSub = !!(r.sub && r.sub.endpoint);
     const cartUrl = location.origin + location.pathname.replace(/[^/]*$/, '') + 'cart.html';
-    const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items + '\n\n🎟️ Use coupon CART50 for ₹50 off — offer valid today!\n\n👉 Complete your order: ' + cartUrl + '\n\nHappy shopping! 😊';
+    const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items + '\n\n🎟️ Use coupon CARTOFFER for 1% off — offer valid today!\n\n👉 Complete your order: ' + cartUrl + '\n\nHappy shopping! 😊';
     return '<div class="order-card">' +
       '<div class="oc-top"><b>🧺 Abandoned cart</b><span class="status-pill ' + (hasSub ? 'status-delivered' : 'status-placed') + '">' + (hasSub ? '🔔 Push ready' : 'No push sub') + '</span></div>' +
       '<div class="oc-items">' + when + (r.phone ? ' • 📱 ' + esc(r.phone) : '') + '<br>' + items + '<br><b>' + money(r.total || 0) + '</b></div>' +
@@ -1838,7 +1838,7 @@ async function sendPushTo(i){
   const all = allAbandoned();
   const r = all[i]; if (!r) return;
   const items = (r.items || []).map(it => esc(it.name) + ' ×' + it.qty).join(', ');
-  const payload = JSON.stringify({ title: '🧺 Your saree cart is waiting!', body: items + ' — use coupon CART50 for ₹50 off.', url: './cart.html' });
+  const payload = JSON.stringify({ title: '🧺 Your saree cart is waiting!', body: items + ' — use coupon CARTOFFER for 1% off.', url: './cart.html' });
   try{
     if (!(r.sub && r.sub.endpoint)) throw new Error('No push subscription');
     await webPushSend(r.sub, payload);
@@ -1938,10 +1938,10 @@ document.addEventListener('click', e => {
     /* mark Inactive in Firestore so pulls skip it */
     try{
       if (FS.enabled()){
-        FS._getDb().then(db => { if (db) db.collection('products').doc(String(id)).set({ status: 'Inactive', deletedAt: Date.now() }, { merge: true }).catch(() => {}); }).catch(() => {});
+        FS._getDb().then(db => { if (db) db.collection('products').doc(String(id)).delete().catch(() => {}); }).catch(() => {});
       }
     }catch(e){}
-    prodPage = 1; renderProdBody(); toast('🗑️ Deleted');
+    prodPage = 1; renderProdBody(); toast('🗑️ Deleted from Admin + Firestore. Download and upload catalog.json to remove it for customers too.');
     return;
   }
   const delo = e.target.closest('[data-delorder]');
@@ -1950,7 +1950,7 @@ document.addEventListener('click', e => {
     if (!confirm('Delete order ' + id + '? This cannot be undone.')) return;
     try{ Store.orders = Store.orders.filter(o => o.id !== id); Store.saveOrders(); }catch(e){}
     try{ fsOrders = (fsOrders || []).filter(o => o.id !== id); }catch(e){}
-    try{ if (FS.enabled()) FS._getDb().then(db => { if (db) db.collection('orders').doc(String(id)).delete().catch(()=>{}); }).catch(()=>{}); }catch(e){}
+    try{ if (FS.enabled()) FS._getDb().then(db => { if (db) db.collection('orders').doc(String(id)).delete().then(()=>toast('🗑️ Order deleted from Firestore')).catch(()=>toast('⚠️ Firestore delete failed — check internet')); }).catch(()=>{}); }catch(e){}
     renderFilters(); renderOrderList(); toast('🗑️ Order deleted'); return;
   }
   const delr = e.target.closest('[data-delreview]');

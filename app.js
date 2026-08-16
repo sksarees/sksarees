@@ -1764,6 +1764,7 @@ function orderCard(o){
     statusTrack(o) +
     '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
     '<button type="button" class="btn btn-outline btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button>' +
+    ((o.payment === 'upi' && !o.paidConfirmed) ? '<button type="button" class="btn btn-gold btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">📲 Pay / QR</button>' : '') +
     '<button type="button" class="btn btn-maroon btn-sm" style="flex:1;min-width:130px" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
     '</div></div>';
 }
