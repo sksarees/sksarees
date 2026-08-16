@@ -16,10 +16,11 @@ async function init(){
   try{ setTimeout(maybeAutoDeliver, 2000); setInterval(maybeAutoDeliver, 30000); }catch(e){}
   try{ Sync.run(); }catch(e){}
   try{ setTimeout(showPriceDrops, 3500); }catch(e){}   /* wishlist price-drop alert */
-  /* ⚡ instant: load the static catalog (local file) before first render so
-     Firestore product pages appear immediately — no "Loading product…".
-     🔥 Never blocks first paint: if catalog.json is slow/unreachable, the page
-     renders after 1.2s max (product pages already have their own fast path). */
+  /* ⚡ instant: merge local product caches before first render so product
+     pages appear immediately — no "Loading product…".
+     🔥 Never blocks first paint: if a product is missing, preloadCatalog does
+     ONE targeted Firestore doc read (or the 24h TTL pull fills the grid in the
+     background) — the page renders after 1.2s max. */
   try{ await Promise.race([preloadCatalog(), new Promise(r => setTimeout(r, 1200))]); }catch(e){}
   const page = document.body.dataset.page;
   try{
@@ -33,6 +34,15 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
+  try{ startBuyTicker(); }catch(e){}      /* 🔥 live buying ticker */
+  try{
+    const fs2 = document.getElementById('funSpin'); if (fs2) fs2.addEventListener('click', () => openLuckySpin());
+    const fq = document.getElementById('funQuiz'); if (fq) fq.addEventListener('click', () => openStyleQuiz());
+    const fg = document.getElementById('funGame'); if (fg) fg.addEventListener('click', () => openMatchGame());
+  }catch(e){}
+  try{ renderStyleTip(); }catch(e){}
+  try{ tickFestivalCountdownStrip(); }catch(e){}
+  try{ tickFlashProducts(); setInterval(tickFlashProducts, 1000); }catch(e){}
   try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -178,10 +188,11 @@ function forYouHTML(){
 }
 
 /* ============================ FEED PAGE (public) ============================
-   feed.html lists every machine-readable product feed (catalog.json for instant
-   load, products-feed.xml for Meta, google-merchant-feed.txt for Google Merchant
-   Center) with download links + last-updated time. Auto-refreshes from the
-   latest feeds the admin regenerates in Admin → Catalog Feed. */
+   feed.html lists the machine-readable feeds for the AD PLATFORMS only
+   (products-feed.xml for Meta, google-merchant-feed.txt for Google Merchant
+   Center). These are SEPARATE from the website — the store itself needs no
+   feed files. Auto-refreshes from the latest feeds the admin regenerates in
+   Admin → Catalog Feed. */
 function renderFeedPage(){
   const app = document.getElementById('app'); if (!app) return;
   let base = (CONFIG.siteUrl || location.origin) + '/';
@@ -193,14 +204,13 @@ function renderFeedPage(){
     if (u) updated = new Date(u).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }catch(e){}
   const files = [
-    { name: 'catalog.json', icon: '⚡', desc: 'Instant product load — powers every product page. Upload to your site root.', url: 'catalog.json', meta: 'JSON · ' + feedCount + ' products' },
     { name: 'products-feed.xml', icon: '📦', desc: 'Facebook / Instagram Shopping catalogue (Meta Commerce Manager → Data source → Product feed).', url: 'products-feed.xml', meta: 'XML · RSS 2.0 + Google namespace' },
     { name: 'google-merchant-feed.txt', icon: '🛒', desc: 'Google Merchant Center product feed — submit this URL in GMC → Products → Feeds.', url: 'google-merchant-feed.txt', meta: 'TXT · TSV, exact Google columns' },
   ];
   app.innerHTML =
     '<div class="wrap page">' +
-      '<h1>📦 SK Sarees — Product Feeds</h1>' +
-      '<p class="muted small" style="max-width:60ch">Machine-readable catalog files so <b>Google Shopping, Meta (Facebook/Instagram)</b> and this website always show your latest sarees. Regenerate in <a href="admin.html#feed" style="color:var(--maroon);font-weight:800">Admin → Catalog Feed</a> and upload to your hosting root.</p>' +
+      '<h1>📦 SK Sarees — Product Feeds (Meta & Google)</h1>' +
+      '<p class="muted small" style="max-width:60ch">These 2 files are <b>only for advertising platforms</b> — <b>the website does not need them</b>. Use <b>Admin → 📦 Catalog Feed</b> to download the latest and connect them to <b>Meta (Facebook/Instagram)</b> and <b>Google Merchant Center</b>.</p>' +
       '<div class="pd-block" style="margin-top:14px"><h3>🕒 Last updated: <span style="color:var(--maroon)">' + esc(updated) + '</span></h3>' +
         '<p class="small muted">Products in feed: <b>' + feedCount + '</b> • Site: <a href="' + esc(base) + '" style="color:var(--maroon)">' + esc(base) + '</a></p></div>' +
       '<div style="display:grid;gap:12px;margin-top:14px">' + files.map(f =>
@@ -211,12 +221,12 @@ function renderFeedPage(){
             '<small class="muted">' + esc(f.desc) + '</small><br>' +
             '<small style="color:var(--green);font-weight:700">' + esc(f.meta) + '</small>' +
           '</div>' +
-          '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:120px" href="' + esc(f.url) + '" download>' + (f.url === 'catalog.json' ? '⚡ Download' : '⬇️ Download') + '</a>' +
+          '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:120px" href="' + esc(f.url) + '" download>⬇️ Download</a>' +
         '</div>').join('') + '</div>' +
       '<div class="pd-block" style="margin-top:16px"><h3>📋 How to connect</h3>' +
         '<ol class="small" style="line-height:1.9;padding-left:20px">' +
-          '<li>Open <b>Admin → Catalog Feed</b>, save a product or tap "💾 Save feeds to this browser" — the 3 files regenerate automatically.</li>' +
-          '<li>Download &amp; upload them to your hosting root (same folder as index.html).</li>' +
+          '<li>Open <b>Admin → 📦 Catalog Feed</b>, tap the download buttons — the 2 feed files regenerate automatically whenever you save a product.</li>' +
+          '<li>Upload them to your hosting root (same folder as index.html).</li>' +
           '<li><b>Google Merchant Center:</b> Products → Feeds → add primary feed → choose <i>Google Sheets or scheduled fetch</i> → paste <b>' + esc(base + 'google-merchant-feed.txt') + '</b> → set refresh to daily (auto-update).</li>' +
           '<li><b>Meta:</b> Commerce Manager → Data sources → Product feed → paste <b>' + esc(base + 'products-feed.xml') + '</b>.</li>' +
           '<li>Submit <a href="sitemap.xml" style="color:var(--maroon)">sitemap.xml</a> in Google Search Console for fast page discovery.</li>' +
@@ -303,8 +313,8 @@ function dealOfDayHTML(){
     return '<div class="deal-day"><div class="dd-left"><span class="dd-badge">🔥 DEAL OF THE DAY</span>' +
       '<h3>' + esc(deal.name) + '</h3>' +
       '<div class="price-row"><b>' + money(deal.price) + '</b>' + (deal.mrp ? '<s>' + money(deal.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="product.html?id=' + encodeURIComponent(deal.id) + '">🛒 Grab It Now</a></div>' +
-      '<a class="dd-img" href="product.html?id=' + encodeURIComponent(deal.id) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>';
+      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="' + productUrl(deal) + '">🛒 Grab It Now</a></div>' +
+      '<a class="dd-img" href="' + productUrl(deal) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>';
   }catch(e){ return ''; }
 }
 
@@ -341,13 +351,250 @@ function weaverStoryHTML(){
 }
 
 /* ============================ HOME ============================ */
+/* ============================ 🎉 ENGAGEMENT ============================ */
+function luckySpinPrizes(){
+  const list = getCoupons().filter(c => c.active);
+  const base = list.length ? list.slice(0, 6) : [{ code:'AP5', type:'percent', value:5, label:'5% off' }];
+  return base.concat([{ code:'TRYAGAIN', type:'none', label:'Try again tomorrow' }, { code:'TRYAGAIN', type:'none', label:'Try again tomorrow' }]);
+}
+function openLuckySpin(){
+  try{
+    const today = new Date().toDateString();
+    if (localStorage.getItem('sk_spin_' + today)){ toast('🎁 You already spun today — come back tomorrow!'); return; }
+    const prizes = luckySpinPrizes();
+    const seg = 360 / prizes.length;
+    const cards = prizes.map((pr, i) => '<div class="spin-seg" style="transform:rotate(' + (i * seg + seg / 2) + 'deg) translateY(-108px)"><span>' + (pr.code === 'TRYAGAIN' ? '🎁' : (pr.type === 'percent' ? pr.value + '%' : '₹' + pr.value)) + '</span></div>').join('');
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:4px">🎁 Lucky Spin — win a coupon!</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">One spin per day. Win an extra discount for your saree order!</p>' +
+      '<div class="spin-wrap"><div class="spin-wheel" id="spinWheel">' + cards + '<div class="spin-center">SK</div></div>' +
+      '<button type="button" class="btn btn-maroon btn-xl" id="spinGo" style="margin-top:14px">🎡 SPIN!</button></div>' +
+      '<p class="small muted" id="spinResult" style="text-align:center;margin-top:10px"></p>');
+    const wheel = document.getElementById('spinWheel');
+    document.getElementById('spinGo').addEventListener('click', () => {
+      if (wheel.dataset.spun) return; wheel.dataset.spun = '1';
+      const win = Math.floor(Math.random() * prizes.length);
+      const target = 360 * 5 + (360 - win * seg - seg / 2);
+      wheel.style.transform = 'rotate(' + target + 'deg)';
+      setTimeout(() => {
+        const pr = prizes[win];
+        const res = document.getElementById('spinResult');
+        if (pr.code === 'TRYAGAIN' || pr.type === 'none'){ res.innerHTML = '😅 Try again tomorrow!'; }
+        else {
+          const list = getCoupons();
+          if (!list.some(c => c.code === pr.code)) list.push({ code: pr.code, type: pr.type, value: pr.value, min: 0, active: true, label: pr.label || (pr.code + ' — won on Lucky Spin'), maxUses: 0, expiry: '' });
+          saveCoupons(list);
+          res.innerHTML = '🎉 You won <b style="color:var(--maroon)">' + pr.code + '</b> — ' + (pr.type === 'percent' ? pr.value + '% off' : '₹' + pr.value + ' off') + '! Use at checkout 🎉';
+        }
+        localStorage.setItem('sk_spin_' + today, '1');
+      }, 4000);
+    });
+  }catch(e){}
+}
+const QUIZ_STEPS = [
+  { q:'🎯 What occasion?', opts:[['wedding','👰 Wedding / Bridal'],['party','💃 Party / Reception'],['office','💼 Office / Work'],['daily','🌤️ Daily wear']] },
+  { q:'🎨 Favourite colour family?', opts:[['red','❤️ Red / Maroon'],['green','💚 Green / Emerald'],['blue','💙 Blue / Navy'],['gold','💛 Gold / Yellow']] },
+  { q:'🧵 Fabric preference?', opts:[['silk','✨ Silk / Kanjivaram'],['cotton','🌿 Cotton'],['linen','🧵 Linen'],['any','🤷 Any — surprise me']] },
+  { q:'💰 Budget?', opts:[['500-1000','💰 Under ₹1,000'],['1000-2000','💰 ₹1,000 – ₹2,000'],['2000+','💎 ₹2,000+']] },
+];
+function openStyleQuiz(){
+  try{
+    let step = 0; const ans = {};
+    const draw = () => {
+      const st = QUIZ_STEPS[step];
+      openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">✨ Find Your Perfect Saree</h2>' +
+        '<p class="small muted" style="margin-bottom:10px">Answer ' + QUIZ_STEPS.length + ' quick questions — we will pick sarees made for you. (' + (step + 1) + '/' + QUIZ_STEPS.length + ')</p>' +
+        '<div class="quiz-q"><b>' + st.q + '</b></div>' +
+        '<div class="quiz-opts">' + st.opts.map(o => '<button type="button" class="btn btn-outline btn-sm" data-qo="' + o[0] + '" style="width:100%">' + o[1] + '</button>').join('') + '</div>');
+      document.querySelectorAll('[data-qo]').forEach(b => b.addEventListener('click', () => {
+        ans[step] = b.dataset.qo; step++;
+        if (step < QUIZ_STEPS.length) draw(); else finishQuiz(ans);
+      }));
+    };
+    const finishQuiz = (a) => {
+      const pool = PRODUCTS.filter(p => !p.hidden && p.stock > 0);
+      const score = (p) => {
+        let sc = 0; const t = (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + p.cat + ' ' + (p.desc||'')).toLowerCase();
+        if (a[0] && (p.cat === a[0] || t.indexOf(a[0]) !== -1)) sc += 4;
+        const col = a[1] === 'red' ? 'red|maroon|wine' : a[1] === 'green' ? 'green|emerald|peacock|teal' : a[1] === 'blue' ? 'blue|navy|turquoise' : a[1] === 'gold' ? 'gold|yellow|mustard' : '';
+        if (col && new RegExp(col).test(t)) sc += 3;
+        if (a[2] !== 'any' && t.indexOf(a[2]) !== -1) sc += 3;
+        const bm = a[3] === '500-1000' ? 1000 : a[3] === '1000-2000' ? 2000 : 99999;
+        if (p.price <= bm) sc += 3;
+        return sc;
+      };
+      const picks = pool.map(p => ({ p, sc: score(p) })).filter(x => x.sc > 0).sort((x, y) => y.sc - x.sc).slice(0, 4).map(x => x.p);
+      const final = picks.length ? picks : pool.slice().sort((x, y) => (y.reviews||0) - (x.reviews||0)).slice(0, 4);
+      openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:8px">✨ Your Perfect Sarees</h2>' +
+        '<p class="small muted" style="margin-bottom:10px">Based on your answers, these sarees suit you best:</p>' +
+        '<div class="ai-cards">' + final.map(aiCard).join('') + '</div>' +
+        '<a class="btn btn-wa btn-sm" style="margin-top:8px" href="' + waLink('Hi! I did the saree style quiz and loved these — please help me choose. 🙏') + '" target="_blank" rel="noopener">💬 Need help picking? Ask us</a>');
+    };
+    draw();
+  }catch(e){}
+}
+function startBuyTicker(){
+  try{
+    const el = document.getElementById('buyTicker'); if (!el) return;
+    const names = ['Rani','Priya','Meena','Lakshmi','Divya','Kavya','Anitha','Swathi','Nithya','Poornima','Vidhya','Janani'];
+    const cities = ['Chennai','Bengaluru','Coimbatore','Madurai','Hyderabad','Salem','Erode','Tiruchirappalli','Pondicherry','Vellore','Tirunelveli','Mysuru'];
+    const prods = PRODUCTS.filter(p => !p.hidden && p.img).slice(0, 12);
+    const actions = ['just ordered ✨','loved ❤️','added to cart 🛒','is viewing 👀'];
+    const parts = [];
+    for (let i = 0; i < 6; i++){
+      const n = names[(Math.floor(Math.random() * 997) + i) % names.length];
+      const c = cities[(Math.floor(Math.random() * 991) + i * 3) % cities.length];
+      const a = actions[(Math.floor(Math.random() * 977) + i) % actions.length];
+      const pr = prods[(Math.floor(Math.random() * 983) + i * 5) % Math.max(1, prods.length)];
+      parts.push(n + ' from ' + c + ' ' + a + ' ' + (pr ? pr.name : 'a saree'));
+    }
+    el.innerHTML = '🔥 ' + parts.join(' &nbsp;•&nbsp; ');
+    setInterval(() => {
+      try{
+        const el2 = document.getElementById('buyTicker'); if (!el2) return;
+        const n = names[Math.floor(Math.random() * names.length)];
+        const c = cities[Math.floor(Math.random() * cities.length)];
+        const a = actions[Math.floor(Math.random() * actions.length)];
+        const pr = prods[Math.floor(Math.random() * Math.max(1, prods.length))];
+        el2.innerHTML = '🔥 ' + n + ' from ' + c + ' ' + a + ' ' + (pr ? pr.name : 'a saree') + ' &nbsp;•&nbsp; ' + el2.innerHTML.replace(/^🔥 [^•]*• /, '');
+      }catch(e){}
+    }, 12000);
+  }catch(e){}
+}
+/* 🔍 keyword-first product title: "Soft Silk Saree for Women | SK Sarees" */
+function seoProductTitle(p){
+  try{
+    const f = String(p.fabric || '').trim();
+    const c = String(p.color || '').split('/')[0].trim();
+    const kw = [];
+    if (c && c !== 'Multi' && c !== 'Multiple options') kw.push(c);
+    if (/silk/i.test(f)) kw.push('Soft Silk Saree');
+    else if (/cotton/i.test(f)) kw.push('Cotton Saree');
+    else if (f) kw.push(f + ' Saree');
+    else kw.push('Saree');
+    kw.push('for Women');
+    return kw.join(' ') + ' | SK Sarees';
+  }catch(e){ return p.name + ' | SK Sarees'; }
+}
+/* 🎮 SAREE MATCH — memory game */
+function openMatchGame(){
+  try{
+    const emojis = ['👰','🪡','✨','🛒','💃','💛'];
+    const deck = emojis.concat(emojis).sort(() => Math.random() - 0.5);
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:4px">🎮 Sarees Match — memory game</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">Match the pairs — win a smile (and confidence in our sarees!).</p>' +
+      '<div class="game-grid" id="gameGrid">' + deck.map((e, i) => '<button type="button" class="game-tile" data-i="' + i + '" data-e="' + e + '">?</button>').join('') + '</div>' +
+      '<p class="small" id="gameInfo" style="text-align:center;margin-top:8px;font-weight:800">Moves: 0 • Pairs: 0/6</p>');
+    let open1 = null, lock = false, moves = 0, pairs = 0;
+    document.querySelectorAll('.game-tile').forEach(t => t.addEventListener('click', () => {
+      if (lock || t.classList.contains('on') || t.classList.contains('done')) return;
+      t.textContent = t.dataset.e; t.classList.add('on');
+      if (!open1){ open1 = t; return; }
+      moves++;
+      if (open1.dataset.e === t.dataset.e){
+        open1.classList.add('done'); t.classList.add('done'); pairs++;
+        open1 = null;
+        document.getElementById('gameInfo').textContent = pairs === 6 ? '🎉 You won in ' + moves + ' moves!' : 'Moves: ' + moves + ' • Pairs: ' + pairs + '/6';
+      } else {
+        lock = true;
+        const a = open1, b = t; open1 = null;
+        setTimeout(() => { a.textContent = '?'; a.classList.remove('on'); b.textContent = '?'; b.classList.remove('on'); lock = false; document.getElementById('gameInfo').textContent = 'Moves: ' + moves + ' • Pairs: ' + pairs + '/6'; }, 700);
+      }
+    }));
+  }catch(e){}
+}
+/* 📱 DAILY STYLE TIP */
+function dailyStyleTip(){
+  const tips = ['🌸 Drape tip: pin the pallu at your shoulder for a fresh all-day look.', '🪡 New saree? Iron on low heat while slightly damp.', '💛 Gold zari sarees pair beautifully with maroon blouses.', '🌿 Cotton sarees get softer with every wash.', '✨ Weddings: go heavy on the pallu border — it photographs best.', '💃 Receptions: choose a lighter silk so you can dance all night!', '🪡 Store sarees folded — never hang silk.', '🌸 A thin belt under the blouse keeps pleats in place.'];
+  return tips[Math.floor(Date.now() / 864e5) % tips.length];
+}
+function renderStyleTip(){
+  try{
+    const el = document.getElementById('styleTip'); if (!el) return;
+    el.innerHTML = '💡 <b>Daily Style Tip:</b> ' + dailyStyleTip() + ' &nbsp;<a class="btn btn-wa btn-sm" style="width:auto;min-width:0;padding:4px 10px;font-size:.68rem" href="' + waLink('🪡 SK Sarees Style Tip: ' + dailyStyleTip()) + '" target="_blank" rel="noopener">Share 💬</a>';
+  }catch(e){}
+}
+/* 🎂 BIRTHDAY COUPON — 1% off on your birthday (per store policy) */
+function birthdayCouponFor(dob){
+  try{
+    if (!dob) return null;
+    const d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    const now = new Date();
+    if (d.getMonth() === now.getMonth() && d.getDate() === now.getDate()){
+      const list = getCoupons();
+      if (!list.some(c => c.code === 'BDAY1')){
+        list.push({ code:'BDAY1', type:'percent', value:1, min:0, active:true, label:'🎂 Happy Birthday — 1% off', maxUses:0, expiry:'' });
+        saveCoupons(list);
+      }
+      return 'BDAY1';
+    }
+    return null;
+  }catch(e){ return null; }
+}
+/* 📸 CUSTOMER GALLERY */
+function customerGalleryHTML(){
+  try{
+    const picks = PRODUCTS.filter(p => !p.hidden && p.img && p.reviews > 10).slice(0, 6);
+    if (picks.length < 2) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📸 Real Customers • Real Sarees</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<div class="gal-row">' + picks.map(p => '<a class="gal-card" href="' + productUrl(p) + '"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"><small>⭐ ' + (p.rating || 4.5) + ' • ' + (p.reviews || 0) + ' bought</small></a>').join('') + '</div>' +
+      '<div style="text-align:center;margin-top:8px"><a class="btn btn-outline btn-sm" href="' + waLink('📸 Hi! I bought a saree from SK Sarees and want to share my photo for your gallery!') + '" target="_blank" rel="noopener" style="width:auto">📤 Share YOUR saree photo on WhatsApp</a></div></section>';
+  }catch(e){ return ''; }
+}
+/* 🧧 FESTIVAL COUNTDOWN STRIP */
+function festivalCountdownStrip(){
+  try{ return '<section class="fest-count" id="festCount"><div><b>🧧 ' + esc(festivalName(currentFestival())) + ' ends in</b><span class="fc-time" id="fcTime">…</span></div></section>'; }catch(e){ return ''; }
+}
+function tickFestivalCountdownStrip(){
+  try{
+    const el = document.getElementById('fcTime'); if (!el) return;
+    const end = festivalDeadline();
+    const tick = () => {
+      const diff = end.getTime() - Date.now();
+      if (diff <= 0){ el.textContent = 'Order now!'; return; }
+      const dd = Math.floor(diff / 864e5), hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
+      const p2 = n => String(n).padStart(2, '0');
+      el.textContent = dd + 'd ' + p2(hh) + 'h ' + p2(mm) + 'm ' + p2(ss) + 's';
+    };
+    tick(); setInterval(tick, 1000);
+  }catch(e){}
+}
+/* ⏰ PER-PRODUCT FLASH COUNTDOWN (ends tonight) */
+function productFlashCountdown(p){
+  try{
+    if (!p) return '';
+    const end = new Date(); end.setHours(23, 59, 59, 0);
+    return '<div class="flash-prod"><b>⚡ Flash Sale — today only</b><span class="fp-time" data-fend="' + end.getTime() + '">…</span></div>';
+  }catch(e){ return ''; }
+}
+function tickFlashProducts(){
+  try{
+    document.querySelectorAll('.fp-time').forEach(el => {
+      const diff = (+el.dataset.fend || 0) - Date.now();
+      if (diff <= 0){ el.textContent = 'Ended — order on WhatsApp!'; return; }
+      const hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
+      const p2 = n => String(n).padStart(2, '0');
+      el.textContent = p2(hh) + ':' + p2(mm) + ':' + p2(ss);
+    });
+  }catch(e){}
+}
+/* 🏆 REFERRAL LEADERBOARD */
+function referralLeaderboardHTML(){
+  try{
+    const top = allResellers().slice().sort((a, b) => (b.margin || 0) - (a.margin || 0)).filter(r => (r.margin || 0) > 0).slice(0, 3);
+    if (!top.length) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🏆 Top Earners This Month</h2></div>' +
+      '<div class="lb-row">' + top.map((r, i) => '<div class="lb-card"><span class="lb-rank">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉') + '</span><b>' + esc(r.name || 'Reseller') + '</b><small>' + (r.orders || 0) + ' orders • ' + money(r.margin || 0) + '</small></div>').join('') + '</div>' +
+      '<p class="small muted" style="text-align:center;margin-top:6px">Join &amp; earn — <a href="share-earn.html" style="color:var(--maroon);font-weight:800">Share &amp; Earn →</a></p></section>';
+  }catch(e){ return ''; }
+}
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
   const best = PRODUCTS.filter(p => !p.hidden && p.badge === 'Bestseller').slice(0, 4);
   const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
   const forYou = forYouHTML();   /* 🤖 personalized strip (viewed/wishlist based) */
-  app.innerHTML = forYou +
+  app.innerHTML = festivalCountdownStrip() + forYou +
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
@@ -357,6 +604,18 @@ function renderHome(){
         '<a class="btn btn-wa" href="' + waLink('Hi! I would like to see your saree collection & current offers.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp</a>' +
       '</div>' +
       '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> above ₹999</span></div>' +
+      '<div class="fun-row">' +
+        '<button type="button" class="btn btn-gold btn-sm" id="funSpin" style="width:auto">🎁 Try Your Luck — Coupon</button>' +
+        '<button type="button" class="btn btn-maroon btn-sm" id="funQuiz" style="width:auto">✨ Find Your Perfect Saree</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="funGame" style="width:auto">🎮 Play Sarees Match</button>' +
+      '</div>' +
+      '<div class="trust-strip">' +
+        '<span>💵 COD Available</span><span>📍 Tamil Nadu Delivery</span><span>🔒 Secure Order via WhatsApp</span>' +
+        '<span>⭐ Real Customer Reviews</span><span>📸 Real Saree Photos</span><span>📞 ' + CONFIG.waDisplay + '</span>' +
+        '<span>🚚 ₹30 TN • ₹40 AP/KA • ₹60 Others • Free ₹999+</span>' +
+      '</div>' +
+      '<div id="styleTip" class="style-tip"></div>' +
+      '<div class="buy-ticker" id="buyTicker">🔥 Rani from Chennai just ordered ✨ Kanchipuram Silk</div>' +
       '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 ' + (lang === 'ta' ? t('searchHero') : 'Search by saree name, SKU or colour…') + '" autocomplete="off"><button type="submit" class="btn btn-gold">' + (lang === 'ta' ? t('search') : 'Search') + '</button></form>' +
     '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
@@ -364,7 +623,7 @@ function renderHome(){
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
-      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (paid via GPay). Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
       '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
@@ -389,6 +648,8 @@ function renderHome(){
           '<div class="video-card"><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(v.id) + '?rel=0" title="' + esc(v.title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
           '<b>' + esc(v.title) + '</b></div>').join('') + '</div></section>' +
       occasionQuickShopHTML() +
+      customerGalleryHTML() +
+      referralLeaderboardHTML() +
       weaverStoryHTML() +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access</h2>' +
         '<a href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">Join WhatsApp Group →</a></div>' +
@@ -546,87 +807,14 @@ function updateShopList(){
   const visible = shopState.list.slice(0, shopState.shown);
   grid.innerHTML = visible.map(cardHTML).join('');
   const cl = document.getElementById('countLbl'); if (cl) cl.textContent = shopState.list.length + ' sarees';
-  const empty = document.getElementById('empty'); if (empty) empty.style.display = visible.length ? 'none' : 'block';
+  const empty = document.getElementById('empty'); if (empty){
+    if (visible.length){ empty.style.display = 'none'; }
+    else {
+      empty.style.display = 'block';
+      empty.innerHTML = '<div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.';
+    }
+  }
   const lm = document.getElementById('loadMore'); if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';
-}
-
-/* ============================ FAST ORDER (ads → WhatsApp, no friction) ============================
-   Ad visitors often bounce at full checkout. Fast Order asks ONLY name + phone,
-   then opens WhatsApp with the full order — the seller confirms & closes. */
-function fastOrderModal(p){
-  try{
-    if (!p) return;
-    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">⚡ Fast Order — 30 seconds</h2>' +
-      '<p class="small muted" style="margin-bottom:10px">Just your name &amp; number — we will confirm on WhatsApp. <b>No payment needed now.</b></p>' +
-      '<div style="display:flex;gap:8px;align-items:center;background:var(--bg);border-radius:10px;padding:8px;margin-bottom:10px"><img src="' + esc(p.img) + '" style="width:52px;height:40px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"><div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(p.name) + '</b><br><small class="muted">' + money(p.price) + (p.mrp ? ' <s>' + money(p.mrp) + '</s>' : '') + '</small></div></div>' +
-      '<div class="field"><label>Your Name *</label><input id="foName" value="' + esc((Store.profile || {}).name || '') + '" placeholder="e.g. Lakshmi"></div>' +
-      '<div class="field"><label>WhatsApp / Mobile *</label><input id="foPhone" value="' + esc((Store.profile || {}).phone || '') + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
-      '<button type="button" class="btn btn-maroon" id="foGo" style="margin-top:4px">💬 Confirm on WhatsApp</button>');
-    document.getElementById('foGo').addEventListener('click', () => {
-      const nm = document.getElementById('foName').value.trim();
-      const ph = document.getElementById('foPhone').value.trim();
-      if (!validPhone(ph)){ toast('⚠️ Enter a valid 10-digit number'); return; }
-      /* save customer */
-      try{
-        Store.profile = Object.assign({}, Store.profile, { name: Store.profile.name || nm || '', phone: ph });
-        Store.saveProfile(); saveCoDraft();
-        renderHeader();
-        autoRegisterReseller(nm, ph);   /* 🤝 auto-reseller: every share link now carries this user's code */
-      }catch(e){}
-      const msg = '⚡ Fast Order — SK Sarees\n\n🪡 ' + p.name + ' — ' + money(p.price) + '\n👤 ' + (nm || 'Customer') + '\n📱 ' + ph + '\n\nPlease confirm my order. Thank you!';
-      try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
-      closeModal();
-      toast('✅ WhatsApp opened — send it!');
-    });
-  }catch(e){}
-}
-
-/* 🎨 AI-style colour preview — see the saree design in other shades (try-on feel) */
-const TRY_COLORS = [
-  { n:'Classic', css:'' }, { n:'Red', css:'hue-rotate(0deg) saturate(1.1)' },
-  { n:'Maroon', css:'hue-rotate(-18deg) saturate(1.05) brightness(.92)' },
-  { n:'Gold', css:'hue-rotate(35deg) saturate(1.4) brightness(1.08)' },
-  { n:'Green', css:'hue-rotate(90deg) saturate(1.15)' },
-  { n:'Blue', css:'hue-rotate(160deg) saturate(1.1)' },
-  { n:'Purple', css:'hue-rotate(230deg) saturate(1.1)' },
-  { n:'Pink', css:'hue-rotate(-30deg) saturate(1.15) brightness(1.05)' },
-  { n:'Peacock', css:'hue-rotate(120deg) saturate(1.2)' },
-];
-function openTryOn(p){
-  try{
-    if (!p) return;
-    const img = p.img || (p.images || [])[0];
-    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:4px">🎨 Try-On Preview</h2>' +
-      '<p class="small muted" style="margin-bottom:10px">See how <b>' + esc(p.name) + '</b> looks in other shades — tap a colour!</p>' +
-      '<div style="text-align:center;background:var(--bg);border-radius:14px;padding:12px">' +
-        '<img id="tryImg" src="' + esc(img) + '" alt="Try-on preview" style="max-height:280px;width:auto;border-radius:12px;transition:filter .3s">' +
-      '</div>' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px">' +
-        TRY_COLORS.map((c, i) => '<button type="button" class="try-swatch' + (i === 0 ? ' on' : '') + '" data-try="' + i + '" style="background:' + swatchBg(c.css) + '"><span>' + c.n + '</span></button>').join('') +
-      '</div>' +
-      '<p class="small muted" style="text-align:center;margin-top:10px">💡 Colour may vary by screen. Ask us on WhatsApp for real photos.</p>');
-    document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click', () => {
-      const c = TRY_COLORS[+b.dataset.try];
-      const im = document.getElementById('tryImg');
-      if (im) im.style.filter = c.css;
-      document.querySelectorAll('[data-try]').forEach(x => x.classList.toggle('on', x === b));
-    }));
-  }catch(e){}
-}
-function swatchBg(css){
-  if (!css) return 'linear-gradient(135deg,#eee,#fff)';
-  /* approximate swatch color per hue — keep simple: return a tint */
-  const map = {
-    'hue-rotate(0deg) saturate(1.1)':'#d0342c',
-    'hue-rotate(-18deg) saturate(1.05) brightness(.92)':'#8f1d3a',
-    'hue-rotate(35deg) saturate(1.4) brightness(1.08)':'#c99a2e',
-    'hue-rotate(90deg) saturate(1.15)':'#1d8a4e',
-    'hue-rotate(160deg) saturate(1.1)':'#1565c0',
-    'hue-rotate(230deg) saturate(1.1)':'#6a1b9a',
-    'hue-rotate(-30deg) saturate(1.15) brightness(1.05)':'#e91e63',
-    'hue-rotate(120deg) saturate(1.2)':'#00695c',
-  };
-  return map[css] || '#ddd';
 }
 
 /* ============================ TRUST + ENGAGEMENT HELPERS ============================ */
@@ -707,66 +895,26 @@ function renderProduct(){
     }catch(e){}
   }
   if (!p){
-    /* Not cached at all — fetch from Firestore fast (pull + one-time get in parallel).
-       The product may exist in the cloud. */
-    window.__pdTry = (window.__pdTry || 0) + 1;
+    /* ⚡ products load ONLY from catalog.json (preloaded in <head>) + local
+       cache — no Firestore reads on customer pages. preloadCatalog merges
+       them instantly; if it's still missing, show a clean not-found. */
     let done = false;
-    const finish = (prod, msg) => {
+    const finish = (prod) => {
       if (done) return; done = true;
-      if (prod){
-        try{ PRODUCTS.unshift(prod); Sync.saveLocal(); }catch(e){ try{ PRODUCTS.unshift(prod); }catch(e2){} }
-        renderProduct();
-      } else {
+      if (prod){ try{ PRODUCTS.unshift(prod); }catch(e){} renderProduct(); }
+      else {
         app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic">🪡</div><b>Product not found</b>' +
-          '<span class="muted small" style="max-width:40ch">' + esc(msg || 'We could not find this saree in our collection.') + '</span>' +
+          '<span class="muted small" style="max-width:40ch">This saree is not in our current catalog. Browse our full collection below.</span>' +
           '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;max-width:340px;margin:14px auto 0">' +
           '<a class="btn btn-maroon" href="shop.html">🛍️ Back to Shop</a>' +
           '<button type="button" class="btn btn-outline" onclick="renderProduct()">🔄 Try Again</button></div></div></div>';
       }
     };
-    /* quick spinner while we fetch (usually <1s) */
     app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic"><div class="spinner"></div></div><b>Loading product…</b></div></div>';
-    /* ⚡ INSTANT path: static catalog.json FIRST (local file — near-instant).
-       preloadCatalog(id) merges the uploaded catalog into PRODUCTS even when
-       other caches already exist, then tells us if THIS id is now found.
-       Only if the catalog still doesn't have it do we go to Firestore / give
-       up — so an uploaded catalog.json always fixes "Loading product…". */
-    const gate = Promise.race([
+    Promise.race([
       preloadCatalog(id),
       new Promise(res => setTimeout(() => res(false), 4000)),
-    ]);
-    gate.then(() => {
-      if (done) return;
-      const now = byId(id);
-      if (now){ finish(now); return; }
-      if (!FS.enabled()){
-        finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
-        return;
-      }
-      /* 🔒 READ-OPTIMIZED: read ONLY this product's document (1 doc), never the
-         whole products collection — catalog.json + local cache already cover
-         the store for browsing. */
-      FS.getProduct(id).then(doc => {
-        if (done) return;
-        if (doc){
-          try{ finish(normalizeProduct(doc)); }
-          catch(err){ finish(null); }
-        } else {
-          /* retry a couple of times before giving up (slow cloud) */
-          if (window.__pdTry < 3){
-            setTimeout(() => { if (!done) renderProduct(); }, 600);
-          } else {
-            finish(null, 'This saree may have been removed from the store, or the link is old. Browse our full collection below.');
-          }
-        }
-      }).catch(() => {
-        if (done) return;
-        if (window.__pdTry < 3){ setTimeout(() => { if (!done) renderProduct(); }, 600); }
-        else finish(null, 'Cloud sync is not responding right now — please check your internet and try again.');
-      });
-      /* safety: never leave the spinner hanging */
-      setTimeout(() => finish(null, 'Cloud sync is not responding right now — please check your internet and try again.'), 6000);
-    });
+    ]).then(() => { const now = byId(id); if (now) finish(now); else finish(null); });
     return;
   }
   window.__pdTry = 0;
@@ -831,6 +979,7 @@ function renderProduct(){
         '<div class="price-line"><span>Old price: <s>' + money(p.mrp || p.price) + '</s></span> &nbsp;•&nbsp; <span>New price: <b>' + money(p.price) + '</b></span></div>' +
         (out ? '' : '<p class="small" style="color:var(--green);font-weight:800;margin:2px 0">💳 Pay online &amp; save ' + (CONFIG.onlineDiscount || 1) + '% — <b>' + money(onlinePrice(p)) + '</b> (COD: ' + money(p.price) + ')</p>') +
         '<div class="social-proof">' + socialProofHTML(p) + '</div>' +
+        productFlashCountdown(p) +
         '<div class="viewing-now">👀 <b>' + viewingNow(p) + ' people viewing this right now</b></div>' +
         skinToneRecommendHTML(p) +
         (out
@@ -856,35 +1005,30 @@ function renderProduct(){
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
           (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Buy on WhatsApp — Instant Confirmation</a>' +
         '</div>' +
         '<div class="pd-btns" style="margin-top:10px">' +
-          '<button type="button" class="btn btn-wa2 btn-xl" id="foOpen">⚡ Fast Order — WhatsApp</button>' +
           '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I have a question about: ' + p.name + ' (' + money(p.price) + ') — is it available?') + '" target="_blank" rel="noopener">💬 Chat on WhatsApp</a>' +
-          '<button type="button" class="btn btn-outline btn-xl" id="tryOpen">🎨 Try-On — Preview Colours</button>' +
         '</div>' +
         '<div class="pd-share">' +
           '<button type="button" class="btn btn-wa btn-sm" data-share-wa="' + esc(p.id) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Share</button>' +
           '<button type="button" class="btn btn-maroon btn-sm" data-viral="' + esc(p.id) + '">📢 ' + (lang === 'ta' ? 'வாட்ஸ்அப் குரூப்பில் பகிர்' : 'WhatsApp Share — Groups') + '</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-dl-photo="' + esc(p.img) + '">📥 Download Photo</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Share Photo</button>' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(shareUrl(p)) + '">🔗 Copy Link</button>' +
         '</div>' +
         '<div class="pd-social">' +
           '<span class="small muted" style="font-weight:800">📤 Share to:</span>' +
-          '<a class="soc soc-fb" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on Facebook">FB</a>' +
-          '<a class="soc soc-x" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on X (Twitter)">𝕏</a>' +
-          '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
-          '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + productUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
-          '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(productUrl(p)) + '&media=' + encodeURIComponent(p.img || '') + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
-          '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
+          '<a class="soc soc-fb" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl(p)) + '" target="_blank" rel="noopener" title="Share on Facebook">FB</a>' +
+          '<a class="soc soc-x" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(shareUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on X (Twitter)">𝕏</a>' +
+          '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(shareUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
+          '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + shareUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
+          '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(shareUrl(p)) + '&media=' + encodeURIComponent(absImg(p.img)) + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
+          '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(shareUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
         '</div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
         '<div class="earn-box" id="earnBox">' +
           '<b>💰 Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
-          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or as loyalty points)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
+          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
           '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
             '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</button>' +
             '<button type="button" class="btn btn-outline btn-sm" id="earnCopy" style="flex:1;min-width:130px">📋 Copy Share Link</button>' +
@@ -910,7 +1054,7 @@ function renderProduct(){
       '<button type="button" class="btn btn-maroon" data-add="' + p.id + '">Add</button>' +
       '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
     '</div>';
-  document.title = p.name + ' — SK Sarees';
+  document.title = seoProductTitle(p);   /* 🔍 keyword-first title for Google */
   try{ trackRecentView(p); }catch(e){}
   /* 📏 blouse size guide (after fabric & details) + dynamic OG title */
   try{
@@ -920,6 +1064,12 @@ function renderProduct(){
     if (ogt) ogt.setAttribute('content', document.title);
     const ogd = document.querySelector('meta[property="og:description"]');
     if (ogd && p.desc) ogd.setAttribute('content', String(p.desc).slice(0, 150));
+    /* 🔖 product thumbnail for in-app previews — keeps the live page's og:image
+       in sync so shares show the saree photo when the crawler follows the link. */
+    const ogi = document.querySelector('meta[property="og:image"]');
+    if (ogi && p.img) ogi.setAttribute('content', absImg(p.img));
+    const twi = document.querySelector('meta[name="twitter:image"]');
+    if (twi && p.img) twi.setAttribute('content', absImg(p.img));
   }catch(e){}
   /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
@@ -1007,7 +1157,7 @@ function shareWaProduct(p){
    falls back to the universal wa.me link. Works on mobile + desktop. */
 function viralShareProduct(p){
   if (!p) return;
-  const url = productUrl(p);
+  const url = shareUrl(p);   /* 🔖 share page → WhatsApp/FB show the photo thumbnail */
   const off = offPct(p);
   const msg =
     '🪡 ** சேலை பாருங்க! ** சேலை பாருங்க! 🎉\n\n' +
@@ -1029,28 +1179,6 @@ function viralShareProduct(p){
   try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 /* share the saree PHOTO to WhatsApp Status (mobile: image → long-press → WhatsApp → My Status) */
-async function shareProductStatus(p){
-  if (!p) return;
-  const imgUrl = p.img || ((p.images || [])[0]);
-  if (!imgUrl){ toast('⚠️ No photo to share'); return; }
-  /* try the Web Share API with the actual image file (mobile status picker) */
-  try{
-    if (navigator.canShare){
-      const blob = await fetch(imgUrl).then(r => r.blob()).catch(() => null);
-      if (blob){
-        const file = new File([blob], 'saree.jpg', { type: (blob.type || 'image/jpeg') });
-        if (navigator.canShare({ files: [file] })){
-          await navigator.share({ files: [file], title: p.name, text: p.name + ' — SK Sarees' });
-          return;
-        }
-      }
-    }
-  }catch(e){ /* user cancelled or API failed — fall through */ }
-  /* fallback: open the photo full-size → long-press → Share → WhatsApp Status */
-  try{ window.open(imgUrl, '_blank'); }catch(e){}
-  toast('📸 Photo opened — long-press it → Share → WhatsApp Status');
-}
-
 /* ============================ CART ============================ */
 function renderCartPage(){
   const app = document.getElementById('app'); if (!app) return;
@@ -1330,6 +1458,48 @@ function drawCo(){
     if (upiPay) setTimeout(drawUpiQR, 150); /* wait for DOM + qrcode lib */
   }
 }
+/* 💳 PENDING PAYMENT MODAL — from My Orders, a customer with a pending UPI
+   order can reopen the QR + UPI app links and confirm the payment there. */
+function openPendingPay(o){
+  try{
+    if (!o) return;
+    const grand = (o.totals || {}).grand || 0;
+    const note = 'Order ' + o.id + ' SK Sarees';
+    openModal('<h2 style="font-size:1.05rem;font-weight:800;margin-bottom:6px">💳 Complete Payment — ' + esc(o.id) + '</h2>' +
+      '<p class="small muted" style="margin-bottom:10px">Order total: <b style="color:var(--maroon);font-size:1.2rem">' + money(grand) + '</b> • Pay by UPI (GPay / PhonePe / Paytm) or scan the QR.</p>' +
+      '<div class="qr-box"><div id="ppQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
+      '<a class="btn btn-gold btn-xl" href="' + upiLink(grand, note) + '">📲 Pay Now — Open UPI App</a>' +
+      '<div style="display:grid;gap:8px;margin-top:10px">' +
+        '<a class="btn btn-xl" style="background:#1a73e8;color:#fff" href="' + upiAppLink('gpay', grand, note) + '">🟢 Google Pay — Pay ' + money(grand) + '</a>' +
+        '<a class="btn btn-xl" style="background:#5f259f;color:#fff" href="' + upiAppLink('phonepe', grand, note) + '">🟣 PhonePe — Pay ' + money(grand) + '</a>' +
+        '<a class="btn btn-xl" style="background:#002e6e;color:#fff" href="' + upiAppLink('paytm', grand, note) + '">🔷 Paytm — Pay ' + money(grand) + '</a>' +
+      '</div>' +
+      '<div class="verify-note" style="margin-top:8px">💳 After paying, tap below — we will confirm once the payment is received.</div>' +
+      '<button type="button" class="btn btn-maroon btn-xl" id="ppPaid" style="margin-top:8px">✅ I\'ve Paid — Waiting for Confirmation</button>');
+    /* render the QR */
+    setTimeout(() => {
+      const box = document.getElementById('ppQR'); if (!box) return;
+      const qrLib = (typeof qrcode !== 'undefined') ? qrcode : (window.qrcode || null);
+      if (!qrLib){ box.innerHTML = '<p class="small muted">Scan unavailable — use the UPI app buttons below.</p>'; return; }
+      try{
+        const qr = qrLib(0, 'M');
+        qr.addData(upiLink(grand, note));
+        qr.make();
+        box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+      }catch(e){ box.innerHTML = '<p class="small muted">Use the UPI app buttons below.</p>'; }
+    }, 150);
+    document.getElementById('ppPaid').addEventListener('click', () => {
+      o.paidConfirmed = true;
+      o.paidAt = new Date().toISOString();
+      const i = Store.orders.findIndex(x => x.id === o.id);
+      if (i >= 0){ Store.orders[i] = o; Store.saveOrders(); }
+      if (FS.enabled()) FS.saveOrder(o).then(ok => { if (ok) markOrderSynced(o.id); }).catch(() => {});
+      closeModal();
+      toast('✅ Payment confirmed — awaiting admin verification!');
+      renderOrdersPage();
+    });
+  }catch(e){}
+}
 function drawUpiQR(){
   const box = document.getElementById('upiQR'); if (!box) return;
   const qrLib = (typeof qrcode !== 'undefined') ? qrcode : (window.qrcode || null);
@@ -1375,6 +1545,43 @@ function loadCoDraft(){
   try{ const v = sessionStorage.getItem('sk_co_draft'); if (v && !d.name) d = JSON.parse(v) || {}; }catch(e){}
   return d;
 }
+/* 💳 UPI: build + save the order as PENDING (payment not made yet). Called when
+   the customer taps "Continue to Payment" with UPI selected — so the order lands
+   in "Payment Pending" even if they forget to confirm the payment. Idempotent:
+   if a pending order with the same id already exists, it is updated (no dupes). */
+function createPendingUpiOrder(){
+  try{
+    const d = co.data;
+    const t = coTotals();
+    const myReseller = currentReseller();
+    const id = co.pendingId || genOrderId();
+    co.pendingId = id;
+    const existing = Store.orders.findIndex(x => x.id === id);
+    const order = {
+      id: id, date: existing >= 0 ? Store.orders[existing].date : new Date().toISOString(),
+      items: coItems().map(safeItem),
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
+      payment: 'upi',
+      totals: t,
+      reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
+      margin: 0,
+      status: 'pending',                 /* ⏳ payment pending */
+      paidConfirmed: false,              /* customer has NOT confirmed payment yet */
+      bookingPaid: t.grand,
+      device: deviceId(),
+      pendingSince: existing >= 0 ? (Store.orders[existing].pendingSince || new Date().toISOString()) : new Date().toISOString(),
+    };
+    order.margin = myReseller ? resellerMarginFor(order) : 0;
+    if (existing >= 0) Store.orders[existing] = order;
+    else Store.orders.unshift(order);
+    Store.saveOrders();
+    recordResellerOrder(order);           /* credit pending margin */
+    try{ Stats.refreshOrders(); renderStatsText(); bumpOrdersCounter(); }catch(e){}
+    if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
+    try{ if (existing < 0) consumeStock(order.items); }catch(e){}   /* reserve stock once */
+    return order;
+  }catch(e){ return null; }
+}
 function doPlaceOrder(payment){
   try{
     const d = co.data;
@@ -1383,7 +1590,40 @@ function doPlaceOrder(payment){
     const t = coTotals();
     const couponUsed = d.coupon || '';
     const myReseller = currentReseller();
-    const order = {
+    let order;
+    if (payment === 'upi'){
+      /* UPI "I've Paid" — the pending order already exists (created on Continue).
+         Just confirm the payment on it; do NOT create a duplicate. */
+      const pid = co.pendingId || (Store.orders.find(o => o.payment === 'upi' && o.status === 'pending' && !o.paidConfirmed && o.device === deviceId() && (o.customer||{}).phone === d.phone.trim()) || {}).id;
+      const i = pid ? Store.orders.findIndex(x => x.id === pid) : -1;
+      if (i >= 0){
+        order = Store.orders[i];
+        order.paidConfirmed = true;
+        order.paidAt = new Date().toISOString();
+        order.totals = t;
+        order.items = coItems().map(safeItem);
+        order.status = 'pending';        /* stays pending until admin confirms */
+        Store.orders[i] = order;
+        Store.saveOrders();
+        if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
+        /* complete flow */
+        Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
+        try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}
+        Store.saveProfile();
+        if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
+        co.buyOnly = null;
+        co = { step: 1, buyOnly: null, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
+        saveCoDraft();
+        if (couponUsed) useCoupon(couponUsed);
+        try{ earnPoints(order); }catch(e){}
+        fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: order.items.length });
+        fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: order.items.length, content_ids: order.items.map(i => String(i.id)) });
+        try{ window.scrollTo(0, 0); }catch(e){}
+        renderOrderComplete(order, false);
+        return;
+      }
+    }
+    order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
@@ -1402,7 +1642,7 @@ function doPlaceOrder(payment){
     const orderCount = order.items.reduce((s, i) => s + (i.qty || 1), 0);
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
-    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
+    try{ Stats.refreshOrders(); renderStatsText(); bumpOrdersCounter(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
@@ -1441,7 +1681,7 @@ function doWaOrder(){
     const couponUsed = d.coupon || '';
     Store.orders.unshift(order); Store.saveOrders();
     recordResellerOrder(order);               /* credit reseller margin */
-    try{ Stats.refreshOrders(); renderStatsText(); }catch(e){}   /* bump order counter */
+    try{ Stats.refreshOrders(); renderStatsText(); bumpOrdersCounter(); }catch(e){}   /* bump order counter */
     if (FS.enabled()) FS.saveOrder(order).then(ok => { if (ok) markOrderSynced(order.id); }).catch(() => {});
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
@@ -1559,6 +1799,7 @@ function resellerProfileCard(){
         '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Confirmed</span><b style="font-size:1.2rem;color:var(--green)">' + money(confirmed) + '</b></div>' +
         '<div style="background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center"><span class="muted small" style="display:block">Paid</span><b style="font-size:1.2rem;color:var(--green)">' + money(paid) + '</b></div>' +
       '</div>' +
+
       '<p class="small muted" style="margin-top:8px">Code: <b>' + esc(r.code) + '</b> • Orders: <b>' + (r.orders || 0) + '</b> • ' + (CONFIG.resellerMarginPct || 5) + '% per UPI order, confirmed when the order <b>ships</b>.</p>' +
       '<p class="small" style="border:1px dashed var(--gold);border-radius:10px;padding:9px;background:var(--gold-soft);margin-top:8px">💵 Payout via <b>GPay</b> when confirmed reaches <b>₹' + minPayout + '</b>' + (canPay ? ' — you can request now! 🎉' : ' (' + money(Math.max(0, minPayout - confirmed)) + ' more needed).') + '</p>' +
       '<h4 style="font-size:.85rem;margin:10px 0 4px">📦 My Referral Orders</h4>' + orderRows +
@@ -1583,10 +1824,10 @@ function orderAgain(o){
     if (added) setTimeout(() => { location.href = 'cart.html'; }, 900);
   }catch(e){}
 }
-/* ⭐ Loyalty points — earn 1 point per ₹50 spent (redeemable ₹1 = 1 point at checkout) */
+/* ⭐ Loyalty points — earn 1 point per ₹75 spent (redeemable ₹1 = 1 point at checkout) */
 function earnPoints(order){
   try{
-    const pts = Math.floor(((order.totals || {}).grand || 0) / 50);
+    const pts = Math.floor(((order.totals || {}).grand || 0) / 75);
     if (pts <= 0) return;
     const cur = +localStorage.getItem('sk_points') || 0;
     localStorage.setItem('sk_points', String(cur + pts));
@@ -1736,6 +1977,9 @@ function orderCard(o){
     '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
     '<button type="button" class="btn btn-outline btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button>' +
     '<button type="button" class="btn btn-maroon btn-sm" style="flex:1;min-width:130px" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
+    ((o.payment || '') === 'upi' && o.status === 'pending' && !o.paidConfirmed
+      ? '<button type="button" class="btn btn-gold btn-sm" style="flex:1;min-width:160px" data-paynow="' + esc(o.id) + '">💳 Pay Now — Complete Payment</button>'
+      : '') +
     '</div></div>';
 }
 /* Full order detail — rendered inline, opens/closes instantly, no page reload */
@@ -1752,8 +1996,8 @@ function showDetail(o){
   const items = (o.items || []).map(i => {
     const p = byId(i.id);
     return '<div style="display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:11px;padding:10px;margin-bottom:8px">' +
-      '<a href="product.html?id=' + encodeURIComponent(i.id) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
-      '<div style="flex:1;min-width:0"><a href="product.html?id=' + encodeURIComponent(i.id) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
+      '<a href="' + (p ? productUrl(p) : ('product.html?id=' + encodeURIComponent(i.id))) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
+      '<div style="flex:1;min-width:0"><a href="' + (p ? productUrl(p) : ('product.html?id=' + encodeURIComponent(i.id))) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
       (i.colour ? '<small class="muted">🎨 ' + esc(i.colour) + '</small><br>' : '') +
       '<small class="muted">' + money(i.price) + ' × ' + i.qty + '</small></div><b>' + money(i.price * i.qty) + '</b></div>';
   }).join('');
@@ -1851,8 +2095,12 @@ function renderProfilePage(){
       '<button type="button" class="btn btn-maroon" id="pfSave">💾 Save Details</button>' +
       '<p class="small muted" style="margin-top:8px">🔒 Stored only on your device.</p>' +
     '</div>' +
+    '<div class="form-card"><h3>🎂 Birthday Surprise</h3>' +
+      '<p class="small muted" style="margin-bottom:8px">Enter your birthday — on your day you get <b>1% off</b> automatically (code BDAY1) + a surprise!</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="pfDob" type="date" value="' + esc((Store.profile||{}).dob || '') + '" style="flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;font-size:15px"><button type="button" class="btn btn-maroon btn-sm" id="pfDobSave" style="width:auto">💾 Save</button></div>' +
+      '<p class="small muted" id="dobNote" style="margin-top:6px"></p></div>' +
     '<div class="form-card"><h3>⭐ Loyalty Points</h3>' +
-      '<p class="small" style="margin-bottom:6px">Earn <b>1 point per ₹50</b> spent. Redeem at checkout — <b>1 point = ₹1 off</b>.</p>' +
+      '<p class="small" style="margin-bottom:6px">Earn <b>1 point per ₹75</b> spent. Redeem at checkout — <b>1 point = ₹1 off</b>.</p>' +
       '<div style="display:flex;align-items:center;gap:12px;background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:12px">' +
         '<span style="font-size:2rem">⭐</span><div><b style="font-size:1.4rem;color:var(--maroon)" id="ptsBal">' + pointsBalance() + '</b>' +
         '<span class="muted small" style="display:block">points = ₹' + pointsRedeemable() + ' discount ready</span></div></div></div>' +
@@ -1886,6 +2134,20 @@ function renderProfilePage(){
       recordLead(nm, ph, r.code);
       toast('🎉 Your code: ' + r.code + ' — share link ready!');
       renderProfilePage();
+    });
+    const dobIn = document.getElementById('pfDobSave');
+    if (dobIn) dobIn.addEventListener('click', () => {
+      const v = (document.getElementById('pfDob') || {}).value || '';
+      Store.profile = Object.assign({}, Store.profile || {}, { dob: v });
+      Store.saveProfile();
+      const c = birthdayCouponFor(v);
+      const note = document.getElementById('dobNote');
+      if (note){
+        if (v && c) note.innerHTML = '🎂 <b>Happy Birthday!</b> Coupon <b>BDAY1</b> (1% off) is active — use at checkout!';
+        else if (v) note.innerHTML = '✅ Saved! Come back on your birthday for 1% off 🎂';
+        else note.innerHTML = '';
+      }
+      toast('✅ Birthday saved');
     });
     const rcU = document.getElementById('rcUpiSave');
     if (rcU) rcU.addEventListener('click', () => {
@@ -2092,7 +2354,18 @@ document.addEventListener('click', function(e){
   }
   /* checkout */
   const cont = e.target.closest('[data-cont]');
-  if (cont){ e.preventDefault(); if (coValid()){ co.step = 2; drawCo(); } return; }
+  if (cont){
+    e.preventDefault();
+    if (!coValid()) return;
+    if (co.data.payment === 'upi'){
+      /* 💳 UPI: create the order NOW (status pending — payment not yet made).
+         If the customer forgets "I've Paid", the order is still in My Orders →
+         Payment Pending and they can reopen the QR there. */
+      try{ createPendingUpiOrder(); }catch(e){}
+    }
+    co.step = 2; drawCo();
+    return;
+  }
   const back = e.target.closest('[data-back]');
   if (back){ e.preventDefault(); co.step = 1; drawCo(); return; }
   const pay = e.target.closest('[data-pay]');
@@ -2103,13 +2376,9 @@ document.addEventListener('click', function(e){
   if (cwa){ e.preventDefault(); doWaOrder(); return; }
   const copy = e.target.closest('[data-copy]');
   if (copy){ e.preventDefault(); copyText(copy.dataset.copy); return; }
-  /* 🎨 try-on preview */
-  const tr = e.target.closest('#tryOpen');
-  if (tr){ e.preventDefault(); openTryOn(byId(currentProductId())); return; }
-  /* ⚡ fast order */
-  const fo = e.target.closest('#foOpen');
-  if (fo){ e.preventDefault(); fastOrderModal(byId(currentProductId())); return; }
   /* 🔁 order again */
+  const pn = e.target.closest('[data-paynow]');
+  if (pn){ e.preventDefault(); openPendingPay(Store.orders.find(x => x.id === pn.dataset.paynow) || null); return; }
   const ro = e.target.closest('[data-reorder]');
   if (ro){ e.preventDefault(); const o = myOrders().find(x => x.id === ro.dataset.reorder) || Store.orders.find(x => x.id === ro.dataset.reorder); if (o) orderAgain(o); return; }
   /* order detail fast toggle */
@@ -2134,25 +2403,6 @@ document.addEventListener('click', function(e){
   /* 📢 viral share to WhatsApp groups */
   const vl = e.target.closest('[data-viral]');
   if (vl){ e.preventDefault(); viralShareProduct(byId(vl.dataset.viral)); return; }
-  /* 📥 download saree photo */
-  const dlp = e.target.closest('[data-dl-photo]');
-  if (dlp){
-    e.preventDefault();
-    const url = dlp.dataset.dlPhoto;
-    try{
-      fetch(url).then(r => r.blob()).then(blob => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sk-sarees-photo.jpg';
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-      }).catch(() => { try{ window.open(url, '_blank'); }catch(e2){} });
-    }catch(err){ try{ window.open(url, '_blank'); }catch(e2){} }
-    return;
-  }
-  /* 📸 share saree photo on WhatsApp status */
-  const ss = e.target.closest('[data-share-status]');
-  if (ss){ e.preventDefault(); shareProductStatus(byId(ss.dataset.shareStatus)); return; }
   /* 📍 PIN code delivery check */
   const pcb = e.target.closest('#pinCheckBtn');
   if (pcb){

@@ -721,3 +721,21 @@ Open `admin.html` → PIN **`1600`** (change it in `app-admin.js` before going l
 - 🖼️ `catalog.json` images are **absolute `https://www.sksaree.shop/images/products/….jpg`** (or `product/<sku>.jpg` for admin uploads) — no local image files needed (host keeps the photos).
 - ❌ Confirmed still REMOVED from the product page: **Buy on WhatsApp (Instant Confirmation), ⚡ Fast Order, 📞 Call to Order, 🎨 Try-On, 📥 Download Photo, 📸 Share Photo, 📱 Instagram Share** (kept: 🛒 Add to Cart · ⚡ Buy Now · 💬 Chat on WhatsApp · WhatsApp Share · WhatsApp Share — Groups · 🔗 Copy Link · social chips).
 - ⚙️ `node tools/generate-product-pages.js [products.json]` regenerates `catalog.json` + `products-feed.xml` + `google-merchant-feed.txt` + `sitemap.xml` (all classic links). `products.json` stays a local-only helper.
+
+---
+
+## 🆕 Changelog — 2026-08-16 (home stats + reseller views removed)
+
+- 🔕 **Home "👥 1 Visitors / 📦 0 Orders" badges REMOVED** — hero now shows only "⭐ 2,300+ Happy Customers" + "🚚 Free above ₹999". The footer site-stats line is gone too; counters still exist internally but are never shown.
+- 👁️ **Reseller link view count REMOVED** — no more "Link views 👁 N" box in the reseller profile, no "👁 N views" in the admin reseller list, and `bumpResellerView` is no longer called (saves a localStorage write + clutter). `?ref=` still claims orders exactly as before.
+- 📦 **"Upload catalog.json" explained** — button renamed "📦 Upload catalog.json (backup restore)" and a 💡 note added under the bulk buttons: *catalog.json = your product list file. ⬇️ Download after editing → upload to website host → customers see changes. 📦 Upload loads a saved copy back into this Admin (backup / another phone). The website loads ONLY this file.*
+
+---
+
+## 🆕 Changelog — 2026-08-16 (catalog-wise bulk product management)
+
+- 🗂️ **Admin Products = catalog-wise** — category chips (All + each catalog with live counts) filter the list; "All" view groups products under category headers, each header with a **⬇️ CSV** download button for that catalog.
+- ⬇️ **"⬇️ CSVs — catalog wise (one file per category)"** downloads one `catalog-<slug>.csv` per category, one at a time (memory-friendly) — edit each catalog separately in Excel/Sheets.
+- 📄 **CSV upload is now header-aware** (column order doesn't matter — works with exported files incl. the `sku` column) and **catalog-wise**: a file named `catalog-<slug>.csv` auto-assigns that category to new rows; a `Category` column also works. Rows are still matched by id/sku for updates.
+- ➕ **Single product add writes ONE Firestore doc as backup**; bulk upload/CSV stays catalog.json-only. Customers still load products ONLY from catalog.json.
+- 🐛 Fixed: bulk import was reading the category from the image column — now reads the correct column.

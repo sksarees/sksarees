@@ -1467,10 +1467,8 @@ function readRef(){
        order is claimed to the referrer and they earn commission. */
     try{ localStorage.setItem('sk_ref', code); }catch(e){}
     try{ sessionStorage.setItem('sk_ref', code); }catch(e){}
-    /* 👁 ALWAYS count the view when a ref code is present — even if the reseller
-       record isn't in the local cache yet (Firestore loads after init). The code
-       alone is enough; bumpResellerView creates a local record if needed. */
-    bumpResellerView(code);
+    /* 🔕 link view counting REMOVED per user — a ref code just claims the order
+       to the reseller; no view counter is bumped (saves writes too). */
     const r = resellerByCode(code);
     if (r) return r;
     return { code };   /* code may exist in Firestore cloud — orders still carry it */
@@ -1878,11 +1876,8 @@ function bumpOrdersCounter(){
   }catch(e){}
 }
 function renderStatsText(){
-  try{
-    const v = document.getElementById('statV'); if (v) v.textContent = (Stats.visitors || 0).toLocaleString('en-IN');
-    const o = document.getElementById('statO'); if (o) o.textContent = (Stats.orders || 0).toLocaleString('en-IN');
-    const t = document.getElementById('siteStats'); if (t) t.textContent = '👥 ' + (Stats.visitors || 0).toLocaleString('en-IN') + '+ visitors · 📦 ' + (Stats.orders || 0).toLocaleString('en-IN') + '+ orders';
-  }catch(e){}
+  /* 🔕 visitor/order counters REMOVED per user — the home page shows no
+     "1 Visitors · 0 Orders" stats. Kept as a safe no-op for old callers. */
 }
 
 /* ============================ 9g. BUNDLE + PRICE-DROP ALERTS ============================ */
