@@ -354,7 +354,7 @@ let PRODUCTS = (() => {
       /* merge cached Firestore products into it too (silent local restore) */
       try{
         const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
-        if (Array.isArray(cached) && cached.length){
+        if (!(document.body && document.body.dataset && document.body.dataset.page === 'admin') && Array.isArray(cached) && cached.length){
           cached.filter(notSample).filter(notHidden).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
         }
       }catch(e){}
@@ -504,6 +504,7 @@ async function preloadCatalog(wantId){
   /* 2) static catalog.json — merged ALWAYS (not only when PRODUCTS is empty),
      so an uploaded catalog fixes missing products even if other caches exist.
      Accepts both a bare array and { products: [...] }. */
+  if (document.body && document.body.dataset && document.body.dataset.page === 'admin') return have(wantId);
   if (!window.__catalogLoaded){
     const tryLoad = async url => {
       try{
