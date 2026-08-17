@@ -667,11 +667,11 @@ function renderProducts(){
     '<div class="product-toolbar"><input id="prodSearch" type="search" placeholder="🔍 Search name, SKU or colour…" autocomplete="off" value="' + esc(prodSearch) + '"><select id="prodCategory"><option value="all">All categories</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '"' + (prodCategory === c.slug ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select></div>' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
-      '<p class="small muted" style="margin:6px 0">One product per line — <b>Name, Price, MRP, Image URL, Category, Badge</b> (SKU auto-generated <b>SK20001, SK20002…</b>). Or just paste an <b>image URL</b> alone — name &amp; price are auto-filled. <b>🎨 Colours are auto-detected from each photo.</b></p>' +
+      '<p class="small muted" style="margin:6px 0"><b>CSV category update:</b> use <b>SKU, Category</b> to move existing products safely. You can also include <b>Price, MRP, Stock, Badge</b>. Existing products are updated by SKU; new products use the normal full CSV format.</p>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
-        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload CSV File</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 CSV Add / Category Update</button>' +
         '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for GitHub)</button>' +
-        '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ CSV template</a>' +
+        '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ Category CSV Template</a>' +
       '</div>' +
       '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, https://…, soft-silk, New&#10;Wedding Kanjivaram, 2899, 4599, https://…, bridal-sarees, Bestseller&#10;https://www.sksaree.shop/images/products/kanchipuram-silk.jpg" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:110px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import &amp; Auto-detect Colours</button>' +
@@ -703,11 +703,11 @@ function renderProducts(){
   document.body.appendChild(csvIn);
   csvIn.addEventListener('change', () => { const f = csvIn.files && csvIn.files[0]; if (f) importCsvFile(f); csvIn.value = ''; });
   document.getElementById('btnCsv').addEventListener('click', () => csvIn.click());
-  /* ⬇️ CSV template */
+  /* ⬇️ Category CSV Template */
   const tpl = document.getElementById('btnCsvTpl');
   if (tpl) tpl.addEventListener('click', e => {
     e.preventDefault();
-    const csv = 'Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://www.sksaree.shop/images/products/kanchipuram-silk.jpg,soft-silk,New,,10,"Red, Gold"\nWedding Kanjivaram,2899,4599,https://www.sksaree.shop/images/products/banarasi-purple.jpg,bridal-sarees,Bestseller,,8,Maroon\n';
+    const csv = 'SKU,Category,Price,MRP,Stock,Badge\nSKS-SOF-006,soft-silk,999,1499,10,New\nSKS-SIL-001,silk,,,8,Bestseller\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -997,6 +997,34 @@ function importCsvFile(file){
       /* header row detection: name/product … price … image */
       const first = parseCsvLine(lines[0]);
       const isHeader = first.some(h => /^(name|product|title)$/i.test(h)) && first.some(h => /^price$/i.test(h));
+      /* Category-wise bulk editor: SKU, Category, Price, MRP, Stock, Badge.
+         It updates only fields supplied in the CSV and never creates duplicates. */
+      const norm = x => String(x || '').trim().toLowerCase().replace(/[^a-z]/g, '');
+      const skuCol = first.findIndex(h => /^(sku|id|productsku)$/i.test(norm(h)));
+      const catCol = first.findIndex(h => /^(category|cat)$/i.test(norm(h)));
+      if (skuCol >= 0 && catCol >= 0){
+        let changed = 0, missing = [];
+        const col = name => first.findIndex(h => norm(h) === name);
+        const priceCol=col('price'), mrpCol=col('mrp'), stockCol=col('stock'), badgeCol=col('badge');
+        for (let i = 1; i < lines.length; i++){
+          const row = parseCsvLine(lines[i]); const sku = String(row[skuCol] || '').trim();
+          if (!sku) continue;
+          const idx = PRODUCTS.findIndex(p => String(p.sku || p.id).trim().toLowerCase() === sku.toLowerCase());
+          if (idx < 0){ missing.push(sku); continue; }
+          const prod = PRODUCTS[idx], cat = String(row[catCol] || '').trim().toLowerCase().replace(/\s+/g,'-');
+          if (cat && CATEGORIES.some(c => c.slug === cat)) prod.cat = cat;
+          if (priceCol >= 0 && +row[priceCol] > 0) prod.price = Math.round(+row[priceCol]);
+          if (mrpCol >= 0 && +row[mrpCol] > 0) prod.mrp = Math.round(+row[mrpCol]);
+          if (stockCol >= 0 && row[stockCol] !== '' && Number.isFinite(+row[stockCol])) prod.stock = Math.max(0, Math.round(+row[stockCol]));
+          if (badgeCol >= 0 && row[badgeCol] !== undefined) prod.badge = String(row[badgeCol]).trim();
+          changed++;
+        }
+        if (changed){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage=1; renderProdBody(); }
+        res.innerHTML = changed ? '✅ Updated <b>' + changed + '</b> products by SKU' + (missing.length ? ' • ⚠️ SKU not found: ' + esc(missing.slice(0,5).join(', ')) : '') : '⚠️ No matching SKU found. Download the template and use exact SKU values.';
+        toast(changed ? '✅ ' + changed + ' products updated' : '⚠️ No matching SKU');
+        const panel=document.getElementById('bulkPanel'); if (panel && changed) panel.style.display='none';
+        return;
+      }
       if (isHeader) start = 1;
       for (let i = start; i < lines.length; i++){
         try{
