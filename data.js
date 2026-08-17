@@ -325,6 +325,7 @@ let PRODUCTS = (() => {
     return set;
   })();
   const notSample = p => p && p.id && !SAMPLE_IDS[p.id];
+  const notDeleted = p => { try{ return !JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p && p.id)); }catch(e){ return true; } };
   const notHidden = p => isAdminDevice() || !(p && p.hidden);   /* customers never see hidden products */
   let built = [];
   if (window.__KEEP_BASE){
@@ -355,10 +356,10 @@ let PRODUCTS = (() => {
       try{
         const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
         if (!(document.body && document.body.dataset && document.body.dataset.page === 'admin') && Array.isArray(cached) && cached.length){
-          cached.filter(notSample).filter(notHidden).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
+          cached.filter(notSample).filter(notDeleted).filter(notHidden).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
         }
       }catch(e){}
-      return custom.filter(notSample);
+      return custom.filter(notSample).filter(notDeleted);
     }
   }catch(e){}
   /* 2. Cached Firestore products merge silently — so cloud-only products
@@ -366,7 +367,7 @@ let PRODUCTS = (() => {
   try{
     const cached = JSON.parse(localStorage.getItem('sk_products_cloud'));
     if (Array.isArray(cached) && cached.length){
-      cached.filter(notSample).filter(notHidden).forEach(cp => {
+      cached.filter(notSample).filter(notDeleted).filter(notHidden).forEach(cp => {
         const np = normalizeProduct(cp);
         const i = built.findIndex(x => x.id === np.id);
         if (i >= 0) built[i] = np; else built.unshift(np);
@@ -1825,7 +1826,6 @@ function renderStatsText(){
   try{
     const v = document.getElementById('statV'); if (v) v.textContent = (Stats.visitors || 0).toLocaleString('en-IN');
     const o = document.getElementById('statO'); if (o) o.textContent = (Stats.orders || 0).toLocaleString('en-IN');
-    const t = document.getElementById('siteStats'); if (t) t.textContent = '👥 ' + (Stats.visitors || 0).toLocaleString('en-IN') + '+ visitors · 📦 ' + (Stats.orders || 0).toLocaleString('en-IN') + '+ orders';
   }catch(e){}
 }
 
@@ -2518,7 +2518,7 @@ function renderFooter(){
         <p style="font-size:.76rem">⏰ Order support: 9 AM – 9 PM, all days</p>
       </div>
     </div></div>
-    <div class="foot-bottom wrap">© 2026 SK Sarees, Salem. All rights reserved. &nbsp;•&nbsp; Made with ❤️ in Tamil Nadu<br><span id="siteStats" style="font-size:.72rem;opacity:.85;margin-top:4px;display:block"></span></div>
+    <div class="foot-bottom wrap">© 2026 SK Sarees, Salem. All rights reserved. &nbsp;•&nbsp; Made with ❤️ in Tamil Nadu</div>
   </footer>`;
   const fq = f.querySelector('[data-i18n-faq]');
   if (fq) fq.addEventListener('click', e => { e.preventDefault(); if (typeof window.scrollToFaq === 'function') window.scrollToFaq(); });

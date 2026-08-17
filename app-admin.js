@@ -235,7 +235,7 @@ function renderAdmin(){
        into Store.orders / sk_orders, so the admin device's own "My Orders"
        page still shows only this device's orders. Admin view merges both. */
     FS.listenOrders(list => {
-      fsOrders = list && list.length ? list : [];
+      fsOrders = (list && list.length ? list : []).filter(o => !adminDeletedOrder(o && o.id));
       fsOrders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       watchNewOrders(fsOrders);                    /* 🔔 new order alert */
       if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
@@ -382,17 +382,19 @@ function adminAutoDeliver(){
     if (changed && adminTab === 'orders'){ renderFilters(); renderOrderList(); }
   }catch(e){}
 }
+function adminDeletedOrder(id){ try{ return JSON.parse(localStorage.getItem('sk_deleted_orders') || '[]').map(String).includes(String(id)); }catch(e){ return false; } }
+function rememberAdminDeletedOrder(id){ try{ const a=JSON.parse(localStorage.getItem('sk_deleted_orders') || '[]'); if(!a.map(String).includes(String(id))) a.push(String(id)); localStorage.setItem('sk_deleted_orders',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function adminAllOrders(){
   const localMap = {};
-  try{ Store.orders.forEach(o => { if (o && o.id) localMap[o.id] = o; }); }catch(e){}
+  try{ Store.orders.forEach(o => { if (o && o.id && !adminDeletedOrder(o.id)) localMap[o.id] = o; }); }catch(e){}
   const merged = [];
   try{
     (fsOrders || []).forEach(f => {
-      try{ if (f && f.id && orderAgeDays(f) <= 30) merged.push(Object.assign({}, f, localMap[f.id] || {})); }catch(e){}
+      try{ if (f && f.id && !adminDeletedOrder(f.id) && orderAgeDays(f) <= 30) merged.push(Object.assign({}, f, localMap[f.id] || {})); }catch(e){}
     });
     try{
       Store.orders.forEach(o => {
-        if (o && o.id && orderAgeDays(o) <= 30 && !merged.some(x => x.id === o.id)) merged.push(o);
+        if (o && o.id && !adminDeletedOrder(o.id) && orderAgeDays(o) <= 30 && !merged.some(x => x.id === o.id)) merged.push(o);
       });
     }catch(e){}
   }catch(e){}
@@ -662,17 +664,16 @@ function renderProducts(){
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Add</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulkEdit" style="flex:1;min-width:150px">✏️ Edit Selected</button>' +
-      '<button type="button" class="btn btn-outline btn-sm" id="btnChangeCategory" style="flex:1;min-width:150px">🏷️ Change Category</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
     '<div class="product-toolbar"><input id="prodSearch" type="search" placeholder="🔍 Search name, SKU or colour…" autocomplete="off" value="' + esc(prodSearch) + '"><select id="prodCategory"><option value="all">All categories</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '"' + (prodCategory === c.slug ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select></div>' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
-      '<p class="small muted" style="margin:6px 0"><b>CSV category update:</b> use <b>SKU, Category</b> to move existing products safely. You can also include <b>Price, MRP, Stock, Badge</b>. Existing products are updated by SKU; new products use the normal full CSV format.</p>' +
+      '<p class="small muted" style="margin:6px 0">Upload <b>new products</b> only. CSV format: <b>Name, Price, MRP, Image URL, Category, Badge, SKU, Stock, Colours</b>. Existing product SKU rows are skipped to avoid duplicates.</p>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
-        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 CSV Add / Category Update</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload New Products CSV</button>' +
         '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for GitHub)</button>' +
-        '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ Category CSV Template</a>' +
+        '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ Product CSV Template</a>' +
       '</div>' +
       '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, https://…, soft-silk, New&#10;Wedding Kanjivaram, 2899, 4599, https://…, bridal-sarees, Bestseller&#10;https://www.sksaree.shop/images/products/kanchipuram-silk.jpg" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:110px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnImport" style="margin-top:10px">📥 Import &amp; Auto-detect Colours</button>' +
@@ -704,11 +705,11 @@ function renderProducts(){
   document.body.appendChild(csvIn);
   csvIn.addEventListener('change', () => { const f = csvIn.files && csvIn.files[0]; if (f) importCsvFile(f); csvIn.value = ''; });
   document.getElementById('btnCsv').addEventListener('click', () => csvIn.click());
-  /* ⬇️ Category CSV Template */
+  /* ⬇️ Product CSV Template */
   const tpl = document.getElementById('btnCsvTpl');
   if (tpl) tpl.addEventListener('click', e => {
     e.preventDefault();
-    const csv = 'SKU,Category,Price,MRP,Stock,Badge\nSKS-SOF-006,soft-silk,999,1499,10,New\nSKS-SIL-001,silk,,,8,Bestseller\n';
+    const csv = 'Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://www.sksaree.shop/images/products/soft-silk.jpg,soft-silk,New,SKS-SOF-101,10,Red Gold\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -719,7 +720,6 @@ function renderProducts(){
   document.getElementById('prodSearch').addEventListener('input', e => { prodSearch = e.target.value; prodPage = 1; renderProdBody(); });
   document.getElementById('prodCategory').addEventListener('change', e => { prodCategory = e.target.value; prodPage = 1; renderProdBody(); });
   document.getElementById('btnBulkEdit').addEventListener('click', openBulkEditSelected);
-  document.getElementById('btnChangeCategory').addEventListener('click', openBulkCategoryChange);
   document.getElementById('btnDelSel').addEventListener('click', () => {
     const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
     if (!sel.length){ toast('⚠️ Select products first'); return; }
@@ -783,18 +783,6 @@ function openBulkEditSelected(){
     let changed=0;
     PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (badge !== '__keep__') p.badge=badge; changed++; });
     saveProducts(PRODUCTS); refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ ' + changed + ' products updated');
-  });
-}
-function openBulkCategoryChange(){
-  const selected = Array.from(document.querySelectorAll('.prod-sel:checked')).map(x => x.value);
-  if (!selected.length){ toast('⚠️ முதலில் products select செய்யுங்கள்'); return; }
-  const opts = CATEGORIES.map(c => '<option value="' + esc(c.slug) + '">' + esc(c.name) + '</option>').join('');
-  openModal('<h2 style="font-size:1.1rem;margin-bottom:7px">🏷️ Change Product Category</h2><p class="small muted" style="margin-bottom:12px">' + selected.length + ' selected products will move to this category.</p><div class="field"><label>New Category</label><select id="bulkCategorySelect">' + opts + '</select></div><button type="button" id="saveBulkCategory" class="btn btn-maroon">✅ Update ' + selected.length + ' Products</button>');
-  document.getElementById('saveBulkCategory').addEventListener('click', () => {
-    const cat = document.getElementById('bulkCategorySelect').value;
-    PRODUCTS.forEach(p => { if (selected.includes(p.id)) p.cat = cat; });
-    saveProducts(PRODUCTS); refreshFeedCache(); closeModal(); prodPage = 1; renderProdBody();
-    toast('✅ ' + selected.length + ' products category updated');
   });
 }
 function updateDelSelCount(){
@@ -1017,38 +1005,11 @@ function importCsvFile(file){
       /* header row detection: name/product … price … image */
       const first = parseCsvLine(lines[0]);
       const isHeader = first.some(h => /^(name|product|title)$/i.test(h)) && first.some(h => /^price$/i.test(h));
-      /* Category-wise bulk editor: SKU, Category, Price, MRP, Stock, Badge.
-         It updates only fields supplied in the CSV and never creates duplicates. */
-      const norm = x => String(x || '').trim().toLowerCase().replace(/[^a-z]/g, '');
-      const skuCol = first.findIndex(h => /^(sku|id|productsku)$/i.test(norm(h)));
-      const catCol = first.findIndex(h => /^(category|cat)$/i.test(norm(h)));
-      if (skuCol >= 0 && catCol >= 0){
-        let changed = 0, missing = [];
-        const col = name => first.findIndex(h => norm(h) === name);
-        const priceCol=col('price'), mrpCol=col('mrp'), stockCol=col('stock'), badgeCol=col('badge');
-        for (let i = 1; i < lines.length; i++){
-          const row = parseCsvLine(lines[i]); const sku = String(row[skuCol] || '').trim();
-          if (!sku) continue;
-          const idx = PRODUCTS.findIndex(p => String(p.sku || p.id).trim().toLowerCase() === sku.toLowerCase());
-          if (idx < 0){ missing.push(sku); continue; }
-          const prod = PRODUCTS[idx], cat = String(row[catCol] || '').trim().toLowerCase().replace(/\s+/g,'-');
-          if (cat && CATEGORIES.some(c => c.slug === cat)) prod.cat = cat;
-          if (priceCol >= 0 && +row[priceCol] > 0) prod.price = Math.round(+row[priceCol]);
-          if (mrpCol >= 0 && +row[mrpCol] > 0) prod.mrp = Math.round(+row[mrpCol]);
-          if (stockCol >= 0 && row[stockCol] !== '' && Number.isFinite(+row[stockCol])) prod.stock = Math.max(0, Math.round(+row[stockCol]));
-          if (badgeCol >= 0 && row[badgeCol] !== undefined) prod.badge = String(row[badgeCol]).trim();
-          changed++;
-        }
-        if (changed){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage=1; renderProdBody(); }
-        res.innerHTML = changed ? '✅ Updated <b>' + changed + '</b> products by SKU' + (missing.length ? ' • ⚠️ SKU not found: ' + esc(missing.slice(0,5).join(', ')) : '') : '⚠️ No matching SKU found. Download the template and use exact SKU values.';
-        toast(changed ? '✅ ' + changed + ' products updated' : '⚠️ No matching SKU');
-        const panel=document.getElementById('bulkPanel'); if (panel && changed) panel.style.display='none';
-        return;
-      }
       if (isHeader) start = 1;
       for (let i = start; i < lines.length; i++){
         try{
           const np = bulkPartsToProduct(parseCsvLine(lines[i]));
+          if (PRODUCTS.some(p => String(p.id) === String(np.id) || (np.sku && String(p.sku) === String(np.sku)))){ errors.push('Duplicate SKU row ' + (i + 1)); continue; }
           PRODUCTS.unshift(np);
           imported.push(np);
           added++;
@@ -1986,7 +1947,7 @@ document.addEventListener('click', e => {
     /* mark Inactive in Firestore so pulls skip it */
     try{
       if (FS.enabled()){
-        FS._getDb().then(db => { if (db) db.collection('products').doc(String(id)).delete().catch(() => {}); }).catch(() => {});
+        FS._getDb().then(db => { if (db){ db.collection('products').doc(String(id)).delete().catch(() => {}); db.collection('products').where('id','==',String(id)).get().then(q=>q.forEach(d=>d.ref.delete())).catch(()=>{}); } }).catch(() => {});
       }
     }catch(e){}
     prodPage = 1; renderProdBody(); toast('🗑️ Deleted from Admin + Firestore. Download and upload catalog.json to remove it for customers too.');
@@ -1996,6 +1957,7 @@ document.addEventListener('click', e => {
   if (delo){
     const id = delo.dataset.delorder;
     if (!confirm('Delete order ' + id + '? This cannot be undone.')) return;
+    rememberAdminDeletedOrder(id);
     try{ Store.orders = Store.orders.filter(o => o.id !== id); Store.saveOrders(); }catch(e){}
     try{ fsOrders = (fsOrders || []).filter(o => o.id !== id); }catch(e){}
     try{ if (FS.enabled()) FS._getDb().then(db => { if (db) db.collection('orders').doc(String(id)).delete().then(()=>toast('🗑️ Order deleted from Firestore')).catch(()=>toast('⚠️ Firestore delete failed — check internet')); }).catch(()=>{}); }catch(e){}
