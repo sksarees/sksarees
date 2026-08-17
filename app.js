@@ -373,7 +373,7 @@ function renderHome(){
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
-      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>₹50 off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>5% off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
       '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +

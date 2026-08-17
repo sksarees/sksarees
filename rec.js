@@ -264,7 +264,7 @@ const REC = (function(){
   /* ---------- 7. render the "✨ Similar Sarees" section ---------- */
   function renderSimilar(p, container){
     if (!container) return;
-    const recs = recommendFor(p, 30);
+    const recs = recommendFor(p, 12);
     if (recs.length < 2){ container.innerHTML = ''; return; }
     container.innerHTML =
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ Similar Sarees</h2>' +

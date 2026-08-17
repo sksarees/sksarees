@@ -183,7 +183,7 @@ const ORDER_PAGE_SIZE = 10;
 let prodSearch = '';         /* Products tab: search query */
 let prodPage = 1;            /* Products tab: pagination */
 let prodCategory = 'all';     /* Products category filter */
-const PROD_PAGE_SIZE = 10;
+const PROD_PAGE_SIZE = 30;
 let revPage = 1;             /* Reviews tab: pagination */
 const REV_PAGE_SIZE = 10;
 
@@ -1301,14 +1301,14 @@ function renderLeads(){
   }
   wrap.innerHTML = merged.map((r, i) => {
     const when = r.date ? fmtDT(r.date) : '—';
-    const msg = '🎉 Hi ' + (r.name || 'there') + '! Your SK Sarees 5% OFF coupon (' + (r.code || 'SHARE50') + ') is ready — shop now & save! 🪡\n\n👉 https://www.sksaree.shop/shop.html';
+    const msg = '🎉 Hi ' + (r.name || 'there') + '! Your SK Sarees 5% OFF coupon (' + (r.code || 'SHARE5') + ') is ready — shop now & save! 🪡\n\n👉 https://www.sksaree.shop/shop.html';
     return '<div class="order-card">' +
-      '<div class="oc-top"><b>👤 ' + esc(r.name || 'Customer') + '</b><span class="status-pill status-delivered">🎟️ ' + esc(r.code || 'SHARE50') + '</span></div>' +
+      '<div class="oc-top"><b>👤 ' + esc(r.name || 'Customer') + '</b><span class="status-pill status-delivered">🎟️ ' + esc(r.code || 'SHARE5') + '</span></div>' +
       '<div class="oc-items">📱 ' + esc(r.phone) + ' • ' + when + '</div>' +
       '<div class="oc-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
         '<a class="btn btn-wa btn-sm" style="width:auto" href="' + waLink(msg, r.phone) + '" target="_blank" rel="noopener">💬 Send Offer</a>' +
         '<a class="btn btn-gold btn-sm" style="width:auto" href="tel:+91' + esc(String(r.phone).replace(/\D/g, '')) + '">📞 Call</a>' +
-        '<a class="btn btn-outline btn-sm" style="width:auto" href="sms:+91' + esc(String(r.phone).replace(/\D/g, '')) + '?body=' + encodeURIComponent('Hi! Your 5% OFF coupon is ready: ' + (r.code || 'SHARE50')) + '">📱 SMS</a>' +
+        '<a class="btn btn-outline btn-sm" style="width:auto" href="sms:+91' + esc(String(r.phone).replace(/\D/g, '')) + '?body=' + encodeURIComponent('Hi! Your 5% OFF coupon is ready: ' + (r.code || 'SHARE5')) + '">📱 SMS</a>' +
       '</div></div>';
   }).join('');
 }
@@ -1685,8 +1685,8 @@ function renderStatusPosts(){
         '<button type="button" class="btn btn-buy" id="spImg" style="width:auto;min-width:240px">🖼️ Download Status Image (JPG)</button>' +
       '</div>' +
       '<p class="small muted" id="spInfo" style="margin-top:8px"></p></div>' +
-    '<div class="form-card"><h3>📝 Caption preview</h3><textarea id="spText" rows="10" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:var(--bg);outline:none;font-family:inherit"></textarea></div>' +
-    '<div class="form-card"><h3>🖼️ Image preview</h3><img id="spPreview" alt="Status image preview" style="max-width:min(340px,100%);border-radius:12px;border:1px solid var(--line)"></div>';
+    '<div class="form-card"><h3>📝 Caption preview</h3><textarea id="spText" rows="10" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:var(--bg);outline:none;font-family:inherit"></textarea></div>' +
+    '<div class="form-card"><h3>🖼️ Status Image Preview</h3><p class="small muted">Uses the selected saree’s original Image URL from the product record.</p><img id="spPreview" alt="Status image preview" style="max-width:min(340px,100%);border-radius:12px;border:1px solid var(--line)"></div>';
   const refill = () => {
     const id = document.getElementById('spProd').value;
     const p = byId(id);

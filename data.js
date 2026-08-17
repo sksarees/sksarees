@@ -24,13 +24,13 @@ const CONFIG = {
   dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
   /* 💰 Reseller / Share & Earn program: 5% margin per order (GPay OR loyalty
      points) + ₹50-off promo coupon for customers */
-  resellerMargin : 50,               // ₹50-off customer coupon value (SHARE50)
+  resellerMargin : 5,                // 5% customer share coupon
   resellerMarginPct : 5,             // 🔥 reseller earns 5% of every confirmed order
   resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
-  resellerCoupon : 'SHARE50',        // ₹50 off coupon shown on the index banner
+  resellerCoupon : 'SHARE5',         // 5% off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
   onlineDiscount : 1,                 // 💳 1% off when paying ONLINE (UPI); COD = full price
-  latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get ₹50 off your next order (code LATE50).',
+  latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get 5% off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
      own store videos: e.g. { title:'My Silk Collection', id:'VIDEO_ID_11CHARS' } */
@@ -896,7 +896,7 @@ const REVIEWS = [
 const FAQ = [
   { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (+₹70). UPI is 100% secure — we never see your card details.' },
   { q:'How long does delivery take?', a:'We dispatch within 12–24 hours (COD orders: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹999 (else ₹30 / ₹40 / ₹60 by state).' },
-  { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get ₹50 off your next order (code LATE50).' },
+  { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
   { q:'I live near Salem — can I pick up?', a:'Yes! Local customers can collect from our store at 2/130, Thoothanoor, Edanganasalai, Salem 637502.' },
@@ -1211,8 +1211,8 @@ function defaultCoupons(){
   return [
     { code:'AP5',    type:'percent', value:5,  min:0,   active:true, label:'Aadi Festival — 5% off', maxUses:0, expiry:'' },
     { code:'CARTOFFER', type:'percent', value:1, min:0, active:true, label:'Cart reminder — 1% off', maxUses:0, expiry:'' },
-    { code:'LATE50', type:'flat',    value:50, min:0,   active:true, label:'Late delivery — ₹50 off', maxUses:0, expiry:'' },
-    { code:'SHARE50', type:'percent', value:5,  min:0,   active:true, label:'Share & Earn — 5% off', maxUses:0, expiry:'' },
+    { code:'LATE50', type:'percent', value:5, min:0, active:true, label:'Late delivery — 5% off', maxUses:0, expiry:'' },
+    { code:'SHARE5', type:'percent', value:5, min:0, active:true, label:'Share & Earn — 5% off', maxUses:0, expiry:'' },
   ];
 }
 function getCoupons(){
