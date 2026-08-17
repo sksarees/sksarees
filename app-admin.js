@@ -213,6 +213,8 @@ function renderAdmin(){
         '<button type="button" class="btn btn-outline btn-sm" data-copy="🚚 Your beautiful Saree is out for delivery! Track your order here. Thank you for shopping with us. 🪡">📋 Delivery Reminder</button>' +
       '</div></div>' +
     '<button type="button" class="btn btn-ghost btn-sm" id="logoutBtn" style="margin-top:14px;width:auto;border:1.5px solid var(--line)">Logout</button>';
+  /* Pull custom Firestore categories once for admin category manager. */
+  try{ if(FS.enabled()) FS._getDb().then(db=>{ if(!db)return; db.collection('categories').get().then(q=>{ q.forEach(d=>{const c=d.data()||{}; if(c.slug && !CATEGORIES.some(x=>x.slug===c.slug)) CATEGORIES.push({slug:c.slug,name:c.name||c.slug,emoji:c.emoji||'🪡',cls:'c-daily',blurb:c.name||c.slug});}); }); }); }catch(e){}
   document.getElementById('tabOrders').addEventListener('click', () => switchTab('orders'));
   document.getElementById('tabProducts').addEventListener('click', () => switchTab('products'));
   document.getElementById('tabReviews').addEventListener('click', () => switchTab('reviews'));
@@ -771,11 +773,14 @@ function renderProdBody(){
   if (selAll) selAll.checked = visible.length > 0 && document.querySelectorAll('.prod-sel:checked').length === visible.length;
   updateDelSelCount();
 }
+function syncSelectedProductsToFirestore(ids){
+  try{ if (!FS.enabled()) return; FS._getDb().then(db => { if (!db) return; (ids || []).forEach(id => { const p=PRODUCTS.find(x=>x.id===id); if(p) db.collection('products').doc(String(p.id)).set(Object.assign({},p,{updatedAt:window.firebase.firestore.FieldValue.serverTimestamp()}),{merge:true}).catch(()=>{}); }); }).catch(()=>{}); }catch(e){}
+}
 function openCategoryManager(){
   const rows = CATEGORIES.map(c => '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><span>' + esc(c.emoji || '🪡') + ' <b>' + esc(c.name) + '</b><small class="muted"> · ' + esc(c.slug) + '</small></span><button type="button" class="btn btn-ghost btn-sm" data-delcat="' + esc(c.slug) + '" style="width:auto;color:var(--red)">Delete</button></div>').join('');
   openModal('<h2 style="font-size:1.1rem;margin-bottom:8px">🗂️ Manage Categories</h2><p class="small muted">Products inside a category must be moved first before deleting it.</p><div id="catManageList" style="max-height:260px;overflow:auto">' + rows + '</div><div style="display:grid;grid-template-columns:70px 1fr;gap:8px;margin-top:14px"><input id="newCatEmoji" value="🪡" maxlength="3"><input id="newCatName" placeholder="New category name"></div><button type="button" class="btn btn-maroon" id="addCategory" style="margin-top:8px">➕ Add Category</button>');
-  document.getElementById('addCategory').onclick=()=>{ const name=document.getElementById('newCatName').value.trim(), emoji=document.getElementById('newCatEmoji').value.trim()||'🪡', slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); if(!name||!slug){toast('⚠️ Category name required');return;} if(CATEGORIES.some(c=>c.slug===slug)){toast('⚠️ Category already exists');return;} CATEGORIES.push({slug,name,emoji,cls:'c-daily',blurb:name}); if(FS.enabled()) FS._getDb().then(db=>{if(db) db.collection('categories').doc(slug).set({slug,name,emoji,createdAt:Date.now()},{merge:true});}); closeModal(); renderProducts(); toast('✅ Category added'); };
-  document.querySelectorAll('[data-delcat]').forEach(b=>b.onclick=()=>{ const slug=b.dataset.delcat; if(PRODUCTS.some(p=>p.cat===slug)){toast('⚠️ Move products from this category first');return;} if(!confirm('Delete this category?'))return; const i=CATEGORIES.findIndex(c=>c.slug===slug); if(i>=0) CATEGORIES.splice(i,1); if(FS.enabled()) FS._getDb().then(db=>{if(db)db.collection('categories').doc(slug).delete().catch(()=>{});}); closeModal(); renderProducts(); toast('🗑️ Category deleted'); });
+  document.getElementById('addCategory').onclick=()=>{ const name=document.getElementById('newCatName').value.trim(), emoji=document.getElementById('newCatEmoji').value.trim()||'🪡', slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); if(!name||!slug){toast('⚠️ Category name required');return;} if(CATEGORIES.some(c=>c.slug===slug)){toast('⚠️ Category already exists');return;} CATEGORIES.push({slug,name,emoji,cls:'c-daily',blurb:name}); if(FS.enabled()) FS._getDb().then(db=>{if(db) db.collection('categories').doc(slug).set({slug,name,emoji,createdAt:Date.now()},{merge:true}).catch(()=>toast('⚠️ Category Firestore save failed'));}); closeModal(); renderProducts(); toast('✅ Category added'); };
+  document.querySelectorAll('[data-delcat]').forEach(b=>b.onclick=()=>{ const slug=b.dataset.delcat; if(PRODUCTS.some(p=>p.cat===slug)){toast('⚠️ Move products from this category first');return;} if(!confirm('Delete this category?'))return; const i=CATEGORIES.findIndex(c=>c.slug===slug); if(i>=0) CATEGORIES.splice(i,1); if(FS.enabled()) FS._getDb().then(db=>{if(db)db.collection('categories').doc(slug).delete().then(()=>toast('✅ Category deleted from Firestore')).catch(()=>toast('⚠️ Category delete failed in Firestore'));}); closeModal(); renderProducts(); toast('🗑️ Category deleted'); });
 }
 function openBulkEditSelected(){
   const selected = Array.from(document.querySelectorAll('.prod-sel:checked')).map(x => x.value);
@@ -793,7 +798,7 @@ function openBulkEditSelected(){
     const price=+document.getElementById('bePrice').value, mrp=+document.getElementById('beMrp').value, stockText=document.getElementById('beStock').value, badge=document.getElementById('beBadge').value, category=document.getElementById('beCategory').value;
     let changed=0;
     PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (badge !== '__keep__') p.badge=badge; if (category !== '__keep__') p.cat=category; changed++; });
-    saveProducts(PRODUCTS); refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ ' + changed + ' products updated');
+    saveProducts(PRODUCTS); syncSelectedProductsToFirestore(selected); refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ ' + changed + ' products updated + Firestore sync started');
   });
 }
 function updateDelSelCount(){
