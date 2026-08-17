@@ -138,7 +138,7 @@ function refreshAdminTab(){
   }catch(e){}
 }
 function adminInit(){
-  try{ injectChrome(); }catch(e){}
+  /* Standalone admin: do not inject customer website header/footer. */
   try{ renderCartBadge(); }catch(e){}
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
   try{ purgeOldOrders(30); }catch(e){}   /* auto-delete orders older than 30 days */
@@ -195,37 +195,25 @@ function renderAdmin(){
     '<div class="admin-tabs">' +
       '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
       '<button type="button" class="admin-tab" id="tabProducts">🛍️ Products</button>' +
+      '<button type="button" class="admin-tab" id="tabBulk">📥 Bulk Upload & Edit</button>' +
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
-      '<button type="button" class="admin-tab" id="tabMetaAds">📣 Meta Ads</button>' +
-      '<button type="button" class="admin-tab" id="tabStatus">📱 Status Posts</button>' +
-      '<button type="button" class="admin-tab" id="tabPush">📣 Push</button>' +
-      '<button type="button" class="admin-tab" id="tabLeads">📋 Leads</button>' +
-      '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Feed</button>' +
-      '<button type="button" class="admin-tab" id="tabResellers">💰 Resellers</button>' +
       '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
+      '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Download</button>' +
+      '<button type="button" class="admin-tab" id="tabResellers">💰 Resellers</button>' +
       '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
     '</div>' +
     '<div id="tabBody"></div>' +
-    '<div class="tpl-card"><h3>🤖 WhatsApp Templates</h3>' +
-      '<p>Tap to copy — then paste in WhatsApp.</p>' +
-      '<div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">' +
-        '<button type="button" class="btn btn-outline btn-sm" data-copy="🎉 Thank you for your order! Your saree will be dispatched shortly and you will receive tracking updates on WhatsApp. 💐">📋 Order Confirmation</button>' +
-        '<button type="button" class="btn btn-outline btn-sm" data-copy="🚚 Your beautiful Saree is out for delivery! Track your order here. Thank you for shopping with us. 🪡">📋 Delivery Reminder</button>' +
-      '</div></div>' +
     '<button type="button" class="btn btn-ghost btn-sm" id="logoutBtn" style="margin-top:14px;width:auto;border:1.5px solid var(--line)">Logout</button>';
   /* Pull custom Firestore categories once for admin category manager. */
   try{ if(FS.enabled()) FS._getDb().then(db=>{ if(!db)return; db.collection('categories').get().then(q=>{ q.forEach(d=>{const c=d.data()||{}; if(c.slug && !CATEGORIES.some(x=>x.slug===c.slug)) CATEGORIES.push({slug:c.slug,name:c.name||c.slug,emoji:c.emoji||'🪡',cls:'c-daily',blurb:c.name||c.slug});}); }); }); }catch(e){}
   document.getElementById('tabOrders').addEventListener('click', () => switchTab('orders'));
   document.getElementById('tabProducts').addEventListener('click', () => switchTab('products'));
   document.getElementById('tabReviews').addEventListener('click', () => switchTab('reviews'));
+  document.getElementById('tabBulk').addEventListener('click', () => switchTab('bulk'));
   document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboard'));
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
-  document.getElementById('tabLeads').addEventListener('click', () => switchTab('leads'));
-  document.getElementById('tabPush').addEventListener('click', () => switchTab('push'));
-  document.getElementById('tabMetaAds').addEventListener('click', () => switchTab('metaads'));
-  document.getElementById('tabStatus').addEventListener('click', () => switchTab('status'));
   document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
   const ab = document.getElementById('btnAlerts');
   if (ab) ab.addEventListener('click', () => enableAdminAlerts());
@@ -279,7 +267,7 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabReviews','tabMetaAds','tabStatus','tabPush','tabResellers','tabLeads','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabProducts','tabBulk','tabReviews','tabResellers','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
@@ -287,6 +275,7 @@ function switchTab(t){
   try{
     if (t === 'orders'){ renderFilters(); renderOrderList(); }
     else if (t === 'products') renderProducts();
+    else if (t === 'bulk') renderBulkManager();
     else if (t === 'reviews') renderReviews();
     else if (t === 'coupons') renderCoupons();
     else if (t === 'resellers') renderResellers();
@@ -662,11 +651,17 @@ function wireAutoColour(imgId, colorsId, btnId){
 }
 
 /* ============================ PRODUCTS ============================ */
+function renderBulkManager(){
+  /* Dedicated bulk workspace; product list is intentionally not shown here. */
+  document.getElementById('tabBody').innerHTML = '<div class="form-card"><h2 style="font-size:1.15rem">📥 Bulk Product Upload & Edit</h2><p class="small muted">Upload <b>new products CSV</b> only. For existing sarees, go to Products, select checkboxes and use <b>Edit Selected</b>.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" class="btn btn-outline" id="bmCsv">📄 Upload New Products CSV</button><a class="btn btn-ghost" id="bmTpl" href="#">⬇️ Download CSV Template</a></div><textarea id="bulkText" placeholder="Name, Price, MRP, Image URL, Category, Badge, SKU, Stock, Colours — one product per line" style="width:100%;min-height:150px;border:1.5px solid var(--line);border-radius:12px;padding:12px;font:inherit"></textarea><button type="button" class="btn btn-maroon" id="btnImport" style="margin-top:10px">📥 Add New Products</button><p id="bulkResult" class="small" style="margin-top:8px"></p></div>';
+  const csvIn=document.createElement('input'); csvIn.type='file';csvIn.accept='.csv,.tsv,.txt';csvIn.style.display='none';document.body.appendChild(csvIn);csvIn.onchange=()=>{const f=csvIn.files&&csvIn.files[0];if(f)importCsvFile(f);csvIn.value='';};
+  document.getElementById('bmCsv').onclick=()=>csvIn.click(); document.getElementById('btnImport').onclick=importBulk;
+  document.getElementById('bmTpl').onclick=e=>{e.preventDefault();const csv='Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://example.com/photo.jpg,soft-silk,New,SKS-001,10,Red Gold\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='sk-sarees-products-template.csv';a.click();};
+}
 function renderProducts(){
   document.getElementById('tabBody').innerHTML =
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
-      '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Add</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnCategories" style="flex:1;min-width:130px">🗂️ Categories</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulkEdit" style="flex:1;min-width:150px">✏️ Edit Selected</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
@@ -677,7 +672,6 @@ function renderProducts(){
       '<p class="small muted" style="margin:6px 0">Upload <b>new products</b> only. CSV format: <b>Name, Price, MRP, Image URL, Category, Badge, SKU, Stock, Colours</b>. Existing product SKU rows are skipped to avoid duplicates.</p>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
         '<button type="button" class="btn btn-outline btn-sm" id="btnCsv" style="width:auto">📄 Upload New Products CSV</button>' +
-        '<button type="button" class="btn btn-buy btn-sm" id="btnExportCatalog" style="width:auto">⬇️ Download catalog.json (for GitHub)</button>' +
         '<a class="btn btn-ghost btn-sm" id="btnCsvTpl" href="#" style="width:auto">⬇️ Product CSV Template</a>' +
       '</div>' +
       '<textarea id="bulkText" placeholder="Soft Silk Saree, 1499, 2299, https://…, soft-silk, New&#10;Wedding Kanjivaram, 2899, 4599, https://…, bridal-sarees, Bestseller&#10;https://www.sksaree.shop/images/products/kanchipuram-silk.jpg" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px;min-height:110px;font-size:.8rem;background:#fff;outline:none;font-family:inherit"></textarea>' +
@@ -690,21 +684,9 @@ function renderProducts(){
     '</div>';
   renderProdBody();
   document.getElementById('btnAddProd').addEventListener('click', openAddProduct);
-  document.getElementById('btnBulk').addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
+  const bulkBtn = document.getElementById('btnBulk'); if (bulkBtn) bulkBtn.addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
   document.getElementById('btnCategories').addEventListener('click', openCategoryManager);
   document.getElementById('btnImport').addEventListener('click', importBulk);
-  /* ⬇️ export catalog.json for GitHub — refresh + download */
-  const expBtn = document.getElementById('btnExportCatalog');
-  if (expBtn) expBtn.addEventListener('click', () => {
-    refreshFeedCache();
-    const blob = new Blob([feedJson()], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'catalog.json';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    toast('⚡ catalog.json downloaded — upload to your GitHub repo root');
-  });
   /* 📄 CSV file upload */
   const csvIn = document.createElement('input');
   csvIn.type = 'file'; csvIn.accept = '.csv,.tsv,.txt'; csvIn.style.display = 'none';
@@ -732,6 +714,7 @@ function renderProducts(){
     if (!confirm('Delete ' + sel.length + ' selected product(s)?')) return;
     try{ const removed = JSON.parse(localStorage.getItem('sk_deleted_products') || '[]'); sel.forEach(id => { if (!removed.map(String).includes(String(id))) removed.push(String(id)); }); localStorage.setItem('sk_deleted_products', JSON.stringify(removed.slice(-1000))); }catch(e){}
     PRODUCTS = PRODUCTS.filter(p => !sel.includes(p.id));
+    try{ if(FS.enabled()) FS._getDb().then(db=>{if(db) sel.forEach(id=>db.collection('products').doc(String(id)).delete().catch(()=>{}));}); }catch(e){}
     saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); toast('🗑️ ' + sel.length + ' deleted');
   });
   /* select-all checkbox in the table header */
@@ -842,7 +825,7 @@ function openAddProduct(){
       colors: document.getElementById('apColors').value.split(',').map(s => s.trim()).filter(Boolean),
       colourStock: document.getElementById('apColStock').value,
     });
-    PRODUCTS.unshift(np); saveProducts(PRODUCTS);
+    PRODUCTS.unshift(np); saveProducts(PRODUCTS); syncSelectedProductsToFirestore([np.id]);
     refreshFeedCache();
     closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
   });
@@ -1093,6 +1076,7 @@ function openEditProduct(id){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       '<div class="field"><label>Category</label><select id="epCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Stock</label><input id="epStock" type="number" value="' + p.stock + '"></div></div>' +
+    '<div class="field"><label>Description</label><textarea id="epDesc" style="min-height:90px">' + esc(p.desc || '') + '</textarea></div>' +
     '<div class="field"><label>Badge</label><select id="epBadge"><option value=""' + (!p.badge ? ' selected' : '') + '>—</option><option' + (p.badge === 'Bestseller' ? ' selected' : '') + '>Bestseller</option><option' + (p.badge === 'New' ? ' selected' : '') + '>New</option><option' + (p.badge === 'Sale' ? ' selected' : '') + '>Sale</option><option' + (p.badge === 'Limited Stock' ? ' selected' : '') + '>Limited Stock</option></select></div>' +
     '<div class="field"><label>🖼️ Main Image — upload from phone/computer <b>or</b> paste URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px">' +
@@ -1133,6 +1117,7 @@ function openEditProduct(id){
         cat: document.getElementById('epCat').value,
         stock: Math.max(0, +document.getElementById('epStock').value || 0),
         badge: document.getElementById('epBadge').value,
+        desc: document.getElementById('epDesc').value.trim() || PRODUCTS[idx].desc,
         img: document.getElementById('epImg').value || PRODUCTS[idx].img,
         img2: document.getElementById('epImg2').value,
         img3: document.getElementById('epImg3').value,
@@ -1149,8 +1134,9 @@ function openEditProduct(id){
         PRODUCTS[idx].images = imgs;
       }catch(e){}
       saveProducts(PRODUCTS);
+      syncSelectedProductsToFirestore([id]);
       refreshFeedCache();
-      closeModal(); renderProdBody(); toast('✅ Product updated');
+      closeModal(); renderProdBody(); toast('✅ Product updated — Firestore sync started. Download catalog after 2 seconds.');
     }
   });
   wireAutoColour('epImg', 'epColors', 'epAutoCol');
