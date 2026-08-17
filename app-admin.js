@@ -661,6 +661,7 @@ function renderProducts(){
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Add</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="btnBulkEdit" style="flex:1;min-width:150px">✏️ Edit Selected</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnChangeCategory" style="flex:1;min-width:150px">🏷️ Change Category</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
@@ -717,6 +718,7 @@ function renderProducts(){
   });
   document.getElementById('prodSearch').addEventListener('input', e => { prodSearch = e.target.value; prodPage = 1; renderProdBody(); });
   document.getElementById('prodCategory').addEventListener('change', e => { prodCategory = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('btnBulkEdit').addEventListener('click', openBulkEditSelected);
   document.getElementById('btnChangeCategory').addEventListener('click', openBulkCategoryChange);
   document.getElementById('btnDelSel').addEventListener('click', () => {
     const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
@@ -764,6 +766,24 @@ function renderProdBody(){
   const selAll = document.getElementById('prodSelAll');
   if (selAll) selAll.checked = visible.length > 0 && document.querySelectorAll('.prod-sel:checked').length === visible.length;
   updateDelSelCount();
+}
+function openBulkEditSelected(){
+  const selected = Array.from(document.querySelectorAll('.prod-sel:checked')).map(x => x.value);
+  if (!selected.length){ toast('⚠️ முதலில் products select செய்யுங்கள்'); return; }
+  openModal('<h2 style="font-size:1.12rem;margin-bottom:6px">✏️ Bulk Edit Selected Products</h2>' +
+    '<p class="small muted" style="margin-bottom:12px"><b>' + selected.length + ' products</b> selected. காலியாக விடும் field மாற்றப்படாது.</p>' +
+    '<div class="field"><label>New Name <small class="muted">(all selected products same name ஆகும்)</small></label><input id="beName" placeholder="Leave empty to keep current name"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>New Price ₹</label><input id="bePrice" type="number" min="1" placeholder="Keep current"></div><div class="field"><label>New MRP ₹</label><input id="beMrp" type="number" min="1" placeholder="Keep current"></div></div>' +
+    '<div class="field"><label>New Description</label><textarea id="beDesc" placeholder="Leave empty to keep current description" style="min-height:95px"></textarea></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>Stock</label><input id="beStock" type="number" min="0" placeholder="Keep current"></div><div class="field"><label>Badge</label><select id="beBadge"><option value="__keep__">Keep current</option><option value="">No badge</option><option value="New">New</option><option value="Bestseller">Bestseller</option><option value="Sale">Sale</option><option value="Limited Stock">Limited Stock</option></select></div></div>' +
+    '<button type="button" class="btn btn-maroon" id="beSave">✅ Save Changes to ' + selected.length + ' Products</button>');
+  document.getElementById('beSave').addEventListener('click', () => {
+    const name=document.getElementById('beName').value.trim(), desc=document.getElementById('beDesc').value.trim();
+    const price=+document.getElementById('bePrice').value, mrp=+document.getElementById('beMrp').value, stockText=document.getElementById('beStock').value, badge=document.getElementById('beBadge').value;
+    let changed=0;
+    PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (badge !== '__keep__') p.badge=badge; changed++; });
+    saveProducts(PRODUCTS); refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ ' + changed + ' products updated');
+  });
 }
 function openBulkCategoryChange(){
   const selected = Array.from(document.querySelectorAll('.prod-sel:checked')).map(x => x.value);
