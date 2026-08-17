@@ -779,6 +779,9 @@ function renderProduct(){
     return;
   }
   window.__pdTry = 0;
+  /* Product detail only: one Firestore read gives an admin-edited saree its
+     latest values. Home/shop browsing still uses catalog.json only. */
+  try{ if (p && FS.enabled() && window.__pdLiveChecked !== id){ window.__pdLiveChecked = id; FS.getProduct(id).then(doc => { if (!doc) return; const live=normalizeProduct(doc); const i=PRODUCTS.findIndex(x=>x.id===live.id); if(i>=0) PRODUCTS[i]=live; else PRODUCTS.unshift(live); if(String(live.updatedAt||'') !== String(p.updatedAt||'')) renderProduct(); }).catch(()=>{}); } }catch(e){}
   /* 🚫 hidden product → customers go straight home (admin can still open it) */
   if (p.hidden && !isAdminDevice()){
     try{ location.replace('index.html'); }catch(e){}

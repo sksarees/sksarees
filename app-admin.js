@@ -143,6 +143,8 @@ function adminInit(){
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
   try{ purgeOldOrders(30); }catch(e){}   /* auto-delete orders older than 30 days */
   try{ Sync.run(); }catch(e){}
+  /* Admin Products: Firestore is the only source. Never merge GitHub catalog or local product cache. */
+  if (document.body && document.body.dataset.page === 'admin'){ try{ PRODUCTS = []; localStorage.removeItem('sk_products'); localStorage.removeItem('sk_products_cloud'); Sync.pullProducts(); }catch(e){} }
   if (String(LS.get('sk_admin', '0')) === '1'){
     renderAdmin();
     /* ensure Firestore collections exist (admins, cart, categories, ...) */
@@ -663,6 +665,7 @@ function renderProducts(){
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulk" style="flex:1;min-width:130px">📥 Bulk Add</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="btnCategories" style="flex:1;min-width:130px">🗂️ Categories</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulkEdit" style="flex:1;min-width:150px">✏️ Edit Selected</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
@@ -686,6 +689,7 @@ function renderProducts(){
   renderProdBody();
   document.getElementById('btnAddProd').addEventListener('click', openAddProduct);
   document.getElementById('btnBulk').addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
+  document.getElementById('btnCategories').addEventListener('click', openCategoryManager);
   document.getElementById('btnImport').addEventListener('click', importBulk);
   /* ⬇️ export catalog.json for GitHub — refresh + download */
   const expBtn = document.getElementById('btnExportCatalog');
@@ -767,6 +771,12 @@ function renderProdBody(){
   if (selAll) selAll.checked = visible.length > 0 && document.querySelectorAll('.prod-sel:checked').length === visible.length;
   updateDelSelCount();
 }
+function openCategoryManager(){
+  const rows = CATEGORIES.map(c => '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><span>' + esc(c.emoji || '🪡') + ' <b>' + esc(c.name) + '</b><small class="muted"> · ' + esc(c.slug) + '</small></span><button type="button" class="btn btn-ghost btn-sm" data-delcat="' + esc(c.slug) + '" style="width:auto;color:var(--red)">Delete</button></div>').join('');
+  openModal('<h2 style="font-size:1.1rem;margin-bottom:8px">🗂️ Manage Categories</h2><p class="small muted">Products inside a category must be moved first before deleting it.</p><div id="catManageList" style="max-height:260px;overflow:auto">' + rows + '</div><div style="display:grid;grid-template-columns:70px 1fr;gap:8px;margin-top:14px"><input id="newCatEmoji" value="🪡" maxlength="3"><input id="newCatName" placeholder="New category name"></div><button type="button" class="btn btn-maroon" id="addCategory" style="margin-top:8px">➕ Add Category</button>');
+  document.getElementById('addCategory').onclick=()=>{ const name=document.getElementById('newCatName').value.trim(), emoji=document.getElementById('newCatEmoji').value.trim()||'🪡', slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); if(!name||!slug){toast('⚠️ Category name required');return;} if(CATEGORIES.some(c=>c.slug===slug)){toast('⚠️ Category already exists');return;} CATEGORIES.push({slug,name,emoji,cls:'c-daily',blurb:name}); if(FS.enabled()) FS._getDb().then(db=>{if(db) db.collection('categories').doc(slug).set({slug,name,emoji,createdAt:Date.now()},{merge:true});}); closeModal(); renderProducts(); toast('✅ Category added'); };
+  document.querySelectorAll('[data-delcat]').forEach(b=>b.onclick=()=>{ const slug=b.dataset.delcat; if(PRODUCTS.some(p=>p.cat===slug)){toast('⚠️ Move products from this category first');return;} if(!confirm('Delete this category?'))return; const i=CATEGORIES.findIndex(c=>c.slug===slug); if(i>=0) CATEGORIES.splice(i,1); if(FS.enabled()) FS._getDb().then(db=>{if(db)db.collection('categories').doc(slug).delete().catch(()=>{});}); closeModal(); renderProducts(); toast('🗑️ Category deleted'); });
+}
 function openBulkEditSelected(){
   const selected = Array.from(document.querySelectorAll('.prod-sel:checked')).map(x => x.value);
   if (!selected.length){ toast('⚠️ முதலில் products select செய்யுங்கள்'); return; }
@@ -774,14 +784,15 @@ function openBulkEditSelected(){
     '<p class="small muted" style="margin-bottom:12px"><b>' + selected.length + ' products</b> selected. காலியாக விடும் field மாற்றப்படாது.</p>' +
     '<div class="field"><label>New Name <small class="muted">(all selected products same name ஆகும்)</small></label><input id="beName" placeholder="Leave empty to keep current name"></div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>New Price ₹</label><input id="bePrice" type="number" min="1" placeholder="Keep current"></div><div class="field"><label>New MRP ₹</label><input id="beMrp" type="number" min="1" placeholder="Keep current"></div></div>' +
+    '<div class="field"><label>Category</label><select id="beCategory"><option value="__keep__">Keep current category</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '">' + esc(c.name) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label>New Description</label><textarea id="beDesc" placeholder="Leave empty to keep current description" style="min-height:95px"></textarea></div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>Stock</label><input id="beStock" type="number" min="0" placeholder="Keep current"></div><div class="field"><label>Badge</label><select id="beBadge"><option value="__keep__">Keep current</option><option value="">No badge</option><option value="New">New</option><option value="Bestseller">Bestseller</option><option value="Sale">Sale</option><option value="Limited Stock">Limited Stock</option></select></div></div>' +
     '<button type="button" class="btn btn-maroon" id="beSave">✅ Save Changes to ' + selected.length + ' Products</button>');
   document.getElementById('beSave').addEventListener('click', () => {
     const name=document.getElementById('beName').value.trim(), desc=document.getElementById('beDesc').value.trim();
-    const price=+document.getElementById('bePrice').value, mrp=+document.getElementById('beMrp').value, stockText=document.getElementById('beStock').value, badge=document.getElementById('beBadge').value;
+    const price=+document.getElementById('bePrice').value, mrp=+document.getElementById('beMrp').value, stockText=document.getElementById('beStock').value, badge=document.getElementById('beBadge').value, category=document.getElementById('beCategory').value;
     let changed=0;
-    PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (badge !== '__keep__') p.badge=badge; changed++; });
+    PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (badge !== '__keep__') p.badge=badge; if (category !== '__keep__') p.cat=category; changed++; });
     saveProducts(PRODUCTS); refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ ' + changed + ' products updated');
   });
 }
