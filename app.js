@@ -1311,7 +1311,7 @@ function drawCo(){
         '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:10px;background:var(--bg)"><b>' + esc(d.name) + '</b> • ' + esc(d.phone) + '<br>' + esc(d.address) + ' — ' + esc(d.pincode) + '</p>' +
       '</div>' +
       (upiPay
-        ? '<div class="form-card"><h3>📲 Pay by UPI</h3>' +
+        ? '<div class="form-card"><h3>📲 Pay by UPI</h3><p class="small" style="color:var(--green);font-weight:800">✅ Online payment gets 1% discount — already included in this total.</p>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(t.grand) + '</b><span class="muted small"> payable</span>' +
           '<p class="small" style="margin-top:4px">🧾 Payment note: <b>Order ' + esc(co.pendingId) + '</b></p></div>' +
           '<div class="qr-box"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
@@ -1326,7 +1326,7 @@ function drawCo(){
           '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Waiting for Confirmation</button></div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> booking fee — pay now (UPI)</span></div>' +
-          '<div class="cod-note">💵 COD Available — <b>₹' + booking + ' courier booking</b> paid now.<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
+          '<div class="cod-note">💵 <b>COD order is confirmed only after ₹' + booking + ' booking payment.</b><br>First pay the ₹' + booking + ' UPI booking fee below. Only then tap <b>Place Order</b>.<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> is collected at delivery.</div>' +
           '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
           '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 Pay ₹' + booking + ' Booking (UPI)</a>' +
           '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
@@ -1445,7 +1445,8 @@ function doPlaceOrder(payment){
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     if (couponUsed) useCoupon(couponUsed);     /* count coupon usage (before co reset) */
-    try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
+    /* Loyalty points are locked until admin marks this order as shipped. */
+    order.loyaltyPending = true;
     try{ if (co.data.usePoints){ const used = Math.min(pointsRedeemable(), (t.pts || 0)); localStorage.setItem('sk_points', String(Math.max(0, pointsRedeemable() - used))); } }catch(e){}
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
     fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
@@ -1490,7 +1491,8 @@ function doWaOrder(){
       '\n\n💰 COD booking ₹' + CONFIG.codFee + ' — I will pay the booking now.\nRemaining ' + money(Math.max(0, t.grand - CONFIG.codFee)) + ' at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
-    try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
+    /* Loyalty points are locked until admin marks this order as shipped. */
+    order.loyaltyPending = true;
     renderOrderComplete(order, true);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }

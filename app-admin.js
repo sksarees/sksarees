@@ -183,7 +183,7 @@ const ORDER_PAGE_SIZE = 10;
 let prodSearch = '';         /* Products tab: search query */
 let prodPage = 1;            /* Products tab: pagination */
 let prodCategory = 'all';     /* Products category filter */
-const PROD_PAGE_SIZE = 30;
+const PROD_PAGE_SIZE = 1000; /* show all Firestore products in admin */
 let revPage = 1;             /* Reviews tab: pagination */
 const REV_PAGE_SIZE = 10;
 
@@ -505,17 +505,18 @@ function updateStatus(id, status){
     if (!o.deliverBy) o.deliverBy = new Date(Date.now() + 7 * 864e5).toISOString();
     /* 💰 order shipped → reseller margin confirmed (was pending) */
     try{ confirmMarginOnShip(id); }catch(e){}
+    try{ const lp=awardLoyaltyOnShip(o); if(lp) o.loyaltyPoints=lp; }catch(e){}
   }
   if (status === 'delivered') o.deliveredAt = o.deliveredAt || new Date().toISOString();
   if (status === 'cancelled'){ try{ cancelResellerMargin(id); }catch(e){} }
   if (fi >= 0){
     /* cloud order → update Firestore ONLY (never pollute sk_orders) */
     fsOrders[fi] = o;
-    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy, loyaltyPending:false, loyaltyAwarded:!!o.loyaltyAwarded, loyaltyPoints:o.loyaltyPoints||0 } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
   } else {
     /* device order → local + Firestore */
     Store.saveOrders();
-    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy, loyaltyPending:false, loyaltyAwarded:!!o.loyaltyAwarded, loyaltyPoints:o.loyaltyPoints||0 } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
   }
   toast('✅ ' + id + ' → ' + status);
   /* 💬 auto-offer: open WhatsApp to the customer with the status update + track link */
@@ -651,7 +652,24 @@ function wireAutoColour(imgId, colorsId, btnId){
 }
 
 /* ============================ PRODUCTS ============================ */
+let __adminProductsLoaded = false, __adminProductsLoading = false;
+function loadAdminProducts(force){
+  if (__adminProductsLoading || (__adminProductsLoaded && !force)) return;
+  if (!FS.enabled()){ toast('⚠️ Firestore is not connected — products cannot load'); return; }
+  __adminProductsLoading = true;
+  FS._getDb().then(db => {
+    if (!db) throw new Error('Firestore unavailable');
+    return db.collection('products').get();
+  }).then(snap => {
+    const removed = (()=>{try{return JSON.parse(localStorage.getItem('sk_deleted_products')||'[]').map(String);}catch(e){return [];}})();
+    const list=[]; snap.forEach(doc => { try{ const raw=doc.data()||{}; raw.id=raw.id||raw.sku||doc.id; if(removed.includes(String(raw.id))) return; if(raw.status && String(raw.status).toLowerCase()==='inactive') return; list.push(normalizeProduct(raw)); }catch(e){} });
+    PRODUCTS=list; __adminProductsLoaded=true; __adminProductsLoading=false;
+    if (adminTab==='products') renderProducts();
+    else if (adminTab==='bulk') renderBulkManager();
+  }).catch(err => { __adminProductsLoading=false; toast('⚠️ Products load failed: ' + String((err&&err.message)||'check Firestore rules').slice(0,65)); });
+}
 function renderBulkManager(){
+  if (!__adminProductsLoaded){ document.getElementById('tabBody').innerHTML='<div class="form-card" style="text-align:center;padding:28px"><b>⏳ Loading Firestore products…</b></div>'; loadAdminProducts(); return; }
   /* Dedicated bulk workspace; product list is intentionally not shown here. */
   document.getElementById('tabBody').innerHTML = '<div class="form-card"><h2 style="font-size:1.15rem">📥 Bulk Product Upload & Edit</h2><p class="small muted">Upload <b>new products CSV</b> only. For existing sarees, go to Products, select checkboxes and use <b>Edit Selected</b>.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" class="btn btn-outline" id="bmCsv">📄 Upload New Products CSV</button><a class="btn btn-ghost" id="bmTpl" href="#">⬇️ Download CSV Template</a></div><textarea id="bulkText" placeholder="Name, Price, MRP, Image URL, Category, Badge, SKU, Stock, Colours — one product per line" style="width:100%;min-height:150px;border:1.5px solid var(--line);border-radius:12px;padding:12px;font:inherit"></textarea><button type="button" class="btn btn-maroon" id="btnImport" style="margin-top:10px">📥 Add New Products</button><p id="bulkResult" class="small" style="margin-top:8px"></p></div>';
   const csvIn=document.createElement('input'); csvIn.type='file';csvIn.accept='.csv,.tsv,.txt';csvIn.style.display='none';document.body.appendChild(csvIn);csvIn.onchange=()=>{const f=csvIn.files&&csvIn.files[0];if(f)importCsvFile(f);csvIn.value='';};
@@ -659,9 +677,14 @@ function renderBulkManager(){
   document.getElementById('bmTpl').onclick=e=>{e.preventDefault();const csv='Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://example.com/photo.jpg,soft-silk,New,SKS-001,10,Red Gold\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='sk-sarees-products-template.csv';a.click();};
 }
 function renderProducts(){
+  if (!__adminProductsLoaded){
+    document.getElementById('tabBody').innerHTML = '<div class="form-card" style="text-align:center;padding:28px"><b>⏳ Loading products from Firestore…</b><p class="small muted">Please wait a moment.</p></div>';
+    loadAdminProducts(); return;
+  }
   document.getElementById('tabBody').innerHTML =
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="btnRefreshProducts" style="width:auto">🔄 Refresh</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnCategories" style="flex:1;min-width:130px">🗂️ Categories</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulkEdit" style="flex:1;min-width:150px">✏️ Edit Selected</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
@@ -683,8 +706,9 @@ function renderProducts(){
       '<button type="button" class="btn btn-outline btn-sm" id="moreProds" style="display:none">Load More Products ↓</button>' +
     '</div>';
   renderProdBody();
-  document.getElementById('btnAddProd').addEventListener('click', openAddProduct);
+  /* Add Product click is handled by the single global event handler below. */
   const bulkBtn = document.getElementById('btnBulk'); if (bulkBtn) bulkBtn.addEventListener('click', () => { document.getElementById('bulkPanel').style.display = document.getElementById('bulkPanel').style.display === 'none' ? 'block' : 'none'; });
+  document.getElementById('btnRefreshProducts').addEventListener('click', () => { __adminProductsLoaded=false; loadAdminProducts(true); });
   document.getElementById('btnCategories').addEventListener('click', openCategoryManager);
   document.getElementById('btnImport').addEventListener('click', importBulk);
   /* 📄 CSV file upload */
@@ -735,7 +759,7 @@ function renderProdBody(){
   const list = filteredProds();
   const visible = list.slice(0, prodPage * PROD_PAGE_SIZE);
   tbody.innerHTML = visible.map(p =>
-    '<tr><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"></td>' +
+    '<tr data-prow="' + esc(p.id) + '"><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"></td>' +
     '<td><img src="' + esc(p.img) + '" alt="" loading="lazy" decoding="async" width="100" height="100" style="width:100px;height:100px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"></td>' +
     '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + (p.hidden ? ' • 🚫 HIDDEN' : '') + '</small></td>' +
     '<td>' + money(p.price) + '</td>' +
@@ -825,9 +849,16 @@ function openAddProduct(){
       colors: document.getElementById('apColors').value.split(',').map(s => s.trim()).filter(Boolean),
       colourStock: document.getElementById('apColStock').value,
     });
-    PRODUCTS.unshift(np); saveProducts(PRODUCTS); syncSelectedProductsToFirestore([np.id]);
-    refreshFeedCache();
-    closeModal(); prodPage = 1; renderProdBody(); toast('✅ Product added');
+    /* Firestore-first add: do not claim success until the document is saved. */
+    const saveBtn = document.getElementById('apSave'); if (saveBtn){ saveBtn.disabled=true; saveBtn.textContent='⏳ Saving…'; }
+    const done = () => { PRODUCTS.unshift(np); try{ localStorage.removeItem('sk_products'); }catch(e){} refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ Product added to Firestore'); };
+    try{
+      if (!FS.enabled()){ if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='💾 Add Product';} toast('⚠️ Firestore is not connected'); return; }
+      FS._getDb().then(db => {
+        if (!db) throw new Error('Firestore unavailable');
+        return db.collection('products').doc(String(np.id)).set(Object.assign({}, np, { status:'Active', createdAt:Date.now(), updatedAt:Date.now() }), { merge:false });
+      }).then(done).catch(err => { if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='💾 Add Product';} toast('⚠️ Product not saved: ' + String((err&&err.message)||'Firestore permission / image size error').slice(0,60)); });
+    }catch(err){ if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='💾 Add Product';} toast('⚠️ Product not saved'); }
   });
   wireAutoColour('apImg', 'apColors', 'apAutoCol');
   wirePhotoUpload('apImg', 'apPhoto', 'apPhotoHint');
@@ -1926,7 +1957,18 @@ document.addEventListener('change', e => {
   if (e.target.dataset.status) updateStatus(e.target.dataset.status, e.target.value);
   if (e.target.classList && e.target.classList.contains('prod-sel')) updateDelSelCount();
 });
+/* Right-click a product row to tick/untick it quickly (desktop). */
+document.addEventListener('contextmenu', e => {
+  const row = e.target.closest('[data-prow]'); if (!row) return;
+  e.preventDefault(); const cb=row.querySelector('.prod-sel'); if(!cb) return;
+  cb.checked=!cb.checked; updateDelSelCount();
+  row.style.background=cb.checked?'#fff3d8':'';
+});
+
 document.addEventListener('click', e => {
+  /* Fallback: Add Product always opens even if the Products tab re-rendered. */
+  const addProduct = e.target.closest('#btnAddProd');
+  if (addProduct){ e.preventDefault(); openAddProduct(); return; }
   const copy = e.target.closest('[data-copy]');
   if (copy){ copyText(copy.dataset.copy); return; }
   const editp = e.target.closest('[data-editprod]');
@@ -2002,3 +2044,8 @@ document.addEventListener('click', e => {
     couponAct(+cpd.dataset.cpDel, true);
   }
 });
+
+/* Standalone admin popup controls (customer chrome is intentionally not loaded). */
+document.addEventListener('click', e => { if (e.target.closest('[data-close]')) { e.preventDefault(); closeModal(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
