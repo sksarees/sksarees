@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product CSV from Image URLs</title>
+  <style>
+    :root {
+      --bg: #07111c;
+      --card: rgba(12, 24, 38, 0.88);
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #e8f1f8;
+      --muted: #8aa0b5;
+      --accent: #1f8a70;
+      --accent-2: #3ecf8e;
+      --head: #143024;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+
+    body {
+      font-family: "Segoe UI", "Noto Sans Tamil", Inter, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(31, 138, 112, 0.22), transparent 55%),
+        radial-gradient(700px 360px at 100% 0%, rgba(62, 207, 142, 0.1), transparent 50%),
+        var(--bg);
+    }
+
+    .wrap { max-width: 1360px; margin: 0 auto; padding: 28px 16px 56px; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .brand { display: flex; gap: 12px; align-items: center; }
+
+    .logo {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: linear-gradient(145deg, var(--accent), var(--accent-2));
+      color: #042016; font-weight: 800; display: grid; place-items: center;
+      box-shadow: 0 10px 24px rgba(31, 138, 112, 0.35);
+    }
+
+    h1 { font-size: 1.4rem; letter-spacing: -0.03em; }
+    .sub { color: var(--muted); font-size: 0.92rem; margin-top: 2px; }
+
+    .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+    .pill b { color: var(--text); }
+
+    .top {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 980px) { .top { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 16px 0; gap: 10px;
+    }
+    .card-head h2 { font-size: 0.92rem; }
+    .hint { color: var(--muted); font-size: 0.76rem; }
+
+    textarea {
+      width: 100%; min-height: 210px; resize: vertical; border: 0; outline: none;
+      background: transparent; color: var(--text); padding: 12px 16px 14px;
+      font: 12.5px/1.5 ui-monospace, Consolas, monospace;
+    }
+    textarea::placeholder { color: #5d7388; }
+
+    .defaults {
+      padding: 12px 16px 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 560px) { .defaults { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field span { font-size: 0.74rem; color: var(--muted); }
+    .field input, .field select {
+      background: #0a1824;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 0.88rem;
+    }
+    .field input:focus, .field select:focus, .cell:focus {
+      outline: 2px solid rgba(62, 207, 142, 0.35);
+      border-color: #2aa37a;
+    }
+
+    .opts { padding: 4px 16px 0; display: flex; flex-wrap: wrap; gap: 12px 16px; }
+    label.opt { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 0.82rem; cursor: pointer; }
+    label.opt input { accent-color: var(--accent-2); }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px 16px; }
+
+    button {
+      border: 0; border-radius: 11px; padding: 10px 14px;
+      font-weight: 700; cursor: pointer; font-size: 0.88rem; font-family: inherit;
+    }
+    .btn-primary { background: linear-gradient(135deg, #1f8a70, #3ecf8e); color: #042016; }
+    .btn-good { background: #f4c430; color: #2a2100; }
+    .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--line); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .sheet { overflow: auto; max-height: calc(100vh - 180px); }
+
+    table { width: 100%; border-collapse: collapse; min-width: 1180px; font-size: 0.82rem; }
+
+    thead th {
+      position: sticky; top: 0; z-index: 2;
+      background: #143024;
+      color: #d7ffe9;
+      text-align: left;
+      font-weight: 700;
+      padding: 11px 8px;
+      border-bottom: 1px solid #1f5a42;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 6px 6px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      background: rgba(8, 18, 28, 0.4);
+    }
+
+    tbody tr:nth-child(even) td { background: rgba(20, 48, 36, 0.18); }
+
+    .idx { width: 42px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+    .thumb {
+      width: 40px; height: 40px; border-radius: 7px; object-fit: cover;
+      background: #07111c; border: 1px solid var(--line); display: block;
+    }
+
+    .cell {
+      width: 100%;
+      background: #0b1824;
+      border: 1px solid transparent;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font: inherit;
+      font-size: 0.82rem;
+    }
+    .cell.url { font-size: 0.74rem; color: #b7d8c8; min-width: 240px; }
+    .cell.name { min-width: 160px; font-weight: 600; }
+    .num { max-width: 92px; }
+    .sku { max-width: 120px; }
+
+    .empty { padding: 56px 20px; text-align: center; color: var(--muted); }
+    .empty .big { font-size: 2rem; margin-bottom: 8px; }
+
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #102433; border: 1px solid var(--line); color: var(--text);
+      padding: 11px 14px; border-radius: 12px; box-shadow: var(--shadow);
+      opacity: 0; transform: translateY(8px); pointer-events: none; transition: 0.22s ease; z-index: 20;
+    }
+    .toast.show { opacity: 1; transform: none; }
+
+    footer { margin-top: 12px; color: var(--muted); font-size: 0.78rem; }
+
+    .del {
+      background: transparent; color: #f87171; border: 0; cursor: pointer;
+      font-size: 1rem; padding: 4px 8px; border-radius: 8px;
+    }
+    .del:hover { background: rgba(248, 113, 113, 0.12); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">CSV</div>
+        <div>
+          <h1>Product sheet from HTML images</h1>
+          <p class="sub">HTML paste → Image URL extract → Name, Price, MRP, Category, Badge, SKU, Stock, Colours CSV</p>
+        </div>
+      </div>
+      <div class="pills">
+        <div class="pill">Products: <b id="count">0</b></div>
+        <div class="pill">Columns: <b>9</b></div>
+      </div>
+    </header>
+
+    <div class="top">
+      <section class="card">
+        <div class="card-head">
+          <h2>1. HTML / Blogger code paste</h2>
+          <span class="hint">ஒவ்வொரு image-ம் ஒரு product row ஆகும்</span>
+        </div>
+        <textarea id="input" placeholder="இங்க HTML paste பண்ணுங்க. img src / href / markdown URL எல்லாம் எடுக்கப்படும்..."></textarea>
+        <div class="opts">
+          <label class="opt"><input type="checkbox" id="preferLarge" checked /> Blogger-ஐ s4000 ஆக்கு</label>
+          <label class="opt"><input type="checkbox" id="dedupe" checked /> Duplicate URL remove</label>
+          <label class="opt"><input type="checkbox" id="imagesOnly" checked /> Image URL மட்டும்</label>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="extractBtn" type="button">Extract & fill sheet</button>
+          <button class="btn-ghost" id="addRowBtn" type="button">+ Empty row</button>
+          <button class="btn-ghost" id="clearBtn" type="button">Clear</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>2. Common values (எல்லா row-க்கும் apply)</h2>
+          <span class="hint">Name type பண்ணி Apply அழுத்தினா எல்லா row-க்கும் போகும்</span>
+        </div>
+        <div class="defaults">
+          <label class="field" style="grid-column: 1 / -1;"><span>Name</span><input id="defName" type="text" placeholder="Product name — எல்லா row-க்கும்" /></label>
+          <label class="field"><span>Price</span><input id="defPrice" type="text" placeholder="499" /></label>
+          <label class="field"><span>MRP</span><input id="defMrp" type="text" placeholder="999" /></label>
+          <label class="field"><span>Category</span><input id="defCategory" type="text" placeholder="Sarees" /></label>
+          <label class="field"><span>Badge</span><input id="defBadge" type="text" placeholder="New / Sale" /></label>
+          <label class="field"><span>Stock</span><input id="defStock" type="text" placeholder="10" /></label>
+          <label class="field"><span>Colours</span><input id="defColours" type="text" placeholder="multi color" value="multi color" /></label>
+        </div>
+        <div class="opts">
+          <label class="opt"><input type="checkbox" id="overwrite" /> Already typed values-ஐயும் overwrite பண்ணு</label>
+        </div>
+        <div class="actions">
+          <button class="btn-ghost" id="applyBtn" type="button">Apply to all rows</button>
+          <button class="btn-good" id="csvBtn" type="button" disabled>Download CSV</button>
+          <button class="btn-ghost" id="copyBtn" type="button" disabled>Copy CSV</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>3. Product sheet — edit பண்ணிட்டு download பண்ணுங்க</h2>
+        <span class="hint" id="status">இன்னும் extract பண்ணல</span>
+      </div>
+      <div class="sheet" id="sheet">
+        <div class="empty">
+          <div class="big">📋</div>
+          HTML paste செய்து Extract அழுத்தினா இந்த format-ல sheet வரும்:<br />
+          Name · Price · MRP · Image URL · Category · Badge · SKU · Stock · Colours
+        </div>
+      </div>
+    </section>
+
+    <footer>SKU format: SK65361 — random 5 digit. ஒரு தடவை வந்த code மறுபடி generate ஆகாது (இந்த browser-ல save ஆகும்).</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const COLUMNS = ["Name", "Price", "MRP", "Image URL", "Category", "Badge", "SKU", "Stock", "Colours"];
+    const KEYS = ["name", "price", "mrp", "imageUrl", "category", "badge", "sku", "stock", "multi"];
+
+    const input = document.getElementById("input");
+    const sheet = document.getElementById("sheet");
+    const countEl = document.getElementById("count");
+    const statusEl = document.getElementById("status");
+    const csvBtn = document.getElementById("csvBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const toast = document.getElementById("toast");
+
+    let rows = [];
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function csvEscape(value) {
+      const s = String(value ?? "");
+      if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+
+    function filenameFromUrl(url) {
+      try {
+        const clean = url.split("?")[0].split("#")[0];
+        const last = decodeURIComponent(clean.split("/").filter(Boolean).pop() || "image");
+        return last.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").trim();
+      } catch {
+        return "";
+      }
+    }
+
+    function looksLikeImage(url) {
+      const u = url.toLowerCase();
+      if (/\.(jpe?g|png|gif|webp|bmp|svg|avif|heic|tiff?)(\?|#|$)/i.test(u)) return true;
+      if (u.includes("blogger.googleusercontent.com/img/")) return true;
+      if (/\/s\d+\//.test(u) && u.includes("googleusercontent.com")) return true;
+      return false;
+    }
+
+    function preferLargeBlogger(url) {
+      return url.replace(/\/s\d+(-[a-z0-9-]+)?\//i, "/s4000/");
+    }
+
+    function normalizeCandidate(raw) {
+      if (!raw) return "";
+      let u = raw.trim()
+        .replace(/^['"<\[]+/, "")
+        .replace(/['">\]]+$/, "")
+        .replace(/&amp;/g, "&")
+        .replace(/\\\//g, "/");
+      const md = u.match(/https?:\/\/[^\s"'<>\]]+/i);
+      if (md) u = md[0];
+      return u.replace(/[),.;]+$/g, "");
+    }
+
+    function extractUrls(html) {
+      const found = [];
+      const push = (raw) => {
+        const u = normalizeCandidate(raw);
+        if (!u || !/^https?:\/\//i.test(u)) return;
+        found.push(u);
+      };
+      const attrRe = /(?:src|href|data-src|data-original|data-lazy-src|data-original-src)\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
+      let m;
+      while ((m = attrRe.exec(html))) push(m[1] || m[2] || m[3]);
+      const mdRe = /!?\[.*?\]\((https?:\/\/[^)\s]+)\)/gi;
+      while ((m = mdRe.exec(html))) push(m[1]);
+      const bareRe = /https?:\/\/[^\s"'<>]+/gi;
+      while ((m = bareRe.exec(html))) push(m[0]);
+      return found;
+    }
+
+    const SKU_STORE = "used-skus-v1";
+
+    function loadUsedSkus() {
+      try {
+        const arr = JSON.parse(localStorage.getItem(SKU_STORE) || "[]");
+        return new Set(Array.isArray(arr) ? arr.map((s) => String(s).toUpperCase()) : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    let usedSkus = loadUsedSkus();
+
+    function saveUsedSkus() {
+      localStorage.setItem(SKU_STORE, JSON.stringify([...usedSkus]));
+    }
+
+    function rememberSku(sku) {
+      const s = String(sku || "").trim().toUpperCase();
+      if (!s) return;
+      if (!usedSkus.has(s)) {
+        usedSkus.add(s);
+        saveUsedSkus();
+      }
+    }
+
+    function takenSkus() {
+      const taken = new Set(usedSkus);
+      rows.forEach((r) => {
+        const s = String(r.sku || "").trim().toUpperCase();
+        if (s) taken.add(s);
+      });
+      return taken;
+    }
+
+    function uniqueSku() {
+      const taken = takenSkus();
+      for (let digits = 5; digits <= 7; digits++) {
+        const min = digits === 5 ? 10000 : Math.pow(10, digits - 1);
+        const span = Math.pow(10, digits) - min;
+        for (let i = 0; i < 4000; i++) {
+          const n = min + Math.floor(Math.random() * span);
+          const sku = "SK" + n;
+          if (!taken.has(sku)) {
+            rememberSku(sku);
+            return sku;
+          }
+        }
+      }
+      const fallback = "SK" + Date.now().toString().slice(-8);
+      rememberSku(fallback);
+      return fallback;
+    }
+
+    function emptyRow() {
+      return { name: "", price: "", mrp: "", imageUrl: "", category: "", badge: "", sku: "", stock: "", multi: "" };
+    }
+
+    function readSheet() {
+      sheet.querySelectorAll("tbody tr").forEach((tr) => {
+        const i = Number(tr.dataset.i);
+        if (!rows[i]) return;
+        KEYS.forEach((key) => {
+          const el = tr.querySelector('[data-k="' + key + '"]');
+          if (el) rows[i][key] = el.value;
+        });
+      });
+    }
+
+    function process() {
+      readSheet();
+      const prevByUrl = new Map(rows.filter((r) => r.imageUrl).map((r) => [r.imageUrl, r]));
+
+      let raw = extractUrls(input.value || "");
+      if (document.getElementById("imagesOnly").checked) raw = raw.filter(looksLikeImage);
+      if (document.getElementById("preferLarge").checked) {
+        raw = raw.map((u) =>
+          u.includes("blogger.googleusercontent.com") || /\/s\d+\//.test(u) ? preferLargeBlogger(u) : u
+        );
+      }
+
+      const seen = new Set();
+      const urls = [];
+      for (const u of raw) {
+        if (document.getElementById("dedupe").checked && seen.has(u)) continue;
+        seen.add(u);
+        urls.push(u);
+      }
+
+      const def = defaults();
+      rows = urls.map((u, i) => {
+        const old = prevByUrl.get(u);
+        if (old) {
+          return {
+            ...old,
+            imageUrl: u,
+            name: def.name || old.name
+          };
+        }
+        return {
+          name: def.name || filenameFromUrl(u),
+          price: def.price,
+          mrp: def.mrp,
+          imageUrl: u,
+          category: def.category,
+          badge: def.badge,
+          sku: uniqueSku(),
+          stock: def.stock,
+          multi: def.multi || "multi color"
+        };
+      });
+
+      render();
+      showToast(rows.length ? rows.length + " products ready" : "Image URL ஒன்னும் கிடைக்கல");
+    }
+
+    function defaults() {
+      return {
+        name: document.getElementById("defName").value.trim(),
+        price: document.getElementById("defPrice").value.trim(),
+        mrp: document.getElementById("defMrp").value.trim(),
+        category: document.getElementById("defCategory").value.trim(),
+        badge: document.getElementById("defBadge").value.trim(),
+        stock: document.getElementById("defStock").value.trim(),
+        multi: document.getElementById("defColours").value.trim()
+      };
+    }
+
+    function applyDefaults() {
+      readSheet();
+      const def = defaults();
+      const overwrite = document.getElementById("overwrite").checked;
+      const map = { name: "name", price: "price", mrp: "mrp", category: "category", badge: "badge", stock: "stock", multi: "multi" };
+      rows.forEach((r) => {
+        Object.entries(map).forEach(([from, key]) => {
+          if (!def[from]) return;
+          if (overwrite || !String(r[key] || "").trim()) r[key] = def[from];
+        });
+      });
+      render();
+      showToast("Common values apply ஆயிடுச்சு");
+    }
+
+    function esc(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function render() {
+      countEl.textContent = rows.length;
+      csvBtn.disabled = rows.length === 0;
+      copyBtn.disabled = rows.length === 0;
+      statusEl.textContent = rows.length ? rows.length + " rows — click cell to edit" : "இன்னும் extract பண்ணல";
+
+      if (!rows.length) {
+        sheet.innerHTML = '<div class="empty"><div class="big">📋</div>HTML paste செய்து Extract அழுத்தினா இந்த format-ல sheet வரும்:<br />Name · Price · MRP · Image URL · Category · Badge · SKU · Stock · Colours</div>';
+        return;
+      }
+
+      const head = "<tr><th></th><th>#</th>" + COLUMNS.map((c) => "<th>" + c + "</th>").join("") + "<th></th></tr>";
+      const body = rows.map((r, i) => `
+        <tr data-i="${i}">
+          <td><img class="thumb" src="${esc(r.imageUrl)}" alt="" onerror="this.style.opacity=.2" /></td>
+          <td class="idx">${i + 1}</td>
+          <td><input class="cell name" data-k="name" value="${esc(r.name)}" /></td>
+          <td><input class="cell num" data-k="price" value="${esc(r.price)}" /></td>
+          <td><input class="cell num" data-k="mrp" value="${esc(r.mrp)}" /></td>
+          <td><input class="cell url" data-k="imageUrl" value="${esc(r.imageUrl)}" /></td>
+          <td><input class="cell" data-k="category" value="${esc(r.category)}" /></td>
+          <td><input class="cell" data-k="badge" value="${esc(r.badge)}" /></td>
+          <td><input class="cell sku" data-k="sku" value="${esc(r.sku)}" /></td>
+          <td><input class="cell num" data-k="stock" value="${esc(r.stock)}" /></td>
+          <td><input class="cell" data-k="multi" value="${esc(r.multi)}" /></td>
+          <td><button class="del" type="button" data-del="${i}" title="Remove">✕</button></td>
+        </tr>
+      `).join("");
+
+      sheet.innerHTML = "<table><thead>" + head + "</thead><tbody>" + body + "</tbody></table>";
+    }
+
+    function buildCsv() {
+      readSheet();
+      const lines = [COLUMNS.join(",")];
+      rows.forEach((r) => {
+        lines.push(KEYS.map((k) => csvEscape(r[k])).join(","));
+      });
+      return "\uFEFF" + lines.join("\r\n");
+    }
+
+    function downloadCsv() {
+      if (!rows.length) return;
+      const blob = new Blob([buildCsv()], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "products.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast("products.csv download ஆயிடுச்சு");
+    }
+
+    async function copyCsv() {
+      if (!rows.length) return;
+      try {
+        await navigator.clipboard.writeText(buildCsv().replace(/^\uFEFF/, ""));
+        showToast("CSV clipboard-ல copy ஆயிடுச்சு");
+      } catch {
+        showToast("Copy fail");
+      }
+    }
+
+    document.getElementById("extractBtn").addEventListener("click", process);
+    document.getElementById("csvBtn").addEventListener("click", downloadCsv);
+    document.getElementById("copyBtn").addEventListener("click", copyCsv);
+    document.getElementById("applyBtn").addEventListener("click", applyDefaults);
+    document.getElementById("addRowBtn").addEventListener("click", () => {
+      readSheet();
+      const r = emptyRow();
+      const def = defaults();
+      Object.assign(r, {
+        name: def.name,
+        price: def.price, mrp: def.mrp, category: def.category,
+        badge: def.badge, stock: def.stock, multi: def.multi || "multi",
+        sku: uniqueSku()
+      });
+      rows.push(r);
+      render();
+    });
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      input.value = "";
+      rows = [];
+      render();
+    });
+
+    sheet.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-del]");
+      if (!btn) return;
+      readSheet();
+      rows.splice(Number(btn.dataset.del), 1);
+      render();
+    });
+
+    sheet.addEventListener("input", (e) => {
+      const inp = e.target.closest("[data-k]");
+      if (!inp) return;
+      const tr = inp.closest("tr");
+      const i = Number(tr.dataset.i);
+      if (rows[i]) rows[i][inp.dataset.k] = inp.value;
+      if (inp.dataset.k === "imageUrl") {
+        const img = tr.querySelector(".thumb");
+        if (img) img.src = inp.value;
+      }
+    });
+  </script>
+</body>
+</html>
