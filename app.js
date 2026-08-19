@@ -349,11 +349,6 @@ function weaverStoryHTML(){
     '</div></section>';
 }
 
-/* Smart budget quick shop — one tap filters, no Firestore read. */
-function budgetQuickShopHTML(){
-  const chips=[['₹499–₹799','0','799'],['₹800–₹999','800','999'],['₹1000–₹1499','1000','1499'],['₹1500+','1500','']];
-  return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💰 Shop by Budget</h2></div><div style="display:flex;gap:8px;overflow:auto;padding:2px 0">' + chips.map(c=>'<a href="shop.html?min='+c[1]+'&max='+c[2]+'" class="filter-chip" style="flex:0 0 auto">'+c[0]+'</a>').join('') + '</div></section>';
-}
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -375,7 +370,6 @@ function renderHome(){
     '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
     dealOfDayHTML() +
-    budgetQuickShopHTML() +
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
@@ -1063,6 +1057,20 @@ async function shareProductStatus(p){
   toast('📸 Photo opened — long-press it → Share → WhatsApp Status');
 }
 
+/* 🤖 Smart Cart Growth — local recommendation only: no API, no Firestore reads. */
+function aiCartGrowthHTML(total, qty, freeShort){
+  try{
+    const inCart=Store.cart.map(i=>i.id), cartCats=Store.cart.map(i=>(byId(i.id)||{}).cat).filter(Boolean);
+    let pool=PRODUCTS.filter(p=>!p.hidden && p.stock>0 && !inCart.includes(p.id));
+    /* AI scoring: same category + price that helps free delivery + high ratings. */
+    pool=pool.map(p=>({p,score:(cartCats.includes(p.cat)?50:0)+(freeShort>0 && p.price<=freeShort+250?25:0)+(p.rating||4)*5+(p.reviews||0)/100}))
+      .sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.p);
+    const bundleNeed=Math.max(0,(CONFIG.bundleCount||2)-qty);
+    const top = freeShort>0 ? 'Add <b>' + money(freeShort) + '</b> more to unlock <b>FREE delivery</b>.' : '🎉 Your cart already qualifies for <b>FREE delivery</b>.';
+    const bundle = bundleNeed ? ' Add <b>' + bundleNeed + ' saree</b> to unlock the bundle offer.' : ' 🎁 Bundle offer is active for this cart.';
+    return '<section class="form-card" style="margin:14px 0;border:1.5px solid var(--gold);background:linear-gradient(135deg,#fffaf0,#fff)"><h3 style="margin-bottom:4px">🤖 Smart Cart Assistant</h3><p class="small muted">' + top + bundle + '</p>' + (pool.length ? '<div style="display:grid;gap:8px;margin-top:10px">' + pool.map(p=>'<div style="display:flex;gap:9px;align-items:center;border-top:1px dashed var(--line);padding-top:8px"><img src="'+esc(p.img)+'" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)"><div style="flex:1;min-width:0"><b style="font-size:.8rem">'+esc(p.name)+'</b><small class="muted" style="display:block">'+money(p.price)+' • '+esc((catOf(p.cat)||{}).name||p.cat)+'</small></div><button type="button" class="btn btn-maroon btn-sm" style="width:auto" data-add="'+esc(p.id)+'">Add</button></div>').join('') + '</div>' : '') + '</section>';
+  }catch(e){ return ''; }
+}
 /* ============================ CART ============================ */
 function renderCartPage(){
   const app = document.getElementById('app'); if (!app) return;
@@ -1075,8 +1083,7 @@ function renderCartPage(){
   const disc = couponDiscount(co.data.coupon, t);
   const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
-  const freeHint = short > 0 ? '<div class="bundle-note" style="margin:0 0 12px">🚚 இன்னும் <b>' + money(short) + '</b> சேர்த்தால் <b>Free Delivery</b> கிடைக்கும்!</div>' : '<div class="bundle-note" style="margin:0 0 12px;color:var(--green)">🎉 உங்கள் order-க்கு Free Delivery கிடைக்கிறது!</div>';
-  app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' + freeHint +
+  app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' + aiCartGrowthHTML(t, n, short) +
     '<div>' + Store.cart.map(i => {
       const p = byId(i.id); if (!p) return '';
       const lk = encodeURIComponent(p.id) + '::' + encodeURIComponent(i.colour || '');
