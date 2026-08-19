@@ -1067,7 +1067,7 @@ function renderCartPage(){
   }
   const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
   const disc = couponDiscount(co.data.coupon, t);
-  const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
+  const bundle = bundleDiscount();               /* 2+ sarees → 2% off */
   const coup = couponFor(co.data.coupon);
   app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' +
     '<div>' + Store.cart.map(i => {
@@ -1090,7 +1090,7 @@ function renderCartPage(){
         const cats = Store.cart.map(i => (byId(i.id) || {}).cat).filter(Boolean);
         const sug = PRODUCTS.filter(p => !p.hidden && !inCart.includes(p.id) && cats.indexOf(p.cat) !== -1).slice(0, 4);
         if (!sug.length) return '';
-        return '<div class="cart-upsell"><h3>🎁 Complete your look — add more &amp; save ₹' + (CONFIG.bundleOff || 0) + ' (2+ sarees)</h3>' +
+        return '<div class="cart-upsell"><h3>🎁 Complete your look — add 2+ sarees &amp; get ' + (CONFIG.bundlePct || 2) + '% off</h3>' +
           '<div class="prow">' + sug.map(cardHTML).join('') + '</div></div>';
       }catch(e){ return ''; }
     })() +
@@ -1114,8 +1114,8 @@ function renderCartPage(){
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
       '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">💳 Pay online (UPI) &amp; get ' + (CONFIG.onlineDiscount||1) + '% off — <b>save ' + money(Math.round(t * (CONFIG.onlineDiscount||1) / 100)) + '</b> on this order!</p>' +
       (n < (CONFIG.bundleCount || 2)
-        ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
-        : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
+        ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>' + (CONFIG.bundlePct || 2) + '% off</b> automatically!</div>'
+        : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>' + (CONFIG.bundlePct || 2) + '%</b></div>') +
       '<p class="small muted" style="margin-top:8px">🚚 Shipping per saree: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others (' + n + ' saree' + (n > 1 ? 's' : '') + ' = <b>' + money(sh) + '</b>) · <b>FREE above ₹999</b>.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
@@ -1286,7 +1286,7 @@ function drawCo(){
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
       '<div class="form-card"><h3>💳 Payment Method</h3><div class="pay-grid">' +
         '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>UPI — Pay Online</b><small>GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
-        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery — extra ₹' + CONFIG.codFee + '</small></span><span class="radio"></span></div>' +
+        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>₹' + CONFIG.codFee + ' booking first • WhatsApp confirmation only</small></span><span class="radio"></span></div>' +
       '</div></div>' +
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
       (d.payment === 'cod'
@@ -1311,7 +1311,7 @@ function drawCo(){
         '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:10px;background:var(--bg)"><b>' + esc(d.name) + '</b> • ' + esc(d.phone) + '<br>' + esc(d.address) + ' — ' + esc(d.pincode) + '</p>' +
       '</div>' +
       (upiPay
-        ? '<div class="form-card"><h3>📲 Pay by UPI</h3><p class="small" style="color:var(--green);font-weight:800">✅ Online payment gets 1% discount — already included in this total.</p>' +
+        ? '<div class="form-card"><h3>📲 Pay by UPI</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(t.grand) + '</b><span class="muted small"> payable</span>' +
           '<p class="small" style="margin-top:4px">🧾 Payment note: <b>Order ' + esc(co.pendingId) + '</b></p></div>' +
           '<div class="qr-box"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
@@ -1326,7 +1326,7 @@ function drawCo(){
           '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Waiting for Confirmation</button></div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> booking fee — pay now (UPI)</span></div>' +
-          '<div class="cod-note">💵 <b>COD order is confirmed only after ₹' + booking + ' booking payment.</b><br>First pay the ₹' + booking + ' UPI booking fee below. Only then tap <b>Place Order</b>.<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> is collected at delivery.</div>' +
+          '<div class="cod-note">💵 <b>COD Rules:</b> ₹' + booking + ' extra booking charge applies. First pay ₹' + booking + ' by UPI to book your order.<br><b>COD orders are confirmed only on WhatsApp</b> after we verify the booking payment. Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> is collected at delivery.</div>' +
           '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
           '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 Pay ₹' + booking + ' Booking (UPI)</a>' +
           '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
@@ -1445,8 +1445,7 @@ function doPlaceOrder(payment){
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
     saveCoDraft();
     if (couponUsed) useCoupon(couponUsed);     /* count coupon usage (before co reset) */
-    /* Loyalty points are locked until admin marks this order as shipped. */
-    order.loyaltyPending = true;
+    try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
     try{ if (co.data.usePoints){ const used = Math.min(pointsRedeemable(), (t.pts || 0)); localStorage.setItem('sk_points', String(Math.max(0, pointsRedeemable() - used))); } }catch(e){}
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
     fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
@@ -1491,8 +1490,7 @@ function doWaOrder(){
       '\n\n💰 COD booking ₹' + CONFIG.codFee + ' — I will pay the booking now.\nRemaining ' + money(Math.max(0, t.grand - CONFIG.codFee)) + ' at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
-    /* Loyalty points are locked until admin marks this order as shipped. */
-    order.loyaltyPending = true;
+    try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
     renderOrderComplete(order, true);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
@@ -1512,7 +1510,7 @@ function renderOrderComplete(o, viaWa){
     ? '⏳ <b>Payment received — waiting for admin confirmation.</b> We will confirm your order on WhatsApp as soon as your UPI payment is verified. 📱'
     : (viaWa
         ? '💵 Order sent on WhatsApp — pay <b>₹' + CONFIG.codFee + ' booking</b> (already in the message), remaining amount at delivery. We will confirm shortly! 📱'
-        : '💵 COD — you paid the ₹' + CONFIG.codFee + ' booking now. Remaining amount collected at delivery. We will confirm shortly! 📱');
+        : '💵 COD booking payment received. Your COD order will be confirmed only on WhatsApp after verification. Remaining amount is collected at delivery. 📱');
   app.innerHTML = '<div class="wrap page">' +
     '<div class="success"><div class="tick-big"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
       '<h1>' + (viaWa ? '🎉 Order Sent on WhatsApp!' : '🎉 Order Placed Successfully!') + '</h1>' +

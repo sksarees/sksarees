@@ -505,18 +505,17 @@ function updateStatus(id, status){
     if (!o.deliverBy) o.deliverBy = new Date(Date.now() + 7 * 864e5).toISOString();
     /* 💰 order shipped → reseller margin confirmed (was pending) */
     try{ confirmMarginOnShip(id); }catch(e){}
-    try{ const lp=awardLoyaltyOnShip(o); if(lp) o.loyaltyPoints=lp; }catch(e){}
   }
   if (status === 'delivered') o.deliveredAt = o.deliveredAt || new Date().toISOString();
   if (status === 'cancelled'){ try{ cancelResellerMargin(id); }catch(e){} }
   if (fi >= 0){
     /* cloud order → update Firestore ONLY (never pollute sk_orders) */
     fsOrders[fi] = o;
-    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy, loyaltyPending:false, loyaltyAwarded:!!o.loyaltyAwarded, loyaltyPoints:o.loyaltyPoints||0 } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
   } else {
     /* device order → local + Firestore */
     Store.saveOrders();
-    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy, loyaltyPending:false, loyaltyAwarded:!!o.loyaltyAwarded, loyaltyPoints:o.loyaltyPoints||0 } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
   }
   toast('✅ ' + id + ' → ' + status);
   /* 💬 auto-offer: open WhatsApp to the customer with the status update + track link */
