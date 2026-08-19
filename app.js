@@ -349,6 +349,11 @@ function weaverStoryHTML(){
     '</div></section>';
 }
 
+/* Smart budget quick shop — one tap filters, no Firestore read. */
+function budgetQuickShopHTML(){
+  const chips=[['₹499–₹799','0','799'],['₹800–₹999','800','999'],['₹1000–₹1499','1000','1499'],['₹1500+','1500','']];
+  return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💰 Shop by Budget</h2></div><div style="display:flex;gap:8px;overflow:auto;padding:2px 0">' + chips.map(c=>'<a href="shop.html?min='+c[1]+'&max='+c[2]+'" class="filter-chip" style="flex:0 0 auto">'+c[0]+'</a>').join('') + '</div></section>';
+}
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -370,6 +375,7 @@ function renderHome(){
     '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
     dealOfDayHTML() +
+    budgetQuickShopHTML() +
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
@@ -1067,9 +1073,10 @@ function renderCartPage(){
   }
   const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
   const disc = couponDiscount(co.data.coupon, t);
-  const bundle = bundleDiscount();               /* 2+ sarees → 2% off */
+  const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
-  app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' +
+  const freeHint = short > 0 ? '<div class="bundle-note" style="margin:0 0 12px">🚚 இன்னும் <b>' + money(short) + '</b> சேர்த்தால் <b>Free Delivery</b> கிடைக்கும்!</div>' : '<div class="bundle-note" style="margin:0 0 12px;color:var(--green)">🎉 உங்கள் order-க்கு Free Delivery கிடைக்கிறது!</div>';
+  app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1>' + freeHint +
     '<div>' + Store.cart.map(i => {
       const p = byId(i.id); if (!p) return '';
       const lk = encodeURIComponent(p.id) + '::' + encodeURIComponent(i.colour || '');
@@ -1090,7 +1097,7 @@ function renderCartPage(){
         const cats = Store.cart.map(i => (byId(i.id) || {}).cat).filter(Boolean);
         const sug = PRODUCTS.filter(p => !p.hidden && !inCart.includes(p.id) && cats.indexOf(p.cat) !== -1).slice(0, 4);
         if (!sug.length) return '';
-        return '<div class="cart-upsell"><h3>🎁 Complete your look — add 2+ sarees &amp; get ' + (CONFIG.bundlePct || 2) + '% off</h3>' +
+        return '<div class="cart-upsell"><h3>🎁 Complete your look — add more &amp; save ₹' + (CONFIG.bundleOff || 0) + ' (2+ sarees)</h3>' +
           '<div class="prow">' + sug.map(cardHTML).join('') + '</div></div>';
       }catch(e){ return ''; }
     })() +
@@ -1114,8 +1121,8 @@ function renderCartPage(){
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
       '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">💳 Pay online (UPI) &amp; get ' + (CONFIG.onlineDiscount||1) + '% off — <b>save ' + money(Math.round(t * (CONFIG.onlineDiscount||1) / 100)) + '</b> on this order!</p>' +
       (n < (CONFIG.bundleCount || 2)
-        ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>' + (CONFIG.bundlePct || 2) + '% off</b> automatically!</div>'
-        : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>' + (CONFIG.bundlePct || 2) + '%</b></div>') +
+        ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
+        : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
       '<p class="small muted" style="margin-top:8px">🚚 Shipping per saree: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others (' + n + ' saree' + (n > 1 ? 's' : '') + ' = <b>' + money(sh) + '</b>) · <b>FREE above ₹999</b>.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
@@ -1286,7 +1293,7 @@ function drawCo(){
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
       '<div class="form-card"><h3>💳 Payment Method</h3><div class="pay-grid">' +
         '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>UPI — Pay Online</b><small>GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
-        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>₹' + CONFIG.codFee + ' booking first • WhatsApp confirmation only</small></span><span class="radio"></span></div>' +
+        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery — extra ₹' + CONFIG.codFee + '</small></span><span class="radio"></span></div>' +
       '</div></div>' +
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
       (d.payment === 'cod'
@@ -1326,7 +1333,7 @@ function drawCo(){
           '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Waiting for Confirmation</button></div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> booking fee — pay now (UPI)</span></div>' +
-          '<div class="cod-note">💵 <b>COD Rules:</b> ₹' + booking + ' extra booking charge applies. First pay ₹' + booking + ' by UPI to book your order.<br><b>COD orders are confirmed only on WhatsApp</b> after we verify the booking payment. Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> is collected at delivery.</div>' +
+          '<div class="cod-note">💵 COD Available — <b>₹' + booking + ' courier booking</b> paid now.<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
           '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
           '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 Pay ₹' + booking + ' Booking (UPI)</a>' +
           '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
@@ -1510,7 +1517,7 @@ function renderOrderComplete(o, viaWa){
     ? '⏳ <b>Payment received — waiting for admin confirmation.</b> We will confirm your order on WhatsApp as soon as your UPI payment is verified. 📱'
     : (viaWa
         ? '💵 Order sent on WhatsApp — pay <b>₹' + CONFIG.codFee + ' booking</b> (already in the message), remaining amount at delivery. We will confirm shortly! 📱'
-        : '💵 COD booking payment received. Your COD order will be confirmed only on WhatsApp after verification. Remaining amount is collected at delivery. 📱');
+        : '💵 COD — you paid the ₹' + CONFIG.codFee + ' booking now. Remaining amount collected at delivery. We will confirm shortly! 📱');
   app.innerHTML = '<div class="wrap page">' +
     '<div class="success"><div class="tick-big"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
       '<h1>' + (viaWa ? '🎉 Order Sent on WhatsApp!' : '🎉 Order Placed Successfully!') + '</h1>' +

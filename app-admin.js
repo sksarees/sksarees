@@ -343,6 +343,9 @@ function renderDashboard(){
         ? topRs.map((r, i) => '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:7px 0;border-bottom:1px dashed var(--line)"><span><b>' + (i + 1) + '.</b> ' + esc(r.name) + ' <span class="muted">' + esc(r.phone) + ' • ' + r.orders + ' orders</span></span><b style="color:var(--green)">' + money(r.margin) + '</b></div>').join('')
         : '<p class="small muted">No reseller sales yet.</p>') + '</div>' +
     '</div>' +
+    '<div class="form-card" style="margin-top:14px"><h3>✅ Today’s Sales Checklist</h3><p class="small" style="line-height:2">' +
+      ((o.filter(x=>(x.status||'placed')==='pending').length) ? '⏳ Follow up <b>' + o.filter(x=>(x.status||'placed')==='pending').length + '</b> pending payment orders<br>' : '✅ No pending payment orders<br>') +
+      '📱 Post one WhatsApp / Instagram saree status today<br>🧺 Send only one cart reminder per customer<br>📦 Check low-stock sarees and update photos / prices</p></div>' +
     '<div class="form-card" style="margin-top:14px"><h3>🗄️ Firestore Collections</h3>' +
       '<p class="small muted">Collections in your project: <b>admins • cart • categories • counters • customers • inventory • orders • products • promos • reviews • resellers • settings</b></p>' +
       '<button type="button" class="btn btn-outline btn-sm" id="seedDb" style="width:auto;min-width:200px;margin-top:8px">🛠️ Setup / Sync Database</button>' +
@@ -934,6 +937,8 @@ function storageMB(){
     return bytes / (1024 * 1024);
   }catch(e){ return 0; }
 }
+function bulkCategory(raw){ const name=String(raw||'Daily Wear').trim()||'Daily Wear'; const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'daily'; if(!CATEGORIES.some(c=>c.slug===slug)){const cat={slug,name,emoji:'🪡',cls:'c-daily',blurb:name};CATEGORIES.push(cat);try{if(FS.enabled())FS._getDb().then(db=>{if(db)db.collection('categories').doc(slug).set(cat,{merge:true}).catch(()=>{});});}catch(e){}} return slug; }
+function smartBulkTitle(raw){ let x=String(raw||'').replace(/\s+/g,' ').trim().replace(/^[A-Z0-9_-]{3,}\s*[-–—]?\s*/,''); if(!x)x='Premium Saree'; if(!/saree/i.test(x))x+=' Saree'; return x.split(' ').map(w=>/^[A-Z]{2,}$/.test(w)?w:(w.charAt(0).toUpperCase()+w.slice(1).toLowerCase())).join(' '); }
 /* one bulk line/row → product (throws Error with message) */
 function bulkPartsToProduct(parts){
   if (!parts || !parts.length) throw new Error('empty');
@@ -945,7 +950,7 @@ function bulkPartsToProduct(parts){
     name = parts[0];
     price = +parts[1] || 0;
     mrp = +parts[2] || 0;
-    cat = parts[3] || 'daily';
+    cat = parts[4] || 'daily';
     badge = parts[5] || '';
     sku = parts[6] || '';
     stock = +parts[7];
@@ -962,6 +967,7 @@ function bulkPartsToProduct(parts){
     sku = '';
     stock = 0;
   }
+  cat = bulkCategory(cat); name = smartBulkTitle(name);
   if (!name){ sku = sku || nextSku(); name = 'Saree ' + sku; }
   if (!(price > 0)) price = 999;
   if (!(mrp > price)) mrp = Math.round(price * 1.6);
@@ -1002,7 +1008,7 @@ function finishBulkImport(imported, errors, added, res){
     }
     const p = imported[idx];
     const nextOne = () => { done++; next(idx + 1); };
-    if (!p.img || (p.colors && p.colors.length > 1)){
+    if (!p.img){
       nextOne(); return;
     }
     detectColoursFromImage(p.img, names => {

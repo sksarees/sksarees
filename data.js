@@ -19,8 +19,8 @@ const CONFIG = {
   shipFee       : 30,
   cartCoupon    : { code:'CARTOFFER', type:'percent', off:1, label:'Your cart is waiting — get 1% off!' },
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
-  /* 🛒 bundle deal: buy 2+ sarees → 2% off */
-  bundleCount : 2, bundlePct : 2,
+  /* 🛒 bundle deal: buy 2+ sarees → ₹50 off */
+  bundleCount : 2, bundleOff : 50,
   dispatchHours : 12,                // dispatch within 12–24h (COD: 24–48h)
   /* 💰 Reseller / Share & Earn program: 5% margin per order (GPay OR loyalty
      points) + ₹50-off promo coupon for customers */
@@ -1830,11 +1830,11 @@ function renderStatsText(){
 }
 
 /* ============================ 9g. BUNDLE + PRICE-DROP ALERTS ============================ */
-/* 🛒 bundle deal: buy 2+ sarees → 2% off (auto-applied) */
+/* 🛒 bundle deal: buy N+ sarees → ₹off (auto-applied at checkout) */
 function bundleDiscount(){
   try{
     const n = cartCount();
-    if (n >= (CONFIG.bundleCount || 2)) return Math.round(cartTotal() * (CONFIG.bundlePct || 2) / 100);
+    if (n >= (CONFIG.bundleCount || 2)) return CONFIG.bundleOff || 0;
   }catch(e){}
   return 0;
 }
