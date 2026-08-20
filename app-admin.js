@@ -343,12 +343,6 @@ function renderDashboard(){
         ? topRs.map((r, i) => '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:7px 0;border-bottom:1px dashed var(--line)"><span><b>' + (i + 1) + '.</b> ' + esc(r.name) + ' <span class="muted">' + esc(r.phone) + ' • ' + r.orders + ' orders</span></span><b style="color:var(--green)">' + money(r.margin) + '</b></div>').join('')
         : '<p class="small muted">No reseller sales yet.</p>') + '</div>' +
     '</div>' +
-    '<div class="form-card" style="margin-top:14px"><h3>🚀 Today’s Order Growth Actions</h3>' +
-      '<div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:8px">' +
-      '<div style="padding:11px;border-radius:12px;background:#fff7e8"><b>⏳ ' + o.filter(x=>(x.status||'placed')==='pending').length + ' Payment Pending</b><small class="muted" style="display:block;margin-top:3px">Verify UPI & WhatsApp follow-up</small></div>' +
-      '<div style="padding:11px;border-radius:12px;background:#eef8f2"><b>💵 ' + o.filter(x=>(x.payment||'')==='cod' && (x.status||'placed')==='placed').length + ' COD to Confirm</b><small class="muted" style="display:block;margin-top:3px">Confirm only after ₹70 booking + WhatsApp</small></div>' +
-      '<div style="padding:11px;border-radius:12px;background:#fff1f4"><b>🔥 ' + PRODUCTS.filter(p=>+p.stock>0 && +p.stock<=5).length + ' Low Stock</b><small class="muted" style="display:block;margin-top:3px">Promote genuine last pieces today</small></div>' +
-      '</div><p class="small muted" style="margin-top:10px">Daily plan: post one real saree photo, follow up pending payments once, and send only one cart reminder per customer — no spam.</p></div>' +
     '<div class="form-card" style="margin-top:14px"><h3>🗄️ Firestore Collections</h3>' +
       '<p class="small muted">Collections in your project: <b>admins • cart • categories • counters • customers • inventory • orders • products • promos • reviews • resellers • settings</b></p>' +
       '<button type="button" class="btn btn-outline btn-sm" id="seedDb" style="width:auto;min-width:200px;margin-top:8px">🛠️ Setup / Sync Database</button>' +
@@ -1077,8 +1071,13 @@ function importCatalogFile(file){
           added++;
         }catch(e){ skipped++; }
       });
-      if (added){ saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody(); }
-      res.innerHTML = added ? '✅ catalog.json imported — <b>' + added + '</b> products loaded' + (skipped ? ' (' + skipped + ' demo/skipped)' : '') : '⚠️ Nothing to import';
+      if (added){
+        saveProducts(PRODUCTS); refreshFeedCache(); prodPage = 1; renderProdBody();
+        /* New catalog import: detect image colour names again, then update products silently. */
+        let done=0, coloured=0; const imported=PRODUCTS.slice(0, added);
+        imported.forEach(p => { if(!p || !p.img || typeof detectColoursFromImage !== 'function'){ done++; return; } detectColoursFromImage(p.img, names => { if(names && names.length){ p.colors=names; p.color=names.join(' / '); coloured++; } done++; if(done===imported.length){ saveProducts(PRODUCTS); refreshFeedCache(); if(adminTab==='products') renderProdBody(); toast('🎨 Catalog colour detection: '+coloured+'/'+added); } }); });
+      }
+      res.innerHTML = added ? '✅ catalog.json imported — <b>' + added + '</b> products loaded • 🎨 colour detection started' + (skipped ? ' (' + skipped + ' demo/skipped)' : '') : '⚠️ Nothing to import';
       toast('📦 catalog.json — ' + added + ' products');
     }catch(e){ res.innerHTML = '⚠️ Invalid catalog.json — not a valid JSON file'; }
   };

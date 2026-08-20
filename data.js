@@ -66,7 +66,11 @@ const FESTIVALS = [
   { slug:'aadi',     emoji:'🌾', name:'Aadi Sale',        blurb:'Aadi month specials — up to 40% off' },
   { slug:'pongal',   emoji:'🌅', name:'Pongal Collection', blurb:'Harvest season silks & cottons' },
   { slug:'diwali',   emoji:'🪔', name:'Diwali Special',    blurb:'Festive lights & gold-zari sarees' },
-  { slug:'wedding',  emoji:'💍', name:'Wedding Season',    blurb:'Bridal & family wedding sarees' },
+  { slug:'wedding', emoji:'💍', name:'Wedding Season', blurb:'Bridal & family wedding sarees' },
+  { slug:'navratri', emoji:'🪔', name:'Navratri & Dussehra', blurb:'Festive colour collections' },
+  { slug:'onam', emoji:'🌼', name:'Onam', blurb:'Kerala festive sarees' },
+  { slug:'eid', emoji:'🌙', name:'Eid Collection', blurb:'Elegant festive wear' },
+  { slug:'christmas', emoji:'🎄', name:'Christmas & New Year', blurb:'Party & gifting sarees' },
 ];
 /* Auto-detect which festival is currently live based on today's date */
 function currentFestival(){
