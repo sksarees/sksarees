@@ -66,11 +66,7 @@ const FESTIVALS = [
   { slug:'aadi',     emoji:'🌾', name:'Aadi Sale',        blurb:'Aadi month specials — up to 40% off' },
   { slug:'pongal',   emoji:'🌅', name:'Pongal Collection', blurb:'Harvest season silks & cottons' },
   { slug:'diwali',   emoji:'🪔', name:'Diwali Special',    blurb:'Festive lights & gold-zari sarees' },
-  { slug:'wedding', emoji:'💍', name:'Wedding Season', blurb:'Bridal & family wedding sarees' },
-  { slug:'navratri', emoji:'🪔', name:'Navratri & Dussehra', blurb:'Festive colour collections' },
-  { slug:'onam', emoji:'🌼', name:'Onam', blurb:'Kerala festive sarees' },
-  { slug:'eid', emoji:'🌙', name:'Eid Collection', blurb:'Elegant festive wear' },
-  { slug:'christmas', emoji:'🎄', name:'Christmas & New Year', blurb:'Party & gifting sarees' },
+  { slug:'wedding',  emoji:'💍', name:'Wedding Season',    blurb:'Bridal & family wedding sarees' },
 ];
 /* Auto-detect which festival is currently live based on today's date */
 function currentFestival(){
@@ -485,7 +481,7 @@ function normalizeProduct(raw){
 
 /* ============================ 4b. INSTANT CATALOG LOAD ============================
    Static catalog.json ships with the site (regenerate from Admin → Catalog Feed).
-   catalog.json is merged into PRODUCTS on EVERY visit (before first render) so
+   catalog.json replaces stale customer PRODUCTS on EVERY visit (before first render) so
    Firestore product pages render immediately — no "Loading product…". Firestore
    pull still refreshes the cache in the background for freshness.
    wantId (optional): when given, returns true only once that product is found,
@@ -513,17 +509,15 @@ async function preloadCatalog(wantId){
   if (!window.__catalogLoaded){
     const tryLoad = async url => {
       try{
-        const r = await fetch(url, { cache: 'no-cache' });
+        const r = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + Date.now(), { cache: 'no-store' });
         if (!r.ok) return false;
         const data = await r.json();
         const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          list.filter(p => p && p.id && !isSampleId(p.id) && !(function(){ try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p.id)); }catch(e){ return false; } })() && (isAdminDevice() || !p.hidden)).forEach(cp => {
-            try{
-              const np = normalizeProduct(cp);
-              if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
-            }catch(e){}
-          });
+          /* Customer catalog is authoritative: replace stale browser/cache products,
+             do not merely append missing IDs. Refresh always shows the new catalog.json. */
+          const deleted = (() => { try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String); }catch(e){ return []; } })();
+          PRODUCTS = list.filter(p => p && p.id && !isSampleId(p.id) && !deleted.includes(String(p.id)) && !p.hidden).map(cp => normalizeProduct(cp));
           return true;
         }
       }catch(e){}
