@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8f1d3a"><meta name="description" content="Share SK Sarees with friends. Earn 5% commission on shipped UPI orders.">
+<title>Share & Earn 5% — SK Sarees</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+<style>
+.share-hero{background:linear-gradient(135deg,#681127,#9d2344);color:#fff;padding:32px 18px 28px;text-align:center}.share-hero h1{font-size:clamp(1.65rem,6vw,2.45rem);margin:10px auto;max-width:17ch}.share-hero p{max-width:36ch;margin:0 auto;color:#f9dde4}.share-wrap{max-width:720px;margin:0 auto;padding:18px 14px 65px}.share-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 5px 18px rgba(70,20,35,.06)}.share-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.share-step{background:var(--gold-soft);border-radius:12px;padding:12px 8px;text-align:center;font-size:.78rem}.share-step b{display:block;font-size:1.2rem;color:var(--maroon);margin-bottom:4px}.link-box{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.78rem;background:#fff;box-sizing:border-box}.share-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.share-actions .btn{flex:1;min-width:140px}.rule{font-size:.8rem;line-height:1.75;color:var(--muted)}
+</style>
+</head>
+<body data-page="share">
+<main id="app">
+<section class="share-hero"><span class="hero-chip">💰 SHARE & EARN</span><h1>Share Sarees. Earn 5% Commission.</h1><p>Free to join. No stock. No investment. Share your personal link on WhatsApp.</p></section>
+<div class="share-wrap">
+  <section class="share-card" id="joinCard"><h2 style="font-size:1.1rem">🚀 Get your personal share link</h2><p class="rule">Your friend places a UPI order through your link → commission is confirmed after the order is shipped.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><div class="field"><label>Name</label><input id="rsName" placeholder="Your name"></div><div class="field"><label>WhatsApp number</label><input id="rsPhone" inputmode="numeric" maxlength="10" placeholder="10-digit number"></div></div><button type="button" class="btn btn-maroon" id="rsJoin">🔗 Create My Link</button></section>
+  <section class="share-card" id="linkCard" style="display:none"><b style="color:var(--maroon);font-size:1.05rem">✅ Your code: <span id="rsCode"></span></b><p class="rule">Share this exact link. All friend orders after opening this link are tagged to your code.</p><input class="link-box" id="rsLink" readonly><div class="share-actions"><button type="button" class="btn btn-outline" id="rsCopy">📋 Copy Link</button><a class="btn btn-wa" id="rsWa" href="#" target="_blank" rel="noopener">💬 Share on WhatsApp</a></div></section>
+  <section class="share-card"><h2 style="font-size:1.1rem">⚡ 3 simple steps</h2><div class="share-steps"><div class="share-step"><b>1</b>Create link</div><div class="share-step"><b>2</b>Share on WhatsApp</div><div class="share-step"><b>3</b>Earn after shipping</div></div></section>
+  <section class="share-card"><h2 style="font-size:1.1rem">📱 Ready-to-send message</h2><textarea id="shareMsg" rows="7" class="link-box">🪡 Beautiful sarees from SK Sarees!
+
+✨ New arrivals • Soft silk • Wedding sarees
+🎟️ Use my link to shop
+🚚 Free delivery above ₹999
+
+👉 LINK_HERE</textarea><div class="share-actions"><button type="button" class="btn btn-outline" id="msgCopy">📋 Copy Message</button><a class="btn btn-wa" id="msgWa" href="#" target="_blank" rel="noopener">💬 Send on WhatsApp</a></div></section>
+  <section class="share-card"><h2 style="font-size:1.1rem">✅ Simple rules</h2><p class="rule">• Commission: <b>5%</b> on UPI orders only.<br>• Margin is pending until the order is <b>Shipped</b>.<br>• After shipping, choose <b>GPay payout</b> or <b>loyalty points</b>.<br>• Minimum GPay payout: ₹100.<br>• Your customer gets <b>SHARE5 — 5% off</b>.</p><a class="btn btn-gold" href="shop.html">🛍️ Start sharing sarees</a></section>
+</div></main>
+<script src="data.js"></script><script src="rec.js"></script><script src="app.js"></script>
+<script>
+(function(){
+ const $=id=>document.getElementById(id), copy=t=>{navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):null;try{toast('✅ Copied');}catch(e){}};
+ function setLink(code){const link=location.origin+location.pathname.replace(/[^/]*$/,'')+'shop.html?ref='+encodeURIComponent(code);$('rsCode').textContent=code;$('rsLink').value=link;$('linkCard').style.display='block';$('shareMsg').value=$('shareMsg').value.replace('LINK_HERE',link);$('rsWa').href='https://wa.me/?text='+encodeURIComponent('🪡 Shop SK Sarees with my link & get 5% off!\n👉 '+link);$('msgWa').href='https://wa.me/?text='+encodeURIComponent($('shareMsg').value);}
+ try{const existing=myResellerCode();if(existing)setLink(existing);}catch(e){}
+ $('rsJoin').onclick=()=>{const n=$('rsName').value.trim(),p=$('rsPhone').value.trim();if(!n||!validPhone(p)){toast('⚠️ Enter name and valid mobile number');return;}const r=addReseller(n,p);setLink(r.code);toast('🎉 Your share link is ready!');};
+ $('rsCopy').onclick=()=>copy($('rsLink').value);$('msgCopy').onclick=()=>copy($('shareMsg').value);$('shareMsg').oninput=()=>$('msgWa').href='https://wa.me/?text='+encodeURIComponent($('shareMsg').value);
+})();
+</script></body></html>
