@@ -481,7 +481,7 @@ function normalizeProduct(raw){
 
 /* ============================ 4b. INSTANT CATALOG LOAD ============================
    Static catalog.json ships with the site (regenerate from Admin → Catalog Feed).
-   catalog.json replaces stale customer PRODUCTS on EVERY visit (before first render) so
+   catalog.json is merged into PRODUCTS on EVERY visit (before first render) so
    Firestore product pages render immediately — no "Loading product…". Firestore
    pull still refreshes the cache in the background for freshness.
    wantId (optional): when given, returns true only once that product is found,
@@ -514,10 +514,20 @@ async function preloadCatalog(wantId){
         const data = await r.json();
         const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          /* Customer catalog is authoritative: replace stale browser/cache products,
-             do not merely append missing IDs. Refresh always shows the new catalog.json. */
-          const deleted = (() => { try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String); }catch(e){ return []; } })();
-          PRODUCTS = list.filter(p => p && p.id && !isSampleId(p.id) && !deleted.includes(String(p.id)) && !p.hidden).map(cp => normalizeProduct(cp));
+          /* Customer page source = latest catalog.json only. Replace old cache and remove duplicate rows. */
+          const deleted = (()=>{try{return JSON.parse(localStorage.getItem('sk_deleted_products')||'[]').map(String);}catch(e){return [];}})();
+          const seen = new Set(), clean=[];
+          list.filter(p => p && p.id && !isSampleId(p.id) && !deleted.includes(String(p.id)) && !p.hidden).forEach(cp => {
+            try{
+              const np=normalizeProduct(cp);
+              /* Same SKU, or same name + price + photo = same saree: show only once. */
+              const key=String(np.sku||'').toLowerCase() || (String(np.name).toLowerCase()+'|'+np.price+'|'+String(np.img));
+              const fallback=String(np.name).toLowerCase()+'|'+np.price+'|'+String(np.img);
+              if(seen.has(key)||seen.has(fallback)) return;
+              seen.add(key); seen.add(fallback); clean.push(np);
+            }catch(e){}
+          });
+          PRODUCTS=clean;
           return true;
         }
       }catch(e){}
