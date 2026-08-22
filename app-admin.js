@@ -142,8 +142,9 @@ function adminInit(){
   try{ renderCartBadge(); }catch(e){}
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
   try{ purgeOldOrders(30); }catch(e){}   /* auto-delete orders older than 30 days */
-  /* Admin products deliberately do not use catalog.json, localStorage, or Sync cache. */
-  try{ PRODUCTS = []; localStorage.removeItem('sk_products'); localStorage.removeItem('sk_products_cloud'); }catch(e){}
+  try{ Sync.run(); }catch(e){}
+  /* Admin Products: Firestore is the only source. Never merge GitHub catalog or local product cache. */
+  if (document.body && document.body.dataset.page === 'admin'){ try{ PRODUCTS = []; localStorage.removeItem('sk_products'); localStorage.removeItem('sk_products_cloud'); Sync.pullProducts(); }catch(e){} }
   if (String(LS.get('sk_admin', '0')) === '1'){
     renderAdmin();
     /* ensure Firestore collections exist (admins, cart, categories, ...) */
@@ -674,19 +675,6 @@ function renderBulkManager(){
   document.getElementById('bmCsv').onclick=()=>csvIn.click(); document.getElementById('btnImport').onclick=importBulk;
   document.getElementById('bmTpl').onclick=e=>{e.preventDefault();const csv='Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://example.com/photo.jpg,soft-silk,New,SKS-001,10,Red Gold\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='sk-sarees-products-template.csv';a.click();};
 }
-let __fsProductsReady=false, __fsProductsLoading=false;
-function loadFirestoreProductsOnly(force){
-  if(__fsProductsLoading || (__fsProductsReady && !force)) return;
-  if(!FS.enabled()){ toast('⚠️ Firestore is not connected'); return; }
-  __fsProductsLoading=true;
-  FS._getDb().then(db=>{ if(!db) throw new Error('Firestore unavailable'); return db.collection('products').get(); }).then(snap=>{
-    const byId={};
-    snap.forEach(doc=>{ try{ const x=doc.data()||{}; const id=String(x.id||x.sku||doc.id); if(!id || (x.status&&String(x.status).toLowerCase()==='inactive'))return; const t=x.updatedAt&&x.updatedAt.toMillis?x.updatedAt.toMillis():(+x.updatedAt||0); const prev=byId[id]; const prevT=prev?prev.__t:-1; /* canonical document ID wins; else newest timestamp */ if(!prev || doc.id===id || (prev.__doc!==id && t>=prevT)) byId[id]=Object.assign(normalizeProduct(Object.assign({},x,{id})),{__doc:doc.id,__t:t}); }catch(e){} });
-    PRODUCTS=Object.keys(byId).map(k=>{const x=byId[k];delete x.__doc;delete x.__t;return x;});
-    __fsProductsReady=true; __fsProductsLoading=false;
-    if(adminTab==='products') renderProducts();
-  }).catch(e=>{__fsProductsLoading=false;toast('⚠️ Firestore products load failed: '+String((e&&e.message)||e).slice(0,70));});
-}
 function renderProducts(){
   if (!__adminProductsLoaded){
     document.getElementById('tabBody').innerHTML = '<div class="form-card" style="text-align:center;padding:28px"><b>⏳ Loading products from Firestore…</b><p class="small muted">Please wait a moment.</p></div>';
@@ -694,7 +682,6 @@ function renderProducts(){
   }
   document.getElementById('tabBody').innerHTML =
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
-      '<button type="button" class="btn btn-outline btn-sm" id="btnFsRefresh" style="width:auto">🔄 Firestore Refresh</button>' +
       '<button type="button" class="btn btn-maroon btn-sm" id="btnAddProd" style="flex:1;min-width:130px">➕ Add Product</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnRefreshProducts" style="width:auto">🔄 Refresh</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="btnCategories" style="flex:1;min-width:130px">🗂️ Categories</button>' +
@@ -761,9 +748,22 @@ function renderProducts(){
   });
 }
 /* filter by the search box (name, SKU, category, colour) */
+function adminUniqueProducts(){
+  const map={};
+  (PRODUCTS||[]).forEach(p=>{
+    if(!p) return;
+    const sku=String(p.sku||'').trim().toLowerCase();
+    const key=sku || (String(p.name||'').trim().toLowerCase()+'|'+String(p.price||'')+'|'+String(p.img||''));
+    const prev=map[key];
+    const pt=+(p.updatedAt&&p.updatedAt.toMillis?p.updatedAt.toMillis():p.updatedAt)||0;
+    const ot=prev?+(prev.updatedAt&&prev.updatedAt.toMillis?prev.updatedAt.toMillis():prev.updatedAt)||0:-1;
+    if(!prev || pt>=ot) map[key]=p; /* latest Firestore record wins */
+  });
+  return Object.keys(map).map(k=>map[k]);
+}
 function filteredProds(){
   const q = prodSearch.toLowerCase();
-  return PRODUCTS.filter(p => (prodCategory === 'all' || p.cat === prodCategory) && (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)));
+  return adminUniqueProducts().filter(p => (prodCategory === 'all' || p.cat === prodCategory) && (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)));
 }
 /* show FIRST 10 products, "Load More" → next 10 */
 function renderProdBody(){

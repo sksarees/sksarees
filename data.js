@@ -509,25 +509,17 @@ async function preloadCatalog(wantId){
   if (!window.__catalogLoaded){
     const tryLoad = async url => {
       try{
-        const r = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + Date.now(), { cache: 'no-store' });
+        const r = await fetch(url, { cache: 'no-cache' });
         if (!r.ok) return false;
         const data = await r.json();
         const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          /* Customer page source = latest catalog.json only. Replace old cache and remove duplicate rows. */
-          const deleted = (()=>{try{return JSON.parse(localStorage.getItem('sk_deleted_products')||'[]').map(String);}catch(e){return [];}})();
-          const seen = new Set(), clean=[];
-          list.filter(p => p && p.id && !isSampleId(p.id) && !deleted.includes(String(p.id)) && !p.hidden).forEach(cp => {
+          list.filter(p => p && p.id && !isSampleId(p.id) && !(function(){ try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p.id)); }catch(e){ return false; } })() && (isAdminDevice() || !p.hidden)).forEach(cp => {
             try{
-              const np=normalizeProduct(cp);
-              /* Same SKU, or same name + price + photo = same saree: show only once. */
-              const key=String(np.sku||'').toLowerCase() || (String(np.name).toLowerCase()+'|'+np.price+'|'+String(np.img));
-              const fallback=String(np.name).toLowerCase()+'|'+np.price+'|'+String(np.img);
-              if(seen.has(key)||seen.has(fallback)) return;
-              seen.add(key); seen.add(fallback); clean.push(np);
+              const np = normalizeProduct(cp);
+              if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
             }catch(e){}
           });
-          PRODUCTS=clean;
           return true;
         }
       }catch(e){}
@@ -1494,6 +1486,9 @@ function recordResellerOrder(order){
       }
     }
     if (i >= 0){
+      if (!Array.isArray(list[i].refOrders)) list[i].refOrders = [];
+      /* An order can be saved again after UPI confirmation — never credit twice. */
+      if (list[i].refOrders.some(x => x && x.id === order.id)) return;
       list[i].orders = (list[i].orders || 0) + 1;
       /* margin stored as PENDING until the order ships (order ref kept) */
       list[i].pendingMargin = (list[i].pendingMargin || 0) + (order.margin || 0);
@@ -1506,7 +1501,7 @@ function recordResellerOrder(order){
     if (FS.enabled()){
       FS._getDb().then(db => {
         if (!db) return;
-        db.collection('resellers').doc(r.code).set({ code: r.code, name: r.name, phone: r.phone, orders: (list[i] && list[i].orders) || 0, margin: (list[i] && list[i].margin) || 0, updatedAt: Date.now() }, { merge: true }).catch(()=>{});
+        db.collection('resellers').doc(r.code).set({ code: r.code, name: r.name || (list[i]&&list[i].name)||'', phone: r.phone || (list[i]&&list[i].phone)||'', orders: (list[i] && list[i].orders) || 0, margin: (list[i] && list[i].margin) || 0, pendingMargin: (list[i] && list[i].pendingMargin) || 0, refOrders: (list[i] && list[i].refOrders) || [], updatedAt: Date.now() }, { merge: true }).catch(()=>{});
       }).catch(()=>{});
     }
   }catch(e){}

@@ -240,33 +240,20 @@ function starsHTML(p){
   return '<div class="stars">' + '★'.repeat(r) + '☆'.repeat(5 - r) +
     ' <span>' + (p.rating || 0) + '</span><span class="cnt">(' + (p.reviews + realReviewCount(p.id)) + ' reviews)</span></div>';
 }
-function autoBadge(p){
-  try{
-    if (p.badge) return p.badge;
-    const age = p.createdAt ? (Date.now() - new Date(p.createdAt).getTime()) / 864e5 : 999;
-    if (age >= 0 && age <= 21) return 'New';
-    if (offPct(p) >= 25) return 'Sale';
-    if ((p.reviews || 0) >= 35 || (p.rating || 0) >= 4.8) return 'Bestseller';
-    const recent = JSON.parse(localStorage.getItem('sk_recent') || '[]');
-    if (recent.filter(x => x === p.id).length >= 1) return 'Trending';
-  }catch(e){}
-  return '';
-}
 function cardHTML(p){
   const off = offPct(p);
   const out = (p.stock != null && p.stock <= 0);
   const low = !out && p.stock <= 5;
-  const smartBadge = autoBadge(p);
-  const badgeCls = out ? 'red' : smartBadge === 'New' ? 'gold' : smartBadge === 'Limited Stock' ? 'red' : smartBadge === 'Sale' ? 'green' : smartBadge === 'Trending' ? 'gold' : '';
+  const badgeCls = out ? 'red' : p.badge === 'New' ? 'gold' : p.badge === 'Limited Stock' ? 'red' : p.badge === 'Sale' ? 'green' : '';
   return '<article class="pcard">' +
-    '<a class="pcard-img" href="' + productUrl(p) + '" target="_blank" rel="noopener">' +
+    '<a class="pcard-img" href="' + productUrl(p) + '">' +
       '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async" width="800" height="600" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
-      (out ? '<span class="badge red">Out of Stock</span>' : (smartBadge ? '<span class="badge ' + badgeCls + '">' + esc(smartBadge) + '</span>' : '')) +
+      (out ? '<span class="badge red">Out of Stock</span>' : (p.badge ? '<span class="badge ' + badgeCls + '">' + esc(p.badge) + '</span>' : '')) +
       (off && !out ? '<span class="offchip">-' + off + '%</span>' : '') +
       '<span class="card-heart' + (Store.wish.includes(p.id) ? ' on' : '') + '" data-wish="' + p.id + '" role="button" aria-label="Save to wishlist" title="Save to wishlist">' + (Store.wish.includes(p.id) ? '❤️' : '🤍') + '</span>' +
     '</a>' +
     '<div class="pcard-body">' +
-      '<h3><a href="' + productUrl(p) + '" target="_blank" rel="noopener">' + esc(p.name) + '</a></h3>' +
+      '<h3><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></h3>' +
       starsHTML(p) +
       '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
       (low ? '<div class="lowchip">🔥 Only <b>' + p.stock + '</b> left — order soon!</div>' : (out ? '<div class="lowchip out">😞 Out of stock — ask on WhatsApp for next batch</div>' : '')) +
@@ -300,7 +287,7 @@ function festivalCountdown(){
       if (diff <= 0){ el.textContent = '🎉 Offer ending today — order now!'; return; }
       const dd = Math.floor(diff / 864e5), hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
       const p2 = n => String(n).padStart(2, '0');
-      el.innerHTML = '<small>Order before ' + festivalName(currentFestival()) + '</small><br><b>' + dd + '</b>d <b>' + p2(hh) + '</b>h <b>' + p2(mm) + '</b>m <b>' + p2(ss) + '</b>s';
+      el.innerHTML = '<b>' + dd + '</b>d <b>' + p2(hh) + '</b>h <b>' + p2(mm) + '</b>m <b>' + p2(ss) + '</b>s';
     };
     tick(); setInterval(tick, 1000);
   }catch(e){}
@@ -362,6 +349,13 @@ function weaverStoryHTML(){
     '</div></section>';
 }
 
+/* 🚀 Viral Growth Hub — honest sharing tools, no fake views or fake urgency. */
+function viralGrowthHTML(){
+  const today = PRODUCTS.filter(p=>!p.hidden&&p.stock>0)[Math.floor(Date.now()/864e5)%Math.max(1,PRODUCTS.filter(p=>!p.hidden&&p.stock>0).length)];
+  if(!today) return '';
+  const msg='🪡 இன்று SK Sarees Special Offer!\n\n✨ '+today.name+'\n💰 '+money(today.price)+'\n✅ UPI payment-ல் 1% discount\n✅ Free delivery above ₹999\n✅ Fulfilled by SK SAREES COLLECTION\n\n👉 '+productUrl(today);
+  return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🚀 Share & Earn</h2></div><div class="pd-block" style="border:1.5px solid var(--gold);background:linear-gradient(135deg,#fffaf0,#fff)"><b style="font-size:1.02rem">Share beautiful sarees. Earn 5% commission.</b><p class="small muted" style="margin-top:4px">Create your personal link in 30 seconds. When a friend places a UPI order through your link, commission is confirmed after shipping.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><a class="btn btn-gold btn-sm" style="width:auto" href="share-earn.html">🔗 Create My Share Link</a><a class="btn btn-wa btn-sm" style="width:auto" href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">💬 Share Today’s Special</a><a class="btn btn-outline btn-sm" style="width:auto" href="'+esc(CONFIG.waGroup)+'" target="_blank" rel="noopener">👥 Join Offers Group</a></div></div></section>';
+}
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -390,7 +384,7 @@ function renderHome(){
       '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
-    '<div class="wrap">' +
+    '<div class="wrap">' + viralGrowthHTML() +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
           const count = PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length;
@@ -866,7 +860,6 @@ function renderProduct(){
         '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping</p>' +
         '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
         '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
-        '<p class="small" style="font-weight:800;color:var(--green);margin:8px 0">✅ Fulfilled by SK SAREES COLLECTION</p>' +
         (p.colors && p.colors.length
           ? '<div class="pd-colour-row"><b>🎨 Colour</b> <small class="muted" style="font-weight:600">— AI-detected from photo</small>' +
             '<div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
@@ -903,7 +896,7 @@ function renderProduct(){
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
         '<div class="earn-box" id="earnBox">' +
-          '<b>💰 Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
+          '<b>🚀 Share this saree &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
           '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or as loyalty points)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
           '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
             '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</button>' +
