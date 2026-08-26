@@ -926,6 +926,37 @@ const Store = {
   saveWish(){ LS.set('sk_wish', this.wish); try{ syncUserCloud(); }catch(e){} },
   saveProfile(){ LS.set('sk_profile', this.profile); try{ syncUserCloud(); }catch(e){} },
 };
+
+/* ============================ 👤 CUSTOMER NAME — personal bond ============================
+   1st visit: the site politely asks her name once (app.js popup) and saves it
+   on THIS device only. Every page then greets her by name ("Vanakkam, Priya!")
+   and shows "{Name}'s Liked Sarees" / "{Name}'s Viewed Sarees" — the site feels
+   like HER personal saree shop. No login, no server, 0 extra Firestore reads. */
+function userFullName(){
+  try{
+    const p = (Store.profile && Store.profile.name) || '';
+    return String(p || LS.get('sk_user_name', '') || '').trim();
+  }catch(e){ return ''; }
+}
+function userName(){ try{ return userFullName().split(/\s+/)[0] || ''; }catch(e){ return ''; } }
+function saveUserName(full){
+  try{
+    const clean = String(full || '').trim().replace(/[<>]/g, '').slice(0, 40);
+    if (!clean) return false;
+    LS.set('sk_user_name', clean);
+    /* pre-fills checkout name too — one less field for her to type */
+    if (Store.profile && !String(Store.profile.name || '').trim()){ Store.profile.name = clean; try{ Store.saveProfile(); }catch(e){} }
+    if (!LS.get('sk_member_since', 0)) LS.set('sk_member_since', Date.now());
+    return true;
+  }catch(e){ return false; }
+}
+function memberSinceText(){
+  try{
+    const ts = +LS.get('sk_member_since', 0);
+    if (!ts) return '';
+    return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  }catch(e){ return ''; }
+}
 function cartTotal(){ return Store.cart.reduce((s,i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0); }
 /* ---- STOCK (1 psc model) ----
    Products have limited stock (often 1 psc). Stock is consumed when an order is
@@ -1486,9 +1517,6 @@ function recordResellerOrder(order){
       }
     }
     if (i >= 0){
-      if (!Array.isArray(list[i].refOrders)) list[i].refOrders = [];
-      /* An order can be saved again after UPI confirmation — never credit twice. */
-      if (list[i].refOrders.some(x => x && x.id === order.id)) return;
       list[i].orders = (list[i].orders || 0) + 1;
       /* margin stored as PENDING until the order ships (order ref kept) */
       list[i].pendingMargin = (list[i].pendingMargin || 0) + (order.margin || 0);
@@ -1501,7 +1529,7 @@ function recordResellerOrder(order){
     if (FS.enabled()){
       FS._getDb().then(db => {
         if (!db) return;
-        db.collection('resellers').doc(r.code).set({ code: r.code, name: r.name || (list[i]&&list[i].name)||'', phone: r.phone || (list[i]&&list[i].phone)||'', orders: (list[i] && list[i].orders) || 0, margin: (list[i] && list[i].margin) || 0, pendingMargin: (list[i] && list[i].pendingMargin) || 0, refOrders: (list[i] && list[i].refOrders) || [], updatedAt: Date.now() }, { merge: true }).catch(()=>{});
+        db.collection('resellers').doc(r.code).set({ code: r.code, name: r.name, phone: r.phone, orders: (list[i] && list[i].orders) || 0, margin: (list[i] && list[i].margin) || 0, updatedAt: Date.now() }, { merge: true }).catch(()=>{});
       }).catch(()=>{});
     }
   }catch(e){}
@@ -2445,7 +2473,7 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
-        ${((Store.profile && Store.profile.name) ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">Hi, <b>' + esc(Store.profile.name.split(' ')[0]) + '</b></span></a>' : '')}
+        ${(userName() ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">Vanakkam, <b>' + esc(userName()) + '</b></span></a>' : '')}
         <a class="icon-btn" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
       </div>

@@ -1660,3 +1660,32 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
 /* Elegant, readable product titles */
 .pcard-body h3{font-family:Georgia,"Times New Roman",serif!important;font-size:.98rem!important;font-weight:700!important;letter-spacing:.08px;line-height:1.32!important;color:#3a1722}
 .pd-info h1{font-family:Georgia,"Times New Roman",serif!important;letter-spacing:.1px;color:#3a1722}
+
+/* ============================ 👤 NAME POPUP + PERSONAL SECTIONS ============================ */
+/* 🙏 1st-visit "What is your name?" popup (bottom-sheet modal content) */
+.np-card{ text-align:center; padding:4px 4px 0 }
+.np-emoji{ font-size:2.7rem; line-height:1; margin:2px auto 10px }
+.np-title{ font-size:1.55rem; margin:0 0 6px; color:var(--maroon); font-family:Georgia,"Times New Roman",serif; letter-spacing:.3px }
+.np-sub{ color:var(--ink); font-size:.95rem; margin:0 0 14px; line-height:1.65 }
+.np-sub .muted{ font-size:.82rem }
+.np-input{ width:100%; box-sizing:border-box; border:1.5px solid var(--gold-l); border-radius:12px; padding:13px 14px; font-size:17px; text-align:center; background:#fff; outline:none; margin-bottom:12px }
+.np-input:focus{ border-color:var(--maroon); box-shadow:0 0 0 3px rgba(143,29,58,.09) }
+.np-save{ width:100% }
+.np-skip{ display:block; width:100%; background:none; border:none; color:var(--muted); font-size:.84rem; font-weight:700; padding:11px 4px 2px; cursor:pointer; text-decoration:underline }
+.np-note{ font-size:.72rem; color:var(--muted); margin:10px 0 0; line-height:1.55 }
+/* 🤝 home greeting strip — "Vanakkam, {Name}!" (maroon band under the promo strip) */
+.greet-strip{ background:linear-gradient(92deg,#70142c 0%,#8f1d3a 45%,#a03a52 100%); color:#fff; padding:11px 0; box-shadow:0 2px 10px rgba(74,15,30,.18) }
+.gs-in{ display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+.gs-emoji{ font-size:1.55rem; display:inline-block; animation:gsWave 2.4s ease-in-out infinite; transform-origin:70% 70% }
+@keyframes gsWave{ 0%,55%,100%{ transform:rotate(0deg) } 12%,32%{ transform:rotate(18deg) } 22%{ transform:rotate(-9deg) } 42%{ transform:rotate(15deg) } 50%{ transform:rotate(-4deg) } }
+.gs-txt{ flex:1; min-width:210px }
+.gs-txt b{ display:block; font-size:1.04rem; letter-spacing:.2px }
+.gs-txt small{ color:#f0d9a4; font-size:.75rem; font-weight:600; display:block; margin-top:1px }
+.gs-btn{ background:var(--gold-l); color:#4a0f1e; font-weight:800; font-size:.78rem; padding:9px 14px; border-radius:999px; text-decoration:none; white-space:nowrap }
+/* 🤝 profile relationship card */
+.greet-card{ background:linear-gradient(135deg,var(--gold-soft),#faeed2); border:1.5px solid var(--gold-l) }
+.greet-stats{ display:flex; flex-wrap:wrap; gap:8px }
+.greet-stats span{ background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:.8rem; font-weight:700; color:#4a3f38 }
+.greet-stats b{ color:var(--maroon) }
+/* ❤️ count pill next to "{Name}'s Liked Sarees" */
+.like-count{ background:var(--gold-soft); color:var(--maroon); border:1px solid var(--gold-l); border-radius:999px; font-size:.66rem; font-weight:800; padding:2px 8px; vertical-align:2px; margin-left:5px }

@@ -33,6 +33,7 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
+  try{ maybeAskName(); }catch(e){}      /* 👤 1st visit: ask her name once (personal bond) */
   try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -109,7 +110,7 @@ function openAIAssistant(){
     '<div class="ai-quick">' + quick.map(x => '<button type="button" class="btn btn-outline btn-sm" data-aiq="' + esc(x) + '">' + esc(x) + '</button>').join('') + '</div>' +
     '<div class="ai-input"><input id="aiIn" placeholder="e.g. red silk saree under 1500" maxlength="90" autocomplete="off"><button type="button" class="btn btn-maroon btn-sm" id="aiSend">➤</button></div>' +
     '</div>');
-  aiPushMsg('bot', '👋 Vanakkam! Tell me what you need — <b>occasion, colour, fabric or budget</b> — and I will show sarees for you. Try: <i>"red silk saree under ₹1500"</i> 😊');
+  aiPushMsg('bot', '👋 Vanakkam' + (userName() ? ', <b>' + esc(userName()) + '</b>!' : '!') + ' Tell me what you need — <b>occasion, colour, fabric or budget</b> — and I will show sarees for you. Try: <i>"red silk saree under ₹1500"</i> 😊');
   const send = () => {
     const inp = document.getElementById('aiIn'); if (!inp) return;
     const v = inp.value.trim(); if (!v) return;
@@ -349,13 +350,6 @@ function weaverStoryHTML(){
     '</div></section>';
 }
 
-/* 🚀 Viral Growth Hub — honest sharing tools, no fake views or fake urgency. */
-function viralGrowthHTML(){
-  const today = PRODUCTS.filter(p=>!p.hidden&&p.stock>0)[Math.floor(Date.now()/864e5)%Math.max(1,PRODUCTS.filter(p=>!p.hidden&&p.stock>0).length)];
-  if(!today) return '';
-  const msg='🪡 இன்று SK Sarees Special Offer!\n\n✨ '+today.name+'\n💰 '+money(today.price)+'\n✅ UPI payment-ல் 1% discount\n✅ Free delivery above ₹999\n✅ Fulfilled by SK SAREES COLLECTION\n\n👉 '+productUrl(today);
-  return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🚀 Share & Earn</h2></div><div class="pd-block" style="border:1.5px solid var(--gold);background:linear-gradient(135deg,#fffaf0,#fff)"><b style="font-size:1.02rem">Share beautiful sarees. Earn 5% commission.</b><p class="small muted" style="margin-top:4px">Create your personal link in 30 seconds. When a friend places a UPI order through your link, commission is confirmed after shipping.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><a class="btn btn-gold btn-sm" style="width:auto" href="share-earn.html">🔗 Create My Share Link</a><a class="btn btn-wa btn-sm" style="width:auto" href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">💬 Share Today’s Special</a><a class="btn btn-outline btn-sm" style="width:auto" href="'+esc(CONFIG.waGroup)+'" target="_blank" rel="noopener">👥 Join Offers Group</a></div></div></section>';
-}
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -363,7 +357,7 @@ function renderHome(){
   const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
   const forYou = forYouHTML();   /* 🤖 personalized strip (viewed/wishlist based) */
-  app.innerHTML = forYou +
+  app.innerHTML = personalGreetHTML() + forYou +
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
@@ -377,6 +371,7 @@ function renderHome(){
     '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
     dealOfDayHTML() +
+    likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
@@ -384,7 +379,7 @@ function renderHome(){
       '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
-    '<div class="wrap">' + viralGrowthHTML() +
+    '<div class="wrap">' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
           const count = PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length;
@@ -502,6 +497,7 @@ function renderShop(){
       '<div id="shopSentinel" style="height:1px"></div>' +
       '<div class="empty" id="empty" style="display:none"><div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.</div>' +
       keepBrowsingHTML() +
+      likedSareesHTML() +      /* ❤️ "{Name}'s Liked Sarees" */
       recentViewHTML() +
     '</div>';
   drawChips();
@@ -670,6 +666,131 @@ function blouseGuideHTML(){
     '</tbody></table></div>' +
     '<p class="small muted" style="margin-top:6px">💡 Tip: measure around the fullest part of your bust. Saree length is 6.3m + blouse piece (1.5m) — fits heights 4\'10" to 5\'10" easily. Not sure? Ask us on WhatsApp — we will help you pick!</p></details>';
 }
+/* ============================ 👤 CUSTOMER NAME — personal bond ============================
+   1st visit: ask her name once (polite popup, skippable) → saved on this device.
+   Every page then greets her by name and shows "{Name}'s Liked Sarees" +
+   "{Name}'s Viewed Sarees". Builds a warm 1-to-1 relationship with the store. */
+function likedSareesTitle(){
+  const nm = userName();
+  if (lang === 'ta') return nm ? esc(nm) + ' பிடித்த சேலைகள்' : 'நீங்கள் பிடித்த சேலைகள்';
+  return nm ? esc(nm) + "'s Liked Sarees" : 'Your Liked Sarees';
+}
+function viewedSareesTitle(){
+  const nm = userName();
+  if (lang === 'ta') return nm ? esc(nm) + ' பார்த்த சேலைகள்' : 'சமீபத்தில் பார்த்த சேலைகள்';
+  return nm ? esc(nm) + "'s Viewed Sarees" : 'Recently Viewed';
+}
+/* ❤️ "{Name}'s Liked Sarees" — her wishlist strip, shown on every page */
+function likedSareesHTML(max){
+  try{
+    const list = (Store.wish || []).map(byId).filter(Boolean).slice(0, max || 4);
+    if (!list.length) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>❤️ ' + likedSareesTitle() +
+      ' <span class="like-count">' + (Store.wish || []).length + '</span></h2><a href="profile.html">View all →</a></div>' +
+      '<div class="prow">' + list.map(cardHTML).join('') + '</div></section>';
+  }catch(e){ return ''; }
+}
+/* 👀 "{Name}'s Viewed Sarees" — grid (profile page, full list) */
+function viewedCardsHTML(max){
+  try{
+    let rv = [];
+    try{ rv = JSON.parse(localStorage.getItem('sk_recent') || '[]'); }catch(e){}
+    const prods = (Array.isArray(rv) ? rv : []).map(byId).filter(Boolean).slice(0, max || 8);
+    return prods.length ? prods.map(cardHTML).join('') : '<p class="muted small" style="padding:6px 2px">👀 Nothing yet — sarees you open will appear here.</p>';
+  }catch(e){ return ''; }
+}
+/* 🤝 home greeting strip — "{Name}, here is your bond with us" */
+function personalGreetHTML(){
+  try{
+    const nm = userName();
+    if (!nm) return '';
+    const liked = (Store.wish || []).length;
+    let viewed = 0;
+    try{ viewed = JSON.parse(localStorage.getItem('sk_recent') || '[]').length; }catch(e){}
+    const pts = pointsBalance();
+    const since = memberSinceText();
+    const bits = [];
+    bits.push(liked ? '❤️ <b>' + liked + '</b> saree' + (liked > 1 ? 's' : '') + ' liked' : '❤️ Tap ♥ on sarees you like');
+    if (viewed) bits.push('👀 <b>' + viewed + '</b> viewed');
+    if (pts) bits.push('⭐ <b>' + pts + '</b> points');
+    if (since) bits.push('🤝 with us since ' + since);
+    return '<section class="greet-strip"><div class="wrap gs-in">' +
+      '<span class="gs-emoji">👋</span>' +
+      '<div class="gs-txt"><b>Vanakkam, ' + esc(nm) + '!</b>' +
+      '<small>' + bits.join(' • ') + '</small></div>' +
+      '<a class="gs-btn" href="profile.html">' + esc(nm) + '&rsquo;s page →</a>' +
+      '</div></section>';
+  }catch(e){ return ''; }
+}
+/* 🤝 profile page: her relationship card with the store */
+function personalProfileCardHTML(){
+  try{
+    const nm = userName();
+    if (!nm) return '';
+    let viewed = 0;
+    try{ viewed = JSON.parse(localStorage.getItem('sk_recent') || '[]').length; }catch(e){}
+    const since = memberSinceText();
+    return '<div class="form-card greet-card">' +
+      '<h3>🙏 Vanakkam, ' + esc(nm) + '!</h3>' +
+      '<p class="small" style="margin:2px 0 10px">' + (lang === 'ta' ? 'நீங்கள் எங்கள் குடும்பத்தின் ஒரு அங்கம்' : 'You are part of the SK Sarees family') + (since ? ' — <b>since ' + since + '</b>' : '') + ' 🤝</p>' +
+      '<div class="greet-stats">' +
+        '<span>❤️ <b>' + (Store.wish || []).length + '</b> liked</span>' +
+        (viewed ? '<span>👀 <b>' + viewed + '</b> viewed</span>' : '') +
+        '<span>📦 <b>' + (Store.orders || []).length + '</b> orders</span>' +
+        '<span>⭐ <b>' + pointsBalance() + '</b> points</span>' +
+      '</div></div>';
+  }catch(e){ return ''; }
+}
+/* 🙏 FIRST VISIT: ask her name once — warm, optional, never nags again */
+function maybeAskName(){
+  try{
+    if (userName()) return;
+    if (LS.get('sk_name_asked', 0)) return;
+    setTimeout(openNamePopup, 1800);
+  }catch(e){}
+}
+function openNamePopup(){
+  try{
+    openModal(
+      '<div class="np-card">' +
+        '<div class="np-emoji">🪡</div>' +
+        '<h3 class="np-title">Vanakkam! 🙏</h3>' +
+        '<p class="np-sub">Welcome to <b>SK Sarees</b>, Salem.<br>உங்கள் பெயர் என்ன? <span class="muted">(What is your name?)</span></p>' +
+        '<input id="npIn" class="np-input" placeholder="e.g. Priya" maxlength="30" autocomplete="off">' +
+        '<button type="button" class="btn btn-maroon btn-xl np-save" id="npSave">💛 Save My Name</button>' +
+        '<button type="button" class="np-skip" id="npSkip">Skip — maybe later</button>' +
+        '<p class="np-note">🔒 Saved only on your phone. We greet you by name &amp; keep your liked sarees ready for you!</p>' +
+      '</div>');
+    LS.set('sk_name_asked', 1);   /* asked once — skipping/closing never nags again */
+    const inp = document.getElementById('npIn');
+    const save = () => {
+      const v = (inp ? inp.value : '').trim();
+      if (v.length < 2){ toast('⚠️ Please type your name 🙂'); if (inp) inp.focus(); return; }
+      saveUserName(v);
+      closeModal();
+      toast('🙏 Vanakkam ' + esc(userName()) + '! Welcome to the SK Sarees family 🎉');
+      try{ renderHeader(); }catch(e){}
+      try{ rerenderPage(); }catch(e){}
+    };
+    if (inp){
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+      setTimeout(() => { try{ inp.focus(); }catch(e2){} }, 350);
+    }
+    const sv = document.getElementById('npSave'); if (sv) sv.addEventListener('click', save);
+    const sk = document.getElementById('npSkip'); if (sk) sk.addEventListener('click', closeModal);
+  }catch(e){}
+}
+/* re-render the current page right after the name is saved (sections appear at once) */
+function rerenderPage(){
+  const page = document.body.dataset.page;
+  if (page === 'home') renderHome();
+  else if (page === 'shop') renderShop();
+  else if (page === 'product') renderProduct();
+  else if (page === 'cart') renderCartPage();
+  else if (page === 'checkout') renderCheckoutPage();
+  else if (page === 'orders') renderOrdersPage();
+  else if (page === 'profile') renderProfilePage();
+}
 /* 👀 recently viewed (feeds repeat engagement) */
 function trackRecentView(p){
   try{
@@ -685,7 +806,7 @@ function recentViewHTML(){
     const rv = JSON.parse(localStorage.getItem('sk_recent') || '[]').slice(1, 7); /* skip current */
     const prods = rv.map(byId).filter(Boolean);
     if (prods.length < 2) return '';
-    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>👀 Recently Viewed</h2></div>' +
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>👀 ' + viewedSareesTitle() + '</h2></div>' +
       '<div class="prow">' + prods.map(cardHTML).join('') + '</div></section>';
   }catch(e){ return ''; }
 }
@@ -896,7 +1017,7 @@ function renderProduct(){
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
         '<div class="earn-box" id="earnBox">' +
-          '<b>🚀 Share this saree &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
+          '<b>💰 Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
           '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or as loyalty points)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
           '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
             '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</button>' +
@@ -915,6 +1036,7 @@ function renderProduct(){
           '</div></div>' +
       '</div>' +
     '</div>' +
+    likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
     recentViewHTML() +
     '<div class="wrap" id="recSection"></div>' +
     '<div class="sticky-bar">' +
@@ -1069,7 +1191,8 @@ function renderCartPage(){
   const app = document.getElementById('app'); if (!app) return;
   if (!Store.cart.length){
     app.innerHTML = '<div class="wrap page"><h1>🛒 Your Cart</h1><div class="empty"><div class="e-ic">🛒</div><b>Your cart is empty</b>' +
-      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
+      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div>' +
+      likedSareesHTML(4) + recentViewHTML() + '</div>';
     return;
   }
   const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
@@ -1128,7 +1251,7 @@ function renderCartPage(){
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp Instead</a>' +
       '</div>' +
-    '</div></div>';
+    '</div>' + likedSareesHTML(4) + recentViewHTML() + '</div>';
 }
 
 /* ============================ CHECKOUT ============================ */
@@ -1157,7 +1280,8 @@ function renderCheckoutPage(){
   else co.buyOnly = null;
   if (!coItems().length && !Store.cart.length){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1><div class="empty"><div class="e-ic">🛒</div><b>Your cart is empty</b>' +
-      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
+      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div>' +
+      likedSareesHTML(4) + recentViewHTML() + '</div>';
     return;
   }
   drawCo();
@@ -1342,6 +1466,14 @@ function drawCo(){
     '</div>';
     if (upiPay) setTimeout(drawUpiQR, 150); /* wait for DOM + qrcode lib */
   }
+  /* ❤️ "{Name}'s Liked Sarees" + viewed strip at the bottom of checkout step 1
+     (kept OFF step 2 — payment step stays distraction-free) */
+  try{
+    if (co.step === 1){
+      const w = document.querySelector('#app .wrap.page');
+      if (w) w.insertAdjacentHTML('beforeend', likedSareesHTML(4) + recentViewHTML());
+    }
+  }catch(e){}
 }
 function drawUpiQR(){
   const box = document.getElementById('upiQR'); if (!box) return;
@@ -1686,6 +1818,7 @@ function renderOrdersPage(){
     '<div class="form-card" style="margin-top:16px"><h3>🔍 Track by Order ID</h3>' +
       '<div class="field"><input id="trackId" placeholder="e.g. SK1001"></div>' +
       '<button type="button" class="btn btn-maroon" id="trackBtn">Track Order</button></div>' +
+      likedSareesHTML(4) + recentViewHTML() +
   '</div>';
   document.getElementById('orderChips').addEventListener('click', e => {
     const b = e.target.closest('[data-of]'); if (!b) return;
@@ -1884,7 +2017,8 @@ function notifyStatusNote(){
 function renderProfilePage(){
   const app = document.getElementById('app'); if (!app) return;
   const p = Store.profile || {};
-  app.innerHTML = '<div class="wrap page"><h1>👤 My Profile</h1>' +
+  app.innerHTML = '<div class="wrap page"><h1>👤 ' + (userName() ? esc(userName()) + '&rsquo;s Profile' : 'My Profile') + '</h1>' +
+    personalProfileCardHTML() +
     '<div class="form-card"><h3>📋 Saved Details (auto-fills checkout)</h3>' +
       '<div class="field"><label>Full Name</label><input id="pfName" value="' + esc(p.name) + '"></div>' +
       '<div class="field"><label>WhatsApp / Mobile</label><input id="pfPhone" value="' + esc(p.phone) + '" inputmode="numeric" maxlength="10"></div>' +
@@ -1907,7 +2041,8 @@ function renderProfilePage(){
       '<p class="small muted" style="margin-bottom:10px">Get notified about order status, festival offers &amp; if you leave items in your cart.</p>' +
       '<button type="button" class="btn btn-maroon" id="pfNotify">' + notifyStatusLabel() + '</button>' +
       '<p class="small muted" id="notifyNote" style="margin-top:8px">' + notifyStatusNote() + '</p></div>' +
-    '<div class="form-card"><h3>❤️ My Wishlist</h3><div class="wish-grid" id="wishGrid"></div></div>' +
+    '<div class="form-card"><h3>❤️ ' + likedSareesTitle() + ' (' + (Store.wish || []).length + ')</h3><div class="wish-grid" id="wishGrid"></div></div>' +
+    '<div class="form-card"><h3>👀 ' + viewedSareesTitle() + '</h3><div class="prow" style="margin-top:4px">' + viewedCardsHTML(8) + '</div></div>' +
     '<div class="form-card"><h3>🌐 Language / மொழி / భాష / ಭಾಷೆ</h3><select id="pfLang" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px">' +
       '<option value="en"' + (lang === 'en' ? ' selected' : '') + '>English</option>' +
       '<option value="ta"' + (lang === 'ta' ? ' selected' : '') + '>தமிழ்</option>' +
@@ -1944,6 +2079,8 @@ function renderProfilePage(){
     if (!name || !validPhone(phone)){ toast('⚠️ Enter valid name & 10-digit phone'); return; }
     Store.profile = { name, phone, address, pincode };
     Store.saveProfile();
+    try{ LS.set('sk_user_name', name); if (!LS.get('sk_member_since', 0)) LS.set('sk_member_since', Date.now()); }catch(e2){}   /* keep greeting name in sync */
+    try{ renderHeader(); }catch(e2){}   /* "Vanakkam, {Name}" updates instantly */
     const rr = autoRegisterReseller(name, phone);   /* 🤝 auto-reseller code for this device */
     if (rr) toast('🎉 Reseller code ready: ' + rr.code + ' — your share links now earn you ' + (CONFIG.resellerMarginPct || 5) + '% per order!');
     toast('✅ Details saved');
