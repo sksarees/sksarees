@@ -1,37 +1,351 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#8f1d3a"><meta name="description" content="Share SK Sarees with friends. Earn 5% commission on shipped UPI orders.">
-<title>Share & Earn 5% — SK Sarees</title>
-<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
-<style>
-.share-hero{background:linear-gradient(135deg,#681127,#9d2344);color:#fff;padding:32px 18px 28px;text-align:center}.share-hero h1{font-size:clamp(1.65rem,6vw,2.45rem);margin:10px auto;max-width:17ch}.share-hero p{max-width:36ch;margin:0 auto;color:#f9dde4}.share-wrap{max-width:720px;margin:0 auto;padding:18px 14px 65px}.share-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 5px 18px rgba(70,20,35,.06)}.share-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.share-step{background:var(--gold-soft);border-radius:12px;padding:12px 8px;text-align:center;font-size:.78rem}.share-step b{display:block;font-size:1.2rem;color:var(--maroon);margin-bottom:4px}.link-box{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.78rem;background:#fff;box-sizing:border-box}.share-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.share-actions .btn{flex:1;min-width:140px}.rule{font-size:.8rem;line-height:1.75;color:var(--muted)}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8f1d3a">
+<title>Share &amp; Earn Margin — SK Sarees Affiliate Program | Earn on Every Sale</title>
+<meta name="description" content="Share beautiful sarees with friends & family, earn good margin on every sale. Exclusive coupon codes for your customers. Start earning today — free to join!">
+<meta name="keywords" content="share and earn, earn margin online, affiliate saree program, earn money sharing products, saree affiliate India, coupon code offers, side income online">
+<!-- 📱 WhatsApp / Facebook share preview card (static — crawlers don't run JS) -->
+<meta property="og:title" content="Share & Earn with SK Sarees — Turn Every Share into Income!">
+<meta property="og:description" content="Share beautiful sarees with friends & family, earn margin on every sale. Free to join — your coupon code gives customers a discount, you earn on every order!">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.sksaree.shop/share-earn.html">
+<meta property="og:image" content="https://www.sksaree.shop/share-banner.jpg">
+<meta property="og:site_name" content="SK Sarees">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Share & Earn with SK Sarees">
+<meta name="twitter:description" content="Share sarees, earn margin on every sale. Free to join!">
+<meta name="twitter:image" content="https://www.sksaree.shop/share-banner.jpg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SK Sarees">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="preload" href="catalog.json" as="fetch" crossorigin="anonymous">
+<link rel="stylesheet" href="style.css">
+
 </head>
 <body data-page="share">
 <main id="app">
-<section class="share-hero"><span class="hero-chip">💰 SHARE & EARN</span><h1>Share Sarees. Earn 5% Commission.</h1><p>Free to join. No stock. No investment. Share your personal link on WhatsApp.</p></section>
-<div class="share-wrap">
-  <section class="share-card" id="joinCard"><h2 style="font-size:1.1rem">🚀 Get your personal share link</h2><p class="rule">Your friend places a UPI order through your link → commission is confirmed after the order is shipped.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><div class="field"><label>Name</label><input id="rsName" placeholder="Your name"></div><div class="field"><label>WhatsApp number</label><input id="rsPhone" inputmode="numeric" maxlength="10" placeholder="10-digit number"></div></div><button type="button" class="btn btn-maroon" id="rsJoin">🔗 Create My Link</button></section>
-  <section class="share-card" id="linkCard" style="display:none"><b style="color:var(--maroon);font-size:1.05rem">✅ Your code: <span id="rsCode"></span></b><p class="rule">Share this exact link. All friend orders after opening this link are tagged to your code.</p><input class="link-box" id="rsLink" readonly><div class="share-actions"><button type="button" class="btn btn-outline" id="rsCopy">📋 Copy Link</button><a class="btn btn-wa" id="rsWa" href="#" target="_blank" rel="noopener">💬 Share on WhatsApp</a></div></section>
-  <section class="share-card"><h2 style="font-size:1.1rem">⚡ 3 simple steps</h2><div class="share-steps"><div class="share-step"><b>1</b>Create link</div><div class="share-step"><b>2</b>Share on WhatsApp</div><div class="share-step"><b>3</b>Earn after shipping</div></div></section>
-  <section class="share-card"><h2 style="font-size:1.1rem">📱 Ready-to-send message</h2><textarea id="shareMsg" rows="7" class="link-box">🪡 Beautiful sarees from SK Sarees!
 
-✨ New arrivals • Soft silk • Wedding sarees
-🎟️ Use my link to shop
-🚚 Free delivery above ₹999
+  <!-- ============ HERO BANNER ============ -->
+  <section class="hero">
+    <div class="hero-in" style="text-align:center">
+      <span class="hero-chip">💰 SHARE &amp; EARN — AFFILIATE PROGRAM</span>
+      <h1 style="font-size:2.1rem">Share Products &amp; Earn Margin —<br><span class="gold">Turn Every Share into Income!</span></h1>
+      <p style="max-width:52ch;margin:0 auto">Recommend beautiful sarees to your friends and family, and earn a <b>generous margin on every order they place</b>. No investment. No stock. No paperwork. Just share, earn, repeat.</p>
+      <div class="hero-ctas" style="justify-content:center">
+        <a class="btn btn-gold" href="https://wa.me/917867915699?text=Hi!%20I%20want%20to%20join%20the%20SK%20Sarees%20Share%20%26%20Earn%20program%20%F0%9F%9A%80" target="_blank" rel="noopener">🚀 Start Sharing Now</a>
+        <a class="btn btn-outline" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5);color:#fff" href="https://wa.me/917867915699?text=Hi!%20I%20want%20my%20exclusive%20coupon%20code%20%F0%9F%8E%9F%EF%B8%8F" target="_blank" rel="noopener">🎟️ Get Your Coupon Code</a>
+      </div>
+      <div class="hero-trust" style="justify-content:center">
+        <span>✅ <b>100% Free</b> to Join</span><span>💰 <b>Real Margin</b> Per Sale</span><span>🎟️ <b>Exclusive Coupons</b></span><span>💬 <b>WhatsApp-Friendly</b></span>
+      </div>
+    </div>
+  </section>
 
-👉 LINK_HERE</textarea><div class="share-actions"><button type="button" class="btn btn-outline" id="msgCopy">📋 Copy Message</button><a class="btn btn-wa" id="msgWa" href="#" target="_blank" rel="noopener">💬 Send on WhatsApp</a></div></section>
-  <section class="share-card"><h2 style="font-size:1.1rem">✅ Simple rules</h2><p class="rule">• Commission: <b>5%</b> on UPI orders only.<br>• Margin is pending until the order is <b>Shipped</b>.<br>• After shipping, choose <b>GPay payout</b> or <b>loyalty points</b>.<br>• Minimum GPay payout: ₹100.<br>• Your customer gets <b>SHARE5 — 5% off</b>.</p><a class="btn btn-gold" href="shop.html">🛍️ Start sharing sarees</a></section>
-</div></main>
-<script src="data.js"></script><script src="rec.js"></script><script src="app.js"></script>
+  <div class="wrap page">
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>⚙️ How It Works — 3 Simple Steps</h2></div>
+      <div class="steps">
+        <div class="step"><span class="avatar" style="background:#8f1d3a;flex:0 0 auto">1</span>
+          <div><b>Pick &amp; Share</b><p class="small muted" style="margin-top:3px">Browse the SK Sarees collection and choose sarees you love. Tap <b>Share</b> — send the product link to your family, friends and WhatsApp groups with one tap. No technical skills needed.</p></div></div>
+        <div class="step"><span class="avatar" style="background:#1d8a4e;flex:0 0 auto">2</span>
+          <div><b>They Order, You Earn</b><p class="small muted" style="margin-top:3px">When someone orders through <b>your share link or your coupon code</b>, the sale is tracked automatically. You earn a clear, guaranteed margin on every confirmed order.</p></div></div>
+        <div class="step"><span class="avatar" style="background:#c99a2e;flex:0 0 auto">3</span>
+          <div><b>Withdraw &amp; Grow</b><p class="small muted" style="margin-top:3px">Watch your earnings grow in real time. Keep sharing to earn more — the more sarees you help sell, the bigger your income. Repeat every month for a steady side income.</p></div></div>
+      </div>
+    </section>
+
+    <!-- ============ BENEFITS ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>💎 Why Join SK Sarees Share &amp; Earn</h2></div>
+      <div class="form-card">
+        <table style="width:100%;font-size:.86rem;border-collapse:collapse">
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">💰 Good Margin on Every Sale</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">A clear profit on every order through your link — no hidden cuts</td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">🧺 No Stock, No Investment</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">We hold the inventory and ship it. You just share — zero risk, zero cost</td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">⏱️ Work From Home, Anytime</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">Share during breaks, evenings or festivals — your phone is your office</td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">👨‍👩‍👧 Perfect for Family &amp; Friends</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">Help loved ones get authentic sarees at great prices while you earn</td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">🎟️ Exclusive Coupon Codes</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">Your personal coupon makes customers <i>want</i> to buy through you</td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">📱 100% WhatsApp-Friendly</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">Share links open directly in WhatsApp — customers order in 2 minutes</td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px dashed var(--line);font-weight:800">🚚 We Do the Heavy Lifting</td><td style="padding:9px 0;border-bottom:1px dashed var(--line);text-align:right;color:#4a3f38">COD, UPI, fast delivery, 7-day returns — all handled by SK Sarees</td></tr>
+          <tr><td style="padding:9px 0;font-weight:800">📊 Real-Time Tracking</td><td style="padding:9px 0;text-align:right;color:#4a3f38">See your clicks, orders and earnings update live</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ COUPON OFFERS ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>🎟️ Coupon Offers — Discounts That Drive Sales</h2></div>
+      <div class="pd-block">
+        <p class="small" style="color:#4a3f38;line-height:1.8">Every Share &amp; Earn partner gets <b>their own coupon code</b> — like <b style="color:var(--maroon)">FRIEND10</b> — that gives their customers an instant discount:</p>
+        <ul style="list-style:none;display:grid;gap:8px;margin-top:10px;font-size:.86rem">
+          <li>🛍️ <b>Flat ₹ off</b> or <b>% off</b> on saree orders — you choose the offer strength</li>
+          <li>🎊 <b>Festival coupons</b> — Aadi, Pongal, Diwali &amp; Wedding-season specials</li>
+          <li>💵 Works on <b>COD + UPI</b> orders, on top of free-shipping offers</li>
+          <li>🔢 <b>Usage limits &amp; expiry dates</b> you control — create urgency, close sales</li>
+        </ul>
+        <div class="coupon-box" style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:14px;margin-top:12px;text-align:center">
+          <b style="font-size:1.05rem">Why coupons work?</b>
+          <p class="small" style="color:#6b4c05;margin-top:4px">A discount makes the decision easy. Your customer saves money, <b>you earn the margin</b>, and SK Sarees gains a happy repeat buyer — <b>everyone wins.</b></p>
+          <a class="btn btn-maroon btn-sm" style="width:auto;min-width:220px;margin-top:10px" href="https://wa.me/917867915699?text=Hi!%20I%20want%20my%20exclusive%20coupon%20code%20%F0%9F%8E%9F%EF%B8%8F" target="_blank" rel="noopener">🎟️ Get Your Coupon Code — It's Free</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="wa-banner" style="margin-top:18px">
+      <h3 style="font-size:1.25rem">🚀 Start Sharing Today — Your First Margin Is One Message Away</h3>
+      <p>Thousands of saree lovers trust SK Sarees for authentic, affordable silk, cotton and semi-silk sarees — with fast delivery across India. Now you can turn that trust into <b>real income</b>, right from your phone.</p>
+      <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;margin-top:14px">
+        <a class="btn" style="width:100%" href="https://wa.me/917867915699?text=Hi!%20I%20want%20to%20join%20the%20SK%20Sarees%20Share%20%26%20Earn%20program%20%F0%9F%9A%80" target="_blank" rel="noopener">🚀 Start Sharing Now</a>
+        <a class="btn" style="width:100%;background:#25d366;color:#fff" href="https://wa.me/917867915699?text=Hi!%20I%20want%20to%20earn%20margin%20%E2%80%94%20please%20explain%20the%20Share%20%26%20Earn%20program" target="_blank" rel="noopener">💰 Earn Margin Today</a>
+      </div>
+      <p style="font-size:.8rem;margin-top:12px;opacity:.9">✅ Join free in 60 seconds &nbsp;•&nbsp; ✅ Share your first saree today &nbsp;•&nbsp; ✅ Earn margin on every confirmed order</p>
+    </section>
+
+    <!-- ============ MY PERSONAL SHARE LINK (TOP) ============ -->
+    <section class="sec" id="myShareSec" style="display:none">
+      <div class="sec-head"><h2><span class="tick"></span>🔗 My Personal Share Link</h2><a href="#joinSec" style="color:var(--maroon);font-weight:800">+ New code</a></div>
+      <div class="form-card" style="background:var(--gold-soft);border:1.5px dashed var(--gold)">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <b style="font-size:1.1rem;color:var(--maroon)">💰 My code: <span id="myCodeTop">—</span></b>
+          <span class="muted small">Every order via this link earns me <b>5% margin</b></span>
+        </div>
+        <input id="myLinkTop" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:#fff;text-align:center;outline:none;margin-top:8px">
+        <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap">
+          <button type="button" class="btn btn-maroon btn-sm" id="myCopyTop" style="width:auto;min-width:150px">📋 Copy Link</button>
+          <a class="btn btn-wa btn-sm" id="myWaTop" href="#" target="_blank" rel="noopener" style="width:auto;min-width:150px">💬 Share on WhatsApp</a>
+          <a class="btn btn-gold btn-sm" href="profile.html" style="width:auto;min-width:150px">💰 My Commission</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESELLER JOIN ============ -->
+    <section class="sec" id="joinSec">
+      <div class="sec-head"><h2><span class="tick"></span>🔗 Get Your Personal Share Link</h2></div>
+      <div class="form-card">
+        <p class="small muted" style="margin-bottom:10px">Enter your name &amp; mobile number — we will create your <b>personal reseller code</b> and share link. When someone orders through your link, you earn <b>5% margin per sale</b> (tracked on our admin panel — paid via GPay, min ₹100 payout).</p>
+        <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
+          <div class="field"><label>Your Name *</label><input id="rsName" placeholder="e.g. Priya"></div>
+          <div class="field"><label>WhatsApp / Mobile *</label><input id="rsPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>
+        </div>
+        <button type="button" class="btn btn-maroon" id="rsJoin" style="margin-top:8px">🔗 Get My Share Link</button>
+        <div id="rsResult" style="display:none;margin-top:12px">
+          <div style="background:var(--gold-soft);border:1.5px dashed var(--gold);border-radius:12px;padding:14px;text-align:center">
+            <b style="font-size:1.05rem;color:var(--maroon)">🎉 Your reseller code: <span id="rsCode">—</span></b>
+            <p class="small" style="color:#6b4c05;margin-top:6px">Share this link — every order via it earns you <b>5% margin</b>:</p>
+            <input id="rsLink" readonly style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.78rem;background:#fff;text-align:center;outline:none">
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-maroon btn-sm" id="rsCopy" style="width:auto;min-width:150px">📋 Copy Link</button>
+              <a class="btn btn-wa btn-sm" id="rsWa" href="#" target="_blank" rel="noopener" style="width:auto;min-width:150px">💬 Share on WhatsApp</a>
+            </div>
+          </div>
+        </div>
+        <p class="small muted" style="margin-top:10px">💡 Tip: <b>?ref=YOURCODE works on EVERY page</b> — product page (<b>product.html?id=…&amp;ref=YOURCODE</b>), shop, even the home page. Any order placed after visiting your link is tracked to you automatically.</p>
+      </div>
+    </section>
+
+    <!-- ============ SEND TO YOUR CUSTOMER (prefilled) ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>📲 Send to Your Customer — Ready Message</h2></div>
+      <div class="form-card">
+        <p class="small muted" style="margin-bottom:8px">This is the message you send to <b>your customer</b> — it carries your code + the ₹50-off coupon. Just pick a saree link, paste it below, copy &amp; send. 🎯</p>
+        <textarea id="custMsg" rows="7" style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px;font-size:.85rem;background:#fff;outline:none;font-family:inherit">🛍️ Hi! I found this beautiful saree on SK Sarees 🪡
+
+✨ Saree name & price here
+
+🎟️ Use my coupon code SHARE50 to get 5% OFF!
+🚚 Free shipping above ₹999 • COD available
+📲 Order link: PASTE_SAREE_LINK_WITH_REF
+
+Order through my link — I will help you choose the best one! 😊</textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button type="button" class="btn btn-maroon btn-sm" id="custCopy" style="width:auto;min-width:160px">📋 Copy Message</button>
+          <a class="btn btn-wa btn-sm" id="custWa" href="#" target="_blank" rel="noopener" style="width:auto;min-width:160px">💬 Send on WhatsApp</a>
+          <button type="button" class="btn btn-outline btn-sm" id="custInsert" style="width:auto;min-width:160px">🔗 Paste My Share Link</button>
+        </div>
+        <p class="small muted" id="custNote" style="margin-top:8px"></p>
+      </div>
+    </section>
+
+    <!-- ============ தமிழில் (local tone) ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>🇮🇳 தமிழில் — Share &amp; Earn</h2></div>
+      <div class="pd-block">
+        <p style="line-height:1.9;color:#4a3f38;font-size:.9rem">
+          <b>💰 சேலை படத்தை பார்த்தீங்களா? Share பண்ணுங்க, Margin சம்பாதிங்க!</b><br><br>
+          உங்க friends &amp; family-க்கு நல்ல சேலை படங்களை WhatsApp-ல அனுப்புங்க. அவங்க அந்த link-ல இருந்து order பண்ணா, <b>ஒவ்வொரு order-க்கும் உங்களுக்கு 5% margin</b> கிடைக்கும்! 💸<br><br>
+          🎟️ உங்க customers-க்கு <b>SHARE50</b> coupon code — <b>5% discount</b>!<br>
+          🚚 ₹999+ இருந்தா FREE shipping • 💵 COD available<br>
+          📱 Order எடுக்க 2 நிமிடம் மட்டும்தான்!<br><br>
+          <b>எப்படி?</b> மேலே உங்க பேரு + number குடுங்க → உங்க personal code கிடைக்கும் → எந்த product page-லயும் <b>?ref=உங்கCODE</b> சேர்த்து share பண்ணுங்க → order வந்தா margin நம்ம admin panel-ல record ஆகி, <b>GPay-ல உங்களுக்கு அனுப்புவோம்</b>! ✅<br><br>
+          <b>பணம் எப்படி வரும்?</b> Admin panel-ல உங்க பேரு, number, எத்தனை order, எவ்வளவு margin — எல்லாம் தெரியும். நீங்க GPay number குடுத்தா commission உடனே அனுப்புவோம். 🪡💛<br><br>
+          இன்னும் யோசனையா? <a href="https://wa.me/917867915699?text=Hi!%20Share%20%26%20Earn%20pattri%20Tamil%20la%20sollunga%20%F0%9F%99%8F" target="_blank" rel="noopener" style="color:var(--maroon);font-weight:800">WhatsApp-ல கேளுங்க!</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ WHATSAPP SHORT COPY ============ -->
+    <section class="sec">
+      <div class="sec-head"><h2><span class="tick"></span>📱 WhatsApp Ready — Copy &amp; Send</h2></div>
+      <div class="form-card">
+        <textarea id="waCopy" rows="7" readonly style="width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px;font-size:.85rem;background:var(--bg);outline:none;font-family:inherit">💰 EARN MARGIN ON EVERY SAREE SALE! 🪡
+
+Join SK Sarees' Share & Earn program:
+• Share saree links with friends & family
+• They order with YOUR coupon code 🎟️
+• You earn on every confirmed sale 💸
+
+✅ Free to join • No stock • No investment
+🚚 We handle delivery — you just share!
+
+Turn your WhatsApp into income today! 😍
+👉 https://www.sksaree.shop/share-earn.html</textarea>
+        <button type="button" class="btn btn-maroon btn-sm" id="copyWa" style="margin-top:10px">📋 Copy WhatsApp Message</button>
+        <a class="btn btn-wa btn-sm" id="sendWa" style="margin-top:8px" href="https://api.whatsapp.com/send?text=" target="_blank" rel="noopener">💬 Send on WhatsApp</a>
+        <p class="small muted" style="margin-top:8px">💡 Share this message to your family &amp; friends groups — everyone who joins can start earning!</p>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="sec faq">
+      <div class="sec-head"><h2><span class="tick"></span>❓ Share &amp; Earn FAQ</h2></div>
+      <details><summary>How much margin can I earn?</summary><p>You earn a clear, guaranteed margin on every confirmed order placed through your share link or coupon code. Contact us on WhatsApp for the current margin rates — bigger sales mean bigger earnings!</p></details>
+      <details><summary>Is it really free to join?</summary><p>Yes — 100% free. No joining fee, no minimum orders, no stock to buy. Your phone is your only requirement.</p></details>
+      <details><summary>How do I track my sales and earnings?</summary><p>We confirm every order on WhatsApp with your partner code noted. For real-time dashboards, ask us on WhatsApp and we will set up your tracking.</p></details>
+      <details><summary>How do customers pay?</summary><p>UPI (GPay / PhonePe / Paytm), Cash on Delivery (₹70 booking upfront, balance at delivery) — whatever is easiest for your customer.</p></details>
+      <details><summary>Can I use my coupon code for my own orders?</summary><p>Yes! Enjoy the discount yourself and show your customers how the coupon works.</p></details>
+    </section>
+
+  </div>
+
+</main>
+<script src="data.js"></script>
+<script src="rec.js"></script>
+<script src="app.js"></script>
 <script>
+/* copy + share the WhatsApp message on this page */
 (function(){
- const $=id=>document.getElementById(id), copy=t=>{navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):null;try{toast('✅ Copied');}catch(e){}};
- function setLink(code){const link=location.origin+location.pathname.replace(/[^/]*$/,'')+'shop.html?ref='+encodeURIComponent(code);$('rsCode').textContent=code;$('rsLink').value=link;$('linkCard').style.display='block';$('shareMsg').value=$('shareMsg').value.replace('LINK_HERE',link);$('rsWa').href='https://wa.me/?text='+encodeURIComponent('🪡 Shop SK Sarees with my link & get 5% off!\n👉 '+link);$('msgWa').href='https://wa.me/?text='+encodeURIComponent($('shareMsg').value);}
- try{const existing=myResellerCode();if(existing)setLink(existing);}catch(e){}
- $('rsJoin').onclick=()=>{const n=$('rsName').value.trim(),p=$('rsPhone').value.trim();if(!n||!validPhone(p)){toast('⚠️ Enter name and valid mobile number');return;}const r=addReseller(n,p);setLink(r.code);toast('🎉 Your share link is ready!');};
- $('rsCopy').onclick=()=>copy($('rsLink').value);$('msgCopy').onclick=()=>copy($('shareMsg').value);$('shareMsg').oninput=()=>$('msgWa').href='https://wa.me/?text='+encodeURIComponent($('shareMsg').value);
+  try{
+    const copyBtn = document.getElementById('copyWa');
+    const sendBtn = document.getElementById('sendWa');
+    const ta = document.getElementById('waCopy');
+    if (copyBtn && ta) copyBtn.addEventListener('click', () => {
+      ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).catch(()=>{});
+      toast('✅ WhatsApp message copied!');
+    });
+    if (sendBtn && ta) sendBtn.setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(ta.value));
+  }catch(e){}
 })();
-</script></body></html>
+/* show MY personal share link at the TOP if this device already has a code */
+(function(){
+  try{
+    const code = (typeof myResellerCode === 'function') ? myResellerCode() : (localStorage.getItem('sk_my_reseller') || '');
+    const sec = document.getElementById('myShareSec');
+    if (sec && code){
+      const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + encodeURIComponent(code);
+      document.getElementById('myCodeTop').textContent = code;
+      document.getElementById('myLinkTop').value = link;
+      document.getElementById('myWaTop').setAttribute('href', 'https://wa.me/?text=' + encodeURIComponent('🪡 Hi! Shop sarees on SK Sarees — use my link & get ₹50 off!\n👉 ' + link));
+      sec.style.display = '';
+      const cp = document.getElementById('myCopyTop');
+      if (cp) cp.addEventListener('click', () => {
+        const inp = document.getElementById('myLinkTop'); inp.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).catch(()=>{});
+        toast('✅ Link copied!');
+      });
+    }
+  }catch(e){}
+})();
+/* reseller join: name + phone → personal code + share link */
+(function(){
+  try{
+    const join = document.getElementById('rsJoin');
+    if (!join) return;
+    join.addEventListener('click', () => {
+      const name = document.getElementById('rsName').value.trim();
+      const phone = document.getElementById('rsPhone').value.trim();
+      if (name.length < 2 || !validPhone(phone)){ toast('⚠️ Enter your name & valid 10-digit mobile'); return; }
+      const r = addReseller(name, phone);
+      recordLead(name, phone, r.code);   /* 📋 lead collected (reseller join) */
+      const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + r.code;
+      document.getElementById('rsCode').textContent = r.code;
+      document.getElementById('rsLink').value = link;
+      document.getElementById('rsResult').style.display = 'block';
+      /* also refresh the TOP personal share link box */
+      try{
+        const sec = document.getElementById('myShareSec');
+        if (sec){
+          document.getElementById('myCodeTop').textContent = r.code;
+          document.getElementById('myLinkTop').value = link;
+          document.getElementById('myWaTop').setAttribute('href', 'https://wa.me/?text=' + encodeURIComponent('🪡 Hi! Shop sarees on SK Sarees — use my link & get ₹50 off!\n👉 ' + link));
+          sec.style.display = '';
+        }
+      }catch(e){}
+      document.getElementById('rsWa').setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(
+        '🪡 Hi! I am a SK Sarees reseller 🎉\n\nMy code: ' + r.code + '\nShop sarees & get 5% off with coupon SHARE50!\n\n👉 ' + link + '\n\n(உங்களுக்கு இந்த link வேணா, எந்த சேலை படத்தோட ?ref=' + r.code + ' சேர்த்து அனுப்புங்க — உங்களுக்கு 5% margin கிடைக்கும்!)'));
+      toast('✅ Reseller registered: ' + r.code);
+      if (window.refreshCustNote) window.refreshCustNote();
+    });
+    const copy = document.getElementById('rsCopy');
+    if (copy) copy.addEventListener('click', () => {
+      const inp = document.getElementById('rsLink');
+      inp.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).catch(()=>{});
+      toast('✅ Link copied!');
+    });
+  }catch(e){}
+})();
+/* customer message: insert my share link + copy + send on WhatsApp */
+(function(){
+  try{
+    const insert = document.getElementById('custInsert');
+    const copy = document.getElementById('custCopy');
+    const wa = document.getElementById('custWa');
+    const ta = document.getElementById('custMsg');
+    const note = document.getElementById('custNote');
+    const refreshCustNote = () => {
+      if (!note) return;
+      const mine = myResellerCode();
+      note.textContent = mine
+        ? '✅ Your code: ' + mine + ' — use the "Paste My Share Link" button, or paste any product link with ?ref=' + mine + '.'
+        : '💡 Register above (Get My Share Link) first — then your code auto-fills here.';
+    };
+    refreshCustNote();
+    window.refreshCustNote = refreshCustNote;
+    if (insert && ta){
+      insert.addEventListener('click', () => {
+        /* read the reseller code AT CLICK TIME (they may join on this page) */
+        const mine = myResellerCode();
+        let link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html';
+        if (mine) link += '?ref=' + encodeURIComponent(mine);
+        ta.value = '🛍️ Hi! I found this beautiful saree on SK Sarees 🪡\n\n✨ Saree name & price here\n\n🎟️ Use my coupon code SHARE50 to get 5% OFF!\n🚚 Free shipping above ₹999 • COD available\n📲 Order link: ' + link + '\n\nOrder through my link — I will help you choose the best one! 😊';
+        refreshCustNote();
+        toast('✅ Share link inserted — edit & send!');
+      });
+    }
+    if (copy && ta) copy.addEventListener('click', () => {
+      ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).catch(()=>{});
+      toast('✅ Customer message copied!');
+    });
+    if (wa && ta) wa.setAttribute('href', 'https://api.whatsapp.com/send?text=' + encodeURIComponent(ta.value));
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

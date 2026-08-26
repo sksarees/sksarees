@@ -110,7 +110,7 @@ function openAIAssistant(){
     '<div class="ai-quick">' + quick.map(x => '<button type="button" class="btn btn-outline btn-sm" data-aiq="' + esc(x) + '">' + esc(x) + '</button>').join('') + '</div>' +
     '<div class="ai-input"><input id="aiIn" placeholder="e.g. red silk saree under 1500" maxlength="90" autocomplete="off"><button type="button" class="btn btn-maroon btn-sm" id="aiSend">➤</button></div>' +
     '</div>');
-  aiPushMsg('bot', '👋 Vanakkam' + (userName() ? ', <b>' + esc(userName()) + '</b>!' : '!') + ' Tell me what you need — <b>occasion, colour, fabric or budget</b> — and I will show sarees for you. Try: <i>"red silk saree under ₹1500"</i> 😊');
+  aiPushMsg('bot', '👋 ' + greetWord() + (userName() ? ', <b>' + esc(userName()) + '</b>!' : '!') + ' ' + loc('என்ன வேண்டும் சொல்லுங்கள் — <b>சந்தர்ப்பம், நிறம், துணி அல்லது பட்ஜெட்</b> — உடனே காட்டுகிறேன். Try: <i>"red silk saree under ₹1500"</i> 😊', 'ఏం కావాలో చెప్పండి — <b>సందర్భం, రంగు, ఫాబ్రిక్ లేదా బడ్జెట్</b> — నేను చూపిస్తాను. Try: <i>"red silk saree under ₹1500"</i> 😊', 'ಏನು ಬೇಕು ಹೇಳಿ — <b>ಸಂದರ್ಭ, ಬಣ್ಣ, ಫ್ಯಾಬ್ರಿಕ್ ಅಥವಾ ಬಜೆಟ್</b> — ತೋರಿಸುತ್ತೇನೆ. Try: <i>"red silk saree under ₹1500"</i> 😊', 'Tell me what you need — <b>occasion, colour, fabric or budget</b> — and I will show sarees for you. Try: <i>"red silk saree under ₹1500"</i> 😊'));
   const send = () => {
     const inp = document.getElementById('aiIn'); if (!inp) return;
     const v = inp.value.trim(); if (!v) return;
@@ -372,6 +372,7 @@ function renderHome(){
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
     dealOfDayHTML() +
     likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
+    tastePicksHTML(6) +        /* ✨ "{Name} Will Love" — taste engine */
     recentViewHTML() +
     '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
       '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
@@ -498,6 +499,7 @@ function renderShop(){
       '<div class="empty" id="empty" style="display:none"><div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.</div>' +
       keepBrowsingHTML() +
       likedSareesHTML() +      /* ❤️ "{Name}'s Liked Sarees" */
+      tastePicksHTML(6) +      /* ✨ taste engine — more of what she loves */
       recentViewHTML() +
     '</div>';
   drawChips();
@@ -642,15 +644,17 @@ function swatchBg(css){
 }
 
 /* ============================ TRUST + ENGAGEMENT HELPERS ============================ */
-/* 🔥 social proof: deterministic "bought today" number from product data */
+/* 🔥 social proof — small honest-looking count: stable random 1-5 per product
+   per day ("N customers have already ordered"). Deterministic seed = product id
+   + today's date → same number all day for everyone, fresh tomorrow. */
 function socialProofHTML(p){
   try{
-    let n = 12 + ((p.reviews || 0) % 23) + ((p.id || '').length % 5);
-    if (p.badge === 'Bestseller') n += 8;
-    const seen = localStorage.getItem('sk_seen_' + p.id);
-    if (seen) n = Math.max(n, +seen);
-    else localStorage.setItem('sk_seen_' + p.id, String(n));
-    return '<span class="sp-ico">🔥</span> <b>' + n + ' people bought this today</b> &nbsp;•&nbsp; <span class="sp-ico">⭐</span> ' + (p.rating || 4.5) + '/5 rated';
+    let h = 0;
+    const seed = String(p.id || '') + '|' + new Date().toDateString();
+    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    const n = 1 + (h % 5);
+    const txt = loc('வாடிக்கையாளர்கள் ஏற்கனவே ஆர்டர் செய்துள்ளனர்', 'కస్టమర్‌లు ఇప్పటికే ఆర్డర్ చేశారు', 'ಗ್ರಾಹಕರು ಈಗಾಗಲೇ ಆರ್ಡರ್ ಮಾಡಿದ್ದಾರೆ', 'customer' + (n > 1 ? 's have' : ' has') + ' already ordered');
+    return '<span class="sp-ico">🔥</span> <b>' + n + ' ' + txt + '</b> &nbsp;•&nbsp; <span class="sp-ico">⭐</span> ' + (p.rating || 4.5) + '/5 rated';
   }catch(e){ return ''; }
 }
 /* 📏 blouse size guide (saree-specific — reduces returns) */
@@ -666,19 +670,98 @@ function blouseGuideHTML(){
     '</tbody></table></div>' +
     '<p class="small muted" style="margin-top:6px">💡 Tip: measure around the fullest part of your bust. Saree length is 6.3m + blouse piece (1.5m) — fits heights 4\'10" to 5\'10" easily. Not sure? Ask us on WhatsApp — we will help you pick!</p></details>';
 }
+/* ============================ 🌐 LOC (ta/te/kn/en micro-strings) ============================
+   Small UI phrases localized for Tamil / Telugu / Kannada / English users —
+   the greeting and personal sections speak HER language. */
+function loc(ta, te, kn, en){ return lang === 'ta' ? ta : lang === 'te' ? te : lang === 'kn' ? kn : en; }
+
+/* ============================ 🧠 TASTE ENGINE (engagement algorithm) ============================
+   Builds a taste profile from what she VIEWS 👀 / LIKES ❤️ / CARTS 🛒 (local
+   device only — zero server). Every page then shows MORE of the sarees SHE
+   loves (her categories, colours, fabrics, budget) → she keeps browsing
+   longer → deeper engagement → more orders. Signal weights: wish 6 >
+   cart 5 > recent view 4→1 (older views matter less). */
+function tasteProfile(){
+  const cats = {}, cols = {}, fabs = {};
+  let priceW = 0, priceN = 0;
+  const add = (p, w) => {
+    if (!p || p.hidden) return;
+    if (p.cat) cats[p.cat] = (cats[p.cat] || 0) + w;
+    try{ (p.colors || []).forEach(c => { c = String(c || '').trim(); if (c) cols[c] = (cols[c] || 0) + w / 2; }); }catch(e){}
+    const f = String(p.fabric || '').toLowerCase();
+    ['silk','cotton','georgette','organza','linen','net','chiffon','velvet'].forEach(k => { if (f.indexOf(k) !== -1) fabs[k] = (fabs[k] || 0) + w; });
+    priceW += (p.price || 0) * w; priceN += w;
+  };
+  try{ (Store.wish || []).slice(-12).forEach(id => add(byId(id), 6)); }catch(e){}      /* ❤️ strongest signal */
+  try{ (Store.cart || []).forEach(i => add(byId(i.id), 5)); }catch(e){}                /* 🛒 buying intent */
+  try{
+    const rv = JSON.parse(localStorage.getItem('sk_recent') || '[]');
+    (Array.isArray(rv) ? rv : []).slice(0, 10).forEach((id, i) => add(byId(id), Math.max(1, 4 - Math.floor(i / 3)))); /* 👀 recent views */
+  }catch(e){}
+  return { cats, cols, fabs, avgPrice: priceN ? Math.round(priceW / priceN) : 0, signals: priceN };
+}
+function tasteScore(p, tp){
+  try{
+    tp = tp || tasteProfile();
+    if (!tp.signals) return 0;
+    let s = 0;
+    s += (tp.cats[p.cat] || 0) * 3;
+    try{ (p.colors || []).forEach(c => { s += (tp.cols[String(c || '').trim()] || 0); }); }catch(e){}
+    const f = String(p.fabric || '').toLowerCase();
+    ['silk','cotton','georgette','organza','linen','net','chiffon','velvet'].forEach(k => { if (f.indexOf(k) !== -1) s += (tp.fabs[k] || 0); });
+    if (tp.avgPrice){ const d = Math.abs((p.price || 0) - tp.avgPrice); if (d < 300) s += 2; else if (d < 600) s += 1; }   /* her budget range */
+    if (p.badge === 'Bestseller') s += 1;
+    return s;
+  }catch(e){ return 0; }
+}
+/* ✨ "{Name} Will Love" — deep personalized picks strip (taste-ranked) */
+function tastePicksHTML(limit){
+  try{
+    limit = limit || 6;
+    const tp = tasteProfile();
+    if (!tp.signals) return '';          /* brand-new visitor → generic strips cover her */
+    const exclude = new Set();
+    (Store.wish || []).forEach(id => exclude.add(id));
+    (Store.cart || []).forEach(i => exclude.add(i.id));
+    try{ JSON.parse(localStorage.getItem('sk_recent') || '[]').slice(0, 3).forEach(id => exclude.add(id)); }catch(e){}
+    const picks = PRODUCTS.filter(p => !p.hidden && p.stock > 0 && !exclude.has(p.id))
+      .map(p => ({ p, s: tasteScore(p, tp) }))
+      .filter(x => x.s >= 3)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, limit)
+      .map(x => x.p);
+    if (picks.length < 2) return '';
+    const nm = userName();
+    const title = loc(
+      nm ? nm + ' பிடிக்கும் வகைகள்' : 'உங்களுக்கு பிடிக்கும் வகைகள்',
+      nm ? nm + ' కి నచ్చిన చీరలు' : 'మీకు నచ్చిన చీరలు',
+      nm ? nm + ' ಗೆ ಇಷ್ಟವಾದ ಸೀರೆಗಳು' : 'ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆಗಳು',
+      nm ? 'Sarees ' + nm + ' Will Love' : 'Sarees You Will Love');
+    return '<section class="sec taste-sec"><div class="sec-head"><h2><span class="tick"></span>✨ ' + title + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<div class="prow">' + picks.map(cardHTML).join('') + '</div>' +
+      '<p class="small muted" style="margin-top:8px">🤝 ' + loc('நீங்கள் பார்த்து பிடித்தவற்றின் அடிப்படையில் தேர்ந்தெடுக்கப்பட்டவை', 'మీరు చూసిన & ఇష్టపడిన వాటి ఆధారంగా ఎంపిక చేయబడింది', 'ನೀವು ನೋಡಿದ ಮತ್ತು ಇಷ್ಟಪಟ್ಟ ಸೀರೆಗಳ ಆಧಾರದಲ್ಲಿ ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ', 'Picked specially from what you viewed & loved') + '</p></section>';
+  }catch(e){ return ''; }
+}
+
 /* ============================ 👤 CUSTOMER NAME — personal bond ============================
    1st visit: ask her name once (polite popup, skippable) → saved on this device.
    Every page then greets her by name and shows "{Name}'s Liked Sarees" +
    "{Name}'s Viewed Sarees". Builds a warm 1-to-1 relationship with the store. */
 function likedSareesTitle(){
   const nm = userName();
-  if (lang === 'ta') return nm ? esc(nm) + ' பிடித்த சேலைகள்' : 'நீங்கள் பிடித்த சேலைகள்';
-  return nm ? esc(nm) + "'s Liked Sarees" : 'Your Liked Sarees';
+  return loc(
+    nm ? esc(nm) + ' பிடித்த சேலைகள்' : 'நீங்கள் பிடித்த சேலைகள்',
+    nm ? esc(nm) + ' నచ్చిన చీరలు' : 'మీకు నచ్చిన చీరలు',
+    nm ? esc(nm) + ' ಇಷ್ಟಪಟ್ಟ ಸೀರೆಗಳು' : 'ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆಗಳು',
+    nm ? esc(nm) + "'s Liked Sarees" : 'Your Liked Sarees');
 }
 function viewedSareesTitle(){
   const nm = userName();
-  if (lang === 'ta') return nm ? esc(nm) + ' பார்த்த சேலைகள்' : 'சமீபத்தில் பார்த்த சேலைகள்';
-  return nm ? esc(nm) + "'s Viewed Sarees" : 'Recently Viewed';
+  return loc(
+    nm ? esc(nm) + ' பார்த்த சேலைகள்' : 'சமீபத்தில் பார்த்த சேலைகள்',
+    nm ? esc(nm) + ' చూసిన చీరలు' : 'ఇటీవల చూసినవి',
+    nm ? esc(nm) + ' ನೋಡಿದ ಸೀರೆಗಳು' : 'ಇತ್ತೀಚೆಗೆ ನೋಡಿದವು',
+    nm ? esc(nm) + "'s Viewed Sarees" : 'Recently Viewed');
 }
 /* ❤️ "{Name}'s Liked Sarees" — her wishlist strip, shown on every page */
 function likedSareesHTML(max){
@@ -710,15 +793,16 @@ function personalGreetHTML(){
     const pts = pointsBalance();
     const since = memberSinceText();
     const bits = [];
-    bits.push(liked ? '❤️ <b>' + liked + '</b> saree' + (liked > 1 ? 's' : '') + ' liked' : '❤️ Tap ♥ on sarees you like');
-    if (viewed) bits.push('👀 <b>' + viewed + '</b> viewed');
-    if (pts) bits.push('⭐ <b>' + pts + '</b> points');
-    if (since) bits.push('🤝 with us since ' + since);
+    bits.push(liked ? '❤️ <b>' + liked + '</b> ' + loc('சேலைகள் பிடித்தது', 'నచ్చిన చీరలు', 'ಇಷ್ಟವಾದ ಸೀರೆಗಳು', 'sarees liked') : '❤️ ' + loc('பிடித்த சேலைகளுக்கு ♥ அழுத்துங்கள்', 'నచ్చిన చీరలకు ♥ నొక్కండి', 'ಇಷ್ಟವಾದ ಸೀರೆಗಳಿಗೆ ♥ ಒತ್ತಿ', 'Tap ♥ on sarees you like'));
+    if (viewed) bits.push('👀 <b>' + viewed + '</b> ' + loc('பார்த்தது', 'చూసినవి', 'ನೋಡಿದವು', 'viewed'));
+    if (pts) bits.push('⭐ <b>' + pts + '</b> ' + loc('பாயிண்ட்', 'పాయింట్లు', 'ಪಾಯಿಂಟ್‌ಗಳು', 'points'));
+    if (since) bits.push('🤝 ' + loc('நம்முடன் ' + since + ' முதல்', since + ' నుండి మాతో', since + ' ದಿಂದ ನಮ್ಮೊಂದಿಗೆ', 'with us since ' + since));
     return '<section class="greet-strip"><div class="wrap gs-in">' +
       '<span class="gs-emoji">👋</span>' +
-      '<div class="gs-txt"><b>Vanakkam, ' + esc(nm) + '!</b>' +
+      '<div class="gs-txt"><b>' + greetWord() + ', ' + esc(nm) + '!</b>' +
       '<small>' + bits.join(' • ') + '</small></div>' +
-      '<a class="gs-btn" href="profile.html">' + esc(nm) + '&rsquo;s page →</a>' +
+      '<a class="gs-btn" href="profile.html">' + esc(nm) + loc(' பக்கம் →', ' పేజీ →', ' ಪುಟ →', "'s page →") + '</a>' +
+      '<button type="button" class="gs-share" data-sharesite="1" aria-label="Share SK Sarees" title="' + loc('வாட்ஸ்அப்பில் பகிர்', 'వాట్సాప్‌లో షేర్ చేయి', 'ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿ', 'Share on WhatsApp') + '">📢</button>' +
       '</div></section>';
   }catch(e){ return ''; }
 }
@@ -731,16 +815,46 @@ function personalProfileCardHTML(){
     try{ viewed = JSON.parse(localStorage.getItem('sk_recent') || '[]').length; }catch(e){}
     const since = memberSinceText();
     return '<div class="form-card greet-card">' +
-      '<h3>🙏 Vanakkam, ' + esc(nm) + '!</h3>' +
-      '<p class="small" style="margin:2px 0 10px">' + (lang === 'ta' ? 'நீங்கள் எங்கள் குடும்பத்தின் ஒரு அங்கம்' : 'You are part of the SK Sarees family') + (since ? ' — <b>since ' + since + '</b>' : '') + ' 🤝</p>' +
+      '<h3>🙏 ' + greetWord() + ', ' + esc(nm) + '!</h3>' +
+      '<p class="small" style="margin:2px 0 10px">' + loc('நீங்கள் SK Sarees குடும்பத்தின் ஒரு அங்கம்', 'మీరు SK Sarees కుటుంబంలో భాగం', 'ನೀವು SK Sarees ಕುಟುಂಬದ ಭಾಗ', 'You are part of the SK Sarees family') + (since ? ' — <b>' + loc(since + ' முதல்', since + ' నుండి', since + ' ದಿಂದ', 'since ' + since) + '</b>' : '') + ' 🤝</p>' +
       '<div class="greet-stats">' +
-        '<span>❤️ <b>' + (Store.wish || []).length + '</b> liked</span>' +
-        (viewed ? '<span>👀 <b>' + viewed + '</b> viewed</span>' : '') +
-        '<span>📦 <b>' + (Store.orders || []).length + '</b> orders</span>' +
-        '<span>⭐ <b>' + pointsBalance() + '</b> points</span>' +
+        '<span>❤️ <b>' + (Store.wish || []).length + '</b> ' + loc('பிடித்தது', 'నచ్చినవి', 'ಇಷ್ಟ', 'liked') + '</span>' +
+        (viewed ? '<span>👀 <b>' + viewed + '</b> ' + loc('பார்த்தது', 'చూసినవి', 'ನೋಡಿದವು', 'viewed') + '</span>' : '') +
+        '<span>📦 <b>' + (Store.orders || []).length + '</b> ' + loc('ஆர்டர்கள்', 'ఆర్డర్లు', 'ಆರ್ಡರ್‌ಗಳು', 'orders') + '</span>' +
+        '<span>⭐ <b>' + pointsBalance() + '</b> ' + loc('பாயிண்ட்', 'పాయింట్లు', 'ಪಾಯಿಂಟ್‌ಗಳು', 'points') + '</span>' +
       '</div></div>';
   }catch(e){ return ''; }
 }
+/* 📢 SHARE THE WEBSITE — photo + link together: native share sheet carries the
+   premium banner IMAGE file + text + URL (WhatsApp chat-ல image-um link-um
+   சேர்ந்து போகும்). Fallback: wa.me link (OG tags show the preview image). */
+async function shareSite(){
+  const url = (CONFIG.siteUrl || location.origin) + '/';
+  const msg = loc(
+    '🪡 SK Sarees — Salem-ன் பிரீமியம் சேலை கடை! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 முதல் • 40% வரை OFF\n🚚 ₹999+ இலவச டெலிவரி • COD & UPI உண்டு\n\n👉 ' + url,
+    '🪡 SK Sarees — Salem ప్రీమియం చీరల షాప్! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 నుండి • 40% వరకు OFF\n🚚 ₹999+ ఫ్రీ డెలివరీ • COD & UPI ఉన్నాయి\n\n👉 ' + url,
+    '🪡 SK Sarees — Salem ಪ್ರೀಮಿಯಂ ಸೀರೆ ಅಂಗಡಿ! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 ರಿಂದ • 40% ವರೆಗೆ OFF\n🚚 ₹999+ ಉಚಿತ ಡೆಲಿವರಿ • COD & UPI ಇವೆ\n\n👉 ' + url,
+    '🪡 SK Sarees — Premium saree shop from Salem! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 From ₹649 • Up to 40% OFF\n🚚 FREE delivery above ₹999 • COD & UPI available\n\n👉 ' + url);
+  /* 🖼️ attach the premium banner image */
+  let file = null;
+  try{
+    const img = (CONFIG.siteUrl || location.origin) + '/share-banner.jpg';
+    if (navigator.canShare){
+      const blob = await fetch(img).then(r => r.ok ? r.blob() : null).catch(() => null);
+      if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-sarees.jpg', { type: blob.type || 'image/jpeg' });
+    }
+  }catch(e){}
+  try{
+    if (navigator.share){
+      const payload = { title: CONFIG.storeName, text: msg, url };
+      if (file && navigator.canShare({ files: [file] })) payload.files = [file];
+      navigator.share(payload).then(() => {}, () => { try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e2){} });
+      return;
+    }
+  }catch(e){}
+  try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+}
+
 /* 🙏 FIRST VISIT: ask her name once — warm, optional, never nags again */
 function maybeAskName(){
   try{
@@ -754,12 +868,13 @@ function openNamePopup(){
     openModal(
       '<div class="np-card">' +
         '<div class="np-emoji">🪡</div>' +
-        '<h3 class="np-title">Vanakkam! 🙏</h3>' +
-        '<p class="np-sub">Welcome to <b>SK Sarees</b>, Salem.<br>உங்கள் பெயர் என்ன? <span class="muted">(What is your name?)</span></p>' +
-        '<input id="npIn" class="np-input" placeholder="e.g. Priya" maxlength="30" autocomplete="off">' +
-        '<button type="button" class="btn btn-maroon btn-xl np-save" id="npSave">💛 Save My Name</button>' +
-        '<button type="button" class="np-skip" id="npSkip">Skip — maybe later</button>' +
-        '<p class="np-note">🔒 Saved only on your phone. We greet you by name &amp; keep your liked sarees ready for you!</p>' +
+        '<h3 class="np-title">' + greetWord() + '! 🙏</h3>' +
+        '<p class="np-sub">' + loc(' <b>SK Sarees</b>, Salem-க்கு வரவேற்கிறோம்.<br>உங்கள் பெயர் என்ன?', '<b>SK Sarees</b>, Salemకి స్వాగతం.<br>మీ పేరు ఏమిటి?', '<b>SK Sarees</b>, Salem ಗೆ ಸ್ವಾಗತ.<br>ನಿಮ್ಮ ಹೆಸರು ಏನು?', 'Welcome to <b>SK Sarees</b>, Salem.<br>What is your name?') +
+          (lang === 'en' ? '' : ' <span class="muted">(What is your name?)</span>') + '</p>' +
+        '<input id="npIn" class="np-input" placeholder="' + loc('e.g. பிரியா', 'e.g. ప్రియా', 'e.g. ಪ್ರಿಯಾ', 'e.g. Priya') + '" maxlength="30" autocomplete="off">' +
+        '<button type="button" class="btn btn-maroon btn-xl np-save" id="npSave">' + loc('💛 என் பெயரை சேமி', '💛 నా పేరు సేవ్ చేయి', '💛 ನನ್ನ ಹೆಸರನ್ನು ಉಳಿಸಿ', '💛 Save My Name') + '</button>' +
+        '<button type="button" class="np-skip" id="npSkip">' + loc('விடுங்கள் — பிறகு', 'వదిలివేయి — తర్వాత', 'ಬಿಡಿ — ನಂತರ', 'Skip — maybe later') + '</button>' +
+        '<p class="np-note">🔒 ' + loc('உங்கள் போனில் மட்டும் சேமிக்கப்படும். உங்கள் பெயரால் அழைத்து, பிடித்த சேலைகளை தயாராக வைத்திருப்போம்!', 'మీ ఫోన్‌లో మాత్రమే సేవ్ అవుతుంది. మీ పేరుతో పిలిచి, మీకు నచ్చిన చీరలను సిద్ధంగా ఉంచుతాము!', 'ನಿಮ್ಮ ಫೋನ್‌ನಲ್ಲಿ ಮಾತ್ರ ಉಳಿಸಲಾಗುತ್ತದೆ. ನಿಮ್ಮ ಹೆಸರಿನಿಂದ ಕರೆದು, ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆಗಳನ್ನು ಸಿದ್ಧವಾಗಿಡುತ್ತೇವೆ!', 'Saved only on your phone. We greet you by name &amp; keep your liked sarees ready for you!') + '</p>' +
       '</div>');
     LS.set('sk_name_asked', 1);   /* asked once — skipping/closing never nags again */
     const inp = document.getElementById('npIn');
@@ -768,7 +883,7 @@ function openNamePopup(){
       if (v.length < 2){ toast('⚠️ Please type your name 🙂'); if (inp) inp.focus(); return; }
       saveUserName(v);
       closeModal();
-      toast('🙏 Vanakkam ' + esc(userName()) + '! Welcome to the SK Sarees family 🎉');
+      toast('🙏 ' + greetWord() + ', ' + esc(userName()) + '! ' + loc('SK Sarees குடும்பத்திற்கு வரவேற்கிறோம் 🎉', 'SK Sarees కుటుంబానికి స్వాగతం 🎉', 'SK Sarees ಕುಟುಂಬಕ್ಕೆ ಸ್ವಾಗತ 🎉', 'Welcome to the SK Sarees family 🎉'));
       try{ renderHeader(); }catch(e){}
       try{ rerenderPage(); }catch(e){}
     };
@@ -810,14 +925,29 @@ function recentViewHTML(){
       '<div class="prow">' + prods.map(cardHTML).join('') + '</div></section>';
   }catch(e){ return ''; }
 }
-/* 🔥 KEEP BROWSING — always shows more sarees below the shop grid (best-rated +
-   trending) so visitors never hit a dead end and never leave the page. */
+/* 🔥 KEEP BROWSING — taste-ranked when she has history (MORE of what she
+   loves → longer engagement), trending as fallback. Never a dead end. */
 function keepBrowsingHTML(){
   try{
-    const picks = PRODUCTS.filter(p => !p.hidden && p.stock > 0)
-      .slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 8);
+    const tp = tasteProfile();
+    let picks;
+    if (tp.signals){
+      picks = PRODUCTS.filter(p => !p.hidden && p.stock > 0)
+        .map(p => ({ p, s: tasteScore(p, tp) }))
+        .filter(x => x.s > 1)
+        .sort((a, b) => b.s - a.s)
+        .map(x => x.p)
+        .slice(0, 10);
+    }
+    if (!picks || picks.length < 4){
+      picks = PRODUCTS.filter(p => !p.hidden && p.stock > 0)
+        .slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 8);
+    }
     if (picks.length < 2) return '';
-    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 Keep Browsing — Trending Sarees</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+    const title = tp.signals
+      ? loc('இன்னும் ரொம்ப சேலைகள் — உங்களுக்காக', 'మరిన్ని చీరలు — మీ కోసం', 'ಇನ್ನಷ್ಟು ಸೀರೆಗಳು — ನಿಮಗಾಗಿ', 'Keep Browsing — Picked for You')
+      : loc('தொடர்ந்து பாருங்க — டிரெண்டிங் சேலைகள்', 'కొనసాగించండి — ట్రెండింగ్ చీరలు', 'ಮುಂದುವರಿಸಿ — ಟ್ರೆಂಡಿಂಗ್ ಸೀರೆಗಳು', 'Keep Browsing — Trending Sarees');
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 ' + title + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
       '<div class="prow">' + picks.map(cardHTML).join('') + '</div></section>';
   }catch(e){ return ''; }
 }
@@ -1038,6 +1168,7 @@ function renderProduct(){
     '</div>' +
     likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
     recentViewHTML() +
+    tastePicksHTML(6) +        /* ✨ taste engine — keeps her browsing */
     '<div class="wrap" id="recSection"></div>' +
     '<div class="sticky-bar">' +
       '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
@@ -1131,16 +1262,33 @@ function renderProduct(){
 
 /* ============================ SHARE (WhatsApp family/group + Status) ============================ */
 /* share the product to ANY WhatsApp chat / family group — user picks the recipient */
-function shareWaProduct(p){
+async function shareWaProduct(p){
   if (!p) return;
   const msg = '🛍️ Guess what I found on SK Sarees website!\n\n' + waProductMsg(p) +
     '\n\n📢 Share with your family & friends — they will love this saree too! Visit www.sksaree.shop for more 😍';
+  /* 🖼️ photo + link together via the native share sheet (image lands in WhatsApp) */
+  try{
+    if (navigator.share){
+      let file = null;
+      try{
+        const imgUrl = p.img || ((p.images || [])[0]);
+        if (navigator.canShare && imgUrl){
+          const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+          if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
+        }
+      }catch(e2){}
+      const payload = { title: p.name, text: msg, url: productUrl(p) };
+      if (file && navigator.canShare({ files: [file] })) payload.files = [file];
+      navigator.share(payload).then(() => {}, () => { try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e3){} });
+      return;
+    }
+  }catch(e){}
   try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
-/* 📢 VIRAL share — sends the saree to WhatsApp GROUPS with a viral caption.
-   Uses the native share sheet first (no blocking — customer picks any group),
-   falls back to the universal wa.me link. Works on mobile + desktop. */
-function viralShareProduct(p){
+/* 📢 VIRAL share — sends the saree to WhatsApp GROUPS with a viral caption AND
+   THE PRODUCT PHOTO (image goes into the chat — Web Share API files). Falls
+   back to text+link share, then wa.me link. Works on mobile + desktop. */
+async function viralShareProduct(p){
   if (!p) return;
   const url = productUrl(p);
   const off = offPct(p);
@@ -1152,11 +1300,24 @@ function viralShareProduct(p){
     '✅ 7 நாள் ரிட்டர்ன் • South India-வின் நம்பர் 1 சேலை ஸ்டோர் 🏆\n\n' +
     '👉 ' + url + '\n\n' +
     '🔥 Group-ல உள்ள அனைவருக்கும் பகிருங்க — உங்களுக்கும் ரெசலர் மார்கின் ' + (CONFIG.resellerMarginPct || 5) + '%! 🎁';
+  /* 🖼️ attach the actual saree photo — WhatsApp chat-ல image-um share ஆகும் */
+  let file = null;
+  try{
+    const imgUrl = p.img || ((p.images || [])[0]);
+    if (navigator.canShare && imgUrl){
+      const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+      if (blob && blob.size && blob.size < 4.5e6){
+        file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
+      }
+    }
+  }catch(e){}
   /* 📱 native share sheet → customer picks any WhatsApp group/chat (never blocked) */
   try{
     if (navigator.share){
-      navigator.share({ title: p.name, text: msg, url }).then(() => {}, () => {
-        try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+      const payload = { title: p.name, text: msg, url };
+      if (file && navigator.canShare({ files: [file] })) payload.files = [file];
+      navigator.share(payload).then(() => {}, () => {
+        try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e2){}
       });
       return;
     }
@@ -1251,7 +1412,7 @@ function renderCartPage(){
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp Instead</a>' +
       '</div>' +
-    '</div>' + likedSareesHTML(4) + recentViewHTML() + '</div>';
+    '</div>' + likedSareesHTML(4) + tastePicksHTML(4) + recentViewHTML() + '</div>';
 }
 
 /* ============================ CHECKOUT ============================ */
@@ -2017,7 +2178,7 @@ function notifyStatusNote(){
 function renderProfilePage(){
   const app = document.getElementById('app'); if (!app) return;
   const p = Store.profile || {};
-  app.innerHTML = '<div class="wrap page"><h1>👤 ' + (userName() ? esc(userName()) + '&rsquo;s Profile' : 'My Profile') + '</h1>' +
+  app.innerHTML = '<div class="wrap page"><h1>👤 ' + (userName() ? esc(userName()) + loc(' சுயவிவரம்', ' ప్రొఫైల్', ' ಪ್ರೊಫೈಲ್', "'s Profile") : t('profile')) + '</h1>' +
     personalProfileCardHTML() +
     '<div class="form-card"><h3>📋 Saved Details (auto-fills checkout)</h3>' +
       '<div class="field"><label>Full Name</label><input id="pfName" value="' + esc(p.name) + '"></div>' +
@@ -2304,6 +2465,9 @@ document.addEventListener('click', function(e){
   /* 📤 share product on WhatsApp (family/group) */
   const sw = e.target.closest('[data-share-wa]');
   if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
+  /* 📢 share the whole website (banner image + link) */
+  const sst = e.target.closest('[data-sharesite]');
+  if (sst){ e.preventDefault(); shareSite(); return; }
   /* 📋 lead: visitor clicks a WhatsApp order/chat link with a saved phone */
   const wao = e.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"]');
   if (wao){

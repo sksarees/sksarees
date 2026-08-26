@@ -1995,7 +1995,31 @@ const LANGS = {
     search:'ಸೀರೆಗಳು, ಫ್ಯಾಬ್ರಿಕ್, ಬಣ್ಣ ಹುಡುಕಿ…', all:'ಎಲ್ಲಾ', inStock:'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ', outStock:'ಸ್ಟಾಕ್ ಇಲ್ಲ',
   },
 };
-let lang = LS.get('sk_lang', 'en');
+/* 🌐 LANGUAGE: saved choice first; else AUTO-DETECT the device/browser language
+   (ta/te/kn → their language, others → English). No location, no permission
+   prompt — pure navigator.language read. Kannada/Telugu/Tamil users get the
+   site in their own language automatically. */
+let lang = (function(){
+  try{
+    const saved = LS.get('sk_lang', '');
+    if (saved && LANGS[saved]) return saved;
+  }catch(e){}
+  try{
+    const tags = ((navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || '']).join(',').toLowerCase().split(',');
+    for (let i = 0; i < tags.length; i++){
+      const pri = String(tags[i]).split('-')[0].trim();
+      if (pri === 'ta' || pri === 'te' || pri === 'kn') return pri;
+    }
+  }catch(e){}
+  return 'en';
+})();
+/* 🙏 greeting word in the visitor's own language (ta/te/kn/en) */
+function greetWord(){
+  if (lang === 'ta') return 'வணக்கம்';
+  if (lang === 'te') return 'నమస్కారం';
+  if (lang === 'kn') return 'ನಮಸ್ಕಾರ';
+  return 'Vanakkam';
+}
 const t = k => (LANGS[lang] && LANGS[lang][k]) || LANGS.en[k] || k;
 function setLang(l){ lang = LANGS[l] ? l : 'en'; LS.set('sk_lang', lang); location.reload(); }
 /* ============================ 12. FIRESTORE (ORDERS + REVIEWS only) ============================
@@ -2473,7 +2497,7 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
-        ${(userName() ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">Vanakkam, <b>' + esc(userName()) + '</b></span></a>' : '')}
+        ${(userName() ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">' + greetWord() + ', <b>' + esc(userName()) + '</b></span></a>' : '')}
         <a class="icon-btn" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
       </div>
@@ -2641,7 +2665,7 @@ function seoInject(){
     try{
       const ogTitle = document.title || CONFIG.storeName;
       const ogDesc = (document.querySelector('meta[name="description"]') || {}).content || 'Buy sarees online from Salem, Tamil Nadu — semi silk, cotton & Kanchipuram styles.';
-      const ogImg = base + 'images/hero-banner.jpg';
+      const ogImg = base + 'share-banner.jpg';   /* WhatsApp/Facebook link-preview image (premium banner) */
       const addMeta = (prop, content, isProp) => {
         if (document.querySelector('meta[' + (isProp ? 'property' : 'name') + '="' + prop + '"]')) return;
         const m = document.createElement('meta');
