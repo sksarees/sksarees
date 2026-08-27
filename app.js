@@ -33,7 +33,9 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
-  try{ maybeAskName(); }catch(e){}      /* 👤 1st visit: ask her name once (personal bond) */
+  try{ maybeAskName(); }catch(e){}      /* 👤 1st visit: ask her name after 1 min of REAL browsing */
+  try{ maybeScratchCard(); }catch(e){}  /* 🎁 daily Scratch & Win coupon (viral) */
+  try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
   try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -72,6 +74,21 @@ function aiRespond(q){
   const has = re => new RegExp(re).test(input);
   let pool = [];
   try{ pool = PRODUCTS.filter(p => !p.hidden && p.stock != null && p.stock > 0); }catch(e){}
+  /* 🧠 TASTE-AWARE: "recommend for me / எனக்கு பிடிச்ச மாதிரி" → the taste
+     engine answers with HER categories, colours & budget (learned AI) */
+  if (has('for me|recommend|suggest|my taste|my style|personal|எனக்கு|பிடிக்கும்|என் சுவை')){
+    try{
+      const tp = tasteProfile();
+      if (tp.signals){
+        const mine = pool.map(p => ({ p, s: tasteScore(p, tp) })).sort((a, b) => b.s - a.s).slice(0, 3).map(x => x.p);
+        if (mine.length){
+          aiPushMsg('bot', loc('உங்கள் browsing-ஐ வைத்து AI கற்றுக்கொண்டது! இதோ உங்களுக்கான பிக்ஸ்: 🎯', 'AI మీ browsing నుండి నేర్చుకుంది! మీ పిక్స్: 🎯', 'AI ನಿಮ್ಮ browsing ನಿಂದ ಕಲಿತಿದೆ! ನಿಮ್ಮ ಪಿಕ್ಸ್: 🎯', 'AI learned from your browsing! Here are YOUR picks: 🎯') +
+            '<div class="ai-cards">' + mine.map(aiCard).join('') + '</div>' + tasteSummaryHTML());
+          return;
+        }
+      }
+    }catch(e){}
+  }
   const hint = has('wedding|bride|bridal|kalyana|marriage') ? 'Wedding collection' :
                has('office|work|formal') ? 'Office wear' :
                has('party|function|reception|birthday') ? 'Party wear' :
@@ -83,6 +100,7 @@ function aiRespond(q){
   const score = (p) => {
     let s = 0;
     const t = (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + p.cat + ' ' + (p.desc || '')).toLowerCase();
+    s += tasteScore(p) / 2;   /* 🧠 her taste gives every answer a personal boost */
     if (has('wedding|bride|bridal|kalyana|marriage')){ if (/wedding|bridal|kalyana/.test(p.cat) || /bridal|wedding|bride/.test(t)) s += 4; }
     if (has('office|work|formal')){ if (p.cat === 'office' || /office|formal/.test(t)) s += 4; }
     if (has('party|function|reception|birthday')){ if (p.cat === 'party' || p.cat === 'fancy' || /party|reception/.test(t)) s += 4; }
@@ -100,10 +118,11 @@ function aiRespond(q){
   if (!picks.length){ aiPushMsg('bot', '😊 We will get fresh stock soon! Meanwhile, <b>ask us on WhatsApp</b> — we will help you find the perfect saree.'); return; }
   aiPushMsg('bot', (hint ? 'Here are <b>' + hint + '</b> picks for you: 🎯' : 'Here are your best matches: 🎯') +
     '<div class="ai-cards">' + picks.map(aiCard).join('') + '</div>' +
+    tasteSummaryHTML() +
     '<a class="btn btn-wa btn-sm" style="margin-top:8px" href="' + waLink('Hi! I am looking for: ' + q + '. Please help me choose. 🙏') + '" target="_blank" rel="noopener">💬 Not sure? Ask us on WhatsApp</a>');
 }
 function openAIAssistant(){
-  const quick = ['👰 Wedding sarees', '💼 Office sarees', '💰 Under ₹1500', '✨ Silk', '🌾 Cotton', '⭐ Best sellers'];
+  const quick = ['✨ Style Quiz', '❤️ Recommend for me', '👰 Wedding sarees', '💰 Under ₹1500', '✨ Silk', '⭐ Best sellers'];
   openModal('<div class="ai-chat">' +
     '<div class="ai-head">🤖 SK AI Assistant<small>Finds your perfect saree in seconds</small></div>' +
     '<div class="ai-msgs" id="aiMsgs"></div>' +
@@ -123,7 +142,12 @@ function openAIAssistant(){
   const inp = document.getElementById('aiIn');
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
   const qs = document.querySelectorAll('[data-aiq]');
-  qs.forEach(b => b.addEventListener('click', () => { aiPushMsg('user', esc(b.dataset.aiq)); setTimeout(() => aiRespond(b.dataset.aiq), 350); }));
+  qs.forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.aiq;
+    if (v === '✨ Style Quiz'){ closeModal(); setTimeout(openStyleQuiz, 320); return; }   /* ✨ open the quiz instead */
+    aiPushMsg('user', esc(v));
+    setTimeout(() => aiRespond(v), 350);
+  }));
 }
 
 /* 🛒 Smart upsell — right after "Add to Cart" show 2-3 similar sarees
@@ -182,7 +206,20 @@ function forYouHTML(){
       picks.push.apply(picks, PRODUCTS.filter(p => !p.hidden && p.stock > 0).slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 4));
     }
     if (picks.length < 2) return '';
-    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🤖 ' + (lang === 'ta' ? 'உங்களுக்கான பரிந்துரைகள்' : 'Recommended for You') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+    const nm = userName();
+    const title = loc('🤖 AI பிக்ஸ் — உங்களுக்காக', '🤖 AI పిక్స్ — మీ కోసం', '🤖 AI ಪಿಕ್ಸ್ — ನಿಮಗಾಗಿ', '🤖 AI Picks' + (nm ? ' for ' + esc(nm) : ' for You'));
+    /* explainable AI: show what the engine learned about her */
+    const tp = tasteProfile();
+    const chips = [];
+    if (tp.signals){
+      const topCat = Object.keys(tp.cats).sort((a, b) => tp.cats[b] - tp.cats[a])[0];
+      if (topCat) chips.push('🏷️ ' + topCat);
+      const topCol = Object.keys(tp.cols).sort((a, b) => tp.cols[b] - tp.cols[a])[0];
+      if (topCol) chips.push('🎨 ' + topCol);
+      if (tp.avgPrice) chips.push('💰 ~' + money(tp.avgPrice));
+    }
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + title + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      (chips.length ? '<div class="taste-chips">' + chips.map(c => '<span>' + c + '</span>').join('') + '<span style="cursor:pointer" data-quiz="1">✨ ' + loc('ஸ்டைல் க்விஸ் எடு', 'క్విజ్ తీసుకో', 'ಕ್ವಿಜ್ ತೆಗೆದುಕೊ', 'take the quiz') + '</span></div>' : '') +
       '<div class="prow">' + picks.slice(0, 4).map(cardHTML).join('') + '</div></section>';
   }catch(e){ return ''; }
 }
@@ -262,6 +299,7 @@ function cardHTML(p){
         (out
           ? '<button type="button" class="btn" disabled style="opacity:.55">Out of Stock</button>'
           : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">Add to Cart</button>') +
+        (out ? '' : '<a class="btn btn-gold ca-quick" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1" aria-label="Quick Buy — one tap checkout" title="⚡ Quick Buy — 1 tap">⚡</a>') +
         '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
       '</div>' +
     '</div></article>';
@@ -311,9 +349,12 @@ function dealOfDayHTML(){
     const deal = candidates[day % candidates.length];
     const off = offPct(deal);
     return '<div class="deal-day"><div class="dd-left"><span class="dd-badge">🔥 DEAL OF THE DAY</span>' +
+      '<span class="dd-ends">⏳ ' + loc('இன்று மட்டும் — இரவு 12 மணிக்கு முடிவு!', 'ఈ రోజు మాత్రమే — రాత్రి 12 గంటలకు ముగుస్తుంది!', 'ಇಂದು ಮಾತ್ರ — ರಾತ್ರಿ 12 ಗೆ ಮುಗಿಯುತ್ತದೆ!', 'Today only — ends at midnight!') + '</span>' +
       '<h3>' + esc(deal.name) + '</h3>' +
       '<div class="price-row"><b>' + money(deal.price) + '</b>' + (deal.mrp ? '<s>' + money(deal.mrp) + '</s>' : '') + (off ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="product.html?id=' + encodeURIComponent(deal.id) + '">🛒 Grab It Now</a></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">' +
+      '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:170px" href="product.html?id=' + encodeURIComponent(deal.id) + '">🛒 Grab It Now</a>' +
+      '<button type="button" class="btn btn-gold btn-sm" style="width:auto;min-width:150px" data-viral="' + esc(deal.id) + '">📢 ' + loc('இந்த டீலை பகிர்', 'ఈ డీల్ షేర్', 'ಈ ಡೀಲ್ ಹಂಚಿ', 'Share Deal') + '</button></div></div>' +
       '<a class="dd-img" href="product.html?id=' + encodeURIComponent(deal.id) + '"><img src="' + esc(deal.img) + '" alt="' + esc(deal.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>';
   }catch(e){ return ''; }
 }
@@ -357,7 +398,7 @@ function renderHome(){
   const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
   const forYou = forYouHTML();   /* 🤖 personalized strip (viewed/wishlist based) */
-  app.innerHTML = personalGreetHTML() + forYou +
+  app.innerHTML = personalGreetHTML() + styleQuizBannerHTML() + forYou +
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
@@ -698,7 +739,35 @@ function tasteProfile(){
     const rv = JSON.parse(localStorage.getItem('sk_recent') || '[]');
     (Array.isArray(rv) ? rv : []).slice(0, 10).forEach((id, i) => add(byId(id), Math.max(1, 4 - Math.floor(i / 3)))); /* 👀 recent views */
   }catch(e){}
+  /* ⏱️ dwell time: how long she studied each saree page (10s+ = strong interest) */
+  try{
+    const dw = LS.get('sk_dwell', {}) || {};
+    Object.keys(dw).forEach(id => { const s = +dw[id] || 0; if (s >= 3) add(byId(id), Math.min(4, 1 + s / 15)); });
+  }catch(e){}
+  /* ✨ Style Quiz answers — she TOLD us her occasion, budget & colour (weight 8) */
+  try{
+    const qz = LS.get('sk_quiz', null);
+    if (qz){
+      if (qz.cat) cats[qz.cat] = (cats[qz.cat] || 0) + 8;
+      if (qz.color) cols[qz.color] = (cols[qz.color] || 0) + 6;
+      if (qz.maxPrice){ priceW += (+qz.maxPrice) * 8; priceN += 8; }
+    }
+  }catch(e){}
   return { cats, cols, fabs, avgPrice: priceN ? Math.round(priceW / priceN) : 0, signals: priceN };
+}
+/* 🧠 explainable AI — one-line summary of her taste ("why these picks") */function tasteSummaryHTML(){
+  try{
+    const tp = tasteProfile();
+    if (!tp.signals) return '';
+    const parts = [];
+    const topCat = Object.keys(tp.cats).sort((a, b) => tp.cats[b] - tp.cats[a])[0];
+    if (topCat) parts.push('🏷️ ' + topCat);
+    const topCols = Object.keys(tp.cols).sort((a, b) => tp.cols[b] - tp.cols[a]).slice(0, 2);
+    if (topCols.length) parts.push('🎨 ' + topCols.join(' + '));
+    if (tp.avgPrice) parts.push('💰 ~' + money(tp.avgPrice));
+    if (!parts.length) return '';
+    return '<div class="ai-taste">🧠 ' + loc('AI கற்றுக்கொண்டது — உங்கள் taste:', 'AI నేర్చుకుంది — మీ టేస్ట్:', 'AI ಕಲಿತಿದೆ — ನಿಮ್ಮ ರುಚಿ:', 'AI learned your taste:') + ' ' + parts.join(' · ') + '</div>';
+  }catch(e){ return ''; }
 }
 function tasteScore(p, tp){
   try{
@@ -855,16 +924,282 @@ async function shareSite(){
   try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 
-/* 🙏 FIRST VISIT: ask her name once — warm, optional, never nags again */
+/* ============================ 🎁 SCRATCH & WIN (viral daily coupon) ============================
+   Once a day a golden scratch card pops in: she scratches with her finger →
+   wins a coupon (real % code) → coupon AUTO-APPLIES at checkout → and she can
+   share her luck with friends on WhatsApp (viral loop!). All local, zero
+   Firestore. Deterministic per day — everyone gets a stable code each day. */
+function scratchPickCoupon(){
+  try{
+    const list = getCoupons().filter(c => c && c.active && !couponExpired(c) && c.type === 'percent' && (+c.value) >= 1);
+    if (!list.length) return { code: 'SHARE5', pct: 5 };
+    let h = 0;
+    const s = 'sk-scratch-' + new Date().toDateString();
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    const c = list[h % list.length];
+    return { code: String(c.code).trim().toUpperCase(), pct: +c.value };
+  }catch(e){ return { code: 'SHARE5', pct: 5 }; }
+}
+function maybeScratchCard(){
+  try{
+    const today = new Date().toDateString();
+    if (LS.get('sk_scratch_day', '') === today) return;   /* already played today */
+    setTimeout(() => {
+      try{
+        if (LS.get('sk_scratch_day', '') === today) return;      /* played in another tab */
+        if (document.querySelector('#modalRoot .modal')) return;  /* another popup active — try next page */
+        openScratchCard();
+      }catch(e){}
+    }, 7000);
+  }catch(e){}
+}
+function openScratchCard(){
+  const won = scratchPickCoupon();
+  LS.set('sk_scratch_won', won.code);
+  LS.set('sk_scratch_day', new Date().toDateString());
+  openModal(
+    '<div class="sc-card">' +
+      '<div class="sc-emoji">🎁</div>' +
+      '<h3 class="sc-title">' + loc('ஸ்கிராட்ச் செய்து வெல்லுங்கள்!', 'స్క్రాచ్ చేసి గెలవండి!', 'ಸ್ಕ್ರಾಚ್ ಮಾಡಿ ಗೆಲ್ಲಿ!', 'Scratch & Win!') + '</h3>' +
+      '<p class="sc-sub">' + loc('இன்று உங்களுக்கான அதிர்ஷ்ட கூப்பன் — விரலால் ஸ்கிராட்ச் பண்ணுங்க ✨', 'ఈ రోజు మీ అదృష్ట కూపన్ — వేలితో స్క్రాచ్ చేయండి ✨', 'ಇಂದು ನಿಮ್ಮ ಅದೃಷ್ಟದ ಕೂಪನ್ — ಬೆರಳಿಂದ ಸ್ಕ್ರಾಚ್ ಮಾಡಿ ✨', 'Today\'s lucky coupon — scratch with your finger ✨') + '</p>' +
+      '<div class="sc-wrap">' +
+        '<div class="sc-prize"><b class="sc-pct">' + won.pct + '% OFF</b><span class="sc-code">' + esc(won.code) + '</span><small>' + loc('செக்அவுட்டில் தானாக apply ஆகும்!', 'చెక్అవుట్‌లో ఆటో apply అవుతుంది!', 'ಚೆಕ್ಔಟ್‌ನಲ್ಲಿ ಆಟೋ apply ಆಗುತ್ತದೆ!', 'auto-applied at checkout!') + '</small></div>' +
+        '<canvas id="scCanvas" class="sc-canvas" width="600" height="240"></canvas>' +
+      '</div>' +
+      '<button type="button" class="btn btn-maroon btn-xl" id="scShop">🛍️ ' + loc('இந்த சலுகையுடன் ஷாப் செய்யுங்கள்', 'ఈ ఆఫర్‌తో షాప్ చేయండి', 'ಈ ಆಫರ್‌ನೊಂದಿಗೆ ಶಾಪ್ ಮಾಡಿ', 'Shop with this offer') + '</button>' +
+      '<div class="sc-btns">' +
+        '<button type="button" class="btn btn-wa btn-sm" id="scShare" style="flex:1;min-width:140px">📢 ' + loc('நண்பர்களுக்கு பகிர்', 'స్నేహితులతో షేర్', 'ಗೆಳೆಯರೊಂದಿಗೆ ಹಂಚಿ', 'Share with friends') + '</button>' +
+        '<button type="button" class="np-skip" data-close style="flex:0 0 auto">' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
+      '</div>' +
+    '</div>');
+  drawScratch();
+  const shopBtn = document.getElementById('scShop');
+  if (shopBtn) shopBtn.addEventListener('click', () => { closeModal(); try{ location.href = 'shop.html'; }catch(e){} });
+  const shBtn = document.getElementById('scShare');
+  if (shBtn) shBtn.addEventListener('click', () => shareScratchWin(won));
+}
+/* ✍️ the scratch surface — finger/mouse erases the golden foil */
+function drawScratch(){
+  try{
+    const c = document.getElementById('scCanvas'); if (!c) return;
+    const ctx = c.getContext && c.getContext('2d'); if (!ctx) return;   /* very old browser → prize simply shows */
+    ctx.fillStyle = '#cdb694';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    for (let i = 0; i < 70; i++){ ctx.beginPath(); ctx.arc(Math.random() * c.width, Math.random() * c.height, Math.random() * 2.2 + .6, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#6b4c05';
+    ctx.font = 'bold 34px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('👆 SCRATCH HERE', c.width / 2, c.height / 2 - 6);
+    ctx.font = '17px Georgia, serif';
+    ctx.fillStyle = '#8a6d1d';
+    ctx.fillText(loc('விரலால் தேயுங்கள்…', 'వేలితో రుద్దండి…', 'ಬೆರಳಿಂದ ಉಜ್ಜಿ…', 'rub with your finger…'), c.width / 2, c.height / 2 + 28);
+    let down = false, strokes = 0, done = false;
+    const pt = (e) => {
+      const r = c.getBoundingClientRect();
+      const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
+      return { x: (t.clientX - r.left) * (c.width / r.width), y: (t.clientY - r.top) * (c.height / r.height) };
+    };
+    const scratchAt = (x, y) => {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath(); ctx.arc(x, y, 38, 0, Math.PI * 2); ctx.fill();
+      strokes++;
+      if (strokes > 24 && !done){ done = true; onScratchRevealed(); }
+    };
+    c.addEventListener('pointerdown', e => { down = true; const p = pt(e); scratchAt(p.x, p.y); });
+    c.addEventListener('pointermove', e => { if (!down) return; const p = pt(e); scratchAt(p.x, p.y); });
+    window.addEventListener('pointerup', () => { down = false; });
+    c.addEventListener('touchstart', e => { down = true; const p = pt(e); scratchAt(p.x, p.y); try{ e.preventDefault(); }catch(e2){} }, { passive: false });
+    c.addEventListener('touchmove', e => { if (!down) return; const p = pt(e); scratchAt(p.x, p.y); try{ e.preventDefault(); }catch(e2){} }, { passive: false });
+  }catch(e){}
+}
+/* 🎉 scratch complete → auto-apply the won coupon + celebration */
+function onScratchRevealed(){
+  try{
+    const code = LS.get('sk_scratch_won', '');
+    if (code && !co.data.coupon){ co.data.coupon = code; try{ saveCoDraft(); }catch(e){} }
+    const cv = document.getElementById('scCanvas');
+    if (cv){ cv.style.transition = 'opacity .5s'; cv.style.opacity = '0'; cv.style.pointerEvents = 'none'; }
+    toast('🎉 ' + (code ? code + ' — ' : '') + loc('கூப்பன் கிடைச்சது! செக்அவுட்டில் ready 🎁', 'కూపన్ గెలిచారు! చెక్అవుట్‌లో ready 🎁', 'ಕೂಪನ್ ಗೆದ್ದಿರಿ! ಚೆಕ್ಔಟ್‌ನಲ್ಲಿ ready 🎁', 'coupon unlocked — ready at checkout 🎁'));
+  }catch(e){}
+}
+/* 📢 share the win — viral loop: friends scratch their own coupon */
+function shareScratchWin(won){
+  try{
+    const url = (CONFIG.siteUrl || location.origin) + '/';
+    const msg = loc(
+      '🎁 நான் SK Sarees-ல ' + won.pct + '% OFF கூப்பன் வென்றேன்! நீங்களும் முயற்சி செய்யுங்கள் 🎉\n\n👉 ' + url + '\n\n🪡 அழகான சேலைகள் • ₹649 முதல் • இலவச டெலிவரி ₹999+',
+      '🎁 నేను SK Sarees లో ' + won.pct + '% OFF కూపన్ గెలిచాను! మీరు కూడా ప్రయత్నించండి 🎉\n\n👉 ' + url + '\n\n🪡 అందమైన చీరలు • ₹649 నుండి • ఫ్రీ డెలివరీ ₹999+',
+      '🎁 ನಾನು SK Sarees ನಲ್ಲಿ ' + won.pct + '% OFF ಕೂಪನ್ ಗೆದ್ದೆ! ನೀವೂ ಪ್ರಯತ್ನಿಸಿ 🎉\n\n👉 ' + url + '\n\n🪡 ಅಂದವಾದ ಸೀರೆಗಳು • ₹649 ರಿಂದ • ಉಚಿತ ಡೆಲಿವರಿ ₹999+',
+      '🎁 I just won ' + won.pct + '% OFF at SK Sarees — try your luck! 🎉\n\n👉 ' + url + '\n\n🪡 Beautiful sarees • from ₹649 • FREE delivery ₹999+');
+    try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+  }catch(e){}
+}
+
+/* ============================ ✨ AI STYLE QUIZ ============================
+   3 taps — occasion · budget · colour vibe → AI curates her personal
+   collection instantly (taste engine + quiz filters). Answers also FEED the
+   taste engine, so the whole site gets smarter about her. 100% local AI. */
+const SQ_OCC = [
+  ['👰', 'Wedding / Bridal', 'wedding'],
+  ['🎉', 'Party / Function', 'party'],
+  ['🌿', 'Daily Wear', 'daily'],
+  ['💼', 'Office', 'office'],
+  ['🙏', 'Festival / Puja', 'festival'],
+];
+const SQ_BUDGET = [
+  [800, 'Under ₹800'],
+  [1500, '₹800 – ₹1,500'],
+  [2500, '₹1,500 – ₹2,500'],
+  [0, 'No limit — show me the best!'],
+];
+const SQ_VIBE = [
+  ['🔴', 'Rich Reds & Maroons', 'Red'],
+  ['💜', 'Royal Purples', 'Purple'],
+  ['🟢', 'Fresh Greens', 'Green'],
+  ['🟡', 'Golden Yellows', 'Yellow'],
+  ['💙', 'Cool Blues & Teals', 'Blue'],
+  ['🎲', 'Surprise me, AI!', ''],
+];
+let sq = { step: 1, occ: '', occLabel: '', budget: 0, budgetLabel: '', vibe: '', vibeLabel: '' };
+function openStyleQuiz(){
+  sq = { step: 1, occ: '', occLabel: '', budget: 0, budgetLabel: '', vibe: '', vibeLabel: '' };
+  drawStyleQuiz();
+}
+function drawStyleQuiz(){
+  try{
+    const prog = '<div class="sq-prog">' + [1, 2, 3].map(i => '<i class="' + (i <= sq.step ? 'on' : '') + '"></i>').join('') + '</div>';
+    let body = '';
+    if (sq.step === 1){
+      body = '<div class="sq-q">' + loc('எந்த சந்தர்ப்பத்திற்கு? 🥻', 'ఎంత సందర్భానికి? 🥻', 'ಯಾವ ಸಂದರ್ಭಕ್ಕೆ? 🥻', 'What is the occasion? 🥻') + '</div>' +
+        '<p class="sq-hint">' + loc('முதல் கேள்வி — 3-ல் 1', 'మొదటి ప్రశ్న — 1/3', 'ಮೊದಲ ಪ್ರಶ್ನೆ — 1/3', 'Question 1 of 3') + '</p>' +
+        '<div class="sq-opts">' + SQ_OCC.map(o => '<button type="button" class="sq-opt" data-sqocc="' + o[2] + '" data-sqlbl="' + esc(o[1]) + '"><span class="sq-e">' + o[0] + '</span>' + o[1] + '</button>').join('') + '</div>';
+    } else if (sq.step === 2){
+      body = '<div class="sq-q">' + loc('பட்ஜெட் எவ்வளவு? 💰', 'బడ్జెట్ ఎంత? 💰', 'ಬಜೆಟ್ ಎಷ್ಟು? 💰', 'What is your budget? 💰') + '</div>' +
+        '<p class="sq-hint">' + loc('இரண்டாம் கேள்வி — 3-ல் 2', 'రెండో ప్రశ్న — 2/3', 'ಎರಡನೇ ಪ್ರಶ್ನೆ — 2/3', 'Question 2 of 3') + '</p>' +
+        '<div class="sq-opts">' + SQ_BUDGET.map(b => '<button type="button" class="sq-opt" data-sqbud="' + b[0] + '" data-sqlbl="' + esc(b[1]) + '"><span class="sq-e">💰</span>' + b[1] + '</button>').join('') + '</div>';
+    } else if (sq.step === 3){
+      body = '<div class="sq-q">' + loc('எந்த நிறம் பிடிக்கும்? 🎨', 'ఏ రంగు నచ్చుతుంది? 🎨', 'ಯಾವ ಬಣ್ಣ ಇಷ್ಟ? 🎨', 'Which colour vibe? 🎨') + '</div>' +
+        '<p class="sq-hint">' + loc('கடைசி கேள்வி — 3-ல் 3', 'చివరి ప్రశ్న — 3/3', 'ಕೊನೆಯ ಪ್ರಶ್ನೆ — 3/3', 'Last question — 3 of 3') + '</p>' +
+        '<div class="sq-opts">' + SQ_VIBE.map(v => '<button type="button" class="sq-opt" data-sqvibe="' + esc(v[2]) + '" data-sqlbl="' + esc(v[1]) + '"><span class="sq-e">' + v[0] + '</span>' + v[1] + '</button>').join('') + '</div>';
+    }
+    openModal('<div class="sq-card">' +
+      '<h3 class="np-title">✨ ' + loc('AI Style Quiz', 'AI స్టైల్ క్విజ్', 'AI ಸ್ಟೈಲ್ ಕ್ವಿಜ್', 'AI Style Quiz') + '</h3>' +
+      prog + body +
+      '<button type="button" class="np-skip" data-close>' + loc('விடுங்கள் — நானே பார்க்கிறேன்', 'వదిలివేయి — నేనే చూస్తా', 'ಬಿಡಿ — ನಾನೇ ನೋಡುತ್ತೇನೆ', 'Skip — I\'ll browse myself') + '</button>' +
+    '</div>');
+    /* wire answers */
+    document.querySelectorAll('[data-sqocc]').forEach(b => b.addEventListener('click', () => {
+      sq.occ = b.dataset.sqocc; sq.occLabel = b.dataset.sqlbl || ''; sq.step = 2; drawStyleQuiz();
+    }));
+    document.querySelectorAll('[data-sqbud]').forEach(b => b.addEventListener('click', () => {
+      sq.budget = +b.dataset.sqbud || 0; sq.budgetLabel = b.dataset.sqlbl || ''; sq.step = 3; drawStyleQuiz();
+    }));
+    document.querySelectorAll('[data-sqvibe]').forEach(b => b.addEventListener('click', () => {
+      sq.vibe = b.dataset.sqvibe || ''; sq.vibeLabel = b.dataset.sqlbl || '';
+      /* 🤖 brief "AI thinking" moment → feels intelligent, costs nothing */
+      openModal('<div class="sq-card"><div class="sq-thinking">🤖 ' + loc('AI உங்களுக்கான சேலைகளை தேர்ந்தெடுக்கிறது', 'AI మీ కోసం చీరలను ఎంపిక చేస్తోంది', 'AI ನಿಮಗಾಗಿ ಸೀರೆಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡುತ್ತಿದೆ', 'AI is curating your sarees') + '<span class="dots"><i>.</i><i>.</i><i>.</i></span></div></div>');
+      setTimeout(quizShowResults, 850);
+    }));
+  }catch(e){}
+}
+function quizShowResults(){
+  try{
+    /* filter by her answers (relaxing filters if too few matches) */
+    let pool = PRODUCTS.filter(p => !p.hidden && p.stock > 0);
+    let byCat = pool.filter(p => p.cat === sq.occ);
+    if (sq.occ === 'party') byCat = pool.filter(p => p.cat === 'party' || p.cat === 'fancy');
+    if (sq.occ === 'daily') byCat = pool.filter(p => p.cat === 'daily' || p.cat === 'cotton');
+    if (byCat.length >= 2) pool = byCat;
+    if (sq.budget){
+      const byPrice = pool.filter(p => p.price <= sq.budget);
+      if (byPrice.length >= 2) pool = byPrice;
+    }
+    const tp = tasteProfile();
+    const picks = pool.map(p => ({
+      p, s: tasteScore(p, tp) + (sq.vibe && (p.colors || []).some(c => String(c).toLowerCase().indexOf(sq.vibe.toLowerCase()) !== -1) ? 6 : 0)
+    })).sort((a, b) => b.s - a.s).slice(0, 6).map(x => x.p);
+    /* ✨ quiz answers feed the taste engine → whole site becomes smarter */
+    try{ LS.set('sk_quiz', { cat: sq.occ, maxPrice: sq.budget, color: sq.vibe }); }catch(e){}
+    const reason = '✨ ' + loc('ஏனென்றால் நீங்கள் தேர்ந்தெடுத்தது:', 'ఎందుకంటే మీరు ఎంచుకున్నారు:', 'ಏಕೆಂದರೆ ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ್ದೀರಿ:', 'Because you chose:') + ' <b>' + esc(sq.occLabel || '—') + '</b> · <b>' + esc(sq.budgetLabel || '—') + '</b> · <b>' + esc(sq.vibeLabel || '—') + '</b>';
+    openModal('<div class="sq-card">' +
+      '<h3 class="np-title">🤖 ' + loc('AI உங்களுக்காக தேர்ந்தெடுத்தவை', 'AI మీ కోసం ఎంపిక చేసినవి', 'AI ನಿಮಗಾಗಿ ಆಯ್ಕೆಮಾಡಿದವು', 'AI Picks for You') + '</h3>' +
+      '<div class="sq-reason">' + reason + '</div>' +
+      (picks.length
+        ? '<div class="sq-cards"><div class="ai-cards">' + picks.map(aiCard).join('') + '</div>' + tasteSummaryHTML() + '</div>'
+        : '<p class="muted small" style="padding:14px 0">😕 ' + loc('இந்த combination-ல இப்போ ஸ்டாக் இல்லை — வேற விருப்பம் தேர்ந்தெடுங்கள்', 'ఈ combination లో స్టాక్ లేదు — వేరే ఎంపిక చేయండి', 'ಈ combination ನಲ್ಲಿ ಸ್ಟಾಕ್ ಇಲ್ಲ — ಬೇರೆ ಆಯ್ಕೆ ಮಾಡಿ', 'No stock for this combination right now — try another pick') + '</p>') +
+      '<div class="sq-btns">' +
+        (sq.occ ? '<a class="btn btn-maroon" href="shop.html?cat=' + encodeURIComponent(sq.occ) + '">🛍️ ' + loc('இவற்றை ஷாப் செய்', 'ఇవి షాప్ చేయి', 'ಇವುಗಳನ್ನು ಶಾಪ್ ಮಾಡಿ', 'Shop these') + '</a>' : '') +
+        '<button type="button" class="btn btn-outline" data-sqretake>🔁 ' + loc('மீண்டும் முயற்சி', 'మళ్ళీ ప్రయత్నించు', 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ', 'Retake') + '</button>' +
+      '</div></div>');
+    const rt = document.querySelector('[data-sqretake]');
+    if (rt) rt.addEventListener('click', () => { openStyleQuiz(); });
+  }catch(e){}
+}
+/* ✨ quiz banner — home page invitation */
+function styleQuizBannerHTML(){
+  try{
+    return '<div class="wrap" style="margin-top:10px"><button type="button" class="quiz-banner" data-quiz="1">' +
+      '<span class="qb-ico">✨</span>' +
+      '<span class="qb-txt"><b>' + loc('AI Style Quiz — வெறும் 3 டேப்!', 'AI స్టైల్ క్విజ్ — కేవలం 3 ట్యాప్‌లు!', 'AI ಸ್ಟೈಲ್ ಕ್ವಿಜ್ — ಕೇವಲ 3 ಟ್ಯಾಪ್!', 'AI Style Quiz — just 3 taps!') + '</b>' +
+      '<small>' + loc('சந்தர்ப்பம்? பட்ஜெட்? பிடித்த நிறம்? — AI உடனே உங்களுக்கான சேலைகளை காட்டும் 🤖', 'సందర్భం? బడ్జెట్? ఇష్టమైన రంగు? — AI వెంటనే మీ చీరలను చూపిస్తుంది 🤖', 'ಸಂದರ್ಭ? ಬಜೆಟ್? ಇಷ್ಟದ ಬಣ್ಣ? — AI ತಕ್ಷಣ ನಿಮ್ಮ ಸೀರೆಗಳನ್ನು ತೋರಿಸುತ್ತದೆ 🤖', 'Occasion? Budget? Favourite colour? — AI instantly finds your perfect sarees 🤖') + '</small></span>' +
+      '<span class="qb-go">→</span></button></div>';
+  }catch(e){ return ''; }
+}
+
+/* ⏱️ dwell tracking — how long she studies each product page (engagement
+   signal for the taste engine; hidden-tab time doesn't count) */
+function initDwellTracking(){
+  try{
+    const flush = () => {
+      try{
+        if (!window.__pdpStart || !window.__pdpId) return;
+        const secs = Math.round((Date.now() - window.__pdpStart) / 1000);
+        if (secs > 0){
+          const d = LS.get('sk_dwell', {}) || {};
+          d[window.__pdpId] = (d[window.__pdpId] || 0) + secs;
+          /* keep the map small — last 25 sarees she studied */
+          const keys = Object.keys(d);
+          if (keys.length > 25){
+            keys.sort((a, b) => (d[b] || 0) - (d[a] || 0));
+            keys.slice(25).forEach(k => { delete d[k]; });
+          }
+          LS.set('sk_dwell', d);
+        }
+        window.__pdpStart = Date.now();   /* reset — hidden time is not credit */
+      }catch(e){}
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  }catch(e){}
+}
+
+/* 🙏 FIRST VISIT: ask her name after ONE FULL MINUTE of REAL BROWSING — only
+   seconds where the tab is actually VISIBLE count (hidden/idle tab = no
+   credit), and time accumulates across every page she visits. She shops
+   undisturbed first; the ask comes after she's genuinely engaged. */
+let __skActiveTimer = null;
+function activeMs(){ try{ return +LS.get('sk_active_ms', 0) || 0; }catch(e){ return 0; } }
 function maybeAskName(){
   try{
-    if (userName()) return;
-    if (LS.get('sk_name_asked', 0)) return;
-    setTimeout(openNamePopup, 1800);
+    if (userName() || LS.get('sk_name_asked', 0)) return;
+    if (__skActiveTimer) return;
+    __skActiveTimer = setInterval(() => {
+      try{
+        if (userName() || LS.get('sk_name_asked', 0)){ clearInterval(__skActiveTimer); __skActiveTimer = null; return; }
+        if (document.visibilityState !== 'visible') return;      /* hidden tab → no credit */
+        const ms = activeMs() + 1000;
+        LS.set('sk_active_ms', ms);
+        if (ms >= 60000 && !document.querySelector('#modalRoot .modal')) openNamePopup();
+      }catch(e){}
+    }, 1000);
   }catch(e){}
 }
 function openNamePopup(){
   try{
+    if (userName() || LS.get('sk_name_asked', 0)) return;
+    /* another popup active (scratch card / upsell)? wait politely and retry */
+    if (document.querySelector('#modalRoot .modal')){ setTimeout(openNamePopup, 12000); return; }
     openModal(
       '<div class="np-card">' +
         '<div class="np-emoji">🪡</div>' +
@@ -1178,6 +1513,9 @@ function renderProduct(){
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
+  /* ⏱️ dwell-time signal: remember WHEN she opened this saree — flushed on
+     leave/hidden so the taste engine knows which sarees she STUDIED */
+  try{ window.__pdpStart = Date.now(); window.__pdpId = p.id; }catch(e){}
   /* 📏 blouse size guide (after fabric & details) + dynamic OG title */
   try{
     const t = document.querySelector('.pd-block table');
@@ -2468,6 +2806,9 @@ document.addEventListener('click', function(e){
   /* 📢 share the whole website (banner image + link) */
   const sst = e.target.closest('[data-sharesite]');
   if (sst){ e.preventDefault(); shareSite(); return; }
+  /* ✨ AI Style Quiz (banner + chips + AI assistant) */
+  const sqz = e.target.closest('[data-quiz]');
+  if (sqz){ e.preventDefault(); openStyleQuiz(); return; }
   /* 📋 lead: visitor clicks a WhatsApp order/chat link with a saved phone */
   const wao = e.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"]');
   if (wao){
