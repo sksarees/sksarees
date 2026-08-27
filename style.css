@@ -1904,3 +1904,44 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
   background:var(--gold-soft); border:1px solid var(--gold-l); color:#6b4c05;
   font-size:.7rem; font-weight:800; border-radius:999px; padding:4px 10px;
 }
+
+/* ============================================================================
+   📱 CARD BUTTONS — mobile: "Add to Cart" → compact 🛒 symbol
+   ⚡ QUICK BUY — stacked bolt + very tiny 1%-off online price
+   ========================================================================== */
+/* ⚡ Quick Buy: ⚡ on top + online price (1% off) in very very small letters */
+.ca-quick{
+  flex-direction:column;
+  gap:1px;
+  min-width:58px;
+  max-width:66px;
+  padding:5px 4px;
+  line-height:1.08;
+  justify-content:center;
+}
+.ca-quick .ca-qp{
+  display:block;
+  font-size:.5rem;          /* very very small price */
+  font-weight:900;
+  letter-spacing:-.25px;
+  color:#5c3a06;
+  white-space:nowrap;
+}
+/* 📱 mobile only: Add to Cart becomes a clean 🛒 symbol (saves card space) */
+@media(max-width:640px){
+  .p-actions .btn.btn-outline[data-add]{
+    font-size:0;
+    min-width:48px;
+    padding:10px 5px;
+  }
+  .p-actions .btn.btn-outline[data-add]::before{
+    content:'🛒';
+    font-size:1.05rem;
+    line-height:1;
+  }
+}
+@media(max-width:380px){
+  .p-actions .btn.btn-outline[data-add]::before{ font-size:.95rem }
+  .ca-quick{ min-width:52px }
+  .ca-quick .ca-qp{ font-size:.46rem }
+}

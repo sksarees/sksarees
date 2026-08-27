@@ -70,7 +70,46 @@ function aiPushMsg(role, html){
 }
 function aiRespond(q){
   q = String(q || '').trim();
-  const input = q.replace(/[?.!]/g, ' ').toLowerCase();
+  /* 🎨 COLOUR SYNONYMS — Indian colour names all mean the same family */
+  const COLOUR_SYN = {
+    red: ['red','maroon','wine','rose','rani','cherry','ruby'],
+    maroon: ['maroon','red','wine'],
+    blue: ['blue','navy','teal','sky','indigo','turquoise'],
+    green: ['green','emerald','olive','mint','pistachio'],
+    yellow: ['yellow','mustard','turmeric','haldi'],
+    gold: ['gold','golden','zari','kasavu'],
+    purple: ['purple','violet','lavender','mauve','lilac'],
+    pink: ['pink','rose','blush','rani','fuchsia'],
+    white: ['white','ivory','cream','off-white'],
+    black: ['black','kohl','coal'],
+    orange: ['orange','saffron','kumkuma'],
+  };
+  /* 🇮🇳 TAMIL BRIDGE — she can ask in Tamil! Tamil words map to English intents
+     so the scoring engine understands: பட்டு→silk, சிவப்பு→red, திருமண→wedding… */
+  const TA_BRIDGE = [
+    [/திருமண|கல்யாண|மாப்பிள|மணப்பெண்/, ' wedding '],
+    [/பார்ட்டி|விழா|ஃபங்க்ஷன்|பிறந்தநாள்/, ' party '],
+    [/அலுவலக|ஆபீஸ|ஆபீசு/, ' office '],
+    [/தினசரி|அன்றாட/, ' daily '],
+    [/பொங்கல்|தீபாவளி|நவராத்திரி|பண்டிகை|கோவில்|பூஜை|ஆடி/, ' festival '],
+    [/பட்டு|காஞ்சிபுரம்|சில்க்|கஞ்சிவரம்|பட்டுச்?சேலை/, ' silk '],
+    [/பருத்தி|காட்டன்/, ' cotton '],
+    [/லினன்/, ' linen '],
+    [/சிவப்பு|செம்மை/, ' red '],
+    [/நீலம்|நீல நிற/, ' blue '],
+    [/பச்சை/, ' green '],
+    [/மஞ்சள்/, ' yellow '],
+    [/ஊதா/, ' purple '],
+    [/வெள்ளை/, ' white '],
+    [/கருப்பு/, ' black '],
+    [/தங்க நிற|பொன்நிற/, ' gold '],
+    [/மலிவான|குறைந்த விலை/, ' cheap '],
+    [/எனக்கு|பரிந்துரை|எனக்காக/, ' recommend for me '],
+    [/பரிசு|கிஃப்ட்/, ' gift '],
+  ];
+  let bridged = q;
+  try{ TA_BRIDGE.forEach(b => { if (b[0].test(q)) bridged += ' ' + b[1]; }); }catch(e){}
+  const input = bridged.replace(/[?.!]/g, ' ').toLowerCase();
   const has = re => new RegExp(re).test(input);
   let pool = [];
   try{ pool = PRODUCTS.filter(p => !p.hidden && p.stock != null && p.stock > 0); }catch(e){}
@@ -106,9 +145,11 @@ function aiRespond(q){
     if (has('party|function|reception|birthday')){ if (p.cat === 'party' || p.cat === 'fancy' || /party|reception/.test(t)) s += 4; }
     if (has('puja|festival|aadi|pongal|diwali|temple')){ if (p.cat === 'festival' || /festival|puja|temple/.test(t)) s += 4; }
     for (const fab of ['silk','cotton','linen','organza','georgette','net','kanjivaram','banarasi']) if (has(fab) && t.indexOf(fab) !== -1) s += 3;
-    for (const col of Object.keys(COLOUR_SWATCHES)) if (has(col) && t.indexOf(col) !== -1) s += 3;
-    const bm = input.match(/under\s*₹?\s*(\d+)|(\d+)\s*(?:rupees|rs)\b|below\s*(\d+)/);
-    if (bm){ const budget = +(bm[1] || bm[2] || bm[3]); if (p.price <= budget) s += 3; else s -= 2; }
+    /* 🎨 colour synonyms — "red" also means maroon/wine/rose/rani… so she finds
+       her colour even when the saree is tagged differently */
+    for (const col of Object.keys(COLOUR_SYN)) if (has(col) && COLOUR_SYN[col].some(syn => t.indexOf(syn) !== -1)) s += 3;
+    const bm = input.match(/under\s*₹?\s*(\d+)|(?:₹|rs\.?\s*)(\d{3,5})|below\s*(\d+)|(?:^|\s)(\d{3,5})(?:\s|$)/);
+    if (bm){ const budget = +(bm[1] || bm[2] || bm[3] || bm[4]); if (p.price <= budget) s += 3; else s -= 2; }
     if (has('cheap|budget|low price')){ if (p.price <= 1200) s += 3; }
     if (has('gift')) s += 1;
     return s;
@@ -116,6 +157,21 @@ function aiRespond(q){
   let picks = pool.map(p => ({ p, s: score(p) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3).map(x => x.p);
   if (!picks.length) picks = pool.slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 3);
   if (!picks.length){ aiPushMsg('bot', '😊 We will get fresh stock soon! Meanwhile, <b>ask us on WhatsApp</b> — we will help you find the perfect saree.'); return; }
+  /* 🎨 HONEST COLOUR CHECK — if she asked a colour and NOTHING matches, say it
+     honestly + show trending + WhatsApp (never show wrong-colour sarees) */
+  const askedCols = Object.keys(COLOUR_SYN).filter(c => has(c));
+  if (askedCols.length){
+    const anyMatch = picks.some(p => {
+      const t = (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + (p.colors || []).join(' ') + ' ' + p.cat + ' ' + (p.desc || '')).toLowerCase();
+      return askedCols.some(c => COLOUR_SYN[c].some(syn => t.indexOf(syn) !== -1));
+    });
+    if (!anyMatch){
+      aiPushMsg('bot', '😔 ' + loc('அந்த நிறத்தில் இப்போது exact-ஆ stock இல்லை — ஆனா இதோ இப்போது இருக்கிற அழகான சேலைகள்:', 'ఆ రంగులో ప్రస్తుతం స్టాక్ లేదు — కానీ ఇవి మా ప్రస్తుత అందమైన చీరలు:', 'ಆ ಬಣ್ಣದಲ್ಲಿ ಈಗ ಸ್ಟಾಕ್ ಇಲ್ಲ — ಆದರೆ ಇವು ಈಗ ಇರುವ ಅಂದವಾದ ಸೀರೆಗಳು:', 'That exact colour is out of stock right now — but here are today\'s beautiful picks:') +
+        '<div class="ai-cards">' + picks.map(aiCard).join('') + '</div>' +
+        '<a class="btn btn-wa btn-sm" style="margin-top:8px" href="' + waLink('Hi! I am looking for a ' + askedCols.join('/') + ' saree. Do you have it? 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('அந்த நிறம் வேண்டுமா? WhatsApp-ல கேளுங்கள் — வந்ததும் சொல்கிறோம்!', 'ఆ రంగు కావాలా? WhatsApp లో అడగండి!', 'ಆ ಬಣ್ಣ ಬೇಕಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ!', 'Want that colour? Ask on WhatsApp — we will inform you!') + '</a>');
+      return;
+    }
+  }
   aiPushMsg('bot', (hint ? 'Here are <b>' + hint + '</b> picks for you: 🎯' : 'Here are your best matches: 🎯') +
     '<div class="ai-cards">' + picks.map(aiCard).join('') + '</div>' +
     tasteSummaryHTML() +
@@ -204,6 +260,13 @@ function forYouHTML(){
     if (picks.length < 2){
       /* no history → trending (best-rated) strip */
       picks.push.apply(picks, PRODUCTS.filter(p => !p.hidden && p.stock > 0).slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0)).slice(0, 4));
+    }
+    /* 🌈 diversity: never 4 of the same category — hand-curated feel */
+    const divLen = picks.length;
+    const div = diversePicks(picks.map(p => ({ p, s: 1 })), Math.max(2, divLen), 2).map(x => x.p);
+    if (div.length >= 2){
+      picks.length = 0;
+      div.forEach(p => picks.push(p));
     }
     if (picks.length < 2) return '';
     const nm = userName();
@@ -299,7 +362,7 @@ function cardHTML(p){
         (out
           ? '<button type="button" class="btn" disabled style="opacity:.55">Out of Stock</button>'
           : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">Add to Cart</button>') +
-        (out ? '' : '<a class="btn btn-gold ca-quick" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1" aria-label="Quick Buy — one tap checkout" title="⚡ Quick Buy — 1 tap">⚡</a>') +
+        (out ? '' : '<a class="btn btn-gold ca-quick" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1" aria-label="Quick Buy — online price ' + money(onlinePrice(p)) + '" title="⚡ Quick Buy — pay online & save ' + (CONFIG.onlineDiscount || 1) + '%">⚡<small class="ca-qp">' + money(onlinePrice(p)) + '</small></a>') +
         '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
       '</div>' +
     '</div></article>';
@@ -530,6 +593,7 @@ function renderShop(){
         '<input type="range" id="pFilter" min="299" max="3000" step="100" value="3000" style="width:100%;accent-color:var(--maroon)"></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Sort</label>' +
         '<select id="sFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff">' +
+        '<option value="foryou">✨ For You (AI)</option>' +
         '<option value="newest">Newest</option><option value="bestselling">Best Selling</option><option value="popular">Popularity</option>' +
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
       '</div></div>' +
@@ -587,6 +651,12 @@ function shopList(){
     (!shopState.colour || (p.colors || []).indexOf(shopState.colour) !== -1 || String(p.color || '').toLowerCase().includes(shopState.colour.toLowerCase())) &&
     p.price <= shopState.max);
   switch (shopState.sort){
+    case 'foryou': {
+      /* ✨ AI sort — the taste engine ranks the WHOLE grid for her */
+      const tp = tasteProfile();
+      l = l.slice().sort((a, b) => (tp.signals ? tasteScore(b, tp) - tasteScore(a, tp) : (b.reviews || 0) - (a.reviews || 0)));
+      break;
+    }
     case 'price-asc': l = l.slice().sort((a, b) => a.price - b.price); break;
     case 'price-desc': l = l.slice().sort((a, b) => b.price - a.price); break;
     case 'discount': l = l.slice().sort((a, b) => offPct(b) - offPct(a)); break;
@@ -735,6 +805,8 @@ function tasteProfile(){
   };
   try{ (Store.wish || []).slice(-12).forEach(id => add(byId(id), 6)); }catch(e){}      /* ❤️ strongest signal */
   try{ (Store.cart || []).forEach(i => add(byId(i.id), 5)); }catch(e){}                /* 🛒 buying intent */
+  /* 💳 PURCHASED items — the strongest taste proof of all (weight 7) */
+  try{ (Store.orders || []).slice(0, 8).forEach(o => (o.items || []).forEach(i => add(byId(i.id), 7))); }catch(e){}
   try{
     const rv = JSON.parse(localStorage.getItem('sk_recent') || '[]');
     (Array.isArray(rv) ? rv : []).slice(0, 10).forEach((id, i) => add(byId(id), Math.max(1, 4 - Math.floor(i / 3)))); /* 👀 recent views */
@@ -783,7 +855,30 @@ function tasteScore(p, tp){
     return s;
   }catch(e){ return 0; }
 }
-/* ✨ "{Name} Will Love" — deep personalized picks strip (taste-ranked) */
+/* 🌈 DIVERSITY — a good recommender never shows 4 sarees from the same
+   category. diversePicks keeps at most maxPerCat per category so her "For
+   You" slate feels hand-curated, not repetitive (beats filter-bubble). */
+function diversePicks(list, limit, maxPerCat){
+  try{
+    const out = [], seen = {};
+    for (const x of list){
+      const c = (x.p && x.p.cat) || 'other';
+      if ((seen[c] || 0) >= (maxPerCat || 2)) continue;
+      seen[c] = (seen[c] || 0) + 1;
+      out.push(x);
+      if (out.length >= limit) break;
+    }
+    if (out.length < limit){
+      const chosen = new Set(out.map(x => x.p.id));
+      for (const x of list){
+        if (out.length >= limit) break;
+        if (!chosen.has(x.p.id)){ out.push(x); chosen.add(x.p.id); }
+      }
+    }
+    return out;
+  }catch(e){ return list.slice(0, limit); }
+}
+/* 🌈 diverse slate in the "{Name} Will Love" strip */
 function tastePicksHTML(limit){
   try{
     limit = limit || 6;
@@ -793,12 +888,23 @@ function tastePicksHTML(limit){
     (Store.wish || []).forEach(id => exclude.add(id));
     (Store.cart || []).forEach(i => exclude.add(i.id));
     try{ JSON.parse(localStorage.getItem('sk_recent') || '[]').slice(0, 3).forEach(id => exclude.add(id)); }catch(e){}
-    const picks = PRODUCTS.filter(p => !p.hidden && p.stock > 0 && !exclude.has(p.id))
+    const ranked = PRODUCTS.filter(p => !p.hidden && p.stock > 0 && !exclude.has(p.id))
       .map(p => ({ p, s: tasteScore(p, tp) }))
       .filter(x => x.s >= 3)
-      .sort((a, b) => b.s - a.s)
-      .slice(0, limit)
-      .map(x => x.p);
+      .sort((a, b) => b.s - a.s);
+    let picks = diversePicks(ranked, limit, 2);   /* max 2 per category */
+    if (picks.length < limit){
+      /* widen: pull the next-best (score ≥ 1) to KEEP VARIETY instead of
+         repeating the same category again and again */
+      const chosen = new Set(picks.map(x => x.p.id));
+      const wider = PRODUCTS.filter(p => !p.hidden && p.stock > 0 && !exclude.has(p.id) && !chosen.has(p.id))
+        .map(p => ({ p, s: tasteScore(p, tp) }))
+        .filter(x => x.s >= 1)
+        .sort((a, b) => b.s - a.s);
+      const merged = diversePicks(picks.concat(wider), limit, 2);
+      if (merged.length > picks.length) picks = merged;
+    }
+    const finalPicks = picks.map(x => x.p);
     if (picks.length < 2) return '';
     const nm = userName();
     const title = loc(
@@ -807,7 +913,7 @@ function tastePicksHTML(limit){
       nm ? nm + ' ಗೆ ಇಷ್ಟವಾದ ಸೀರೆಗಳು' : 'ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆಗಳು',
       nm ? 'Sarees ' + nm + ' Will Love' : 'Sarees You Will Love');
     return '<section class="sec taste-sec"><div class="sec-head"><h2><span class="tick"></span>✨ ' + title + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
-      '<div class="prow">' + picks.map(cardHTML).join('') + '</div>' +
+      '<div class="prow">' + finalPicks.map(cardHTML).join('') + '</div>' +
       '<p class="small muted" style="margin-top:8px">🤝 ' + loc('நீங்கள் பார்த்து பிடித்தவற்றின் அடிப்படையில் தேர்ந்தெடுக்கப்பட்டவை', 'మీరు చూసిన & ఇష్టపడిన వాటి ఆధారంగా ఎంపిక చేయబడింది', 'ನೀವು ನೋಡಿದ ಮತ್ತು ಇಷ್ಟಪಟ್ಟ ಸೀರೆಗಳ ಆಧಾರದಲ್ಲಿ ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ', 'Picked specially from what you viewed & loved') + '</p></section>';
   }catch(e){ return ''; }
 }
