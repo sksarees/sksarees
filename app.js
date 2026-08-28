@@ -1550,11 +1550,13 @@ function renderProduct(){
   try{ if (window.REC) REC.trackView(p.id); }catch(e){}
   const related = PRODUCTS.filter(x => !x.hidden && x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
-  const revs = userRevs.length
-    ? userRevs.slice().reverse().map(r => '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name) + '</b><small>Verified customer ⭐</small></div></div><div class="stars">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text) + '</p>' +
-      (r.photo ? '<a class="rev-photo" href="' + r.photo + '" target="_blank" rel="noopener" title="Customer photo — tap to view"><img src="' + r.photo + '" alt="customer photo" loading="lazy"></a>' : '') +
-      '</div>').join('')
-    : '<p class="muted small">No customer reviews yet — be the first! 💬</p>';
+  /* ✅ "Verified customer" badge shows ONLY for reviews posted by users who
+     saved their address & phone (real, reachable customers — honest trust) */
+  const revs = (userRevs.length
+    ? userRevs.slice().reverse().map(revCardHTML).join('')
+    : '') +
+    '<div id="remoteRevs"></div>' +   /* 📡 reviews + photos from ALL customers (Firestore) */
+    (userRevs.length ? '' : '<p class="muted small">No customer reviews yet — be the first! 💬</p>');
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
   const gal = [];
   try{
@@ -1601,19 +1603,17 @@ function renderProduct(){
         '<div class="price-line"><span>Old price: <s>' + money(p.mrp || p.price) + '</s></span> &nbsp;•&nbsp; <span>New price: <b>' + money(p.price) + '</b></span></div>' +
         offerTimerHTML(p, true) +
         (out ? '' : '<p class="small" style="color:var(--green);font-weight:800;margin:2px 0">💳 Pay online &amp; save ' + (CONFIG.onlineDiscount || 1) + '% — <b>' + money(onlinePrice(p)) + '</b> (COD: ' + money(p.price) + ')</p>') +
-        '<div class="social-proof">' + socialProofHTML(p) + '</div>' +
-        '<div class="viewing-now">👀 <b>' + viewingNow(p) + ' people viewing this right now</b></div>' +
-        skinToneRecommendHTML(p) +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😞 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '') +
-        '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping</p>' +
+        /* 🧹 returns/shipping corner — LATE promise lives here now (out of the main flow) */
+        '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping • ↩️ 7-day returns • ' + loc('லேட் டெலிவரி? அடுத்த ஆர்டருக்கு 5% OFF (LATE50)', 'లేట్ డెలివరీ? తర్వాతి ఆర్డర్‌కి 5% OFF (LATE50)', 'ಲೇಟ್ ಡೆಲಿವರಿ? ಮುಂದಿನ ಆರ್ಡರ್‌ಗೆ 5% OFF (LATE50)', 'Late delivery? 5% off next order (LATE50)') + '</p>' +
         '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
-        '<div class="delivery-card"><b>⏱ Fast Delivery & On-Time Promise</b>' + eta.text + '.<br>' + CONFIG.latePromise + '</div>' +
+        '<div class="delivery-card"><b>⏱ Fast Delivery</b>' + eta.text + '.</div>' +
         (p.colors && p.colors.length
-          ? '<div class="pd-colour-row"><b>🎨 Colour</b> <small class="muted" style="font-weight:600">— AI-detected from photo</small>' +
+          ? '<div class="pd-colour-row"><b>🎨 ' + loc('Colour', 'రంగు', 'ಬಣ್ಣ', 'Colour') + '</b>' +
             '<div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
               const left = (p.colourStock && p.colourStock[c] != null) ? p.colourStock[c] : null;
               const dead = left === 0;
@@ -1628,21 +1628,9 @@ function renderProduct(){
             : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
           (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
         '</div>' +
-        '<div class="pd-share">' +
-          '<button type="button" class="btn btn-wa btn-sm" data-share-wa="' + esc(p.id) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp Share</button>' +
-          '<button type="button" class="btn btn-maroon btn-sm" data-viral="' + esc(p.id) + '">📢 ' + (lang === 'ta' ? 'வாட்ஸ்அப் குரூப்பில் பகிர்' : 'WhatsApp Share — Groups') + '</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-dl-photo="' + esc(p.img) + '">📥 Download Photo</button>' +
-          '<button type="button" class="btn btn-outline btn-sm" data-share-status="' + esc(p.id) + '">📸 Share Photo</button>' +
-          '<button type="button" class="btn btn-ghost btn-sm" data-copy-link="' + esc(productUrl(p)) + '">🔗 Copy Link</button>' +
-        '</div>' +
-        '<div class="pd-social">' +
-          '<span class="small muted" style="font-weight:800">📤 Share to:</span>' +
-          '<a class="soc soc-fb" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on Facebook">FB</a>' +
-          '<a class="soc soc-x" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on X (Twitter)">𝕏</a>' +
-          '<a class="soc soc-tg" href="https://t.me/share/url?url=' + encodeURIComponent(productUrl(p)) + '&text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡') + '" target="_blank" rel="noopener" title="Share on Telegram">✈️</a>' +
-          '<a class="soc soc-wa" href="https://wa.me/?text=' + encodeURIComponent(p.name + ' — SK Sarees 🪡\n' + productUrl(p)) + '" target="_blank" rel="noopener" title="Share on WhatsApp">WA</a>' +
-          '<a class="soc soc-pin" href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(productUrl(p)) + '&media=' + encodeURIComponent(p.img || '') + '&description=' + encodeURIComponent(p.name) + '" target="_blank" rel="noopener" title="Share on Pinterest">P</a>' +
-          '<a class="soc soc-in" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(productUrl(p)) + '" target="_blank" rel="noopener" title="Share on LinkedIn">in</a>' +
+        '<div class="pd-share" style="display:grid;gap:8px">' +
+          /* 🧹 cleaned: one clear action — Order on WhatsApp (share clutter removed) */
+          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
         '</div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
@@ -1759,13 +1747,15 @@ function renderProduct(){
     const text = (document.getElementById('rvText') || {}).value || '';
     if (!text.trim()){ toast('✍️ Please write your comment first'); return; }
     const list = LS.get('sk_reviews_' + p.id, []);
-    const rev = { name: name || 'Anonymous', rating: +stars, text, photo: (window.__revPhoto || ''), date: Date.now() };
+    const rev = { name: name || 'Anonymous', rating: +stars, text, photo: (window.__revPhoto || ''), verified: !!(Store.profile && Store.profile.address && Store.profile.phone), date: Date.now() };
     list.push(rev); LS.set('sk_reviews_' + p.id, list);
     if (FS.enabled()) FS.saveReview(p.id, rev).catch(() => {});
     window.__revPhoto = '';
     toast('✅ Thank you! Review posted');
     renderProduct();
   }));
+  /* 📡 reviews + photos from ALL customers (Firestore — one read) */
+  try{ loadRemoteReviews(p); }catch(e){}
 
 }
 
@@ -1773,6 +1763,36 @@ function renderProduct(){
    Works on ANY static host (GitHub Pages too!): her photo is compressed ON
    HER PHONE via canvas (~640px, ~60-80KB base64) and stored with the review
    (device + Firestore doc). No server, no storage bucket, no uploads. */
+/* one review card — used for local AND Firestore reviews.
+   ✅ "Verified customer" badge ONLY for reviews from address-saved users. */
+function revCardHTML(r){
+  try{
+    const verified = !!(r && r.verified);
+    return '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name || 'Anonymous') + '</b><small>' +
+      (verified ? '\u2705 Verified customer' : loc('\u0bb5\u0bbe\u0b9f\u0bbf\u0b95\u0bcd\u0b95\u0bc8\u0baf\u0bbe\u0bb3\u0bb0\u0bcd \u0bb0\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c15\u0c38\u0c4d\u0c1f\u0c2e\u0c30\u0c4d \u0c30\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c97\u0ccd\u0cb0\u0bbe\u0cb9\u0c95 \u0cb5\u0cbf\u0cae\u0cb0\u0ccd\u0cb6\u0cc6', 'Customer review')) +
+      '</small></div></div><div class="stars">' + '\u2605'.repeat(r.rating || 5) + '\u2606'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text || '') + '</p>' +
+      (r.photo ? '<a class="rev-photo" href="' + r.photo + '" target="_blank" rel="noopener" title="Customer photo \u2014 tap to view"><img src="' + r.photo + '" alt="customer photo" loading="lazy"></a>' : '') +
+      '</div>';
+  }catch(e){ return ''; }
+}
+/* \U0001F4E1 Firestore reviews (+photos) — they show for EVERYONE on ANY device
+   (that was the missing piece: photos only lived on the poster's phone).
+   One small query per product page view. */
+function loadRemoteReviews(p){
+  try{
+    if (!FS.enabled()) return;
+    FS.getProductReviews(p.id, 12).then(list => {
+      try{
+        const box = document.getElementById('remoteRevs');
+        if (!box || !list || !list.length) return;
+        const local = LS.get('sk_reviews_' + p.id, []);
+        const seen = new Set(local.map(r => (r.name || '') + '|' + (r.text || '')));   /* don't repeat her own */
+        const fresh = list.filter(r => r && r.text && !seen.has((r.name || '') + '|' + (r.text || ''))).slice(0, 8);
+        if (fresh.length) box.innerHTML = fresh.map(revCardHTML).join('');
+      }catch(e){}
+    }).catch(() => {});
+  }catch(e){}
+}
 let __revPhoto = '';
 function attachReviewPhoto(input){
   try{
@@ -1793,10 +1813,11 @@ function attachReviewPhoto(input){
           __revPhoto = cv.toDataURL('image/jpeg', 0.72);
           window.__revPhoto = __revPhoto;
           const lbl = document.getElementById('rvPhotoLbl');
-          if (lbl) lbl.innerHTML = '✅ ' + loc('போட்டோ சேர்க்கப்பட்டது — பதிவேற்றுகிறது!', 'ఫోటో జోడించబడింది — పోస్ట్ చేయండి!', 'ಫೋಟೋ ಸೇರಿಸಲಾಗಿದೆ — ಪೋಸ್ಟ್ ಮಾಡಿ!', 'Photo added — now post!');
+          if (lbl) lbl.innerHTML = '✅ ' + loc('போட்டோ ரெடி!', 'ఫోటో ready!', 'ಫೋಟೋ ready!', 'Photo ready!') + '<img class="rv-preview" src="' + __revPhoto + '" alt="preview">';
           toast('📷 ' + loc('போட்டோ ரெடி!', 'ఫోటో ready!', 'ಫೋಟೋ ready!', 'Photo ready!'));
         }catch(e){ toast('⚠️ ' + loc('போட்டோ சேர்க்க முடியவில்லை', 'ఫోటో జోడించలేకపోయాము', 'ಫೋಟೋ ಸೇರಿಸಲಾಗಲಿಲ್ಲ', 'Could not add photo')); }
       };
+      img.onerror = () => { toast('⚠️ ' + loc('இந்த போட்டோ format support இல்லை — JPG-ஆ மாற்றி அனுப்புங்கள்', 'ఈ ఫోటో ఫార్మాట్ సపోర్ట్ లేదు — JPG గా మార్చి పంపండి', 'ಈ ಫೋಟೋ ಸಪೋರ್ಟ್ ಆಗುವುದಿಲ್ಲ — JPG ಆಗಿ ಬದಲಾಯಿಸಿ ಕಳುಹಿಸಿ', 'This photo format is not supported — please send as JPG')); };
       img.src = rd.result;
     };
     rd.readAsDataURL(f);

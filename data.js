@@ -1995,24 +1995,11 @@ const LANGS = {
     search:'ಸೀರೆಗಳು, ಫ್ಯಾಬ್ರಿಕ್, ಬಣ್ಣ ಹುಡುಕಿ…', all:'ಎಲ್ಲಾ', inStock:'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ', outStock:'ಸ್ಟಾಕ್ ಇಲ್ಲ',
   },
 };
-/* 🌐 LANGUAGE: saved choice first; else AUTO-DETECT the device/browser language
-   (ta/te/kn → their language, others → English). No location, no permission
-   prompt — pure navigator.language read. Kannada/Telugu/Tamil users get the
-   site in their own language automatically. */
-let lang = (function(){
-  try{
-    const saved = LS.get('sk_lang', '');
-    if (saved && LANGS[saved]) return saved;
-  }catch(e){}
-  try{
-    const tags = ((navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || '']).join(',').toLowerCase().split(',');
-    for (let i = 0; i < tags.length; i++){
-      const pri = String(tags[i]).split('-')[0].trim();
-      if (pri === 'ta' || pri === 'te' || pri === 'kn') return pri;
-    }
-  }catch(e){}
-  return 'en';
-})();
+/* 🌐 LANGUAGE: English first — the site opens in English; the language changes
+   ONLY when she picks one herself (Profile → Language). Her saved choice is
+   always respected. */
+let lang = LS.get('sk_lang', '') || 'en';
+if (!LANGS[lang]) lang = 'en';
 /* 🙏 greeting word in the visitor's own language (ta/te/kn/en) */
 function greetWord(){
   if (lang === 'ta') return 'வணக்கம்';
@@ -2191,10 +2178,10 @@ const FS = {
       return true;
     }catch(e){ return false; }
   },
-  async getProductReviews(productId){
+  async getProductReviews(productId, lim){
     const db = await this._getDb(); if (!db) return [];
     try{
-      const snap = await db.collection('reviews').where('productId', '==', productId).limit(50).get();
+      const snap = await db.collection('reviews').where('productId', '==', productId).limit(lim || 50).get();
       const l = []; snap.forEach(x => l.push(x.data())); return l;
     }catch(e){ return []; }
   },

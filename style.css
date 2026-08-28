@@ -2127,3 +2127,39 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
   transition:transform .18s ease;
 }
 .rev-photo:hover img{ transform:scale(1.06) }
+
+/* ============================================================================
+   🛒 BUY NOW — fresh high-conversion colour: Myntra-style fashion pink/raspberry
+   (proven CTA for women's fashion; distinct from the maroon theme & WhatsApp
+   green, so the three actions never blur together)
+   ========================================================================== */
+.btn-buy{
+  background:linear-gradient(135deg,#ff6b88 0%,#ff3f6c 45%,#e0245e 100%);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.4px;
+  text-shadow:0 1px 3px rgba(120,10,45,.4);
+  border:0;
+  position:relative;
+  overflow:hidden;
+  border-radius:13px;
+  box-shadow:0 8px 22px rgba(224,36,94,.45), 0 2px 6px rgba(0,0,0,.16);
+  animation:buyPulse 1.9s ease-in-out infinite;
+}
+@keyframes buyPulse{
+  0%,100%{ box-shadow:0 8px 22px rgba(224,36,94,.45), 0 2px 6px rgba(0,0,0,.16); }
+  50%{ box-shadow:0 11px 34px rgba(224,36,94,.75), 0 3px 8px rgba(0,0,0,.2); }
+}
+
+/* 📷 photo review — live preview thumbnail inside the Add Photo button */
+.rv-preview{
+  display:block;
+  width:62px; height:62px;
+  object-fit:cover;
+  border-radius:9px;
+  border:2px solid #fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+  margin:7px auto 0;
+}
+/* reviews block: photos strip nicer */
+.rev-photo img{ width:80px; height:80px }
