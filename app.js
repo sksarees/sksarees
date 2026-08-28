@@ -360,15 +360,6 @@ function cardHTML(p){
       '<h3><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></h3>' +
       starsHTML(p) +
       '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-      (low ? '<div class="lowchip">🔥 Only <b>' + p.stock + '</b> left — order soon!</div>' : (out ? '<div class="lowchip out">😞 Out of stock — ask on WhatsApp for next batch</div>' : '')) +
-      offerTimerHTML(p) +
-      '<div class="p-actions">' +
-        (out
-          ? '<button type="button" class="btn" disabled style="opacity:.55">Out of Stock</button>'
-          : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">Add to Cart</button>') +
-        (out ? '' : '<a class="btn btn-gold ca-quick" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1" aria-label="Quick Buy — online price ' + money(onlinePrice(p)) + '" title="⚡ Quick Buy — pay online & save ' + (CONFIG.onlineDiscount || 1) + '%">⚡<small class="ca-qp">' + money(onlinePrice(p)) + '</small></a>') +
-        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
-      '</div>' +
     '</div></article>';
 }
 
@@ -1640,9 +1631,6 @@ function renderProduct(){
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '') +
-        /* 🚚 DELIVERY — short, clear, one glance */
-        '<div class="delivery-card"><b>🚚 Dispatch:</b> 12–24 Hours • <b>📦 Tamil Nadu:</b> 2–3 Days • <b>📦 Other States:</b> 3–7 Days<br>' +
-          '🚚 Shipping ₹' + (CONFIG.shipFee || 30) + ' • 💵 COD — ₹' + CONFIG.codFee + ' • 🎁 ' + loc('₹' + CONFIG.shipFreeAbove + ' மேல இலவச Shipping!', '₹' + CONFIG.shipFreeAbove + ' మీదే ఫ్రీ!', '₹' + CONFIG.shipFreeAbove + ' ಮೇಲೆ ಉಚಿತ!', 'FREE above ₹' + CONFIG.shipFreeAbove) + '<br>↩️ 7-Day Replacement • ' + loc('லேட் டெலிவரி? அடுத்த ஆர்டருக்கு 5% OFF (LATE50)', 'లేట్ డెలివరీ? తర్వాతి ఆర్డర్‌కి 5% OFF (LATE50)', 'ಲೇಟ್ ಡೆಲಿವರಿ? ಮುಂದಿನ ಆರ್ಡರ್‌ಗೆ 5% OFF (LATE50)', 'Late delivery? 5% off next order (LATE50)') + '</div>' +
         /* 🛒 TWO CLEAR CTAs — BUY NOW first, then Order on WhatsApp */
         '<div class="pd-btns">' +
           (out
@@ -1650,20 +1638,11 @@ function renderProduct(){
             : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ BUY NOW — ' + money(onlinePrice(p)) + '</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
         '</div>' +
-        /* secondary row — Add to Cart + ❤️ wishlist + 📢 share */
+        /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
-          (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'కాರ్ట్ లో చేರ్', 'ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ', 'Add to Cart') + '</button>') +
-          '<button type="button" class="btn btn-outline pd-heart2' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button>' +
-          '<button type="button" class="btn btn-outline" data-share-wa="' + esc(p.id) + '" aria-label="Share this saree">📢 ' + loc('பகிர்', 'షేರ్', 'ಹಂಚು', 'Share') + '</button>' +
+          (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'வண்டியில் சேர்', 'Add to Cart', 'Add to Cart') + '</button>') +
+          '<button type="button" class="btn btn-outline" data-shareearn="' + esc(p.id) + '">💰 ' + loc('Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%') + '</button>' +
         '</div>' +
-        (p.colors && p.colors.length
-          ? '<div class="pd-colour-row"><b>🎨 ' + loc('Colour', 'రంగు', 'ಬಣ್ಣ', 'Colour') + '</b>' +
-            '<div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
-              const left = (p.colourStock && p.colourStock[c] != null) ? p.colourStock[c] : null;
-              const dead = left === 0;
-              return '<button type="button" class="pd-colour' + (i === 0 && !dead ? ' on' : '') + '" data-colour="' + esc(c) + '"' + (dead ? ' disabled' : '') + '><span class="sw-dot" style="background:' + swatchHex(c) + '"></span>' + esc(c) + (left != null ? ' <small>(' + left + ' left)</small>' : '') + '</button>';
-            }).join('') + '</div></div>'
-          : '') +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
@@ -1791,7 +1770,7 @@ function revCardHTML(r){
     return '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name || 'Anonymous') + '</b><small>' +
       (verified ? '\u2705 Verified customer' : loc('\u0bb5\u0bbe\u0b9f\u0bbf\u0b95\u0bcd\u0b95\u0bc8\u0baf\u0bbe\u0bb3\u0bb0\u0bcd \u0bb0\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c15\u0c38\u0c4d\u0c1f\u0c2e\u0c30\u0c4d \u0c30\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c97\u0ccd\u0cb0\u0bbe\u0cb9\u0c95 \u0cb5\u0cbf\u0cae\u0cb0\u0ccd\u0cb6\u0cc6', 'Customer review')) +
       '</small></div></div><div class="stars">' + '\u2605'.repeat(r.rating || 5) + '\u2606'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text || '') + '</p>' +
-      (r.photo ? '<a class="rev-photo" href="' + r.photo + '" target="_blank" rel="noopener" title="Customer photo \u2014 tap to view"><img src="' + r.photo + '" alt="customer photo" loading="lazy"></a>' : '') +
+      (r.photo ? '<span class="rev-photo" role="button" data-revphoto="1" title="Customer photo \u2014 tap to view"><img src="' + r.photo + '" alt="customer photo" loading="lazy" onerror="this.parentNode.style.display=&quot;none&quot;"></span>' : '') +
       '</div>';
   }catch(e){ return ''; }
 }
@@ -3111,6 +3090,17 @@ document.addEventListener('click', function(e){
   /* 📢 share the whole website (banner image + link) */
   const sst = e.target.closest('[data-sharesite]');
   if (sst){ e.preventDefault(); shareSite(); return; }
+  /* 📷 review photo → big zoom in a modal (data: URLs are blocked in new tabs) */
+  const rp = e.target.closest('[data-revphoto]');
+  if (rp){
+    e.preventDefault();
+    const im = rp.querySelector('img');
+    if (im && im.src) openModal('<img src="' + im.src + '" alt="customer photo" style="width:100%;border-radius:14px;display:block">');
+    return;
+  }
+  /* 💰 Share & Earn button (product page secondary row) — auto-generates her link */
+  const sen = e.target.closest('[data-shareearn]');
+  if (sen){ e.preventDefault(); shareEarnProduct(byId(sen.dataset.shareearn)); return; }
   /* ✨ AI Style Quiz (banner + chips + AI assistant) */
   const sqz = e.target.closest('[data-quiz]');
   if (sqz){ e.preventDefault(); openStyleQuiz(); return; }

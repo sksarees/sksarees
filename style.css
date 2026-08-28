@@ -2225,3 +2225,24 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
 .offer-timer .ot-t{ font-variant-numeric:tabular-nums; background:#d0342c; color:#fff; border-radius:5px; padding:1px 6px; font-size:.68rem }
 .offer-timer.ot-big{ font-size:.78rem; background:linear-gradient(120deg,#fdeceb,#fff); border:1.5px solid #f3b7b3; border-radius:10px; padding:7px 11px; margin:6px 0 2px; justify-content:center; animation:none }
 .offer-timer.ot-big .ot-t{ font-size:.85rem; padding:1px 8px }
+
+/* ============================================================================
+   🧹 CLEAN CARDS + review photo zoom + Share & Earn secondary button
+   ========================================================================== */
+/* product cards — clean: tap the card to open (Meesho style), no button rows */
+.pcard{ cursor:pointer }
+.pcard-body{ padding:10px 12px 13px }
+.rev-photo{ display:inline-block; margin-top:6px; cursor:zoom-in }
+.rev-photo img{
+  width:84px; height:84px; object-fit:cover;
+  border-radius:11px; border:2px solid var(--gold-l);
+  display:block; transition:transform .18s ease;
+}
+.rev-photo:hover img{ transform:scale(1.07) }
+/* Share & Earn secondary button (after Add to Cart) */
+.pd-secondary .btn[data-shareearn]{
+  border-color:var(--gold);
+  background:var(--gold-soft);
+  color:#6b4c05;
+  font-weight:800;
+}
