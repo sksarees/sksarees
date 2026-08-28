@@ -2163,3 +2163,65 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
 }
 /* reviews block: photos strip nicer */
 .rev-photo img{ width:80px; height:80px }
+
+/* ============================================================================
+   🎯 CONVERSION PRODUCT PAGE — clean price, online highlight, 2 big CTAs,
+   secondary row, small calm offer timer, matching pink Quick-Buy
+   ========================================================================== */
+/* Buy Now — SAME Myntra-style pink, but CALM: no pulse, no shine (animation removed) */
+.btn-buy{
+  background:linear-gradient(135deg,#ff6b88 0%,#ff3f6c 45%,#e0245e 100%);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.5px;
+  text-shadow:0 1px 3px rgba(120,10,45,.4);
+  border:0;
+  border-radius:13px;
+  box-shadow:0 6px 18px rgba(224,36,94,.35), 0 2px 5px rgba(0,0,0,.14);
+  animation:none;
+}
+.btn-buy::before{ content:none; animation:none }
+.btn-buy:hover{ filter:brightness(1.06) }
+.btn-buy:active{ transform:scale(.97) }
+
+/* ⚡ Quick Buy on cards — SAME pink family */
+.ca-quick{
+  background:linear-gradient(135deg,#ff6b88 0%,#ff3f6c 45%,#e0245e 100%);
+  color:#fff;
+  text-shadow:0 1px 2px rgba(120,10,45,.4);
+  border:0;
+  border-radius:12px;
+}
+.ca-quick .ca-qp{ color:#fff; opacity:.95 }
+
+/* 💰 price block — struck MRP then BIG price */
+.pd-price{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:4px 0 2px }
+.pd-price b{ font-size:1.9rem; font-weight:900; color:var(--maroon); letter-spacing:.3px }
+.pd-price .old-price{ font-size:1.05rem; color:var(--muted) }
+.pd-price .off{ background:#1d8a4e; color:#fff; font-weight:900; font-size:.8rem; border-radius:999px; padding:4px 11px }
+
+/* 💳 online-price highlight box */
+.pd-online{
+  background:linear-gradient(120deg,#e9f7ef,#f4fbf7);
+  border:1.5px solid #bfe6cf;
+  border-radius:12px;
+  padding:9px 13px;
+  font-size:.9rem;
+  font-weight:800;
+  color:#14663a;
+  margin:6px 0 2px;
+  line-height:1.5;
+}
+.pd-online b{ font-size:1.05rem }
+
+/* 🛒 secondary actions row (Add to Cart | ❤️ | Share) */
+.pd-secondary{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap }
+.pd-secondary .btn{ flex:1 1 auto; min-width:70px; justify-content:center; display:inline-flex; align-items:center }
+.pd-secondary .pd-heart2{ flex:0 0 52px; font-size:1.1rem; padding:10px 0 }
+.pd-secondary .pd-heart2.on{ border-color:var(--maroon); background:var(--maroon-soft) }
+
+/* ⏰ offer timer — SMALL + calm (no blink) */
+.offer-timer{ font-size:.66rem; font-weight:800; color:#d0342c; margin-top:4px; display:flex; align-items:center; gap:3px; animation:none }
+.offer-timer .ot-t{ font-variant-numeric:tabular-nums; background:#d0342c; color:#fff; border-radius:5px; padding:1px 6px; font-size:.68rem }
+.offer-timer.ot-big{ font-size:.78rem; background:linear-gradient(120deg,#fdeceb,#fff); border:1.5px solid #f3b7b3; border-radius:10px; padding:7px 11px; margin:6px 0 2px; justify-content:center; animation:none }
+.offer-timer.ot-big .ot-t{ font-size:.85rem; padding:1px 8px }

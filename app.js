@@ -341,7 +341,8 @@ function renderFeedPage(){
 function starsHTML(p){
   const r = Math.round(p.rating || 0);
   return '<div class="stars">' + '★'.repeat(r) + '☆'.repeat(5 - r) +
-    ' <span>' + (p.rating || 0) + '</span><span class="cnt">(' + (p.reviews + realReviewCount(p.id)) + ' reviews)</span></div>';
+    ' <span>' + (p.rating || 0) + '</span>' +
+    (((p.reviews || 0) + realReviewCount(p.id)) > 0 ? '<span class="cnt">(' + ((p.reviews || 0) + realReviewCount(p.id)) + ' reviews)</span>' : '<span class="cnt">✨ New</span>') + '</div>';
 }
 function cardHTML(p){
   const off = offPct(p);
@@ -1451,6 +1452,36 @@ function keepBrowsingHTML(){
 }
 
 /* ============================ PRODUCT ============================ */
+/* 🌸 SMART TITLE — customers never see a bare SKU like "SK9393".
+   SKU-like names become beautiful descriptive titles from the saree's real
+   attributes (fabric · collection · occasion) — great for buyers AND for
+   Google/Facebook link previews. Real names are kept as-is. */
+function smartTitle(p){
+  try{
+    const raw = String((p && p.name) || '').trim();
+    const bare = raw.replace(/[\s_-]+/g, '');
+    const skuLike = !raw || raw.length < 5 ||
+      /^[a-z0-9]{5,16}$/i.test(bare) ||
+      /^(sk|sks|sk4|sk9)/i.test(bare) ||
+      /^\d+$/.test(bare);
+    if (!skuLike) return raw;
+    const cat = (CATEGORIES.find(c => c.slug === p.cat) || {}).name || '';
+    const f = String(p.fabric || '').toLowerCase();
+    const fab = /soft silk/.test(f) ? 'Soft Silk' :
+                /semi silk/.test(f) ? 'Semi Silk' :
+                /cotton/.test(f) ? 'Cotton' :
+                /georgette/.test(f) ? 'Georgette' :
+                /organza/.test(f) ? 'Organza' :
+                /linen/.test(f) ? 'Linen' :
+                /chiffon/.test(f) ? 'Chiffon' : 'Silk';
+    const occ = /wedding|bridal|kanchipuram/.test(p.cat || '') ? 'Wedding & Festive Wear' :
+                /party|fancy/.test(p.cat || '') ? 'Party & Function Wear' :
+                /office/.test(p.cat || '') ? 'Office & Daily Wear' :
+                /daily|cotton|printed/.test(p.cat || '') ? 'Daily & Casual Wear' :
+                'Festive & Everyday Wear';
+    return '🌸 Premium ' + fab + ' Saree' + (cat ? ' | ' + cat : '') + ' | ' + occ;
+  }catch(e){ return (p && p.name) || ''; }
+}
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
   /* 🔐 defensive id: safeParams fixes broken links like
@@ -1591,27 +1622,40 @@ function renderProduct(){
           '<tr><td>Blouse</td><td>' + esc(p.blouse) + '</td></tr>' +
           '<tr><td>Length / Weight</td><td>' + esc(p.length) + ' • ' + esc(p.weight) + '</td></tr>' +
           '<tr><td>Wash care</td><td>' + esc(p.wash) + '</td></tr>' +
+          '<tr><td>Occasion</td><td>' + esc(/wedding|bridal|kanchipuram/.test(p.cat || '') ? 'Wedding & Festive' : /party|fancy/.test(p.cat || '') ? 'Party & Function' : /office/.test(p.cat || '') ? 'Office & Daily' : 'Daily, Casual & Festive') + '</td></tr>' +
           '<tr><td>SKU</td><td>' + esc(p.sku || p.id) + '</td></tr>' +
           '<tr><td>Stock</td><td>' + (p.stock > 0 ? (p.stock <= 5 ? '<span style="color:var(--red)">Only ' + p.stock + ' left!</span>' : p.stock + ' in stock') : 'Out of stock') + '</td></tr>' +
         '</table><p style="margin-top:8px">' + esc(p.desc) + '</p></div>' +
       '</div>' +
       '<div class="pd-info">' +
         '<span class="pd-cat">' + (cat ? cat.emoji + ' ' + esc(cat.name) : '') + '</span>' +
-        '<h1>' + esc(p.name) + '</h1>' +
+        '<h1>' + esc(smartTitle(p)) + '</h1>' +
         starsHTML(p) +
-        '<div class="pd-price"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-        '<div class="price-line"><span>Old price: <s>' + money(p.mrp || p.price) + '</s></span> &nbsp;•&nbsp; <span>New price: <b>' + money(p.price) + '</b></span></div>' +
+        /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
+        '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
         offerTimerHTML(p, true) +
-        (out ? '' : '<p class="small" style="color:var(--green);font-weight:800;margin:2px 0">💳 Pay online &amp; save ' + (CONFIG.onlineDiscount || 1) + '% — <b>' + money(onlinePrice(p)) + '</b> (COD: ' + money(p.price) + ')</p>') +
+        (out ? '' : '<div class="pd-online">💳 ' + loc('Online-ல் pay பண்ணா <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>', 'Online లో pay చేసి <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>', 'Online ನಲ್ಲಿ pay ಮಾಡಿ <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>', 'Pay Online &amp; Get <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>') + ' • 💵 COD Available</div>') +
         (out
-          ? '<div class="lowchip out" style="margin:6px 0">😞 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
+          ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '') +
-        /* 🧹 returns/shipping corner — LATE promise lives here now (out of the main flow) */
-        '<p class="muted small">MRP incl. all taxes • ₹999+ free shipping • ↩️ 7-day returns • ' + loc('லேட் டெலிவரி? அடுத்த ஆர்டருக்கு 5% OFF (LATE50)', 'లేట్ డెలివరీ? తర్వాతి ఆర్డర్‌కి 5% OFF (LATE50)', 'ಲೇಟ್ ಡೆಲಿವರಿ? ಮುಂದಿನ ಆರ್ಡರ್‌ಗೆ 5% OFF (LATE50)', 'Late delivery? 5% off next order (LATE50)') + '</p>' +
-        '<div class="pd-chips"><span class="pd-chip">🚚 Fast Delivery</span><span class="pd-chip">💵 COD (+₹' + CONFIG.codFee + ')</span><span class="pd-chip">↩️ 7-Day Returns</span></div>' +
-        '<div class="delivery-card"><b>⏱ Fast Delivery</b>' + eta.text + '.</div>' +
+        /* 🚚 DELIVERY — short, clear, one glance */
+        '<div class="delivery-card"><b>🚚 Dispatch:</b> 12–24 Hours • <b>📦 Tamil Nadu:</b> 2–3 Days • <b>📦 Other States:</b> 3–7 Days<br>' +
+          '🚚 Shipping ₹' + (CONFIG.shipFee || 30) + ' • 💵 COD — ₹' + CONFIG.codFee + ' • 🎁 ' + loc('₹' + CONFIG.shipFreeAbove + ' மேல இலவச Shipping!', '₹' + CONFIG.shipFreeAbove + ' మీదే ఫ్రీ!', '₹' + CONFIG.shipFreeAbove + ' ಮೇಲೆ ಉಚಿತ!', 'FREE above ₹' + CONFIG.shipFreeAbove) + '<br>↩️ 7-Day Replacement • ' + loc('லேட் டெலிவரி? அடுத்த ஆர்டருக்கு 5% OFF (LATE50)', 'లేట్ డెలివరీ? తర్వాతి ఆర్డర్‌కి 5% OFF (LATE50)', 'ಲೇಟ್ ಡೆಲಿವರಿ? ಮುಂದಿನ ಆರ್ಡರ್‌ಗೆ 5% OFF (LATE50)', 'Late delivery? 5% off next order (LATE50)') + '</div>' +
+        /* 🛒 TWO CLEAR CTAs — BUY NOW first, then Order on WhatsApp */
+        '<div class="pd-btns">' +
+          (out
+            ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
+            : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ BUY NOW — ' + money(onlinePrice(p)) + '</a>') +
+          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
+        '</div>' +
+        /* secondary row — Add to Cart + ❤️ wishlist + 📢 share */
+        '<div class="pd-secondary">' +
+          (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'కాರ్ట్ లో చేರ్', 'ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ', 'Add to Cart') + '</button>') +
+          '<button type="button" class="btn btn-outline pd-heart2' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button>' +
+          '<button type="button" class="btn btn-outline" data-share-wa="' + esc(p.id) + '" aria-label="Share this saree">📢 ' + loc('பகிர்', 'షేರ్', 'ಹಂಚು', 'Share') + '</button>' +
+        '</div>' +
         (p.colors && p.colors.length
           ? '<div class="pd-colour-row"><b>🎨 ' + loc('Colour', 'రంగు', 'ಬಣ್ಣ', 'Colour') + '</b>' +
             '<div class="pd-colours" id="pdColours">' + p.colors.map((c, i) => {
@@ -1622,29 +1666,9 @@ function renderProduct(){
           : '') +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
-        '<div class="pd-btns">' +
-          (out
-            ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<button type="button" class="btn btn-outline btn-xl" data-add="' + p.id + '">🛒 Add to Cart</button>') +
-          (out ? '' : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>') +
-        '</div>' +
-        '<div class="pd-share" style="display:grid;gap:8px">' +
-          /* 🧹 cleaned: one clear action — Order on WhatsApp (share clutter removed) */
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
-        '</div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
-        '<div class="earn-box" id="earnBox">' +
-          '<b>💰 Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</b>' +
-          '<p class="small" style="margin-top:3px">Share this saree on WhatsApp — when your friend buys through your link, <b>you earn ' + (CONFIG.resellerMarginPct || 5) + '% margin</b> (paid via GPay or as loyalty points)! Your customers also get <b>5% off</b> with <b>' + esc(CONFIG.resellerCoupon) + '</b>.</p>' +
-          '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
-            '<button type="button" class="btn btn-wa btn-sm" id="earnWa" style="flex:1;min-width:150px">' + SVG_WA + 'Share &amp; Earn ' + (CONFIG.resellerMarginPct || 5) + '%</button>' +
-            '<button type="button" class="btn btn-outline btn-sm" id="earnCopy" style="flex:1;min-width:130px">📋 Copy Share Link</button>' +
-            '<a class="btn btn-ghost btn-sm" id="earnCode" href="share-earn.html" style="flex:1;min-width:130px">🔗 Get My Code</a>' +
-          '</div>' +
-          '<p class="small muted" id="earnNote" style="margin-top:6px"></p>' +
-        '</div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Reviews &amp; Comments</h3>' + revs +
           '<div class="rev-form" style="background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:13px;margin-top:12px;display:grid;gap:9px">' +
             '<b>✍️ Write a review</b>' +
@@ -1657,6 +1681,13 @@ function renderProduct(){
             '<input id="rvPhoto" type="file" accept="image/*" style="display:none" onchange="attachReviewPhoto(this)">' +
             '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ Post Comment</button>' +
           '</div></div>' +
+        /* 💰 SIMPLE Share & Earn — after reviews; codes/links hidden (auto on click) */
+        '<div class="earn-box" id="earnBox" style="margin-top:14px">' +
+          '<b>💰 ' + loc('இந்த சேலையை Share பண்ணி ' + (CONFIG.resellerMarginPct || 5) + '% சம்பாதிங்க!', 'ఈ చీರನು షేರ్ చేಸಿ ' + (CONFIG.resellerMarginPct || 5) + 'సంపాదించండి!', 'ಈ ಸೀರೆಯನ್ನು ಹಂಚಿ ' + (CONFIG.resellerMarginPct || 5) + 'ಸಂಪಾದಿಸಿ!', 'Share this saree & Earn ' + (CONFIG.resellerMarginPct || 5) + '%') + '</b>' +
+          '<p class="small" style="margin-top:3px">' + loc('உங்க friends இந்த link மூலம் order செய்தால் நீங்க ' + (CONFIG.resellerMarginPct || 5) + '% commission. Friend-க்கு SHARE5 code-ல் 5% OFF! Link share செய்யும்போது automatic-ஆ generate ஆகும் 🔗', 'Friends order via this link → you earn commission. Friend gets 5% OFF (code SHARE5)!', 'Friends order via this link → you earn commission. Friend gets 5% OFF (code SHARE5)!', 'Friends order via your link → you earn ' + (CONFIG.resellerMarginPct || 5) + '% commission. Friend gets 5% OFF (code SHARE5). Your link generates automatically 🔗') + '</p>' +
+          '<button type="button" class="btn btn-wa" id="earnWa" style="margin-top:9px">' + SVG_WA + '📲 ' + loc('Share on WhatsApp', 'WhatsApp లో షేರ్ చేయి', 'WhatsApp ನಲ್ಲಿ ಹಂಚು', 'Share on WhatsApp') + '</button>' +
+        '</div>' +
+        
       '</div>' +
     '</div>' +
     likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
@@ -1688,20 +1719,9 @@ function renderProduct(){
   /* 💰 Share & Earn box under the product */
   try{
     const earnWa = document.getElementById('earnWa');
-    const earnCopy = document.getElementById('earnCopy');
-    const note = document.getElementById('earnNote');
-    const mine = myResellerCode();
-    if (earnWa) earnWa.addEventListener('click', () => shareWaProduct(p));
-    if (earnCopy) earnCopy.addEventListener('click', () => { copyText(shareUrl(p)); });
-    if (note){
-      if (mine){
-        note.innerHTML = '✅ Your reseller code: <b>' + esc(mine) + '</b> — your share links carry <b>?ref=' + esc(mine) + '</b> on every page.';
-        const codeLink = document.getElementById('earnCode');
-        if (codeLink) codeLink.textContent = '🔗 My Code: ' + esc(mine);
-      } else {
-        note.innerHTML = '🔗 No code yet? Tap <b>Get My Code</b> (30 seconds) — then every share you send earns you ' + (CONFIG.resellerMarginPct || 5) + '%!';
-      }
-    }
+    /* 🔗 ONE tap — share link + coupon auto-generate behind the scenes
+       (no codes or ?ref= clutter shown to her) */
+    if (earnWa) earnWa.addEventListener('click', () => shareEarnProduct(p));
   }catch(e){}
   /* qty buttons — auto-update the total amount EVERYWHERE (main + sticky bar)
      and pass the qty along when using "Buy Now" (main + mobile floating bar) */
@@ -1716,9 +1736,9 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ Buy at ' + money(onlinePrice(p) * n); }
+    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ BUY NOW — ' + money(onlinePrice(p) * n); }
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '⚡ Buy at ' + money(onlinePrice(p) * n); }
+    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '⚡ BUY NOW — ' + money(onlinePrice(p) * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
@@ -1854,6 +1874,37 @@ function instagramReelsHTML(){
 
 /* ============================ SHARE (WhatsApp family/group + Status) ============================ */
 /* share the product to ANY WhatsApp chat / family group — user picks the recipient */
+/* 💰 SHARE & EARN — one tap: shares the saree photo + her referral link
+   (auto ?ref=CODE if she has one) + the friend coupon. Nothing technical
+   is shown on the page — everything generates on click. */
+async function shareEarnProduct(p){
+  if (!p) return;
+  try{
+    const url = shareUrl(p);   /* carries ?ref=CODE automatically when she has one */
+    const msg = loc(
+      '\U0001F338 ' + p.name + '\n\U0001F4B0 \u0bb5\u0bbf\u0bb2\u0bc8: ' + money(p.price) + '\n\U0001F381 \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bc1\u0b95\u0bcd\u0b95\u0bc1 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A \u20B9999+ \u0b87\u0bb2\u0bb5\u0b9a \u0b9f\u0bc6\u0bb2\u0bbf\u0bb5\u0bb0\u0bbf \u2022 COD & UPI\n\n\U0001F449 ' + url,
+      '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url,
+      '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url,
+      '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF with code ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url);
+    try{
+      if (navigator.share){
+        let file = null;
+        try{
+          const imgUrl = p.img || ((p.images || [])[0]);
+          if (navigator.canShare && imgUrl){
+            const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+            if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
+          }
+        }catch(e2){}
+        const payload = { title: p.name, text: msg, url };
+        if (file && navigator.canShare({ files: [file] })) payload.files = [file];
+        navigator.share(payload).then(() => {}, () => { try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e3){} });
+        return;
+      }
+    }catch(e){}
+    try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+  }catch(e){}
+}
 async function shareWaProduct(p){
   if (!p) return;
   const msg = '🛍️ Guess what I found on SK Sarees website!\n\n' + waProductMsg(p) +
