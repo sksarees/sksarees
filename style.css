@@ -1945,3 +1945,185 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
   .ca-quick{ min-width:52px }
   .ca-quick .ca-qp{ font-size:.46rem }
 }
+
+/* ============================================================================
+   ⏰ OFFER TIMER (Meesho-style) — red urgency countdown on discounted sarees
+   ========================================================================== */
+.offer-timer{
+  color:#d0342c;
+  font-size:.72rem;
+  font-weight:800;
+  letter-spacing:.2px;
+  margin-top:4px;
+  display:flex;
+  align-items:center;
+  gap:3px;
+  animation:otBlink 1.5s ease-in-out infinite;
+}
+.offer-timer .ot-t{
+  font-variant-numeric:tabular-nums;
+  background:#d0342c;
+  color:#fff;
+  border-radius:6px;
+  padding:1px 7px;
+  font-size:.74rem;
+}
+@keyframes otBlink{ 0%,100%{ opacity:1 } 50%{ opacity:.6 } }
+/* product page — bigger version */
+.offer-timer.ot-big{
+  font-size:.9rem;
+  background:linear-gradient(120deg,#fdeceb,#fff);
+  border:1.5px solid #f3b7b3;
+  border-radius:11px;
+  padding:9px 12px;
+  margin:8px 0 2px;
+  justify-content:center;
+}
+.offer-timer.ot-big .ot-t{ font-size:1rem; padding:2px 10px }
+
+/* ============================================================================
+   🛒 CONVERSION BUTTONS — proven high-CTA colours (Meesho/Flipkart style)
+   Orange-red = urgency + action. Friendly rounded = visitor-friendly.
+   ========================================================================== */
+.btn-buy{
+  background:linear-gradient(135deg,#ffab40 0%,#fb641b 42%,#ef4e08 100%);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.4px;
+  text-shadow:0 1px 3px rgba(120,45,0,.4);
+  border:0;
+  position:relative;
+  overflow:hidden;
+  border-radius:13px;
+  box-shadow:0 8px 22px rgba(239,78,8,.45), 0 2px 6px rgba(0,0,0,.16);
+  animation:buyPulse 1.9s ease-in-out infinite;
+}
+/* card Add-to-Cart — warm friendly orange outline (safe choice) */
+.p-actions .btn.btn-outline[data-add]{
+  border:1.5px solid #fb641b;
+  color:#e04e0b;
+  background:#fff6ef;
+  font-weight:800;
+  border-radius:12px;
+}
+.p-actions .btn.btn-outline[data-add]:active{ background:#ffe8da }
+/* visitor-friendly: softer radius everywhere on primary buttons */
+.btn{ border-radius:12px }
+.btn-maroon{ border-radius:12px }
+
+/* ============================================================================
+   🧾 ORDER SUMMARY — crystal clear: labelled rows, dashed dividers and a
+   big maroon TOTAL band she cannot miss (cart + checkout + order complete)
+   ========================================================================== */
+.summary{
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  margin-top:14px;
+  box-shadow:0 6px 18px rgba(61,10,27,.06);
+}
+.summary .row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:9px 2px;
+  font-size:.93rem;
+  border-bottom:1px dashed #efe3d0;
+  color:#4a3f38;
+}
+.summary .row:last-of-type{ border-bottom:0 }
+.summary .row span{ font-weight:700 }
+.summary .row b{ font-weight:900; color:#2b2320; font-variant-numeric:tabular-nums; text-align:right }
+.summary .row.total{
+  border:0;
+  margin:10px -16px -16px;
+  padding:14px 16px;
+  border-radius:0 0 14px 14px;
+  background:linear-gradient(120deg,#70142c,#8f1d3a);
+  font-size:1.02rem;
+  font-weight:900;
+  color:#fff;
+}
+.summary .row.total span{ color:#f3ddad; font-size:.95rem }
+.summary .row.total b{ color:#fff; font-size:1.3rem; letter-spacing:.3px }
+/* green savings rows pop */
+.summary .row b[style*="--green"]{ font-weight:900 }
+
+/* ============================================================================
+   🎬 INSTAGRAM REELS SHOWCASE — vertical 9:16 reel cards + follow button
+   ========================================================================== */
+.ig-wrap{ display:flex; gap:10px; overflow-x:auto; padding:4px 2px 10px; scroll-snap-type:x mandatory }
+.ig-wrap::-webkit-scrollbar{ height:6px }
+.ig-wrap::-webkit-scrollbar-thumb{ background:var(--gold-l); border-radius:3px }
+.ig-card{
+  flex:0 0 auto;
+  border-radius:16px;
+  overflow:hidden;
+  position:relative;
+  text-decoration:none;
+  scroll-snap-align:start;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.ig-card:hover{ transform:translateY(-4px); box-shadow:0 12px 28px rgba(61,10,27,.2) }
+.ig-reel{ width:132px; height:210px; background:#2b2020; border:2px solid #f0d9a4 }
+.ig-reel img{ width:100%; height:100%; object-fit:cover; display:block }
+.ig-play{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-60%);
+  width:44px; height:44px; border-radius:999px;
+  background:rgba(255,255,255,.92);
+  color:#c13584; font-size:1.05rem;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+  padding-left:4px;
+}
+.ig-tag{
+  position:absolute; left:0; right:0; bottom:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.75));
+  color:#fff; font-size:.68rem; font-weight:800;
+  padding:20px 8px 8px; text-align:center;
+}
+.ig-profile{
+  width:150px; height:210px;
+  background:linear-gradient(150deg,#feda75 0%,#fa7e1e 30%,#d62976 65%,#962fbf 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:5px; padding:12px; text-align:center; color:#fff;
+}
+.ig-profile b{ font-size:.82rem; text-shadow:0 1px 3px rgba(0,0,0,.3) }
+.ig-profile small{ font-size:.66rem; line-height:1.45; opacity:.95 }
+.ig-ava{
+  width:52px; height:52px; border-radius:999px;
+  background:#fff; color:#d62976;
+  font-size:1.6rem;
+  display:flex; align-items:center; justify-content:center;
+  border:3px solid rgba(255,255,255,.85);
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+}
+.ig-follow{
+  background:#fff; color:#c13584;
+  font-weight:900; font-size:.74rem;
+  border-radius:999px; padding:8px 16px;
+  margin-top:3px;
+}
+
+/* ============================================================================
+   📷 PHOTO REVIEWS — customer saree photos in reviews
+   ========================================================================== */
+.rv-photo-btn{
+  display:block; text-align:center; cursor:pointer;
+  border:1.5px dashed #fb641b; color:#e04e0b;
+  background:#fff6ef;
+  font-size:.8rem; font-weight:800;
+  border-radius:11px; padding:11px;
+  transition:background .15s ease;
+}
+.rv-photo-btn:active{ background:#ffe8da }
+.rev-photo{ display:inline-block; margin-top:6px }
+.rev-photo img{
+  width:76px; height:76px; object-fit:cover;
+  border-radius:11px; border:2px solid var(--gold-l);
+  display:block;
+  transition:transform .18s ease;
+}
+.rev-photo:hover img{ transform:scale(1.06) }

@@ -33,9 +33,11 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
+  try{ startActiveEngine(); }catch(e){} /* ⏱️ counts REAL browsing seconds (visible tab only) */
   try{ maybeAskName(); }catch(e){}      /* 👤 1st visit: ask her name after 1 min of REAL browsing */
-  try{ maybeScratchCard(); }catch(e){}  /* 🎁 daily Scratch & Win coupon (viral) */
+  try{ maybeScratchCard(); }catch(e){}  /* 🎁 Scratch & Win after 2 min of browsing (viral) */
   try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
+  try{ startOfferTimers(); }catch(e){}  /* ⏰ Meesho-style "offer ends in" countdowns */
   try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -358,6 +360,7 @@ function cardHTML(p){
       starsHTML(p) +
       '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
       (low ? '<div class="lowchip">🔥 Only <b>' + p.stock + '</b> left — order soon!</div>' : (out ? '<div class="lowchip out">😞 Out of stock — ask on WhatsApp for next batch</div>' : '')) +
+      offerTimerHTML(p) +
       '<div class="p-actions">' +
         (out
           ? '<button type="button" class="btn" disabled style="opacity:.55">Out of Stock</button>'
@@ -504,6 +507,7 @@ function renderHome(){
         '<div class="video-grid">' + CONFIG.videos.map(v =>
           '<div class="video-card"><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(v.id) + '?rel=0" title="' + esc(v.title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
           '<b>' + esc(v.title) + '</b></div>').join('') + '</div></section>' +
+      instagramReelsHTML() +      /* 🎬 @sksarees_collection reels showcase */
       occasionQuickShopHTML() +
       weaverStoryHTML() +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access</h2>' +
@@ -1050,13 +1054,17 @@ function maybeScratchCard(){
   try{
     const today = new Date().toDateString();
     if (LS.get('sk_scratch_day', '') === today) return;   /* already played today */
-    setTimeout(() => {
+    /* ⏱️ comes after 2 FULL MINUTES of real browsing — she's engaged, the gift
+       feels earned (and never interrupts her first browse) */
+    const iv = setInterval(() => {
       try{
-        if (LS.get('sk_scratch_day', '') === today) return;      /* played in another tab */
-        if (document.querySelector('#modalRoot .modal')) return;  /* another popup active — try next page */
+        if (LS.get('sk_scratch_day', '') === today){ clearInterval(iv); return; }
+        if (activeMs() < 120000) return;
+        clearInterval(iv);
+        if (document.querySelector('#modalRoot .modal')) return;  /* popup busy — next page retries */
         openScratchCard();
       }catch(e){}
-    }, 7000);
+    }, 2000);
   }catch(e){}
 }
 function openScratchCard(){
@@ -1280,23 +1288,72 @@ function initDwellTracking(){
   }catch(e){}
 }
 
+/* ⏰ OFFER TIMER (Meesho-style) — "Offer ends in 02:14:33" red countdown on
+   discounted sarees. One shared 1-second ticker updates every timer on the
+   page; deadline = tonight midnight (fresh offers every day). */
+function offerTimerProduct(p){
+  /* deterministic daily rotation — ~2 of 3 discounted products show it */
+  try{
+    let h = 0; const s = String(p.id || '') + new Date().toDateString();
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h % 3 !== 0;
+  }catch(e){ return false; }
+}
+function startOfferTimers(){
+  try{
+    const tick = () => {
+      try{
+        const now = new Date();
+        const end = new Date(); end.setHours(23, 59, 59, 999);
+        const s = Math.max(0, Math.floor((end - now) / 1000));
+        const txt = String(Math.floor(s / 3600)).padStart(2, '0') + ':' +
+                    String(Math.floor((s % 3600) / 60)).padStart(2, '0') + ':' +
+                    String(s % 60).padStart(2, '0');
+        document.querySelectorAll('.ot-t').forEach(el => { el.textContent = txt; });
+      }catch(e){}
+    };
+    tick();
+    setInterval(tick, 1000);
+  }catch(e){}
+}
+function offerTimerHTML(p, big){
+  try{
+    const off = offPct(p);
+    if (!off || off < 10 || (p.stock != null && p.stock <= 0)) return '';
+    if (!big && !offerTimerProduct(p)) return '';   /* cards: daily-rotating subset */
+    return '<div class="offer-timer' + (big ? ' ot-big' : '') + '">⏰ <b>' +
+      loc('ஆஃபர் முடியும் நேரம்', 'ఆఫర్ ముగుస్తుంది', 'ಆಫರ್ ಮುಗಿಯುತ್ತದೆ', 'Offer ends in') +
+      ' <span class="ot-t">--:--:--</span></b></div>';
+  }catch(e){ return ''; }
+}
+
 /* 🙏 FIRST VISIT: ask her name after ONE FULL MINUTE of REAL BROWSING — only
    seconds where the tab is actually VISIBLE count (hidden/idle tab = no
    credit), and time accumulates across every page she visits. She shops
    undisturbed first; the ask comes after she's genuinely engaged. */
-let __skActiveTimer = null;
+/* ⏱️ ACTIVE TIME ENGINE — one heartbeat that counts REAL visible seconds
+   (hidden tab = no credit). Powers BOTH the 1-min name popup and the 2-min
+   Scratch & Win card. Runs on every page, time accumulates across pages. */
+let __activeIv = null;
 function activeMs(){ try{ return +LS.get('sk_active_ms', 0) || 0; }catch(e){ return 0; } }
+function startActiveEngine(){
+  try{
+    if (__activeIv) return;
+    __activeIv = setInterval(() => {
+      try{
+        if (document.visibilityState !== 'visible') return;
+        LS.set('sk_active_ms', activeMs() + 1000);
+      }catch(e){}
+    }, 1000);
+  }catch(e){}
+}
 function maybeAskName(){
   try{
     if (userName() || LS.get('sk_name_asked', 0)) return;
-    if (__skActiveTimer) return;
-    __skActiveTimer = setInterval(() => {
+    const chk = setInterval(() => {
       try{
-        if (userName() || LS.get('sk_name_asked', 0)){ clearInterval(__skActiveTimer); __skActiveTimer = null; return; }
-        if (document.visibilityState !== 'visible') return;      /* hidden tab → no credit */
-        const ms = activeMs() + 1000;
-        LS.set('sk_active_ms', ms);
-        if (ms >= 60000 && !document.querySelector('#modalRoot .modal')) openNamePopup();
+        if (userName() || LS.get('sk_name_asked', 0)){ clearInterval(chk); return; }
+        if (activeMs() >= 60000 && !document.querySelector('#modalRoot .modal')){ clearInterval(chk); openNamePopup(); }
       }catch(e){}
     }, 1000);
   }catch(e){}
@@ -1494,7 +1551,9 @@ function renderProduct(){
   const related = PRODUCTS.filter(x => !x.hidden && x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
   const revs = userRevs.length
-    ? userRevs.slice().reverse().map(r => '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name) + '</b><small>Verified customer ⭐</small></div></div><div class="stars">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text) + '</p>' + '</div>').join('')
+    ? userRevs.slice().reverse().map(r => '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name) + '</b><small>Verified customer ⭐</small></div></div><div class="stars">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text) + '</p>' +
+      (r.photo ? '<a class="rev-photo" href="' + r.photo + '" target="_blank" rel="noopener" title="Customer photo — tap to view"><img src="' + r.photo + '" alt="customer photo" loading="lazy"></a>' : '') +
+      '</div>').join('')
     : '<p class="muted small">No customer reviews yet — be the first! 💬</p>';
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
   const gal = [];
@@ -1540,6 +1599,7 @@ function renderProduct(){
         starsHTML(p) +
         '<div class="pd-price"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
         '<div class="price-line"><span>Old price: <s>' + money(p.mrp || p.price) + '</s></span> &nbsp;•&nbsp; <span>New price: <b>' + money(p.price) + '</b></span></div>' +
+        offerTimerHTML(p, true) +
         (out ? '' : '<p class="small" style="color:var(--green);font-weight:800;margin:2px 0">💳 Pay online &amp; save ' + (CONFIG.onlineDiscount || 1) + '% — <b>' + money(onlinePrice(p)) + '</b> (COD: ' + money(p.price) + ')</p>') +
         '<div class="social-proof">' + socialProofHTML(p) + '</div>' +
         '<div class="viewing-now">👀 <b>' + viewingNow(p) + ' people viewing this right now</b></div>' +
@@ -1603,6 +1663,10 @@ function renderProduct(){
             '<input id="rvName" placeholder="Your name" maxlength="40" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none">' +
             '<select id="rvStars" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none"><option value="5">★★★★★ Excellent</option><option value="4">★★★★☆ Very good</option><option value="3">★★★☆☆ Good</option><option value="2">★★☆☆☆ Average</option><option value="1">★☆☆☆☆ Poor</option></select>' +
             '<textarea id="rvText" rows="2" placeholder="Share your experience…" maxlength="300" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none;resize:vertical"></textarea>' +
+            /* 📷 photo review — compressed on her phone, saved with the review
+               (works on ANY static host: GitHub Pages, InfinityFree, Netlify…) */
+            '<label class="rv-photo-btn" id="rvPhotoLbl" for="rvPhoto">📷 ' + loc('போட்டோ சேர் (விருப்பம்)', 'ఫోటో జోడించండి (ఆప్షనల్)', 'ಫೋಟೋ ಸೇರಿಸಿ (ಐಚ್ಛಿಕ)', 'Add Photo (optional)') + '</label>' +
+            '<input id="rvPhoto" type="file" accept="image/*" style="display:none" onchange="attachReviewPhoto(this)">' +
             '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ Post Comment</button>' +
           '</div></div>' +
       '</div>' +
@@ -1695,13 +1759,76 @@ function renderProduct(){
     const text = (document.getElementById('rvText') || {}).value || '';
     if (!text.trim()){ toast('✍️ Please write your comment first'); return; }
     const list = LS.get('sk_reviews_' + p.id, []);
-    const rev = { name: name || 'Anonymous', rating: +stars, text, date: Date.now() };
+    const rev = { name: name || 'Anonymous', rating: +stars, text, photo: (window.__revPhoto || ''), date: Date.now() };
     list.push(rev); LS.set('sk_reviews_' + p.id, list);
     if (FS.enabled()) FS.saveReview(p.id, rev).catch(() => {});
+    window.__revPhoto = '';
     toast('✅ Thank you! Review posted');
     renderProduct();
   }));
 
+}
+
+/* ============================ 📷 PHOTO REVIEW ============================
+   Works on ANY static host (GitHub Pages too!): her photo is compressed ON
+   HER PHONE via canvas (~640px, ~60-80KB base64) and stored with the review
+   (device + Firestore doc). No server, no storage bucket, no uploads. */
+let __revPhoto = '';
+function attachReviewPhoto(input){
+  try{
+    const f = (input.files || [])[0];
+    if (!f) return;
+    if (!/^image\//.test(f.type || '')){ toast('⚠️ Images only'); input.value = ''; return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try{
+          const MAX = 640;
+          const sc = Math.min(1, MAX / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas');
+          cv.width = Math.max(1, Math.round(img.width * sc));
+          cv.height = Math.max(1, Math.round(img.height * sc));
+          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          __revPhoto = cv.toDataURL('image/jpeg', 0.72);
+          window.__revPhoto = __revPhoto;
+          const lbl = document.getElementById('rvPhotoLbl');
+          if (lbl) lbl.innerHTML = '✅ ' + loc('போட்டோ சேர்க்கப்பட்டது — பதிவேற்றுகிறது!', 'ఫోటో జోడించబడింది — పోస్ట్ చేయండి!', 'ಫೋಟೋ ಸೇರಿಸಲಾಗಿದೆ — ಪೋಸ್ಟ್ ಮಾಡಿ!', 'Photo added — now post!');
+          toast('📷 ' + loc('போட்டோ ரெடி!', 'ఫోటో ready!', 'ಫೋಟೋ ready!', 'Photo ready!'));
+        }catch(e){ toast('⚠️ ' + loc('போட்டோ சேர்க்க முடியவில்லை', 'ఫోటో జోడించలేకపోయాము', 'ಫೋಟೋ ಸೇರಿಸಲಾಗಲಿಲ್ಲ', 'Could not add photo')); }
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  }catch(e){ toast('⚠️ Photo error'); }
+}
+
+/* ============================ 🎬 INSTAGRAM REELS SHOWCASE ============================
+   Beautiful reel-style cards for @sksarees_collection — vertical 9:16 tiles
+   with play buttons that open the Instagram profile. Static-host friendly
+   (no API, no embed script) + big Follow button. */
+function instagramReelsHTML(){
+  try{
+    const url = CONFIG.social.instagram || 'https://www.instagram.com/sksarees_collection/';
+    const covers = PRODUCTS.filter(p => !p.hidden).slice(0, 5);
+    if (!covers.length) return '';
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎬 ' +
+      loc('Instagram Reels — சேலை வீடியோக்கள்', 'Instagram Reels — చీర వీడియోలు', 'Instagram Reels — ಸೀರೆ ವೀಡಿಯೊಗಳು', 'Instagram Reels — Saree Videos') + '</h2>' +
+      '<a href="' + esc(url) + '" target="_blank" rel="noopener">@sksarees_collection →</a></div>' +
+      '<div class="ig-wrap">' +
+        '<a class="ig-card ig-profile" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+          '<div class="ig-ava">🧵</div>' +
+          '<b>@sksarees_collection</b>' +
+          '<small>' + loc('புது சேலை reels எல்லாம் இங்கே — follow பண்ணுங்க!', 'కొత్త చీర reels అన్నీ ఇక్కడ — follow చేయండి!', 'ಹೊಸ ಸೀರೆ reels ಎಲ್ಲಾ ಇಲ್ಲಿ — follow ಮಾಡಿ!', 'All new saree reels here — follow us!') + '</small>' +
+          '<span class="ig-follow">📸 Follow</span>' +
+        '</a>' +
+        covers.map(p => '<a class="ig-card ig-reel" href="' + esc(url) + '" target="_blank" rel="noopener" aria-label="Watch saree reels on Instagram">' +
+          '<img src="' + esc(p.img) + '" alt="saree reel" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+          '<span class="ig-play">▶</span>' +
+          '<span class="ig-tag">▶ ' + loc('Reel பார்', 'Reel చూడు', 'Reel ನೋಡು', 'Watch Reel') + '</span>' +
+        '</a>').join('') +
+      '</div></section>';
+  }catch(e){ return ''; }
 }
 
 /* ============================ SHARE (WhatsApp family/group + Status) ============================ */
