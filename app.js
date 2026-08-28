@@ -359,7 +359,7 @@ function cardHTML(p){
     '<div class="pcard-body">' +
       '<h3><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></h3>' +
       starsHTML(p) +
-      '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s>' + money(p.mrp) + '</s>' : '') + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+      '<div class="price-row"><b>' + money(p.price) + '</b></div>' +
     '</div></article>';
 }
 
@@ -1455,7 +1455,21 @@ function smartTitle(p){
       /^[a-z0-9]{5,16}$/i.test(bare) ||
       /^(sk|sks|sk4|sk9)/i.test(bare) ||
       /^\d+$/.test(bare);
-    if (!skuLike) return raw;
+    /* ✨ real name → still append Category + Occasion (name + category + vocation) */
+    const occOf = (cat) => /wedding|bridal|kanchipuram/.test(cat || '') ? 'Wedding & Festive Wear' :
+                /party|fancy/.test(cat || '') ? 'Party & Function Wear' :
+                /office/.test(cat || '') ? 'Office & Daily Wear' :
+                /daily|cotton|printed/.test(cat || '') ? 'Daily & Casual Wear' :
+                'Festive & Everyday Wear';
+    if (!skuLike){
+      const catName = (CATEGORIES.find(c => c.slug === p.cat) || {}).name || '';
+      let t = raw;
+      if (catName && raw.toLowerCase().indexOf(catName.toLowerCase().split(' ')[0]) === -1) t += ' | ' + catName;
+      const occTxt = occOf(p.cat);
+      if (occTxt && t.indexOf(occTxt) === -1) t += ' | ' + occTxt;
+      return t;
+    }
+    const occ = occOf(p.cat);
     const cat = (CATEGORIES.find(c => c.slug === p.cat) || {}).name || '';
     const f = String(p.fabric || '').toLowerCase();
     const fab = /soft silk/.test(f) ? 'Soft Silk' :
@@ -1465,11 +1479,6 @@ function smartTitle(p){
                 /organza/.test(f) ? 'Organza' :
                 /linen/.test(f) ? 'Linen' :
                 /chiffon/.test(f) ? 'Chiffon' : 'Silk';
-    const occ = /wedding|bridal|kanchipuram/.test(p.cat || '') ? 'Wedding & Festive Wear' :
-                /party|fancy/.test(p.cat || '') ? 'Party & Function Wear' :
-                /office/.test(p.cat || '') ? 'Office & Daily Wear' :
-                /daily|cotton|printed/.test(p.cat || '') ? 'Daily & Casual Wear' :
-                'Festive & Everyday Wear';
     return '🌸 Premium ' + fab + ' Saree' + (cat ? ' | ' + cat : '') + ' | ' + occ;
   }catch(e){ return (p && p.name) || ''; }
 }
@@ -1624,8 +1633,6 @@ function renderProduct(){
         starsHTML(p) +
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
         '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-        offerTimerHTML(p, true) +
-        (out ? '' : '<div class="pd-online">💳 ' + loc('Online-ல் pay பண்ணா <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>', 'Online లో pay చేసి <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>', 'Online ನಲ್ಲಿ pay ಮಾಡಿ <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>', 'Pay Online &amp; Get <b>' + money(p.price - onlinePrice(p)) + ' OFF</b> → <b>' + money(onlinePrice(p)) + '</b>') + ' • 💵 COD Available</div>') +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
@@ -1641,7 +1648,7 @@ function renderProduct(){
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
           (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'வண்டியில் சேர்', 'Add to Cart', 'Add to Cart') + '</button>') +
-          '<button type="button" class="btn btn-outline" data-shareearn="' + esc(p.id) + '">💰 ' + loc('Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%') + '</button>' +
+          '<a class="btn btn-outline" href="share-earn.html">💰 ' + loc('Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%') + '</a>' +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
@@ -1698,9 +1705,16 @@ function renderProduct(){
   /* 💰 Share & Earn box under the product */
   try{
     const earnWa = document.getElementById('earnWa');
-    /* 🔗 ONE tap — share link + coupon auto-generate behind the scenes
-       (no codes or ?ref= clutter shown to her) */
-    if (earnWa) earnWa.addEventListener('click', () => shareEarnProduct(p));
+    /* 🔗 registered → one-tap share (link + coupon auto-generate).
+       Unregistered → straight to the Share & Earn registration page. */
+    if (earnWa){
+      if (myResellerCode()){
+        earnWa.addEventListener('click', () => shareEarnProduct(p));
+      } else {
+        earnWa.textContent = '🚀 ' + loc('Register & Start Earning →', 'பதிவு பண்ணி ஈன் செய்யத் தெவைக்க →', 'ರೆಜಿಸ್ಟರ್ பண்ணி என் துவங்களுக்கு →', 'Register & Start Earning →');
+        earnWa.addEventListener('click', () => { try{ location.href = 'share-earn.html'; }catch(e){} });
+      }
+    }
   }catch(e){}
   /* qty buttons — auto-update the total amount EVERYWHERE (main + sticky bar)
      and pass the qty along when using "Buy Now" (main + mobile floating bar) */
@@ -1770,7 +1784,7 @@ function revCardHTML(r){
     return '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name || 'Anonymous') + '</b><small>' +
       (verified ? '\u2705 Verified customer' : loc('\u0bb5\u0bbe\u0b9f\u0bbf\u0b95\u0bcd\u0b95\u0bc8\u0baf\u0bbe\u0bb3\u0bb0\u0bcd \u0bb0\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c15\u0c38\u0c4d\u0c1f\u0c2e\u0c30\u0c4d \u0c30\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c97\u0ccd\u0cb0\u0bbe\u0cb9\u0c95 \u0cb5\u0cbf\u0cae\u0cb0\u0ccd\u0cb6\u0cc6', 'Customer review')) +
       '</small></div></div><div class="stars">' + '\u2605'.repeat(r.rating || 5) + '\u2606'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text || '') + '</p>' +
-      (r.photo ? '<span class="rev-photo" role="button" data-revphoto="1" title="Customer photo \u2014 tap to view"><img src="' + r.photo + '" alt="customer photo" loading="lazy" onerror="this.parentNode.style.display=&quot;none&quot;"></span>' : '') +
+      (r.photo ? '<span class="rev-photo" role="button" data-revphoto="1" title="Customer photo \u2014 tap to view"><img src="' + r.photo + '" alt="customer photo" onload="imgLoaded(this)" style="width:88px;height:88px;object-fit:cover;border-radius:12px;border:2px solid #e8c66a;display:block;margin-top:7px;box-shadow:0 3px 9px rgba(61,10,27,.14)"></span>' : '') +
       '</div>';
   }catch(e){ return ''; }
 }
