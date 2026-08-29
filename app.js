@@ -529,6 +529,50 @@ function initReelDoubleTap(){
     });
   }catch(e){}
 }
+/* 📄 FULL-SCREEN PRODUCT GALLERY — tap the photo to view every saree
+   photo full-screen; swipe left/right, arrows on desktop, dots, one-tap close. */
+function openGalleryViewer(gallery, startIdx, alt){
+  try{
+    const gal = (gallery || []).filter(Boolean);
+    if (!gal.length) return;
+    const idx = Math.min(Math.max(0, startIdx || 0), gal.length - 1);
+    let ov = document.getElementById('galViewer');
+    if (ov) ov.remove();
+    ov = document.createElement('div');
+    ov.id = 'galViewer';
+    ov.className = 'img-zoom';
+    ov.innerHTML = '<div class="img-zoom-back" data-zoom-close></div>' +
+      '<div class="gv-track" id="gvTrack">' +
+        gal.map((u, i) => '<div class="gv-slide"><img src="' + esc(u) + '" alt="' + esc(alt || '') + '" loading="' + (Math.abs(i - idx) <= 1 ? 'eager' : 'lazy') + '" onload="imgLoaded(this)" onerror="imgSafe(this)"></div>').join('') +
+      '</div>' +
+      (gal.length > 1
+        ? '<button type="button" class="gv-nav gvl" data-gnav="-1" aria-label="Previous photo">‹</button>' +
+          '<button type="button" class="gv-nav gvr" data-gnav="1" aria-label="Next photo">›</button>' +
+          '<div class="gv-dots">' + gal.map((_, i) => '<i class="' + (i === idx ? 'on' : '') + '"></i>').join('') + '</div>'
+        : '') +
+      '<button type="button" class="img-zoom-x" data-zoom-close aria-label="Close">✕</button>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = 'hidden';
+    const track = ov.querySelector('#gvTrack');
+    if (track){
+      requestAnimationFrame(() => { try{ track.scrollLeft = track.clientWidth * idx; }catch(e){} });
+      const dots = ov.querySelectorAll('.gv-dots i');
+      track.addEventListener('scroll', () => {
+        try{
+          const cur = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+          dots.forEach((d, i) => d.classList.toggle('on', i === cur));
+        }catch(e){}
+      }, { passive: true });
+      track.addEventListener('click', e2 => { if (e2.target.tagName === 'IMG'){ try{ closeGalleryViewer(); }catch(e3){} } });
+    }
+  }catch(e){}
+}
+function closeGalleryViewer(){
+  const ov = document.getElementById('galViewer');
+  if (ov) ov.remove();
+  document.body.style.overflow = '';
+}
+
 /* 🎬 render the reels feed — taste-ranked (what she views most comes first),
    INFINITE (more reels auto-load near the end — never a dead end),
    Instagram-style action rail (❤️ like · 💬 comment · 🔁 share · 🔖 save · 🎵 audio) */
@@ -585,6 +629,19 @@ function renderReelsPage(){
   appendReels(10);
   /* 🔥 load GLOBAL like counts (Firestore — one cached read) */
   try{ loadReelCounts().then(() => applyReelCountsToDom()).catch(() => {}); }catch(e){}
+  /* 🔗 shared link (?reel=ID) → jump straight to THAT saree's reel */
+  try{
+    const want = new URLSearchParams(location.search).get('reel');
+    if (want){
+      const go = () => {
+        const wrap2 = document.getElementById('rpWrap');
+        const el = wrap2 && wrap2.querySelector('.rp-reel[data-rid="' + ((window.CSS && CSS.escape) ? CSS.escape(want) : String(want).replace(/["\\]/g, '')) + '"]');
+        if (el && wrap2){ wrap2.scrollTop = el.offsetTop - 6; el.classList.add('rp-flash'); setTimeout(() => el.classList.remove('rp-flash'), 2400); }
+        else setTimeout(go, 400);   /* reels still loading — retry */
+      };
+      setTimeout(go, 350);
+    }
+  }catch(e){}
 }
 /* ♾️ INFINITE — more reels load as she nears the end. Never stops. */
 function appendReels(n){
@@ -671,8 +728,20 @@ function wrapText(ctx, text, x, y, maxW, lineH){
    CORS headers, so canvas + share get tainted/blocked. wsrv.nl is a free image
    proxy that serves ANY image WITH proper CORS headers → the photo always
    makes it into the saved card & the WhatsApp share. */
-async function fetchImageBlob(url){
+/* 🌟 HD upgrade — blogger/googleusercontent photos ship small versions
+   (/s320/, /w400-h300/…). Swapping the size token to /s1600/ returns the
+   original HD photo — the saved greeting card becomes razor sharp. */
+function hdImageUrl(url){
+  try{
+    return String(url)
+      .replace(/\/s\d+(-c)?\//, '/s1600/')
+      .replace(/\/w\d+-h\d+(-p)?(-c)?(?!\d)\//, '/s1600/')
+      .replace(/=s\d+(-c)?$/, '=s1600');
+  }catch(e){ return url; }
+}
+async function fetchImageBlob(url, wantHd){
   if (!url) return null;
+  if (wantHd) url = hdImageUrl(url);
   /* 1) direct (works for same-origin / CORS-friendly hosts) */
   try{
     const r = await fetch(url, { cache: 'no-store' });
@@ -680,7 +749,7 @@ async function fetchImageBlob(url){
   }catch(e){}
   /* 2) CORS proxy (googleusercontent, blogger, etc.) */
   try{
-    const r2 = await fetch('https://wsrv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, '')), { cache: 'no-store' });
+    const r2 = await fetch('https://wsrv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, '')) + '&w=1080&output=jpg&q=92', { cache: 'no-store' });
     if (r2 && r2.ok){ const b2 = await r2.blob(); if (b2 && b2.size) return b2; }
   }catch(e){}
   /* 3) older proxy fallback */
@@ -710,11 +779,11 @@ async function saveReelImage(p, quote){
        so the downloaded card ALWAYS has the saree photo. */
     let img = null;
     try{
-      const blob = await fetchImageBlob(url);
+      const blob = await fetchImageBlob(url, true);   /* 🌟 HD photo */
       if (blob) img = await imageFromBlob(blob);
     }catch(e){}
     const loaded = !!img;
-    const W = 900, H = 1200;
+    const W = 1080, H = 1440;   /* 🌟 HD greeting card */
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
@@ -736,22 +805,22 @@ async function saveReelImage(p, quote){
       /* the wish, big and centred */
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 46px Georgia, "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", sans-serif';
+      ctx.font = 'bold 54px Georgia, "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", sans-serif';
       wrapText(ctx, quote || '', W / 2, 190, W - 130, 62);
       /* product card at the bottom */
       ctx.fillStyle = '#ffd98a';
-      ctx.font = 'bold 26px Georgia, serif';
-      ctx.fillText('— SK SAREES • SALEM —', W / 2, H - 185);
+      ctx.font = 'bold 30px Georgia, serif';
+      ctx.fillText('— SK SAREES • SALEM —', W / 2, H - 220);
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 36px Georgia, serif';
+      ctx.font = 'bold 42px Georgia, serif';
       const title = String(smartTitle(p));
-      ctx.fillText(title.length > 42 ? title.slice(0, 42) + '…' : title, W / 2, H - 135);
+      ctx.fillText(title.length > 42 ? title.slice(0, 42) + '…' : title, W / 2, H - 160);
       ctx.fillStyle = '#ffd98a';
-      ctx.font = 'bold 40px Georgia, serif';
-      ctx.fillText('₹' + (p.price || 0).toLocaleString('en-IN'), W / 2, H - 85);
+      ctx.font = 'bold 48px Georgia, serif';
+      ctx.fillText('₹' + (p.price || 0).toLocaleString('en-IN'), W / 2, H - 100);
       ctx.fillStyle = 'rgba(255,255,255,.78)';
-      ctx.font = 'bold 24px Georgia, serif';
-      ctx.fillText('www.sksaree.shop', W / 2, H - 44);
+      ctx.font = 'bold 28px Georgia, serif';
+      ctx.fillText('www.sksaree.shop', W / 2, H - 52);
     }
     const data = cv.toDataURL('image/jpeg', 0.9);
     const a = document.createElement('a');
@@ -770,7 +839,9 @@ async function saveReelImage(p, quote){
 /* 📢 share a reel — photo + wish + saree link straight into WhatsApp (viral!) */
 async function shareReel(p, quote){
   if (!p) return;
-  const url = productUrl(p);
+  /* 🔗 the share link opens THIS saree's reel (not the product page) —
+     the friend lands straight on the same beautiful reel she saw */
+  const url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
   const msg = (quote ? quote + '\n\n' : '') +
     '🌸 ' + smartTitle(p) + '\n₹' + (p.price || 0).toLocaleString('en-IN') +
     '\n🚚 ₹999+ மேல இலவச டெலிவரி\n\n👉 ' + url +
@@ -2182,6 +2253,8 @@ function renderProduct(){
   }catch(e){ try{ gal.push(cleanImg(p.img)); }catch(e2){} }
   const uniq = []; gal.forEach(u => { if (u && uniq.indexOf(u) === -1) uniq.push(u); });
   const gallery = uniq.length ? uniq : [img('printed-cotton.jpg')];
+  window.__pdGallery = gallery;   /* 📄 full-screen gallery source */
+  window.__pdGalIdx = 0;
   const liked = Store.wish.includes(p.id);
   const out = p.stock != null && p.stock <= 0;
   const low = !out && p.stock <= 5;
@@ -3826,18 +3899,29 @@ document.addEventListener('click', function(e){
     if (tImg){
       const mi = document.getElementById('pdMainImg');
       if (mi) mi.src = tImg.getAttribute('src');
+      try{ window.__pdGalIdx = +thumb.dataset.thumb || 0; }catch(e2){}   /* 📄 remember which photo */
       document.querySelectorAll('[data-thumb]').forEach(b => b.classList.toggle('on', b === thumb));
     }
     return;
   }
-  /* tap the big product photo → full-screen zoom */
+  /* 📄 tap the big product photo → FULL-SCREEN gallery (swipe all photos) */
   if (e.target.id === 'pdMainImg'){
-    const src = e.target.getAttribute('src');
-    const ov = document.createElement('div');
-    ov.className = 'img-zoom';
-    ov.innerHTML = '<div class="img-zoom-back" data-zoom-close></div><img src="' + esc(src) + '" alt="' + esc(document.getElementById('pdMainImg').alt || '') + '"><button type="button" class="img-zoom-x" data-zoom-close aria-label="Close">✕</button>';
-    document.body.appendChild(ov);
-    document.body.style.overflow = 'hidden';
+    e.preventDefault();
+    const gal = (window.__pdGallery || []).slice();
+    const start = Math.max(0, +window.__pdGalIdx || 0);
+    openGalleryViewer(gal, start, e.target.alt || '');
+    return;
+  }
+  /* gallery viewer arrows */
+  const gvNav = e.target.closest('[data-gnav]');
+  if (gvNav){
+    e.preventDefault();
+    const track = document.getElementById('gvTrack');
+    if (track){
+      const w = track.clientWidth || 1;
+      if (track.scrollBy) track.scrollBy({ left: (+gvNav.dataset.gnav) * w, behavior: 'smooth' });
+      else track.scrollLeft += (+gvNav.dataset.gnav) * w;
+    }
     return;
   }
   /* 🔔 Notify Me when back in stock (out-of-stock products) */
@@ -3871,7 +3955,7 @@ document.addEventListener('click', function(e){
     const ov = document.querySelector('.img-zoom');
     if (ov) ov.remove();
     document.body.style.overflow = '';
-    return;
+    try{ const gv = document.getElementById('galViewer'); if (gv) gv.remove(); }catch(e2){} return;
   }
   /* input sync for checkout */
 });

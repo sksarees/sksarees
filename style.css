@@ -2783,3 +2783,61 @@ h1{ letter-spacing:-.4px }
 .sec{ animation:secIn .5s ease both }
 @keyframes secIn{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
 @media(prefers-reduced-motion:reduce){ .sec{ animation:none } }
+
+/* ============================================================================
+   📄 FULL-SCREEN PRODUCT GALLERY + HD reel-share deep-link + flash highlight
+   ========================================================================== */
+/* fullscreen swipeable gallery viewer */
+.gv-track{
+  position:relative; z-index:1;
+  display:flex; width:100%; height:100dvh;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+.gv-track::-webkit-scrollbar{ display:none }
+.gv-slide{
+  flex:0 0 100%; scroll-snap-align:center; scroll-snap-stop:always;
+  display:flex; align-items:center; justify-content:center;
+  padding:14px;
+}
+.gv-slide img{
+  max-width:100%; max-height:92dvh;
+  object-fit:contain;
+  border-radius:14px;
+  box-shadow:0 12px 44px rgba(0,0,0,.55);
+  cursor:zoom-out;
+}
+.gv-nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  z-index:3; width:46px; height:46px; border-radius:999px; border:0;
+  background:rgba(255,255,255,.16); color:#fff;
+  font-size:1.5rem; font-weight:900; cursor:pointer;
+  backdrop-filter:blur(6px);
+}
+.gv-nav:active{ transform:translateY(-50%) scale(.92) }
+.gvl{ left:12px } .gvr{ right:12px }
+.gv-dots{
+  position:absolute; left:0; right:0; bottom:calc(16px + env(safe-area-inset-bottom));
+  display:flex; gap:5px; justify-content:center; z-index:3; pointer-events:none;
+}
+.gv-dots i{ width:6px; height:6px; border-radius:999px; background:rgba(255,255,255,.45); transition:.25s }
+.gv-dots i.on{ background:#fff; width:18px }
+/* main product photo: show a "view fullscreen" hint */
+#pdMain{ position:relative; cursor:zoom-in }
+#pdMain::after{
+  content:'⛶';
+  position:absolute; right:10px; bottom:10px;
+  width:34px; height:34px; border-radius:999px;
+  background:rgba(20,8,8,.55); color:#ffe9b0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem;
+  backdrop-filter:blur(4px);
+  pointer-events:none;
+}
+/* shared reel deep-link: brief golden flash on the target reel */
+.rp-flash{ animation:rpFlash 2.2s ease }
+@keyframes rpFlash{
+  0%{ box-shadow:inset 0 0 0 3px #ffd98a, 0 0 0 0 rgba(255,217,138,.7) }
+  30%{ box-shadow:inset 0 0 0 3px #ffd98a, 0 0 34px 8px rgba(255,217,138,.55) }
+  100%{ box-shadow:none }
+}
