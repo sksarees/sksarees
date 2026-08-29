@@ -40,6 +40,7 @@ async function init(){
   try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
   try{ startOfferTimers(); }catch(e){}  /* ⏰ Meesho-style "offer ends in" countdowns */
   try{ initReelCards(); }catch(e){}     /* 🎞️ swipeable shop cards */
+  try{ initReelDoubleTap(); }catch(e){} /* ❤️ double-tap reel = like */
 
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -436,6 +437,62 @@ function reelQuoteFor(p, i){
     return qText(list[h % list.length]);
   }catch(e){ return qText(REEL_QUOTES[0]); }
 }
+/* ❤️ DOUBLE-TAP TO LIKE — Instagram style: tap the photo twice
+   → big heart bursts in the centre + the rail heart fills. Double-tap only
+   ever LIKES (never unlikes) — exactly like the real app. */
+function likeReel(pid, reelEl){
+  try{
+    const liked = !!LS.get('sk_reel_liked_' + pid, 0);
+    if (liked) return;
+    LS.set('sk_reel_liked_' + pid, 1);
+    const m = LS.get('sk_reel_likes', {}) || {};
+    m[pid] = (m[pid] || 0) + 1;
+    LS.set('sk_reel_likes', m);
+    const btn = reelEl.querySelector('[data-rplike]');
+    if (btn){
+      const ic = btn.querySelector('.rpa-ic');
+      if (ic){ ic.textContent = '❤️'; ic.classList.add('liked'); ic.classList.remove('burst'); void ic.offsetWidth; ic.classList.add('burst'); }
+      const sm = btn.querySelector('small');
+      if (sm) sm.textContent = m[pid];
+    }
+  }catch(e){}
+}
+function bigHeartBurst(reel){
+  try{
+    const h = document.createElement('div');
+    h.className = 'rp-bigheart';
+    h.textContent = '❤️';
+    reel.appendChild(h);
+    setTimeout(() => { try{ h.remove(); }catch(e){} }, 900);
+  }catch(e){}
+}
+function initReelDoubleTap(){
+  try{
+    let lastTap = 0, lastTarget = null, sx = 0, sy = 0;
+    const isControl = (t) => !!(t && t.closest && t.closest('.rpa, .rp-btns, a, button, input, textarea'));
+    document.addEventListener('touchstart', e => {
+      if (e.touches[0]){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const reel = e.target.closest && e.target.closest('.rp-reel');
+      if (!reel || isControl(e.target)) return;
+      const t = e.changedTouches[0];
+      if (t && (Math.abs(t.clientX - sx) > 14 || Math.abs(t.clientY - sy) > 14)) return;
+      const now = Date.now();
+      if (now - lastTap < 330 && lastTarget === reel){
+        likeReel(reel.dataset.rid, reel);
+        bigHeartBurst(reel);
+        lastTap = 0; lastTarget = null;
+      } else { lastTap = now; lastTarget = reel; }
+    });
+    document.addEventListener('dblclick', e => {
+      const reel = e.target.closest && e.target.closest('.rp-reel');
+      if (!reel || isControl(e.target)) return;
+      likeReel(reel.dataset.rid, reel);
+      bigHeartBurst(reel);
+    });
+  }catch(e){}
+}
 /* 🎬 render the reels feed — taste-ranked (what she views most comes first),
    INFINITE (more reels auto-load near the end — never a dead end),
    Instagram-style action rail (❤️ like · 💬 comment · 🔁 share · 🔖 save · 🎵 audio) */
@@ -481,7 +538,6 @@ function reelHTML(p, i){
         '<a class="btn btn-gold rp-shop" href="product.html?id=' + encodeURIComponent(p.id) + '">🛍️ ' + loc('இந்த சேலையை வாங்கு', 'ఈ చీరా కొను', 'ಈ ಆಟವಿನ್ನು ತೆಗೆದು', 'Shop this saree') + '</a>' +
       '</div>' +
     '</div>' +
-    '<div class="rp-hint">⌃ ' + loc('SWIPE UP — அடுத்த சேலை', 'SWIPE UP', 'SWIPE UP', 'SWIPE UP for the next saree') + '</div>' +
   '</section>';
 }
 function renderReelsPage(){

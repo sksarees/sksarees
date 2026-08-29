@@ -2524,3 +2524,73 @@ body[data-page="reels"] #app{ margin-top:0 }
 .rc-modal{ max-height:70vh; overflow-y:auto; display:grid; gap:9px }
 .rc-modal h3{ font-size:1.02rem; margin:0 0 2px }
 .rc-list{ display:grid; gap:8px; max-height:34vh; overflow-y:auto; padding:2px }
+
+/* ============================================================================
+   🎬 REELS v3 — Instagram LATEST style: transparent icons, transparent header,
+   double-tap ❤️ big heart burst, no swipe hint. Mobile greeting alignment fix.
+   ========================================================================== */
+/* 📱 greeting strip on phones: 👋 emoji hidden, text full-width row 1,
+   buttons aligned row 2 — perfect alignment */
+@media(max-width:640px){
+  .greet-strip{ padding:10px 0 }
+  .greet-strip .gs-emoji{ display:none !important }   /* no waving hand on mobile */
+  .gs-in{ gap:9px; align-items:center }
+  .gs-txt{ flex:1 1 100%; min-width:0; order:1; text-align:left }
+  .gs-txt b{ font-size:.98rem; line-height:1.35 }
+  .gs-txt small{ font-size:.7rem; line-height:1.65; text-align:left; padding-right:6px }
+  .gs-btn{ order:2; flex:1 1 auto; margin-top:4px; text-align:center; padding:10px 12px; font-size:.74rem }
+  .gs-share{ order:3; flex:0 0 auto; margin-top:4px }
+}
+
+/* ❤️ BIG HEART BURST — double-tap the reel photo (Instagram style) */
+.rp-bigheart{
+  position:absolute; top:44%; left:50%;
+  font-size:5.6rem; line-height:1;
+  pointer-events:none; z-index:9;
+  filter:drop-shadow(0 10px 28px rgba(0,0,0,.45));
+  animation:rpBigHeart .85s cubic-bezier(.2,1.6,.4,1) forwards;
+}
+@keyframes rpBigHeart{
+  0%{ transform:translate(-50%,-50%) scale(0) rotate(-14deg); opacity:0 }
+  22%{ transform:translate(-50%,-50%) scale(1.3) rotate(6deg); opacity:1 }
+  55%{ transform:translate(-50%,-50%) scale(1) rotate(-3deg); opacity:1 }
+  100%{ transform:translate(-50%,-62%) scale(.85) rotate(0); opacity:0 }
+}
+
+/* 🎨 LATEST INSTAGRAM LOOK — transparent action icons (no circle backgrounds) */
+.rp-actions{ bottom:calc(118px + env(safe-area-inset-bottom)); gap:15px }
+.rpa .rpa-ic{
+  background:transparent;
+  backdrop-filter:none;
+  box-shadow:none;
+  width:auto; height:auto; border-radius:0;
+  font-size:1.7rem; line-height:1;
+  text-shadow:0 2px 10px rgba(0,0,0,.65);
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));
+}
+.rp-disc{ background:transparent !important }
+.rp-disc i{ font-size:1.7rem; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.65) }
+.rpa small{ font-size:.62rem; letter-spacing:.2px }
+
+/* 🌫️ TRANSPARENT TOP HEADER on reels — content scrolls under it */
+body[data-page="reels"] .topbar{
+  position:fixed; top:0; left:0; right:0; width:100%;
+  z-index:58;
+  background:linear-gradient(180deg, rgba(16,6,11,.72) 0%, rgba(16,6,11,.35) 55%, transparent 100%);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+  border-bottom:0 !important;
+  box-shadow:none !important;
+}
+body[data-page="reels"] .topbar-in{ height:54px }
+body[data-page="reels"] .logo small{ color:#f0d9a4 !important }
+body[data-page="reels"] .desk-nav a{ color:#fff !important }
+body[data-page="reels"] .icon-btn{ color:#fff !important }
+body[data-page="reels"] .header-greet{ background:rgba(255,255,255,.16); border-color:rgba(233,203,116,.6); color:#fff }
+body[data-page="reels"] .header-greet b{ color:#ffe9b0 }
+body[data-page="reels"] .burger{ color:#fff }
+/* reels wrap now uses the FULL screen (header floats on top) */
+body[data-page="reels"] .rp-wrap{ height:100dvh }
+body[data-page="reels"] .rp-top{ top:calc(60px + env(safe-area-inset-top)) }
+/* hide the swipe hint everywhere (removed by request) */
+.rp-hint{ display:none !important }
