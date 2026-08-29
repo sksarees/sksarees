@@ -672,9 +672,27 @@ async function saveReelImage(p, quote){
   try{
     toast('📸 ' + loc('படம் தயார் ஆகிறது…', 'ఫోటో రెడీ అవుతోంది…', 'ಫೋಟೊ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…', 'Preparing your image…'));
     const url = p.img || ((p.images || [])[0]);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    const loaded = await new Promise(res => { img.onload = () => res(true); img.onerror = () => res(false); img.src = url; });
+    /* 🖼️ PHOTO FIX: fetch the image as a BLOB first → object URL is
+       same-origin → canvas never gets tainted → the saree photo ALWAYS makes
+       it into the downloaded card. Falls back to crossOrigin <img>, then plain <img>. */
+    const loadImg = (src, useCors) => new Promise(res => {
+      const im = new Image();
+      if (useCors) im.crossOrigin = 'anonymous';
+      im.onload = () => res(im);
+      im.onerror = () => res(null);
+      im.src = src;
+    });
+    let img = null;
+    try{
+      const resp = await fetch(url, { cache: 'no-store' });
+      if (resp && resp.ok){
+        const blob = await resp.blob();
+        img = await loadImg(URL.createObjectURL(blob), false);   /* ✅ untainted */
+      }
+    }catch(e){}
+    if (!img) img = await loadImg(url, true);   /* try CORS img */
+    if (!img) img = await loadImg(url, false);  /* last try: plain (may taint) */
+    const loaded = !!img;
     const W = 900, H = 1200;
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -1511,15 +1529,10 @@ function personalGreetHTML(){
     try{ viewed = JSON.parse(localStorage.getItem('sk_recent') || '[]').length; }catch(e){}
     const pts = pointsBalance();
     const since = memberSinceText();
-    const bits = [];
-    bits.push(liked ? '❤️ <b>' + liked + '</b> ' + loc('சேலைகள் பிடித்தது', 'నచ్చిన చీరలు', 'ಇಷ್ಟವಾದ ಸೀರೆಗಳು', 'sarees liked') : '❤️ ' + loc('பிடித்த சேலைகளுக்கு ♥ அழுத்துங்கள்', 'నచ్చిన చీరలకు ♥ నొక్కండి', 'ಇಷ್ಟವಾದ ಸೀರೆಗಳಿಗೆ ♥ ಒತ್ತಿ', 'Tap ♥ on sarees you like'));
-    if (viewed) bits.push('👀 <b>' + viewed + '</b> ' + loc('பார்த்தது', 'చూసినవి', 'ನೋಡಿದವು', 'viewed'));
-    if (pts) bits.push('⭐ <b>' + pts + '</b> ' + loc('பாயிண்ட்', 'పాయింట్లు', 'ಪಾಯಿಂಟ್‌ಗಳು', 'points'));
-    if (since) bits.push('<span class="gs-since">' + '🤝 ' + loc('நம்முடன் ' + since + ' முதல்', since + ' నుండి మాతో', since + ' ದಿಂದ ನಮ್ಮೊಂದಿಗೆ', 'with us since ' + since) + '</span>');
     return '<section class="greet-strip"><div class="wrap gs-in">' +
       '<span class="gs-emoji">👋</span>' +
       '<div class="gs-txt"><b>' + greetWord() + ', ' + esc(nm) + '!</b>' +
-      '<small>' + bits.join(' • ') + '</small></div>' +
+'</div>' +
       '<a class="gs-btn" href="profile.html">' + esc(nm) + loc(' பக்கம் →', ' పేజీ →', ' ಪುಟ →', "'s page →") + '</a>' +
       '<button type="button" class="gs-share" data-sharesite="1" aria-label="Share SK Sarees" title="' + loc('வாட்ஸ்அப்பில் பகிர்', 'వాట్సాప్‌లో షేర్ చేయి', 'ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿ', 'Share on WhatsApp') + '">📢</button>' +
       '</div></section>';
@@ -2190,13 +2203,14 @@ function renderProduct(){
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ BUY NOW — ' + money(onlinePrice(p)) + '</a>') +
+            : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ BUY NOW ' + money(onlinePrice(p)) + '</a>') +
           '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
         '</div>' +
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
           (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'வண்டியில் சேர்', 'Add to Cart', 'Add to Cart') + '</button>') +
           '<a class="btn btn-outline" href="share-earn.html">💰 ' + loc('Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%') + '</a>' +
+          '<button type="button" class="btn btn-outline" data-share-wa="' + esc(p.id) + '" aria-label="Share on WhatsApp with photo">📢 ' + loc('பகிர்', 'தேலிகீ', 'லோ஗னு', 'Share') + '</button>' +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
@@ -2277,9 +2291,9 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ BUY NOW — ' + money(onlinePrice(p) * n); }
+    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ BUY NOW ' + money(onlinePrice(p) * n); }
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '⚡ BUY NOW — ' + money(onlinePrice(p) * n); }
+    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '⚡ BUY NOW ' + money(onlinePrice(p) * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
