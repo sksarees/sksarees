@@ -416,6 +416,16 @@ function reelsLang(){
   return 'ta';
 }
 function qText(q){ const L = reelsLang(); return (q && (q[L] || q.ta)) || ''; }
+/* 🌐 reels UI auto-translates to HER language (device-detected) — the
+   website itself stays English-first (manual change only), but reels speak
+   Tamil / Telugu / Kannada automatically */
+function rloc(ta, te, kn, en){
+  const L = reelsLang();
+  if (L === 'te') return te;
+  if (L === 'kn') return kn;
+  if (L === 'ta') return ta;
+  return en;
+}
 /* greeting type by time of day */
 function reelGreetingType(){
   const h = new Date().getHours();
@@ -602,20 +612,20 @@ function reelHTML(p, i){
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
     '<img class="rp-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="imgSafe(this)">' +
     '<div class="rp-shade"></div>' +
-    '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + loc('சேலை reels — விரல் மாதில்', 'చీర reels', 'ಆಟವಿಲ್ reels', 'Saree reels — daily wishes') + '</small></div>' +
+    '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + rloc('சேலை reels — விரல் மாதில்', 'చీర reels', 'ಆಟವಿಲ್ reels', 'Saree reels — daily wishes') + '</small></div>' +
     '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
     /* Instagram-style action rail */
     '<div class="rp-actions">' +
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
       '<button type="button" class="rpa" data-rpcomment="' + esc(p.id) + '" aria-label="Comments"><span class="rpa-ic">💬</span><small>' + (cmts || '') + '</small></button>' +
-      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + loc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share') + '</small></button>' +
-      '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + loc('படம்', 'நிறுவு', 'லோட்', 'Save') + '</small></button>' +
+      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + rloc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share') + '</small></button>' +
+      '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + rloc('படம்', 'நிறுவு', 'லோட்', 'Save') + '</small></button>' +
       '<a class="rpa" href="' + esc(CONFIG.social.youtube || 'https://www.youtube.com/') + '" target="_blank" rel="noopener" aria-label="Audio"><span class="rpa-ic rp-disc"><i>♪</i></span><small>Audio</small></a>' +
     '</div>' +
     '<div class="rp-bottom">' +
       '<div class="rp-prod"><b>' + esc(smartTitle(p)) + '</b><span>₹' + (p.price || 0).toLocaleString('en-IN') + '</span></div>' +
       '<div class="rp-btns">' +
-        '<a class="btn btn-gold rp-shop" href="product.html?id=' + encodeURIComponent(p.id) + '">🛍️ ' + loc('இந்த சேலையை வாங்கு', 'ఈ చీరా కొను', 'ಈ ಆಟವಿನ್ನು ತೆಗೆದು', 'Shop this saree') + '</a>' +
+        '<a class="btn btn-gold rp-shop" href="product.html?id=' + encodeURIComponent(p.id) + '">🛍️ ' + rloc('இந்த சேலையை வாங்கு', 'ఈ చీరా కొను', 'ಈ ಆಟವಿನ್ನು ತೆಗೆದು', 'Shop this saree') + '</a>' +
       '</div>' +
     '</div>' +
   '</section>';
@@ -701,11 +711,11 @@ function reelCommentModal(p){
   if (!p) return;
   const revs = LS.get('sk_reviews_' + p.id, []);
   openModal('<div class="rc-modal">' +
-    '<h3>💬 ' + loc('கருத்துகள்', 'కామెంట్లు', 'ಕಾಮೆಂಟ್‌ಗಳು', 'Comments') + ' — ' + esc((Store.profile || {}).name || 'You') + '</h3>' +
-    '<div class="rc-list">' + (revs.length ? revs.slice().reverse().map(revCardHTML).join('') : '<p class="muted small" style="padding:8px 2px">' + loc('இன்னும் கருத்துகள் இல்லை — முதல் கருத்தை நீங்களே எழுதுங்கள்!', 'ఇంకా కామెంట్లు లేవు — మొదటి కామెంట్ మీరే రాయండి!', 'ಇನ್ನೂ ಕಾಮೆಂಟ್‌ಗಳಿಲ್ಲ — ಮೊದಲ ಕಾಮೆಂಟ್ ನೀವೇ ಬರೆಯಿರಿ!', 'No comments yet — be the first!') + '</p>') + '</div>' +
-    '<input id="rcName" placeholder="' + loc('பெயர்', 'పేరు', 'ಹೆಸರು', 'Name') + '" maxlength="40" value="' + esc((Store.profile || {}).name || '') + '" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none">' +
-    '<textarea id="rcText" rows="2" placeholder="' + loc('உங்க கருத்தை எழுதுங்க…', 'మీ కామెంట్ రాయండి…', 'ನಿಮ್ಮ ಕಾಮೆಂಟ್ ಬರೆಯಿರಿ…', 'Write a comment…') + '" maxlength="300" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none;resize:vertical"></textarea>' +
-    '<button type="button" class="btn btn-maroon" data-rpost="' + esc(p.id) + '">✍️ ' + loc('பதிவிடு', 'పోస్ట్', 'ಪೋಸ್ಟ್', 'Post') + '</button>' +
+    '<h3>💬 ' + rloc('கருத்துகள்', 'కామెంట్లు', 'ಕಾಮೆಂಟ್‌ಗಳು', 'Comments') + ' — ' + esc((Store.profile || {}).name || 'You') + '</h3>' +
+    '<div class="rc-list">' + (revs.length ? revs.slice().reverse().map(revCardHTML).join('') : '<p class="muted small" style="padding:8px 2px">' + rloc('இன்னும் கருத்துகள் இல்லை — முதல் கருத்தை நீங்களே எழுதுங்கள்!', 'ఇంకా కామెంట్లు లేవు — మొదటి కామెంట్ మీరే రాయండి!', 'ಇನ್ನೂ ಕಾಮೆಂಟ್‌ಗಳಿಲ್ಲ — ಮೊದಲ ಕಾಮೆಂಟ್ ನೀವೇ ಬರೆಯಿರಿ!', 'No comments yet — be the first!') + '</p>') + '</div>' +
+    '<input id="rcName" placeholder="' + rloc('பெயர்', 'పేరు', 'ಹೆಸರು', 'Name') + '" maxlength="40" value="' + esc((Store.profile || {}).name || '') + '" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none">' +
+    '<textarea id="rcText" rows="2" placeholder="' + rloc('உங்க கருத்தை எழுதுங்க…', 'మీ కామెంట్ రాయండి…', 'ನಿಮ್ಮ ಕಾಮೆಂಟ್ ಬರೆಯಿರಿ…', 'Write a comment…') + '" maxlength="300" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none;resize:vertical"></textarea>' +
+    '<button type="button" class="btn btn-maroon" data-rpost="' + esc(p.id) + '">✍️ ' + rloc('பதிவிடு', 'పోస్ట్', 'ಪೋಸ್ಟ್', 'Post') + '</button>' +
     '</div>');
 }
 /* 📸 SAVE REEL AS IMAGE — draws the saree photo + wish + brand onto a
@@ -844,7 +854,7 @@ async function shareReel(p, quote){
   const url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
   const msg = (quote ? quote + '\n\n' : '') +
     '🌸 ' + smartTitle(p) + '\n₹' + (p.price || 0).toLocaleString('en-IN') +
-    '\n🚚 ₹999+ மேல இலவச டெலிவரி\n\n👉 ' + url +
+    '\n' + rloc('🚚 ₹999+ மேல இலவச டெலிவரி', '🚚 ₹999+ மீதே உசதடி டெலிவரி', '🚚 ₹999+ மேலெ உசித குதிரி', '🚚 FREE delivery above ₹999') + '\n\n👉 ' + url +
     '\n\n— SK Sarees, Salem 🧵';
   try{
     if (navigator.share){
@@ -937,7 +947,7 @@ function cardHTML(p){
     '<div class="pcard-body">' +
       '<h3><a href="' + productUrl(p) + '">' + esc(p.name) + '</a></h3>' +
       starsHTML(p) +
-      '<div class="price-row"><b>' + money(p.price) + '</b></div>' +
+      '<div class="price-row"><b>' + money(p.price) + '</b>' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '</div>' +
     '</div></article>';
 }
 
@@ -1027,6 +1037,82 @@ function weaverStoryHTML(){
     '</div></section>';
 }
 
+/* ============================ 📅 2026 TAMIL FESTIVAL CALENDAR ============================
+   Real festival dates (Thai Pongal → Vaikunta Ekadashi). She taps any festival
+   → sarees for that occasion. SEO gold: every festival name searchable. */
+const FESTIVAL_DATES_2026 = [
+  { m: 'January (Thai)', items: [
+    { d: 3,  n: 'Arudra Darshan (Thiruvathirai)', s: 'Shiva temple festival' },
+    { d: 13, n: 'Bhogi Pandigai', s: 'Discard old, welcome new' },
+    { d: 14, n: 'Thai Pongal', s: 'Main harvest festival day' },
+    { d: 15, n: 'Mattu Pongal', s: 'Cattle thanksgiving' },
+    { d: 16, n: 'Kaanum Pongal / Thiruvalluvar Day', s: 'Family outing day' },
+    { d: 17, n: 'Uzhavar Thirunal', s: "Farmers' Day" },
+    { d: 18, n: 'Thai Amavasai', s: 'New moon remembrance' },
+    { d: 25, n: 'Ratha Saptami', s: 'Surya festival' },
+  ]},
+  { m: 'February (Masi)', items: [
+    { d: 1,  n: 'Thai Poosam (Thaipusam)', s: 'Murugan festival' },
+    { d: 15, n: 'Maha Shivaratri', s: 'Night of Shiva' },
+  ]},
+  { m: 'March (Panguni)', items: [
+    { d: 3,  n: 'Masi Magam', s: 'Sacred sea bath' },
+    { d: 14, n: 'Karadaiyan Nombu', s: 'Savithri vratam' },
+    { d: 26, n: 'Rama Navami', s: 'Sri Rama birthday' },
+  ]},
+  { m: 'April (Chithirai)', items: [
+    { d: 1,  n: 'Panguni Uthiram', s: 'Murugan & Devasena kalyanam' },
+    { d: 14, n: 'Tamil New Year (Puthandu)', s: 'Chithirai 1 — new beginnings' },
+  ]},
+  { m: 'May (Vaikasi)', items: [
+    { d: 1,  n: 'Chitra Pournami', s: 'Full moon festival' },
+    { d: 30, n: 'Vaikasi Visakam', s: 'Murugan birthday' },
+  ]},
+  { m: 'August (Aadi / Avani)', items: [
+    { d: 3,  n: 'Aadi Perukku', s: 'River prosperity festival' },
+    { d: 12, n: 'Aadi Amavasai', s: 'New moon remembrance' },
+    { d: 26, n: 'Avani Avittam (Rigveda)', s: 'Sacred thread change' },
+    { d: 27, n: 'Avani Avittam (Yajurveda)', s: 'Sacred thread change' },
+    { d: 28, n: 'Varalakshmi Vratam / Gayathri Japam', s: 'Goddess Lakshmi vratam' },
+  ]},
+  { m: 'September (Avani / Purattasi)', items: [
+    { d: 4,  n: 'Krishna Jayanthi (Gokulashtami)', s: 'Krishna birthday' },
+    { d: 14, n: 'Vinayagar Chaturthi', s: 'Ganesh Chaturthi' },
+  ]},
+  { m: 'October (Purattasi / Aippasi)', items: [
+    { d: 10, n: 'Mahalaya Amavasai', s: 'Ancestors remembrance' },
+    { d: 11, n: 'Navaratri begins', s: 'Nine nights of the Goddess' },
+    { d: 20, n: 'Vijayadashami / Ayudha Poojai', s: 'Saraswati Poojai — victory day' },
+  ]},
+  { m: 'November (Aippasi / Karthigai)', items: [
+    { d: 8,  n: 'Deepavali (Diwali)', s: 'Festival of lights' },
+    { d: 15, n: 'Soora Samharam (Skanda Sashti)', s: 'Murugan victory' },
+    { d: 24, n: 'Karthigai Deepam', s: 'Lamps festival' },
+  ]},
+  { m: 'December (Margazhi)', items: [
+    { d: 15, n: 'Subrahmanya Sashti', s: 'Murugan festival' },
+    { d: 20, n: 'Vaikunta Ekadashi', s: 'Vishnu gates open' },
+    { d: 24, n: 'Arudra Darshan (Thiruvathirai)', s: 'Nataraja festival' },
+  ]},
+];
+/* 📅 render the calendar — every festival links to matching sarees */
+function festivalCalendarHTML(){
+  try{
+    const months = FESTIVAL_DATES_2026.map(mo => {
+      const rows = mo.items.map(f =>
+        '<a class="fest-row" href="shop.html?q=' + encodeURIComponent(f.n.split('(')[0].trim()) + '">' +
+          '<span class="fr-date">' + f.d + '</span>' +
+          '<span class="fr-name">' + esc(f.n) + '<small>' + esc(f.s) + '</small></span>' +
+          '<span class="fr-go">Shop sarees →</span>' +
+        '</a>').join('');
+      return '<div class="fest-month"><h4>🗓️ ' + esc(mo.m) + '<span class="fm-count">' + mo.items.length + ' festivals</span></h4>' + rows + '</div>';
+    }).join('');
+    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Tamil Festival Calendar 2026 — ' + loc('சிறப்பு நாட்கள்', 'పండుగ దినాలు', 'ಹಬ್ಬದ ದಿನಗಳು', 'Auspicious Days') + '</h2>' +
+      '<a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<div class="fest-cal">' + months + '</div></section>';
+  }catch(e){ return ''; }
+}
+
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -1045,6 +1131,14 @@ function renderHome(){
       '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> above ₹999</span></div>' +
       '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 ' + (lang === 'ta' ? t('searchHero') : 'Search by saree name, SKU or colour…') + '" autocomplete="off"><button type="submit" class="btn btn-gold">' + (lang === 'ta' ? t('search') : 'Search') + '</button></form>' +
     '</div></section>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+        '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
+          const count = PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length;
+          return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
+            '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
+            '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
+            '<span class="ct-count">' + count + ' designs • ' + c.blurb + '</span></div></a>';
+        }).join('') + '</div></section>' +
     '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
     dealOfDayHTML() +
     likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
@@ -1057,14 +1151,6 @@ function renderHome(){
       '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
     '</section></div>' +
     '<div class="wrap">' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
-        '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
-          const count = PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length;
-          return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
-            '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
-            '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
-            '<span class="ct-count">' + count + ' designs • ' + c.blurb + '</span></div></a>';
-        }).join('') + '</div></section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ ' + (lang === 'ta' ? t('bestSellers') : 'Best Sellers') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
         '<div class="prow">' + best.map(cardHTML).join('') + '</div></section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ ' + (lang === 'ta' ? t('newIn') : 'New Arrivals') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
@@ -1088,6 +1174,7 @@ function renderHome(){
         '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
           '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
         '</div></section>' +
+      festivalCalendarHTML() +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 ' + (lang === 'ta' ? t('reviews') : 'What Our Customers Say') + '</h2></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
           '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
