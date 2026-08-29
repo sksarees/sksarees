@@ -2184,6 +2184,24 @@ const FS = {
     });
     return () => un();
   },
+  /* ❤️ REEL LIKE COUNTS — GLOBAL for all users.
+     One doc (reel_stats/likes) holds a map {pid: count}.
+     Like/unlike = ONE write (field-path increment, no read).
+     Reels page = ONE cached read per 30 min. Firestore-cheap. */
+  async reelLike(pid, delta){
+    const db = await this._getDb(); if (!db || !pid) return false;
+    try{
+      await db.collection('reel_stats').doc('likes').set({ ['c.' + pid]: window.firebase.firestore.FieldValue.increment(delta || 1) }, { merge: true });
+      return true;
+    }catch(e){ return false; }
+  },
+  async reelLikeCounts(){
+    const db = await this._getDb(); if (!db) return null;
+    try{
+      const snap = await db.collection('reel_stats').doc('likes').get();
+      return (snap.exists && snap.data() && snap.data().c) || {};
+    }catch(e){ return null; }
+  },
   async deleteReview(rid){
     const db = await this._getDb(); if (!db) return false;
     try{ await db.collection('reviews').doc(rid).delete(); return true; }catch(e){ return false; }

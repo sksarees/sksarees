@@ -437,24 +437,60 @@ function reelQuoteFor(p, i){
     return qText(list[h % list.length]);
   }catch(e){ return qText(REEL_QUOTES[0]); }
 }
-/* ❤️ DOUBLE-TAP TO LIKE — Instagram style: tap the photo twice
-   → big heart bursts in the centre + the rail heart fills. Double-tap only
-   ever LIKES (never unlikes) — exactly like the real app. */
+/* ❤️ REEL LIKES — global counts from Firestore (all users see the same
+   number). One cached read per 30 min; every like = one increment write. */
+function reelCountOf(pid){
+  try{ const cache = LS.get('sk_reel_counts_cache', null) || {}; return Math.max(0, +((cache.c || {})[pid]) || 0); }catch(e){ return 0; }
+}
+function bumpLocalCount(pid, d){
+  try{
+    const cache = LS.get('sk_reel_counts_cache', null) || { t: Date.now(), c: {} };
+    cache.c = cache.c || {};
+    cache.c[pid] = Math.max(0, (+cache.c[pid] || 0) + d);
+    LS.set('sk_reel_counts_cache', cache);
+  }catch(e){}
+}
+async function loadReelCounts(){
+  try{
+    const cached = LS.get('sk_reel_counts_cache', null);
+    if (cached && cached.t && (Date.now() - cached.t) < 1800000 && cached.c){ return cached.c; }   /* 30-min cache */
+    if (!FS.enabled()) return (cached && cached.c) || {};
+    const c = await FS.reelLikeCounts();
+    if (c){ LS.set('sk_reel_counts_cache', { t: Date.now(), c }); return c; }
+    return (cached && cached.c) || {};
+  }catch(e){ return {}; }
+}
+function applyReelCountsToDom(){
+  try{
+    document.querySelectorAll('[data-rplike]').forEach(btn => {
+      const n = reelCountOf(btn.dataset.rplike);
+      const sm = btn.querySelector('small');
+      if (sm) sm.textContent = n > 0 ? n : '';
+    });
+  }catch(e){}
+}
+function setReelLike(pid, on, reelEl){
+  try{
+    LS.set('sk_reel_liked_' + pid, on ? 1 : 0);
+    bumpLocalCount(pid, on ? 1 : -1);
+    if (FS.enabled()) FS.reelLike(pid, on ? 1 : -1).catch(() => {});   /* 🔥 global for ALL users */
+    if (reelEl){
+      const btn = reelEl.querySelector('[data-rplike]');
+      if (btn){
+        const ic = btn.querySelector('.rpa-ic');
+        if (ic){ ic.textContent = on ? '❤️' : '🤍'; ic.classList.toggle('liked', on); ic.classList.remove('burst'); void ic.offsetWidth; ic.classList.add('burst'); }
+        const sm = btn.querySelector('small');
+        if (sm) sm.textContent = reelCountOf(pid) > 0 ? reelCountOf(pid) : '';
+      }
+    }
+  }catch(e){}
+}
+/* ❤️ DOUBLE-TAP TO LIKE — Instagram style: big heart burst. Double-tap
+   only ever LIKES (never unlikes) — exactly like the real app. */
 function likeReel(pid, reelEl){
   try{
-    const liked = !!LS.get('sk_reel_liked_' + pid, 0);
-    if (liked) return;
-    LS.set('sk_reel_liked_' + pid, 1);
-    const m = LS.get('sk_reel_likes', {}) || {};
-    m[pid] = (m[pid] || 0) + 1;
-    LS.set('sk_reel_likes', m);
-    const btn = reelEl.querySelector('[data-rplike]');
-    if (btn){
-      const ic = btn.querySelector('.rpa-ic');
-      if (ic){ ic.textContent = '❤️'; ic.classList.add('liked'); ic.classList.remove('burst'); void ic.offsetWidth; ic.classList.add('burst'); }
-      const sm = btn.querySelector('small');
-      if (sm) sm.textContent = m[pid];
-    }
+    if (LS.get('sk_reel_liked_' + pid, 0)) return;   /* already loved */
+    setReelLike(pid, true, reelEl);
   }catch(e){}
 }
 function bigHeartBurst(reel){
@@ -516,7 +552,7 @@ function reelLikesOf(pid){
 function reelHTML(p, i){
   const q = reelQuoteFor(p, i);
   const liked = !!LS.get('sk_reel_liked_' + p.id, 0);
-  const likes = reelLikesOf(p.id);
+  const likes = reelCountOf(p.id);   /* 🔥 global Firestore count */
   const cmts = realReviewCount(p.id);
   const saved = Store.wish.includes(p.id);
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
@@ -529,7 +565,7 @@ function reelHTML(p, i){
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
       '<button type="button" class="rpa" data-rpcomment="' + esc(p.id) + '" aria-label="Comments"><span class="rpa-ic">💬</span><small>' + (cmts || '') + '</small></button>' +
       '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + loc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share') + '</small></button>' +
-      '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save"><span class="rpa-ic">' + (saved ? '🔖' : '📑') + '</span><small>' + loc('சேமி', 'సేవ్', 'ಸೇವ್', 'Save') + '</small></button>' +
+      '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + loc('படம்', 'நிறுவு', 'லோட்', 'Save') + '</small></button>' +
       '<a class="rpa" href="' + esc(CONFIG.social.youtube || 'https://www.youtube.com/') + '" target="_blank" rel="noopener" aria-label="Audio"><span class="rpa-ic rp-disc"><i>♪</i></span><small>Audio</small></a>' +
     '</div>' +
     '<div class="rp-bottom">' +
@@ -547,6 +583,8 @@ function renderReelsPage(){
     '<button type="button" class="rp-arrow up" data-rpnav="-1" aria-label="Previous reel">⌃</button>' +
     '<button type="button" class="rp-arrow down" data-rpnav="1" aria-label="Next reel">⌄</button>';
   appendReels(10);
+  /* 🔥 load GLOBAL like counts (Firestore — one cached read) */
+  try{ loadReelCounts().then(() => applyReelCountsToDom()).catch(() => {}); }catch(e){}
 }
 /* ♾️ INFINITE — more reels load as she nears the end. Never stops. */
 function appendReels(n){
@@ -612,6 +650,83 @@ function reelCommentModal(p){
     '<textarea id="rcText" rows="2" placeholder="' + loc('உங்க கருத்தை எழுதுங்க…', 'మీ కామెంట్ రాయండి…', 'ನಿಮ್ಮ ಕಾಮೆಂಟ್ ಬರೆಯಿರಿ…', 'Write a comment…') + '" maxlength="300" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none;resize:vertical"></textarea>' +
     '<button type="button" class="btn btn-maroon" data-rpost="' + esc(p.id) + '">✍️ ' + loc('பதிவிடு', 'పోస్ట్', 'ಪೋಸ್ಟ್', 'Post') + '</button>' +
     '</div>');
+}
+/* 📸 SAVE REEL AS IMAGE — draws the saree photo + wish + brand onto a
+   canvas (ShareChat-style greeting card) and downloads it to her phone.
+   She posts it on WhatsApp Status → free traffic! Falls back to opening the
+   photo (long-press save) if the CDN blocks canvas export. */
+function wrapText(ctx, text, x, y, maxW, lineH){
+  const words = String(text || '').split(' ');
+  let line = '', yy = y;
+  words.forEach(w => {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && line){
+      ctx.fillText(line, x, yy); line = w; yy += lineH;
+    } else line = test;
+  });
+  if (line) ctx.fillText(line, x, yy);
+  return yy;
+}
+async function saveReelImage(p, quote){
+  if (!p) return;
+  try{
+    toast('📸 ' + loc('படம் தயார் ஆகிறது…', 'ఫోటో రెడీ అవుతోంది…', 'ಫೋಟೊ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…', 'Preparing your image…'));
+    const url = p.img || ((p.images || [])[0]);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    const loaded = await new Promise(res => { img.onload = () => res(true); img.onerror = () => res(false); img.src = url; });
+    const W = 900, H = 1200;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#1d0a12';
+    ctx.fillRect(0, 0, W, H);
+    if (loaded && ctx){
+      const sc = Math.max(W / img.width, H / img.height);
+      const dw = img.width * sc, dh = img.height * sc;
+      ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    }
+    if (ctx){
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, 'rgba(0,0,0,.5)');
+      g.addColorStop(0.34, 'rgba(0,0,0,0)');
+      g.addColorStop(0.72, 'rgba(0,0,0,.7)');
+      g.addColorStop(1, 'rgba(0,0,0,.92)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      /* the wish, big and centred */
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 46px Georgia, "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", sans-serif';
+      wrapText(ctx, quote || '', W / 2, 190, W - 130, 62);
+      /* product card at the bottom */
+      ctx.fillStyle = '#ffd98a';
+      ctx.font = 'bold 26px Georgia, serif';
+      ctx.fillText('— SK SAREES • SALEM —', W / 2, H - 185);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 36px Georgia, serif';
+      const title = String(smartTitle(p));
+      ctx.fillText(title.length > 42 ? title.slice(0, 42) + '…' : title, W / 2, H - 135);
+      ctx.fillStyle = '#ffd98a';
+      ctx.font = 'bold 40px Georgia, serif';
+      ctx.fillText('₹' + (p.price || 0).toLocaleString('en-IN'), W / 2, H - 85);
+      ctx.fillStyle = 'rgba(255,255,255,.78)';
+      ctx.font = 'bold 24px Georgia, serif';
+      ctx.fillText('www.sksaree.shop', W / 2, H - 44);
+    }
+    const data = cv.toDataURL('image/jpeg', 0.9);
+    const a = document.createElement('a');
+    a.href = data;
+    a.download = 'sk-sarees-' + String(p.id || 'reel').replace(/[^a-z0-9-]/gi, '') + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('✅ ' + loc('படம் சேமிப்பு! WhatsApp Status-க்கு போடுங்கள்!', 'ఫోటో సేవ్ అయింది!', 'ಫೋಟೊ ಸೇವ್ ಆಯಿತು!', 'Saved! Post it on WhatsApp Status!'));
+  }catch(e){
+    /* canvas blocked (CORS) → open the photo so she can long-press save */
+    try{ window.open(p.img || '', '_blank'); }catch(e2){}
+    toast('📸 ' + loc('போட்டோ திறந்தது — நீண்ட நேரம் அழுத்தி save பண்ணுங்கள்', 'ఫోటో తెరిచింది — నొక్కి పట్టుకుని సేవ్ చేయండి', 'ಫೋಟೊ ತೆರೆದಿದೆ — ಒತ್ತಿ ಹಿಡಿದು ಸೇವ್ ಮಾಡಿ', 'Photo opened — long-press to save it'));
+  }
 }
 /* 📢 share a reel — photo + wish + saree link straight into WhatsApp (viral!) */
 async function shareReel(p, quote){
@@ -3535,22 +3650,16 @@ document.addEventListener('click', function(e){
   const sw = e.target.closest('[data-share-wa]');
   if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
   /* ❤️ reel LIKE — heart burst + local count */
+  /* ❤️ reel LIKE — global Firestore count (all users see it) */
   const rl = e.target.closest('[data-rplike]');
   if (rl){
     e.preventDefault();
     try{
       const pid = rl.dataset.rplike;
-      let liked = !!LS.get('sk_reel_liked_' + pid, 0);
-      liked = !liked;
-      LS.set('sk_reel_liked_' + pid, liked ? 1 : 0);
-      const m = LS.get('sk_reel_likes', {}) || {};
-      m[pid] = Math.max(0, (m[pid] || 0) + (liked ? 1 : -1));
-      LS.set('sk_reel_likes', m);
-      const ic = rl.querySelector('.rpa-ic');
-      const small = rl.querySelector('small');
-      if (ic){ ic.textContent = liked ? '❤️' : '🤍'; ic.classList.toggle('liked', liked); ic.classList.remove('burst'); void ic.offsetWidth; ic.classList.add('burst'); }
-      if (small) small.textContent = m[pid] > 0 ? m[pid] : '';
-      if (liked) toast('❤️ ' + loc('பிடிச்சிருக்க!', 'చూಪించాರ்వு!', 'ಇಷ್ಟ!', 'Loved it!'));
+      const reel = rl.closest('.rp-reel');
+      const liked = !!LS.get('sk_reel_liked_' + pid, 0);
+      setReelLike(pid, !liked, reel);
+      if (!liked) toast('❤️ ' + loc('பிடிச்சிருக்க!', 'சూಪிଂசார்வு!', 'இಷ್ட!', 'Loved it!'));
     }catch(e2){}
     return;
   }
@@ -3558,15 +3667,13 @@ document.addEventListener('click', function(e){
   const rc = e.target.closest('[data-rpcomment]');
   if (rc){ e.preventDefault(); reelCommentModal(byId(rc.dataset.rpcomment)); return; }
   /* 🔖 reel SAVE — bookmark to wishlist */
+  /* 📥 reel SAVE — downloads the saree photo + wish as a greeting card */
   const rs = e.target.closest('[data-rpsave]');
   if (rs){
     e.preventDefault();
     try{
-      const pid = rs.dataset.rpsave;
-      if (Store.wish.includes(pid)){ toast('🔖 ' + loc('சேமிப்பு நீக்கப்பட்டது', 'సేవ్ తీసేశారు', 'ಸೇವ್ ತೆಗೆದುಹಾಕಿದ್ದೀರಿ', 'Removed from saved')); }
-      else { toast('🔖 ' + loc('சேமிக்கப்பட்டது!', 'సేవ్ అయింది!', 'ಸೇವ್ ಆಯಿತು!', 'Saved!')); }
-      toggleWish(pid);
-      rs.querySelector('.rpa-ic').textContent = Store.wish.includes(pid) ? '🔖' : '📑';
+      const reel = rs.closest('.rp-reel');
+      saveReelImage(byId(rs.dataset.rpsave), reel ? reel.dataset.q : '');
     }catch(e2){}
     return;
   }

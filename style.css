@@ -2594,3 +2594,35 @@ body[data-page="reels"] .rp-wrap{ height:100dvh }
 body[data-page="reels"] .rp-top{ top:calc(60px + env(safe-area-inset-top)) }
 /* hide the swipe hint everywhere (removed by request) */
 .rp-hint{ display:none !important }
+
+/* ============================================================================
+   🎬 REELS v4 — header-greet hidden on mobile, product info at PAGE BOTTOM,
+   📥 save = screenshot download, ❤️ counts from Firestore (all users)
+   ========================================================================== */
+/* 📱 no "Vanakkam, SK" pill in the header on phones (clean immersive header) */
+@media(max-width:640px){
+  .header-greet{ display:none !important }
+}
+
+/* 🛍️ title + price + shop button = THE BOTTOM BAR of the reel (page bottom) */
+.rp-bottom{
+  position:absolute;
+  left:12px; right:12px;
+  bottom:calc(12px + env(safe-area-inset-bottom));   /* very bottom of the page */
+  z-index:4;
+}
+.rp-btns{ display:flex; gap:8px }
+.rp-btns .btn{
+  flex:1 1 auto; width:100%;
+  min-height:42px; max-height:42px;
+  font-size:.78rem; font-weight:800; letter-spacing:.3px;
+  padding:9px 10px; border-radius:999px;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+}
+.rp-prod{ margin-bottom:7px; text-shadow:0 2px 8px rgba(0,0,0,.75) }
+.rp-prod b{ font-size:.82rem; display:block; line-height:1.35 }
+.rp-prod span{ font-size:1.02rem; font-weight:900; color:#ffd98a }
+
+/* action rail sits ABOVE the bottom bar now */
+.rp-actions{ bottom:calc(132px + env(safe-area-inset-bottom)) }
+@media(max-width:400px){ .rp-actions{ bottom:calc(126px + env(safe-area-inset-bottom)) } }
