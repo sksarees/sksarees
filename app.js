@@ -31,6 +31,7 @@ async function init(){
     else if (page === 'orders') renderOrdersPage();
     else if (page === 'profile') renderProfilePage();
     else if (page === 'feed') renderFeedPage();
+    else if (page === 'reels') renderReelsPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
   try{ startActiveEngine(); }catch(e){} /* ⏱️ counts REAL browsing seconds (visible tab only) */
@@ -48,6 +49,7 @@ window.addEventListener('skcatalogready', () => {
     const page = document.body && document.body.dataset.page;
     if (page === 'home') renderHome();
     else if (page === 'shop') renderShop();
+    else if (page === 'reels') renderReelsPage();
   }catch(e){}
 });
 
@@ -288,6 +290,145 @@ function forYouHTML(){
       (chips.length ? '<div class="taste-chips">' + chips.map(c => '<span>' + c + '</span>').join('') + '<span style="cursor:pointer" data-quiz="1">✨ ' + loc('ஸ்டைல் க்விஸ் எடு', 'క్విజ్ తీసుకో', 'ಕ್ವಿಜ್ ತೆಗೆದುಕೊ', 'take the quiz') + '</span></div>' : '') +
       '<div class="prow">' + picks.slice(0, 4).map(cardHTML).join('') + '</div></section>';
   }catch(e){ return ''; }
+}
+
+/* ============================ 🎬 REELS PAGE (ShareChat-style) ============================
+   Full-screen vertical swipe reels — each reel = a beautiful saree photo +
+   a daily wish (Good Morning / Good Night / தத்துவம் / கவிதை / motivation).
+   She swipes up for the next one, taps SHARE to send it on WhatsApp — viral
+   ShareChat-style content that brings visitors to the shop! */
+const REEL_QUOTES = [
+  /* ☀️ காலை வணக்கம் — Good Morning */
+  { g: 'gm', text: 'காலை வணக்கம்! 🌞 இன்று உங்கள் நாள் சேலை மாதிரி அழகாக அமையட்டும்!' },
+  { g: 'gm', text: 'அழகான காலை... அழகான சேலை... இன்றைய நாள் இனிமையாக இருக்கட்டும்! ✨' },
+  { g: 'gm', text: 'சூரியன் எழுந்தது போல... உங்கள் முகத்திலும் புன்னகை மலரட்டும்! 🌼 காலை வணக்கம்!' },
+  { g: 'gm', text: 'ஒவ்வொரு காலையும் ஒவ்வொரு புது தொடக்கம்! இனிய காலை வணக்கம் ☀️' },
+  { g: 'gm', text: 'காலை வணக்கம்! இன்றைய அழகில் நீங்கள் தான் ஃபர்ஸ்ட்! 💐' },
+  { g: 'gm', text: 'பொன்னான காலை வணக்கம் 🌻 உங்கள் நாள் தங்கம் போல பிரகாசிக்கட்டும்!' },
+  { g: 'gm', text: 'விடிந்தால் விஷயம் இருக்கு... இன்று நல்ல நாள்! காலை வணக்கம் 🌄' },
+  { g: 'gm', text: 'காலை வணக்கம்! காபி கசப்பா இருந்தாலும் நாள் இனிக்கட்டும் ☕✨' },
+  /* 🌙 இரவு வணக்கம் — Good Night */
+  { g: 'gn', text: 'இனிய இரவு வணக்கம் 🌙 நல்ல கனவுகள் தெரியட்டும்!' },
+  { g: 'gn', text: 'நல்ல இரவு! நாளை இன்னும் அழகான சேலையோட சந்திப்போம் 🌙✨' },
+  { g: 'gn', text: 'நிலவு மாதிரி அமைதியான தூக்கம் வரட்டும்... Good Night 🌙' },
+  { g: 'gn', text: 'இன்றைய சோர்வு எல்லாம் தூக்கத்தில் மறையட்டும்! இனிய இரவு ✨' },
+  { g: 'gn', text: 'கனவுகளில் அழகான சேலைகள் வரட்டும்... நல்ல இரவு 🌙' },
+  { g: 'gn', text: 'இரவு வணக்கம்! நாளை ஒரு புது தினம்... புது வெற்றி 🌟' },
+  /* 🧵 தத்துவம் — Wisdom */
+  { g: 'th', text: 'சேலை ஒரு உடை அல்ல — அது ஒரு தலைமுறையின் கதை 🧵' },
+  { g: 'th', text: 'பெண்ணின் அழகு சேலையில் மட்டும் இல்லை — அவளுடைய அன்பிலும் இருக்கிறது ❤️' },
+  { g: 'th', text: 'நல்ல நட்பு நல்ல சேலை மாதிரி — எவ்வளவு காலமும் ஒட்டிக்கிடக்கும்!' },
+  { g: 'th', text: 'வாழ்க்கை சேலை மாதிரிதான் — எப்படி உடுத்துகிறோம்ன்னது தான் முக்கியம்!' },
+  { g: 'th', text: 'தைரியம் என்பது புது சேலை மாதிரி — உடுத்தினா தான் தெரியும் அதோட அழகு!' },
+  { g: 'th', text: 'மனசு நிறைந்தவங்களுக்கு எந்த சேலையும் கம்பெர்ட்டபுள் ❤️' },
+  { g: 'th', text: 'நேரம் காலம் மாறும் — ஆனா பாரம்பரிய அழகு மாறாது 🪡' },
+  { g: 'th', text: 'சிரிச்சு பேசுனா எல்லா சேலையும் ஒத்துப்போகும் 😄' },
+  { g: 'th', text: 'தன்னம்பிக்கையோட இருந்தா எந்த நிறமும் உங்களுக்கு அழகா இருக்கும்!' },
+  /* ✨ கவிதை — Poetry */
+  { g: 'ka', text: 'நூலில் நெய்த கனவுகள்... சேலையில் சுமக்கும் கவிதைகள்... 🧵✨' },
+  { g: 'ka', text: 'அம்மா கட்டின சேலையில் இருக்கு உலகின் மென்மையான அணிசல் ❤️' },
+  { g: 'ka', text: 'பட்டும் பஞ்சையும் பேசும் கவிதை... அது தான் சேலை!' },
+  { g: 'ka', text: 'ஒரு சேலை — ஆயிரம் நினைவுகள்... ஒரு பார்வை — ஆயிரம் கவிதைகள் ✨' },
+  { g: 'ka', text: 'பெண்மை என்னும் கோவிலுக்கு சேலை தான் மாலை 🌸' },
+  { g: 'ka', text: 'மஞ்சள் நிற முகில் மாதிரி... பட்டுச் சேலை மனசுக்குள்ள மெதுவா விழுந்தா மாதிரி 🌅' },
+  { g: 'ka', text: 'தையல் கலைஞரின் கைகளில் வாழும் கவிதை ஒவ்வொரு சேலையும் 🪡' },
+  { g: 'ka', text: 'அழகு என்பது கண்ணால் பார்க்கும் காட்சி அல்ல — மனசால் உணரும் கவிதை 💛' },
+  /* 💪 Motivation */
+  { g: 'mo', text: 'நீங்க தேர்ந்தெடுக்கும் ஒவ்வொரு சேலையும் — உங்க தன்னம்பிக்கையோட அறிக்கை! 💪' },
+  { g: 'mo', text: 'புது சேலை = புது நம்பிக்கை = புது வெற்றி! ✨' },
+  { g: 'mo', text: 'உங்களுக்கு பிடிச்சத தைரியமா பண்ணுங்க — உலகம் பின்னாலி வரும் 🌟' },
+  { g: 'mo', text: 'அழகும் தைரியமும் சேர்ந்தா — அது நீங்கள் தான்! 🔥' },
+  { g: 'mo', text: 'ஒவ்வொரு பண்டிகையும் புது உடை — ஒவ்வொரு புது சந்தோஷம்! 🎉' },
+  { g: 'mo', text: 'இன்று நீங்க வெற்றி பெறுவீங்கனு நம்புங்க! நாளை இன்னும் அழகா இருக்கும் 🌈' },
+  { g: 'mo', text: 'சின்ன சந்தோஷங்கள்தான் வாழ்க்கையோட அழகான சேலைகள் 💐' },
+];
+/* greeting type by time of day — morning wishes in the morning, good night at night */
+function reelGreetingType(){
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'gm';
+  if (h >= 18 || h < 5) return 'gn';
+  return 'th';
+}
+/* pick the reel's quote: deterministic per product+day (stable, fresh tomorrow) */
+function reelQuoteFor(p, i){
+  try{
+    const gtype = reelGreetingType();
+    /* alternate: time-based greeting, kavithai, thathuvam, motivation — varied feed */
+    const cycle = [gtype, 'ka', gtype, 'th', 'mo', 'ka', 'th', gtype];
+    const want = cycle[i % cycle.length];
+    const pool = REEL_QUOTES.filter(q => q.g === want);
+    const fallback = REEL_QUOTES.filter(q => q.g !== 'gm' && q.g !== 'gn');
+    const list = pool.length ? pool : fallback;
+    let h = 0; const s = String(p.id || '') + '|' + new Date().toDateString() + '|' + i;
+    for (let k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) >>> 0;
+    return list[h % list.length].text;
+  }catch(e){ return 'காலை வணக்கம்! ✨'; }
+}
+/* 🎬 render the reels feed */
+function renderReelsPage(){
+  const app = document.getElementById('app'); if (!app) return;
+  const prods = PRODUCTS.filter(p => !p.hidden).slice(0, 24);
+  const reels = prods.map((p, i) => {
+    const q = reelQuoteFor(p, i);
+    return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
+      '<img class="rp-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" onload="imgLoaded(this)" onerror="imgSafe(this)">' +
+      '<div class="rp-shade"></div>' +
+      '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + loc('சேலை reels — விரல் மாதில்', 'చీర reels', 'ಆಟವಿಲ್ reels', 'Saree reels — daily wishes') + '</small></div>' +
+      '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
+      '<div class="rp-bottom">' +
+        '<div class="rp-prod"><b>' + esc(smartTitle(p)) + '</b><span>₹' + (p.price || 0).toLocaleString('en-IN') + (p.mrp ? ' <s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</span></div>' +
+        '<div class="rp-btns">' +
+          '<a class="btn btn-gold rp-shop" href="product.html?id=' + encodeURIComponent(p.id) + '">🛍️ ' + loc('இந்த சேலையை வாங்கு', 'ఈ చీరా కొను', 'ಈ ಆಟವಿನ್ನು ತೆಗೆದು', 'Shop this saree') + '</a>' +
+          '<button type="button" class="btn btn-wa rp-share" data-reelshare="' + esc(p.id) + '">📢 ' + loc('பகிர்', 'షేర్', 'ಉತ್ತರಿ', 'Share') + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="rp-hint">⌃ ' + loc('SWIPE UP — அடுத்த சேலை', 'SWIPE UP', 'SWIPE UP', 'SWIPE UP for the next saree') + '</div>' +
+    '</section>';
+  }).join('');
+  app.innerHTML = '<div class="rp-wrap" id="rpWrap">' + reels + '</div>' +
+    '<button type="button" class="rp-arrow up" data-rpnav="-1" aria-label="Previous reel">⌃</button>' +
+    '<button type="button" class="rp-arrow down" data-rpnav="1" aria-label="Next reel">⌄</button>';
+  /* track what she watches → taste engine learns */
+  try{
+    const wrap = document.getElementById('rpWrap');
+    if (wrap && 'IntersectionObserver' in window){
+      const io = new IntersectionObserver(ents => {
+        ents.forEach(en => {
+          if (en.isIntersecting && en.intersectionRatio > 0.6){
+            const p = byId(en.target.dataset.rid);
+            if (p){ try{ trackRecentView(p); }catch(e){} }
+          }
+        });
+      }, { root: wrap, threshold: 0.6 });
+      wrap.querySelectorAll('.rp-reel').forEach(r => io.observe(r));
+    }
+  }catch(e){}
+}
+/* 📢 share a reel — photo + wish + saree link straight into WhatsApp (viral!) */
+async function shareReel(p, quote){
+  if (!p) return;
+  const url = productUrl(p);
+  const msg = (quote ? quote + '\n\n' : '') +
+    '🌸 ' + smartTitle(p) + '\n₹' + (p.price || 0).toLocaleString('en-IN') +
+    '\n🚚 ₹999+ மேல இலவச டெலிவரி\n\n👉 ' + url +
+    '\n\n— SK Sarees, Salem 🧵';
+  try{
+    if (navigator.share){
+      let file = null;
+      try{
+        const imgUrl = p.img || ((p.images || [])[0]);
+        if (navigator.canShare && imgUrl){
+          const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+          if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
+        }
+      }catch(e2){}
+      const payload = { title: p.name, text: msg, url };
+      if (file && navigator.canShare({ files: [file] })) payload.files = [file];
+      navigator.share(payload).then(() => {}, () => { try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e3){} });
+      return;
+    }
+  }catch(e){}
+  try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 
 /* ============================ FEED PAGE (public) ============================
@@ -3184,6 +3325,25 @@ document.addEventListener('click', function(e){
   /* 📤 share product on WhatsApp (family/group) */
   const sw = e.target.closest('[data-share-wa]');
   if (sw){ e.preventDefault(); shareWaProduct(byId(sw.dataset.shareWa)); return; }
+  /* 📢 reel share (photo + wish + link) + reels up/down arrows */
+  const rsh = e.target.closest('[data-reelshare]');
+  if (rsh){
+    e.preventDefault();
+    const sec = rsh.closest('.rp-reel');
+    shareReel(byId(rsh.dataset.reelshare), sec ? sec.dataset.q : '');
+    return;
+  }
+  const rnav = e.target.closest('[data-rpnav]');
+  if (rnav){
+    e.preventDefault();
+    const wrap = document.getElementById('rpWrap');
+    if (wrap){
+      const h = wrap.clientHeight || 1;
+      if (wrap.scrollBy) wrap.scrollBy({ top: (+rnav.dataset.rpnav) * h, behavior: 'smooth' });
+      else wrap.scrollTop += (+rnav.dataset.rpnav) * h;
+    }
+    return;
+  }
   /* 📢 share the whole website (banner image + link) */
   const sst = e.target.closest('[data-sharesite]');
   if (sst){ e.preventDefault(); shareSite(); return; }

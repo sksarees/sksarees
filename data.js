@@ -2484,6 +2484,7 @@ function renderHeader(){
     <div class="drawer-head"><span class="logo-badge">${SK_LOGOSVG}</span><div><b>${CONFIG.storeName}</b><br><small style="opacity:.85;font-size:.72rem">2/130, Thoothanoor, Edanganasalai, Salem 637502</small></div></div>
     <nav class="drawer-nav" id="drawerNav">
       <a href="index.html">🏠 ${t('home')}</a>
+      <a href="reels.html">🎬 Reels — நல்லவுணக்கம் விஷம்</a>
       <a href="shop.html">🛍️ ${t('shopAll')}</a>
       <a href="cart.html">🛒 ${t('cart')}</a>
       <a href="orders.html">📦 ${t('myOrders')}</a>
