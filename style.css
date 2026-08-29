@@ -2267,3 +2267,30 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
 @media(min-width:641px){
   .gs-txt small{ font-size:.78rem }
 }
+
+/* ============================================================================
+   👆 EASY-TAP CTA LAYOUT — clear gaps between Buy Now / WhatsApp / Add so
+   every tap lands on the right button (no fat-finger mistakes)
+   ========================================================================== */
+/* product page main CTAs — bigger gap, roomy touch targets */
+.pd-btns{ gap:12px }
+.pd-btns .btn{ min-height:54px }
+/* mobile: stack BUY NOW & WhatsApp full-width, one per row — impossible to misclick */
+@media(max-width:640px){
+  .pd-btns{ grid-template-columns:1fr !important; gap:12px }
+  .pd-btns .btn{ width:100% }
+  .pd-secondary{ gap:10px }
+  .pd-secondary .btn{ min-height:50px }
+}
+/* sticky bar (mobile) — spaced out, Add = compact square icon button */
+.sticky-bar{ gap:10px; padding:10px 12px calc(10px + env(safe-area-inset-bottom)) }
+.sticky-bar .btn{ min-height:52px }
+.sticky-bar .sb-add{
+  flex:0 0 54px;
+  width:54px;
+  min-width:54px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:13px;
+  padding:0;
+}
+.sticky-bar .btn-buy{ flex:1 1 auto }
