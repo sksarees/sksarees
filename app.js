@@ -667,31 +667,52 @@ function wrapText(ctx, text, x, y, maxW, lineH){
   if (line) ctx.fillText(line, x, yy);
   return yy;
 }
+/* 🖼️ robust image fetch — googleusercontent/blogger CDNs don't send
+   CORS headers, so canvas + share get tainted/blocked. wsrv.nl is a free image
+   proxy that serves ANY image WITH proper CORS headers → the photo always
+   makes it into the saved card & the WhatsApp share. */
+async function fetchImageBlob(url){
+  if (!url) return null;
+  /* 1) direct (works for same-origin / CORS-friendly hosts) */
+  try{
+    const r = await fetch(url, { cache: 'no-store' });
+    if (r && r.ok){ const b = await r.blob(); if (b && b.size) return b; }
+  }catch(e){}
+  /* 2) CORS proxy (googleusercontent, blogger, etc.) */
+  try{
+    const r2 = await fetch('https://wsrv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, '')), { cache: 'no-store' });
+    if (r2 && r2.ok){ const b2 = await r2.blob(); if (b2 && b2.size) return b2; }
+  }catch(e){}
+  /* 3) older proxy fallback */
+  try{
+    const r3 = await fetch('https://corsproxy.io/?' + encodeURIComponent(url), { cache: 'no-store' });
+    if (r3 && r3.ok){ const b3 = await r3.blob(); if (b3 && b3.size) return b3; }
+  }catch(e){}
+  return null;
+}
+async function imageFromBlob(blob){
+  return new Promise(res => {
+    try{
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => res(null);
+      im.src = URL.createObjectURL(blob);
+    }catch(e){ res(null); }
+  });
+}
+
 async function saveReelImage(p, quote){
   if (!p) return;
   try{
     toast('📸 ' + loc('படம் தயார் ஆகிறது…', 'ఫోటో రెడీ అవుతోంది…', 'ಫೋಟೊ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…', 'Preparing your image…'));
     const url = p.img || ((p.images || [])[0]);
-    /* 🖼️ PHOTO FIX: fetch the image as a BLOB first → object URL is
-       same-origin → canvas never gets tainted → the saree photo ALWAYS makes
-       it into the downloaded card. Falls back to crossOrigin <img>, then plain <img>. */
-    const loadImg = (src, useCors) => new Promise(res => {
-      const im = new Image();
-      if (useCors) im.crossOrigin = 'anonymous';
-      im.onload = () => res(im);
-      im.onerror = () => res(null);
-      im.src = src;
-    });
+    /* 🖼️ load the photo via blob+proxy → canvas is NEVER tainted,
+       so the downloaded card ALWAYS has the saree photo. */
     let img = null;
     try{
-      const resp = await fetch(url, { cache: 'no-store' });
-      if (resp && resp.ok){
-        const blob = await resp.blob();
-        img = await loadImg(URL.createObjectURL(blob), false);   /* ✅ untainted */
-      }
+      const blob = await fetchImageBlob(url);
+      if (blob) img = await imageFromBlob(blob);
     }catch(e){}
-    if (!img) img = await loadImg(url, true);   /* try CORS img */
-    if (!img) img = await loadImg(url, false);  /* last try: plain (may taint) */
     const loaded = !!img;
     const W = 900, H = 1200;
     const cv = document.createElement('canvas');
@@ -760,7 +781,9 @@ async function shareReel(p, quote){
       try{
         const imgUrl = p.img || ((p.images || [])[0]);
         if (navigator.canShare && imgUrl){
-          const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+          /* 🖼️ the SAME reel photo — fetched via the CORS proxy so the
+             image actually attaches (googleusercontent blocks direct fetch) */
+          const blob = await fetchImageBlob(imgUrl);
           if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
         }
       }catch(e2){}
@@ -2447,7 +2470,7 @@ async function shareEarnProduct(p){
         try{
           const imgUrl = p.img || ((p.images || [])[0]);
           if (navigator.canShare && imgUrl){
-            const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+            const blob = await fetchImageBlob(imgUrl);   /* 🖼️ proxy-backed — googleusercontent-safe */
             if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
           }
         }catch(e2){}
@@ -2471,7 +2494,7 @@ async function shareWaProduct(p){
       try{
         const imgUrl = p.img || ((p.images || [])[0]);
         if (navigator.canShare && imgUrl){
-          const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+          const blob = await fetchImageBlob(imgUrl);   /* 🖼️ proxy-backed — googleusercontent-safe */
           if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
         }
       }catch(e2){}
@@ -2503,7 +2526,7 @@ async function viralShareProduct(p){
   try{
     const imgUrl = p.img || ((p.images || [])[0]);
     if (navigator.canShare && imgUrl){
-      const blob = await fetch(imgUrl).then(r => r.ok ? r.blob() : null).catch(() => null);
+      const blob = await fetchImageBlob(imgUrl);   /* 🖼️ proxy-backed — googleusercontent-safe */
       if (blob && blob.size && blob.size < 4.5e6){
         file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
       }
@@ -2530,7 +2553,7 @@ async function shareProductStatus(p){
   /* try the Web Share API with the actual image file (mobile status picker) */
   try{
     if (navigator.canShare){
-      const blob = await fetch(imgUrl).then(r => r.blob()).catch(() => null);
+      const blob = await fetchImageBlob(imgUrl);   /* 🖼️ proxy-backed — googleusercontent-safe */
       if (blob){
         const file = new File([blob], 'saree.jpg', { type: (blob.type || 'image/jpeg') });
         if (navigator.canShare({ files: [file] })){
