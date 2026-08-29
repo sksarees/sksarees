@@ -2471,3 +2471,56 @@ body[data-page="reels"] #app{ margin-top:0 }
   .rp-arrow.up{ left:calc(50% - 250px); bottom:34px }
   .rp-arrow.down{ right:calc(50% - 250px); bottom:34px }
 }
+
+/* ============================================================================
+   🎬 REELS v2 — Instagram-style ACTION RAIL (❤️ 💬 🔁 🔖 🎵) + smaller CTAs
+   + heart burst + spinning audio disc + comment modal
+   ========================================================================== */
+.rp-actions{
+  position:absolute; right:8px;
+  bottom:calc(120px + env(safe-area-inset-bottom));
+  display:flex; flex-direction:column; gap:13px; align-items:center;
+  z-index:4;
+}
+.rpa{
+  background:none; border:0; padding:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  text-decoration:none;
+}
+.rpa .rpa-ic{
+  width:44px; height:44px; border-radius:999px;
+  background:rgba(0,0,0,.34); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.35rem; line-height:1;
+  box-shadow:0 3px 10px rgba(0,0,0,.3);
+  transition:transform .16s ease;
+}
+.rpa:hover .rpa-ic{ transform:scale(1.12) }
+.rpa:active .rpa-ic{ transform:scale(.9) }
+.rpa small{
+  color:#fff; font-size:.6rem; font-weight:800;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+}
+/* heart burst when liked */
+.rpa-ic.burst{ animation:rpBurst .5s cubic-bezier(.2,2.2,.4,1) }
+@keyframes rpBurst{ 0%{ transform:scale(.6) } 55%{ transform:scale(1.45) } 100%{ transform:scale(1) } }
+.rpa-ic.liked{ background:rgba(0,0,0,.34) }
+/* spinning audio disc (Instagram style) */
+.rp-disc i{
+  font-style:normal; font-size:1.3rem; color:#fff;
+  display:inline-block; animation:rpSpin 3.4s linear infinite;
+}
+@keyframes rpSpin{ from{ transform:rotate(0) } to{ transform:rotate(360deg) } }
+/* smaller CTA buttons on reels */
+.rp-btns{ display:flex; gap:8px }
+.rp-btns .btn{
+  flex:1 1 auto; min-height:40px; max-height:40px;
+  font-size:.74rem; font-weight:800; letter-spacing:.2px;
+  padding:8px 10px; border-radius:999px;
+}
+.rp-prod b{ font-size:.8rem }
+.rp-prod span{ font-size:.95rem }
+/* comment modal */
+.rc-modal{ max-height:70vh; overflow-y:auto; display:grid; gap:9px }
+.rc-modal h3{ font-size:1.02rem; margin:0 0 2px }
+.rc-list{ display:grid; gap:8px; max-height:34vh; overflow-y:auto; padding:2px }
