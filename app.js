@@ -38,6 +38,7 @@ async function init(){
   try{ maybeScratchCard(); }catch(e){}  /* 🎁 Scratch & Win after 2 min of browsing (viral) */
   try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
   try{ startOfferTimers(); }catch(e){}  /* ⏰ Meesho-style "offer ends in" countdowns */
+  try{ initReelCards(); }catch(e){}     /* 🎞️ swipeable shop cards */
 
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -579,7 +580,7 @@ function renderShop(){
         '<input id="shopSearch" list="searchSuggest" type="search" placeholder="🔍 Search sarees, fabric, colour… (suggestions as you type)" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
       '</div>' + datalist +
       '<div class="cat-chips" id="catChips" style="margin-top:12px"></div>' +
-      '<div class="pd-block" style="margin-top:12px"><div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">' +
+      '<div class="pd-block shop-tools" style="margin-top:10px"><div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Fabric</label>' +
         '<select id="fFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All fabrics</option><option>Silk</option><option>Cotton</option><option>Georgette</option><option>Linen</option><option>Organza</option><option>Net</option></select></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">🎨 Colour</label>' +
@@ -593,7 +594,7 @@ function renderShop(){
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
       '</div></div>' +
       '<p class="small muted" id="countLbl" style="margin:12px 0 6px"></p>' +
-      '<div class="prow" id="grid"></div>' +
+      '<div class="reel-grid" id="grid"></div>' +
       '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="loadMore" style="width:auto;min-width:200px">Load More ↓</button></div>' +
       '<div id="shopSentinel" style="height:1px"></div>' +
       '<div class="empty" id="empty" style="display:none"><div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.</div>' +
@@ -660,11 +661,94 @@ function shopList(){
   }
   return l;
 }
+/* ============================ 🎞️ REELS-STYLE SHOP CARDS ============================
+   Swipeable photo cards (Instagram/Meesho style): flick through the saree's
+   photos, small title + rating + price below. Photo browsing made easy —
+   she SEES the saree from every angle before opening the product page. */
+function reelPhotos(p){
+  try{
+    const gal = [];
+    (p.images || []).forEach(u => { const c = cleanImg(u); if (c) gal.push(c); });
+    (p.imgs || []).forEach(u => { const c = cleanImg(u); if (c) gal.push(c); });
+    const main = cleanImg(p.img || p.image);
+    if (main) gal.unshift(main);
+    const uniq = [];
+    gal.forEach(u => { if (u && uniq.indexOf(u) === -1) uniq.push(u); });
+    return uniq.length ? uniq.slice(0, 6) : [img('printed-cotton.jpg')];
+  }catch(e){ return [p && p.img].filter(Boolean); }
+}
+function cardReelHTML(p){
+  const photos = reelPhotos(p);
+  const out = p.stock != null && p.stock <= 0;
+  const off = offPct(p);
+  const multi = photos.length > 1;
+  const rCount = ((p.reviews || 0) + realReviewCount(p.id));
+  return '<article class="reel-card">' +
+    '<div class="reel-imgs' + (multi ? '' : ' single') + '" data-reel="' + esc(p.id) + '" data-url="' + esc(productUrl(p)) + '">' +
+      photos.map((u, i) => '<div class="reel-slide"><img src="' + esc(u) + '" alt="' + esc(p.name) + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" onload="imgLoaded(this)" onerror="imgSafe(this)"></div>').join('') +
+      (out ? '<span class="badge red">Out of Stock</span>' : '') +
+      (off && !out ? '<span class="offchip">-' + off + '%</span>' : '') +
+      '<span class="card-heart' + (Store.wish.includes(p.id) ? ' on' : '') + '" data-wish="' + p.id + '" role="button" aria-label="Save to wishlist">' + (Store.wish.includes(p.id) ? '❤️' : '🤍') + '</span>' +
+      (multi ? '<div class="reel-dots">' + photos.map((_, i) => '<i class="' + (i === 0 ? 'on' : '') + '"></i>').join('') + '</div>' : '') +
+      (multi
+        ? '<button type="button" class="reel-nav rl" data-reelnav="-1" aria-label="Previous photo">‹</button>' +
+          '<button type="button" class="reel-nav rr" data-reelnav="1" aria-label="Next photo">›</button>'
+        : '') +
+    '</div>' +
+    '<div class="reel-info">' +
+      '<h3>' + esc(smartTitle(p)) + '</h3>' +
+      '<div class="reel-meta"><span class="reel-rate">⭐ ' + (p.rating || 4.5) + (rCount ? ' <em>(' + rCount + ')</em>' : '') + '</span><b class="reel-price">' + money(p.price) + '</b></div>' +
+    '</div>' +
+  '</article>';
+}
+/* swipe vs tap: flick = browse photos, clean tap = open product page */
+function initReelCards(){
+  try{
+    let startX = 0, moved = false, isDown = false, downX = 0, sl0 = 0;
+    document.addEventListener('touchstart', e => { if (e.target.closest('.reel-imgs')){ startX = e.touches[0].clientX; moved = false; } }, { passive: true });
+    document.addEventListener('touchmove', e => { if (e.target.closest('.reel-imgs') && Math.abs(e.touches[0].clientX - startX) > 12) moved = true; }, { passive: true });
+    /* desktop: drag to browse */
+    document.addEventListener('mousedown', e => { const r = e.target.closest('.reel-imgs'); if (r){ isDown = true; moved = false; downX = e.pageX; sl0 = r.scrollLeft; r.classList.add('dragging'); } });
+    document.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      const r = document.querySelector('.reel-imgs.dragging');
+      if (r){ const d = e.pageX - downX; if (Math.abs(d) > 10) moved = true; r.scrollLeft = sl0 - d; }
+    });
+    document.addEventListener('mouseup', () => { if (isDown){ isDown = false; const r = document.querySelector('.reel-imgs.dragging'); if (r) r.classList.remove('dragging'); setTimeout(() => { moved = false; }, 60); } });
+    document.addEventListener('click', e => {
+      /* ‹ › arrows */
+      const nav = e.target.closest('[data-reelnav]');
+      if (nav){
+        e.preventDefault(); e.stopPropagation();
+        const box = nav.closest('.reel-imgs');
+        if (box){
+          const w = box.clientWidth || 1;
+          if (box.scrollBy) box.scrollBy({ left: (+nav.dataset.reelnav) * w, behavior: 'smooth' });
+          else box.scrollLeft += (+nav.dataset.reelnav) * w;
+        }
+        return;
+      }
+      if (e.target.closest('[data-wish]')) return;   /* heart handled elsewhere */
+      const r = e.target.closest('.reel-imgs');
+      if (r && !moved){ e.preventDefault(); try{ location.href = r.dataset.url; }catch(err){} }
+      moved = false;
+    });
+    /* dots follow the swipe (scroll doesn't bubble → capture) */
+    document.addEventListener('scroll', e => {
+      const t = e.target;
+      if (t && t.classList && t.classList.contains('reel-imgs')){
+        const idx = Math.round(t.scrollLeft / Math.max(1, t.clientWidth));
+        const dots = t.querySelector('.reel-dots');
+        if (dots) Array.from(dots.children).forEach((d, i) => d.classList.toggle('on', i === idx));
+      }
+    }, true);
+  }catch(e){}
+}
 function updateShopList(){
   shopState.list = shopList();
   const grid = document.getElementById('grid'); if (!grid) return;
   const visible = shopState.list.slice(0, shopState.shown);
-  grid.innerHTML = visible.map(cardHTML).join('');
+  grid.innerHTML = visible.map(cardReelHTML).join('');   /* 🎞️ reels-style cards */
   const cl = document.getElementById('countLbl'); if (cl) cl.textContent = shopState.list.length + ' sarees';
   const empty = document.getElementById('empty'); if (empty) empty.style.display = visible.length ? 'none' : 'block';
   const lm = document.getElementById('loadMore'); if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';

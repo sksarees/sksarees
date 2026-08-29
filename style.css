@@ -2294,3 +2294,88 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
   padding:0;
 }
 .sticky-bar .btn-buy{ flex:1 1 auto }
+
+/* ============================================================================
+   🎬 REELS-STYLE SHOP CARDS — swipeable photos, small title/rating/price.
+   Photo-first browsing like Instagram explore / Meesho grid.
+   ========================================================================== */
+.reel-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:640px){ .reel-grid{ grid-template-columns:repeat(3,1fr); gap:12px } }
+@media(min-width:900px){ .reel-grid{ grid-template-columns:repeat(4,1fr) } }
+@media(min-width:1200px){ .reel-grid{ grid-template-columns:repeat(5,1fr) } }
+
+.reel-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  position:relative;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.reel-card:hover{ transform:translateY(-3px); box-shadow:0 12px 26px rgba(61,10,27,.14) }
+
+/* swipe track */
+.reel-imgs{
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  aspect-ratio:3/4;
+  position:relative;
+  scrollbar-width:none;
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:grab;
+  background:var(--maroon-soft);
+}
+.reel-imgs::-webkit-scrollbar{ display:none }
+.reel-imgs.dragging{ cursor:grabbing; scroll-snap-type:none }
+.reel-imgs.single{ cursor:pointer }
+.reel-slide{ flex:0 0 100%; scroll-snap-align:start }
+.reel-slide img{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; -webkit-user-drag:none }
+
+/* dots */
+.reel-dots{
+  position:absolute; bottom:8px; left:0; right:0;
+  display:flex; gap:4px; justify-content:center;
+  pointer-events:none; z-index:2;
+}
+.reel-dots i{ width:5px; height:5px; border-radius:999px; background:rgba(255,255,255,.6); transition:.25s }
+.reel-dots i.on{ background:#fff; width:15px }
+
+/* ‹ › arrows (desktop hover; mobile swipes) */
+.reel-nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:31px; height:31px; border-radius:999px; border:0; padding:0;
+  background:rgba(255,255,255,.94); color:var(--maroon);
+  font-size:1.2rem; font-weight:900; line-height:1;
+  display:none; align-items:center; justify-content:center;
+  box-shadow:0 2px 9px rgba(0,0,0,.28); cursor:pointer; z-index:3;
+}
+.rl{ left:6px } .rr{ right:6px }
+@media(hover:hover){ .reel-card:hover .reel-nav{ display:inline-flex } }
+
+/* badges / heart reuse card styles */
+.reel-imgs .badge{ position:absolute; top:8px; left:8px; z-index:2 }
+.reel-imgs .offchip{ position:absolute; top:8px; right:8px; z-index:2 }
+.reel-imgs .card-heart{ position:absolute; bottom:8px; right:8px; z-index:3 }
+
+/* small info bar — title, rating, price */
+.reel-info{ padding:8px 10px 10px }
+.reel-info h3{
+  font-size:.75rem; font-weight:700; line-height:1.38; color:#3a1722;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  min-height:2.05em; margin:0;
+}
+.reel-meta{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:5px }
+.reel-rate{ font-size:.66rem; font-weight:800; color:#8a7a72; white-space:nowrap }
+.reel-rate em{ font-style:normal; font-weight:700; opacity:.85 }
+.reel-price{ font-size:.95rem; font-weight:900; color:var(--maroon); letter-spacing:.2px }
+
+/* compact shop filter block */
+.shop-tools{ padding:10px 12px !important }
+.shop-tools select{
+  padding:8px 10px !important; font-size:.84rem !important; min-height:0 !important;
+  border-radius:9px !important;
+}
+.shop-tools label.small{ font-size:.6rem !important; margin-bottom:2px !important }
+#shopSearch{ padding:10px 12px !important; font-size:.88rem !important; border-radius:10px !important }
