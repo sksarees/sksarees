@@ -2246,3 +2246,24 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}
   color:#6b4c05;
   font-weight:800;
 }
+
+/* ============================================================================
+   📱 GREETING STRIP — proper sub-line alignment (multi-line wraps cleanly,
+   "with us since" hidden on phones so the line stays short & neat)
+   + floating buttons (AI / WhatsApp / cart bar) REMOVED by request
+   ========================================================================== */
+.gs-txt small{
+  display:block;
+  line-height:1.75;          /* breathing room between wrapped lines */
+  letter-spacing:.2px;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  margin-top:3px;
+}
+@media(max-width:640px){
+  .gs-txt small{ font-size:.7rem; line-height:1.7; text-align:left; padding-right:6px }
+  .gs-since{ display:none }  /* phones: shorter, cleaner line */
+}
+@media(min-width:641px){
+  .gs-txt small{ font-size:.78rem }
+}

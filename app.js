@@ -9,7 +9,7 @@
 /* ============================ INIT ============================ */
 async function init(){
   try{ injectChrome(); }catch(e){ console.warn(e); }
-  try{ renderCartBadge(); renderCartBar(); }catch(e){}
+  try{ renderCartBadge(); }catch(e){}
   try{ readRef(); }catch(e){}                    /* capture ?ref= reseller from URL */
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
   try{ purgeOldOrders(90); }catch(e){}   /* user sees only last 90 days of orders */
@@ -38,7 +38,7 @@ async function init(){
   try{ maybeScratchCard(); }catch(e){}  /* 🎁 Scratch & Win after 2 min of browsing (viral) */
   try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
   try{ startOfferTimers(); }catch(e){}  /* ⏰ Meesho-style "offer ends in" countdowns */
-  try{ const aiF = document.getElementById('aiFloat'); if (aiF) aiF.addEventListener('click', () => openAIAssistant()); }catch(e){}
+
 }
 document.addEventListener('DOMContentLoaded', init);
 /* Refresh the active customer page if catalog.json finishes after first paint. */
@@ -455,8 +455,7 @@ function renderHome(){
   const best = PRODUCTS.filter(p => !p.hidden && p.badge === 'Bestseller').slice(0, 4);
   const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
   const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
-  const forYou = forYouHTML();   /* 🤖 personalized strip (viewed/wishlist based) */
-  app.innerHTML = personalGreetHTML() + styleQuizBannerHTML() + forYou +
+  app.innerHTML = personalGreetHTML() +
     '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
@@ -967,7 +966,7 @@ function personalGreetHTML(){
     bits.push(liked ? '❤️ <b>' + liked + '</b> ' + loc('சேலைகள் பிடித்தது', 'నచ్చిన చీరలు', 'ಇಷ್ಟವಾದ ಸೀರೆಗಳು', 'sarees liked') : '❤️ ' + loc('பிடித்த சேலைகளுக்கு ♥ அழுத்துங்கள்', 'నచ్చిన చీరలకు ♥ నొక్కండి', 'ಇಷ್ಟವಾದ ಸೀರೆಗಳಿಗೆ ♥ ಒತ್ತಿ', 'Tap ♥ on sarees you like'));
     if (viewed) bits.push('👀 <b>' + viewed + '</b> ' + loc('பார்த்தது', 'చూసినవి', 'ನೋಡಿದವು', 'viewed'));
     if (pts) bits.push('⭐ <b>' + pts + '</b> ' + loc('பாயிண்ட்', 'పాయింట్లు', 'ಪಾಯಿಂಟ್‌ಗಳು', 'points'));
-    if (since) bits.push('🤝 ' + loc('நம்முடன் ' + since + ' முதல்', since + ' నుండి మాతో', since + ' ದಿಂದ ನಮ್ಮೊಂದಿಗೆ', 'with us since ' + since));
+    if (since) bits.push('<span class="gs-since">' + '🤝 ' + loc('நம்முடன் ' + since + ' முதல்', since + ' నుండి మాతో', since + ' ದಿಂದ ನಮ್ಮೊಂದಿಗೆ', 'with us since ' + since) + '</span>');
     return '<section class="greet-strip"><div class="wrap gs-in">' +
       '<span class="gs-emoji">👋</span>' +
       '<div class="gs-txt"><b>' + greetWord() + ', ' + esc(nm) + '!</b>' +
