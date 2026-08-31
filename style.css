@@ -2943,3 +2943,60 @@ h1{ letter-spacing:-.4px }
    ========================================================================== */
 .acct-card{ background:linear-gradient(135deg,#fdf1f4,#fff); border:1.5px solid var(--gold-l) }
 .acct-card .btn{ min-height:44px }
+
+/* ============================================================================
+   🏠 HOME PAGE — SEPARATE desktop & mobile layouts (clean alignment on both)
+   ========================================================================== */
+/* ─────────── DESKTOP (≥900px): spacious, multi-column, centered hero ─────────── */
+@media(min-width:900px){
+  .hero-in{ max-width:880px; margin:0 auto; padding:44px 0 46px; text-align:center }
+  .hero h1{ font-size:3rem; line-height:1.12 }
+  .hero p{ font-size:1.06rem; max-width:60ch; margin:14px auto 20px }
+  .hero-ctas{ justify-content:center; gap:14px }
+  .hero-ctas .btn{ min-height:54px; padding:14px 30px; font-size:1rem }
+  .hero-trust{ justify-content:center; margin-top:20px; gap:10px }
+  .hero-search{ max-width:620px; margin:22px auto 0 }
+  .cat-grid{ grid-template-columns:repeat(4,1fr) !important; gap:14px }
+  .prow{ display:grid !important; grid-template-columns:repeat(4,1fr); gap:16px; overflow:visible !important }
+  .trust-strip{ grid-template-columns:repeat(4,1fr); gap:12px }
+  .rev-grid{ grid-template-columns:repeat(3,1fr); gap:14px }
+  .fest-grid{ grid-template-columns:repeat(4,1fr) !important; gap:14px }
+  .steps{ grid-template-columns:repeat(3,1fr) }
+  .weaver-card{ display:grid !important; grid-template-columns:1fr 1.1fr; align-items:center; gap:22px }
+  .deal-day{ display:grid !important; grid-template-columns:1.2fr 1fr; align-items:center; gap:20px }
+  .sec{ margin:26px 0 }
+  .wrap{ padding:0 20px }
+}
+@media(min-width:1200px){
+  .cat-grid{ grid-template-columns:repeat(6,1fr) !important }
+  .prow{ grid-template-columns:repeat(5,1fr) }
+  .rev-grid{ grid-template-columns:repeat(3,1fr) }
+  .hero h1{ font-size:3.3rem }
+}
+
+/* ─────────── MOBILE (≤640px): tight, stacked, thumb-friendly ─────────── */
+@media(max-width:640px){
+  .hero{ border-radius:0 0 22px 22px }
+  .hero-in{ padding:22px 14px 26px; text-align:center }
+  .hero h1{ font-size:1.7rem; line-height:1.22 }
+  .hero p{ font-size:.9rem; margin:10px auto 14px }
+  .hero-ctas{ flex-direction:column; gap:10px }
+  .hero-ctas .btn{ width:100%; min-height:50px }
+  .hero-trust{ justify-content:center; gap:6px; flex-wrap:wrap }
+  .hero-search{ flex-direction:column; border-radius:12px }
+  .hero-search .btn{ width:100%; margin-top:8px }
+  .cat-grid{ grid-template-columns:repeat(2,1fr) !important; gap:10px }
+  .prow{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px }
+  .prow .pcard{ flex:0 0 46%; scroll-snap-align:start }
+  .trust-strip{ grid-template-columns:repeat(2,1fr); gap:8px }
+  .rev-grid{ grid-template-columns:1fr; gap:10px }
+  .fest-grid{ grid-template-columns:repeat(2,1fr) !important; gap:10px }
+  .steps{ grid-template-columns:1fr; gap:10px }
+  .deal-day{ padding:14px }
+  .deal-day .dd-img{ margin-top:12px }
+  .sec{ margin:18px 0 }
+  .sec-head h2{ font-size:1.05rem }
+  .wrap{ padding:0 12px }
+  .weaver-card{ padding:14px }
+  .weaver-img img{ border-radius:14px }
+}

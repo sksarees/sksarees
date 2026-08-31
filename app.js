@@ -802,6 +802,15 @@ function reelHTML(p, i){
 function renderReelsPage(){
   const app = document.getElementById('app'); if (!app) return;
   __reelsState = { order: reelsProductOrder(), next: 0, qi: 0 };
+  /* 🔗 deep link (?reel=ID) — THAT saree's reel comes FIRST, always
+     (even if she has seen it before — the link must open its image) */
+  try{
+    const want = new URLSearchParams(location.search).get('reel');
+    if (want){
+      const idx = __reelsState.order.findIndex(p => String(p.id) === String(want));
+      if (idx > 0){ __reelsState.order.splice(0, 0, __reelsState.order.splice(idx, 1)[0]); }
+    }
+  }catch(e){}
   app.innerHTML = '<div class="rp-wrap" id="rpWrap"></div>' +
     '<button type="button" class="rp-arrow up" data-rpnav="-1" aria-label="Previous reel">⌃</button>' +
     '<button type="button" class="rp-arrow down" data-rpnav="1" aria-label="Next reel">⌄</button>';
@@ -2674,9 +2683,6 @@ function renderProduct(){
         
       '</div>' +
     '</div>' +
-    likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
-    recentViewHTML() +
-    tastePicksHTML(6) +        /* ✨ taste engine — keeps her browsing */
     '<div class="wrap" id="recSection"></div>' +
     '<div class="sticky-bar">' +
       '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
@@ -4016,7 +4022,7 @@ function openLoginModal(){
       '<div class="np-emoji">🔑</div>' +
       '<h3 class="np-title">' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</h3>' +
       '<p class="np-sub">' + loc('எண்ணி = username • பின்கோட் = password', 'மொபைல் = username • பிந்கோட் = password', 'மொபைல் = username • பிந்கோட் = password', 'Mobile number = username • Area pincode = password') + '</p>' +
-      '<input id="lgPhone" class="np-input" placeholder="' + loc('எண் எண் (username)', 'மொபைல் நம்பர்', 'மொபைல் நம்பர்', 'Mobile number (username)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
+      '<input id="lgPhone" class="np-input" value="' + esc(((Store.profile || {}).phone || '')) + '" placeholder="' + loc('எண் எண் (username)', 'மொபைல் நம்பர்', 'மொபைல் நம்பர்', 'Mobile number (username)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
       '<input id="lgPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'பின்கோட்', 'பின்கோட்', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
       '<button type="button" class="btn btn-maroon btn-xl np-save" id="lgGo">🔓 ' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</button>' +
       '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'தருவாதி', 'நஂதர', 'Later') + '</button>' +

@@ -1985,9 +1985,25 @@ const Auth = {
       if (phone.length !== 10 || !/^[6-9]/.test(phone)) return { ok: false, msg: 'Enter a valid 10-digit mobile number' };
       if (!pin) return { ok: false, msg: 'Enter your pincode (password)' };
       if (!FS.enabled()) return { ok: false, msg: 'Account sync needs internet' };
-      const db = await FS._getDb(); if (!db) return { ok: false, msg: 'Connection failed' };
-      const doc = await db.collection('accounts').doc(phone).get();
-      if (!doc.exists) return { ok: false, msg: 'No account for this number yet — place an order or save your profile first' };
+      const db = await FS._getDb(); if (!db) return { ok: false, msg: 'Connection failed — check internet' };
+      let doc;
+      try{
+        doc = await db.collection('accounts').doc(phone).get();
+      }catch(e1){
+        return { ok: false, msg: 'Firestore rules block accounts — allow read/write for the accounts collection' };
+      }
+      if (!doc.exists){
+        /* 🔧 no account yet — if THIS device's saved profile matches the number
+           and has a pincode, create the account from it right now, then log in */
+        const pr = Store.profile || {};
+        if (String(pr.phone || '').replace(/\D/g, '') === phone && String(pr.pincode || '').trim()){
+          const made = await Auth.autoCreate(phone, pr.pincode);
+          if (made === true){
+            return { ok: true, name: (pr.name || ''), created: true };
+          }
+        }
+        return { ok: false, msg: 'No account for this number yet — place an order or save your profile (with pincode) first' };
+      }
       const acc = doc.data() || {};
       const hash = await authHash(phone, pin);
       if (!acc.hash || acc.hash !== hash) return { ok: false, msg: 'Wrong pincode — password is your area pincode' };
@@ -2565,7 +2581,7 @@ window.refreshCloudProducts = function(){ try{ Sync.pullProducts(); }catch(e){} 
    admins · cart · categories · customers · inventory · orders · products ·
    promos · reviews · settings
    Each collection gets a seed document so it exists (and your rules apply). */
-const FS_COLLECTIONS = ['admins','cart','categories','counters','customers','inventory','leads','orders','products','promos','reviews','settings','users'];
+const FS_COLLECTIONS = ['accounts','admins','cart','categories','counters','customers','inventory','leads','orders','products','promos','reel_stats','reviews','settings','users'];
 function seedFirestoreCollections(){
   if (!FS.enabled()) return;
   if (window.__seedDone) return;       /* in-page guard (prevents write loops) */
