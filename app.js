@@ -11,6 +11,7 @@ async function init(){
   try{ injectChrome(); }catch(e){ console.warn(e); }
   try{ renderCartBadge(); }catch(e){}
   try{ readRef(); }catch(e){}                    /* capture ?ref= reseller from URL */
+  try{ if (Auth.current()) Auth.quietSync(); }catch(e){}   /* 🔑 logged-in? pull her latest orders */
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
   try{ purgeOldOrders(90); }catch(e){}   /* user sees only last 90 days of orders */
   try{ setTimeout(maybeAutoDeliver, 2000); setInterval(maybeAutoDeliver, 30000); }catch(e){}
@@ -569,6 +570,7 @@ function setActiveReel(pid){
         const d = LS.get('sk_dwell', {}) || {};
         d[__reelActive.id] = (d[__reelActive.id] || 0) + secs;
         LS.set('sk_dwell', d);   /* 🧠 taste engine reads this */
+        queueReelDwell(__reelActive.id, secs);   /* 📈 global admin ranking */
       }
     }
     __reelActive = pid ? { id: pid, t: now } : null;
@@ -591,6 +593,42 @@ function applyReelShareCount(btn){
     const n = reelSharesOf(btn.dataset.reelshare);
     const sm = btn.querySelector('small');
     if (sm) sm.textContent = n > 0 ? n : '';
+  }catch(e){}
+}
+/* 📈 GLOBAL REEL STATS — views (v) + watch seconds (d) per saree, sent to
+   Firestore in ONE batched write every 20s (quota-friendly). The admin panel
+   rankings are built from this. */
+let __reelPending = { v: {}, d: {} };
+let __reelViewedSession = {};
+function queueReelView(pid){
+  try{
+    if (!pid || __reelViewedSession[pid]) return;   /* one view per saree per session */
+    __reelViewedSession[pid] = 1;
+    __reelPending.v[pid] = (__reelPending.v[pid] || 0) + 1;
+  }catch(e){}
+}
+function queueReelDwell(pid, secs){
+  try{
+    if (!pid || !secs || secs < 1) return;
+    __reelPending.d[pid] = (__reelPending.d[pid] || 0) + secs;
+  }catch(e){}
+}
+function flushReelStats(){
+  try{
+    const pending = __reelPending;
+    const has = Object.keys(pending.v || {}).length || Object.keys(pending.d || {}).length;
+    if (!has) return;
+    if (!FS.enabled()){ __reelPending = { v: {}, d: {} }; return; }
+    __reelPending = { v: {}, d: {} };
+    FS.updateReelStats(pending).catch(() => {});
+  }catch(e){}
+}
+function startReelStatsFlusher(){
+  try{
+    if (window.__reelStatsTimer) return;
+    window.__reelStatsTimer = setInterval(flushReelStats, 20000);
+    window.addEventListener('pagehide', flushReelStats);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushReelStats(); });
   }catch(e){}
 }
 function setReelLike(pid, on, reelEl){
@@ -770,6 +808,7 @@ function renderReelsPage(){
   appendReels(10);
   /* 🔥 load GLOBAL like counts (Firestore — one cached read) */
   try{ loadReelCounts().then(() => applyReelCountsToDom()).catch(() => {}); }catch(e){}
+  try{ startReelStatsFlusher(); }catch(e){}   /* 📈 global views + dwell → admin rankings */
   /* 🔗 shared link (?reel=ID) → jump straight to THAT saree's reel */
   try{
     const want = new URLSearchParams(location.search).get('reel');
@@ -808,6 +847,7 @@ function appendReels(n){
               const p = byId(el.dataset.rid);
               if (p){ try{ trackRecentView(p); }catch(e){} }
               try{ markReelSeen(el.dataset.rid); }catch(e){}          /* 👀 no repeat sarees */
+              try{ queueReelView(el.dataset.rid); }catch(e){}           /* 📈 global views */
               try{ markQuoteSeen(el.dataset.q); }catch(e){}           /* 👀 no repeat quotes */
               try{ setActiveReel(el.dataset.rid); }catch(e){}          /* ⏱️ dwell → taste engine */
             }
@@ -1254,6 +1294,50 @@ function festivalCalendarHTML(){
   }catch(e){ return ''; }
 }
 
+/* ⏭️ next real festival from the 2026 calendar → chip in the section heading */
+function nextFestival2026(){
+  try{
+    const now = new Date();
+    let best = null;
+    FESTIVAL_DATES_2026.forEach(mo => {
+      const monthIdx = ['January','February','March','April','May','June','July','August','September','October','November','December']
+        .indexOf(String(mo.m).split(' ')[0]);
+      if (monthIdx < 0) return;
+      mo.items.forEach(f => {
+        const d = new Date(2026, monthIdx, f.d);
+        if (d >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && (!best || d < best.date)){
+          best = { date: d, name: f.n, days: Math.round((d - now) / 864e5) };
+        }
+      });
+    });
+    return best;
+  }catch(e){ return null; }
+}
+function nextFestivalChip2026(){
+  try{
+    const nf = nextFestival2026();
+    if (!nf) return '';
+    const nm = nf.name.split('(')[0].trim();
+    const ds = nf.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return ' <span class="nf-chip">\u23f0 ' + esc(nm) + ' — ' + ds + (nf.days > 0 ? ' • ' + nf.days + 'd' : ' • today') + '</span>';
+  }catch(e){ return ''; }
+}
+/* 📅 the REAL 2026 dates — compact expandable list inside the festival section */
+function festivalDatesCompactHTML(){
+  try{
+    const details = FESTIVAL_DATES_2026.map(mo => {
+      const rows = mo.items.map(f =>
+        '<a class="fest-row" href="shop.html?q=' + encodeURIComponent(f.n.split('(')[0].trim()) + '">' +
+          '<span class="fr-date">' + f.d + '</span>' +
+          '<span class="fr-name">' + esc(f.n) + '<small>' + esc(f.s) + '</small></span>' +
+          '<span class="fr-go">Shop \u2192</span>' +
+        '</a>').join('');
+      return '<details class="fest-month2"><summary>\U0001F5D3\uFE0F ' + esc(mo.m) + ' <small>' + mo.items.length + ' festivals</small></summary><div style="display:grid;gap:2px">' + rows + '</div></details>';
+    }).join('');
+    const nf = nextFestival2026();
+    return '<details class="fest-cal2"' + (nf && nf.days <= 30 ? ' open' : '') + '><summary>\U0001F4C5 2026 Auspicious Days — ' + FESTIVAL_DATES_2026.reduce((s, m) => s + m.items.length, 0) + ' festival dates \u25BE</summary>' + details + '</details>';
+  }catch(e){ return ''; }
+}
 /* ============================ HOME ============================ */
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
@@ -1306,7 +1390,7 @@ function renderHome(){
       instagramReelsHTML() +      /* 🎬 @sksarees_collection reels showcase */
       occasionQuickShopHTML() +
       weaverStoryHTML() +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access</h2>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access' + nextFestivalChip2026() + '</h2>' +
         '<a href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">Join WhatsApp Group →</a></div>' +
         '<div class="fest-grid">' + FESTIVALS.map(f =>
           '<a class="fest-tile' + (currentFestival() === f.slug ? ' fest-live' : '') + '" href="shop.html?cat=' + f.slug + '"><span class="fest-emoji">' + f.emoji + '</span>' +
@@ -1314,8 +1398,9 @@ function renderHome(){
         ).join('') +
         '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
           '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
-        '</div></section>' +
-      festivalCalendarHTML() +
+        '</div>' +
+        festivalDatesCompactHTML() +   /* 📅 real 2026 dates — Auspicious Days */
+      '</section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 ' + (lang === 'ta' ? t('reviews') : 'What Our Customers Say') + '</h2></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
           '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
@@ -1356,7 +1441,7 @@ function renderHome(){
 }
 
 /* ============================ SHOP ============================ */
-let shopState = { cat: '', q: '', fabric: '', colour: '', max: 3000, sort: 'newest', shown: 12, list: [] };
+let shopState = { cat: '', q: '', fabric: '', colour: '', max: 3000, sort: 'viewed', shown: 12, list: [] };   /* 🔥 default = most viewed */
 function renderShop(){
   const app = document.getElementById('app'); if (!app) return;
   const params = safeParams();
@@ -1394,6 +1479,7 @@ function renderShop(){
         '<input type="range" id="pFilter" min="299" max="3000" step="100" value="3000" style="width:100%;accent-color:var(--maroon)"></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Sort</label>' +
         '<select id="sFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff">' +
+        '<option value="viewed">🔥 Most Viewed</option>' +
         '<option value="foryou">✨ For You (AI)</option>' +
         '<option value="newest">Newest</option><option value="bestselling">Best Selling</option><option value="popular">Popularity</option>' +
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
@@ -1462,7 +1548,15 @@ function shopList(){
     case 'price-desc': l = l.slice().sort((a, b) => b.price - a.price); break;
     case 'discount': l = l.slice().sort((a, b) => offPct(b) - offPct(a)); break;
     case 'bestselling': l = l.slice().sort((a, b) => b.reviews - a.reviews); break;
-    case 'popular': l = l.slice().sort((a, b) => b.rating - a.rating); break;
+    case 'viewed': {
+      /* 🔥 MOST VIEWED first — global views + likes (Firestore) + her dwell time */
+      const stats = (LS.get('sk_reel_counts_cache', null) || {});
+      const dw = LS.get('sk_dwell', {}) || {};
+      const vc = stats.c || {}; const vv = stats.v || {};
+      l = l.slice().sort((a, b) => (((+vv[b.id] || 0) * 2) + (+vc[b.id] || 0) * 3 + (b.reviews || 0) + (+dw[b.id] || 0) / 30) - (((+vv[a.id] || 0) * 2) + (+vc[a.id] || 0) * 3 + (a.reviews || 0) + (+dw[a.id] || 0) / 30));
+      break;
+    }
+    case 'popular': l = l.slice().sort((a, b) => (b.rating || 0) - (a.rating || 0)); break;
   }
   return l;
 }
@@ -1858,6 +1952,24 @@ function personalGreetHTML(){
       '<a class="gs-btn" href="profile.html">' + esc(nm) + loc(' பக்கம் →', ' పేజీ →', ' ಪುಟ →', "'s page →") + '</a>' +
       '<button type="button" class="gs-share" data-sharesite="1" aria-label="Share SK Sarees" title="' + loc('வாட்ஸ்அப்பில் பகிர்', 'వాట్సాప్‌లో షేర్ చేయి', 'ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿ', 'Share on WhatsApp') + '">📢</button>' +
       '</div></section>';
+  }catch(e){ return ''; }
+}
+/* 🔑 account card — login with mobile + pincode (data follows her everywhere) */
+function accountCardHTML(){
+  try{
+    const a = Auth.current();
+    if (a){
+      return '<div class="form-card acct-card"><h3>🔑 ' + loc('கணக்கு', '஖ாதெ', '஖ாதெ', 'Account') + '</h3>' +
+        '<p class="small" style="margin:2px 0 10px">📱 <b>' + esc(a.phone.slice(0, 2) + '•••••' + a.phone.slice(-3)) + '</b> • ' + loc('எல்லா சாதனம் ஒன்றாக ஒன்று 🎉', 'ଅந்தன் பணி வி஧மா஦ மோதது', 'எல்லா பாவதெ஗ளல்லி ஒஂ஦ே', 'same data on all devices 🎉') + '</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+          '<button type="button" class="btn btn-outline" data-login="1" style="flex:1">🔄 ' + loc('புதுப்பிக்கு', 'ரெசிக்கு', 'புத்ஸமக்கு', 'Refresh') + '</button>' +
+          '<button type="button" class="btn btn-outline" data-logout="1" style="flex:1">🔓 ' + loc('வெளியேறு', 'லா஗்அவுட்', 'லா஗்அபீட்', 'Logout') + '</button>' +
+        '</div></div>';
+    }
+    return '<div class="form-card acct-card"><h3>🔑 ' + loc('உள்ளேறு — எல்லா சாதனம் ஒன்றாக ஒன்று', 'லா஗ின் — அனைதேது பந்துல லோகமாது', 'லா஗ிந் — எல்லா ஡ேடா ஒஂ஦ே', 'Login — same data everywhere') + '</h3>' +
+      '<p class="small muted" style="margin:2px 0 10px">📱 ' + loc('எண் = username • பின்கோட் = password', 'மொபைல் = username • பின்கோட் = password', 'மொபைல் = username • பின்கோட் = password', 'Mobile = username • Pincode = password') + '</p>' +
+      '<button type="button" class="btn btn-maroon" data-login="1" style="width:100%">🔓 ' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</button>' +
+      '<p class="small muted" style="margin-top:8px">📢 ' + loc('முதல் ஆர்டர் போடும்போது கணக்கு தானாக உருவாகும்!', 'மொ஦டி ஆர்டர் தந்நே ஖ாதெ வேருதுஂ஦ி!', 'மொ஦ல ஆர்டர் இதுவே ஖ாதெ தயாரிட்டி஦ெ!', 'Account is created automatically with your first order!') + '</p></div>';
   }catch(e){ return ''; }
 }
 /* 🤝 profile page: her relationship card with the store */
@@ -3261,6 +3373,8 @@ function doPlaceOrder(payment){
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
     Store.saveProfile();
+    /* 🔑 AUTO-ACCOUNT: mobile = username, pincode = password */
+    try{ Auth.autoCreate(order.customer.phone, order.customer.pincode); }catch(e2){}
     consumeStock(order.items);                 /* 1 psc model: stock goes down for next customer */
     if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
     co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
@@ -3300,6 +3414,8 @@ function doWaOrder(){
     Store.profile = { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode };
     try{ autoRegisterReseller(order.customer.name, order.customer.phone); }catch(e){}   /* 🤝 auto-reseller */
     Store.saveProfile();
+    /* 🔑 AUTO-ACCOUNT: mobile = username, pincode = password */
+    try{ Auth.autoCreate(order.customer.phone, order.customer.pincode); }catch(e2){}
     consumeStock(order.items);
     if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
     co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
@@ -3701,6 +3817,7 @@ function renderProfilePage(){
   const app = document.getElementById('app'); if (!app) return;
   const p = Store.profile || {};
   app.innerHTML = '<div class="wrap page"><h1>👤 ' + (userName() ? esc(userName()) + loc(' சுயவிவரம்', ' ప్రొఫైల్', ' ಪ್ರೊಫೈಲ್', "'s Profile") : t('profile')) + '</h1>' +
+    accountCardHTML() +
     personalProfileCardHTML() +
     '<div class="form-card"><h3>📋 Saved Details (auto-fills checkout)</h3>' +
       '<div class="field"><label>Full Name</label><input id="pfName" value="' + esc(p.name) + '"></div>' +
@@ -3762,6 +3879,8 @@ function renderProfilePage(){
     if (!name || !validPhone(phone)){ toast('⚠️ Enter valid name & 10-digit phone'); return; }
     Store.profile = { name, phone, address, pincode };
     Store.saveProfile();
+    /* 🔑 auto-account: mobile = username, pincode = password */
+    try{ Auth.autoCreate(phone, pincode); }catch(e2){}
     try{ LS.set('sk_user_name', name); if (!LS.get('sk_member_since', 0)) LS.set('sk_member_since', Date.now()); }catch(e2){}   /* keep greeting name in sync */
     try{ renderHeader(); }catch(e2){}   /* "Vanakkam, {Name}" updates instantly */
     const rr = autoRegisterReseller(name, phone);   /* 🤝 auto-reseller code for this device */
@@ -3878,6 +3997,51 @@ document.addEventListener('click', function(e){
   a.setAttribute('href', href + payload);
   location.href = a.getAttribute('href');
 });
+/* 🔑 LOGIN — username = mobile number, password = pincode.
+   Same login on any device → all her data (cart, wishlist, orders, points) merges. */
+function openLoginModal(){
+  const a = Auth.current();
+  if (a){
+    openModal('<div class="np-card">' +
+      '<div class="np-emoji">🔑</div>' +
+      '<h3 class="np-title">' + loc('கணக்கு செய்யப்பட்டது', 'கணக்கு தெரியுத்தது', 'கணக்கு வெல்லத்தது', 'Account') + '</h3>' +
+      '<p class="np-sub">📱 <b>' + esc(a.phone.slice(0, 2) + '\u2022\u2022\u2022\u2022\u2022' + a.phone.slice(-3)) + '</b><br>' +
+        loc('இந்த எண்ணில் எல்லா சாதனம் ஒன்றாக ஒன்று.', 'ஈ நம்பர் அனைதேது மோதமாத் தேவனைகி.', 'ஈ நம்பர் எல்லா வி஧ாந஗ளல்லி ஒஂ஦ே.', 'Same number → same data on every device.') + '</p>' +
+      '<button type="button" class="btn btn-maroon btn-xl np-save" data-logout="1">🔓 ' + loc('வெளியேறு', 'லா஗்அவுட்', 'லா஗்அபீட்', 'Logout') + '</button>' +
+    '</div>');
+    return;
+  }
+  openModal(
+    '<div class="np-card">' +
+      '<div class="np-emoji">🔑</div>' +
+      '<h3 class="np-title">' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</h3>' +
+      '<p class="np-sub">' + loc('எண்ணி = username • பின்கோட் = password', 'மொபைல் = username • பிந்கோட் = password', 'மொபைல் = username • பிந்கோட் = password', 'Mobile number = username • Area pincode = password') + '</p>' +
+      '<input id="lgPhone" class="np-input" placeholder="' + loc('எண் எண் (username)', 'மொபைல் நம்பர்', 'மொபைல் நம்பர்', 'Mobile number (username)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
+      '<input id="lgPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'பின்கோட்', 'பின்கோட்', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
+      '<button type="button" class="btn btn-maroon btn-xl np-save" id="lgGo">🔓 ' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</button>' +
+      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'தருவாதி', 'நஂதர', 'Later') + '</button>' +
+      '<p class="np-note">📢 ' + loc('கணக்கு இல்லையா? முதல் ஆர்டர் போடும்்போது எளிதிலேயே உருவாகிறது!', 'கணக்கு இல்ல஦ொதா? மொ஦டி ஆர்டர் வேறிடது', '஖ாதெ இல்ல஦ொதா? மொ஦ல ஆர்டர் இதுவதது', 'No account yet? It is created automatically with your first order!') + '</p>' +
+    '</div>');
+  const go = document.getElementById('lgGo');
+  const doLogin = async () => {
+    const ph = (document.getElementById('lgPhone') || {}).value || '';
+    const pn = (document.getElementById('lgPin') || {}).value || '';
+    if (go){ go.textContent = '⏳ ' + loc('சரிபார்க்குகிறது…', 'சரிபரீக்ஷிஸ்துந்நா஡ி…', 'பரிசீலிஸுத்தி஦ெ…', 'Checking…'); go.disabled = true; }
+    const r = await Auth.login(ph, pn);
+    if (r.ok){
+      closeModal();
+      toast('✅ ' + loc('வணக்கம், ' + ((r.name || '').split(' ')[0] || '!') + '! எல்லா சாதனம் ஒன்றாக ஒன்று 🎉', 'பொருவுகுகளு லைவு!', 'பாவதெந்து ஒந்றா஗ி஦ெ!', 'Welcome back! Your data is here 🎉'));
+      try{ rerenderPage(); }catch(e){ try{ location.reload(); }catch(e2){} }
+    } else {
+      toast('⚠️ ' + (r.msg || 'Login failed'));
+      if (go){ go.textContent = '🔓 Login'; go.disabled = false; }
+    }
+  };
+  if (go) go.addEventListener('click', doLogin);
+  const inp = document.getElementById('lgPin');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+}
+
 document.addEventListener('click', function(e){
   /* add to cart (from cards, product page, wishlist) */
   const add = e.target.closest('[data-add]');

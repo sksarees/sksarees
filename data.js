@@ -1920,6 +1920,139 @@ function skinToneRecommendHTML(p){
   }catch(e){ return ''; }
 }
 
+/* ============================ 🔑 AUTH — mobile = username, pincode = password ============================
+   Auto-account: the first order/profile save creates the account silently
+   (username = mobile number, password = pincode). Logging in on ANY device
+   with the same mobile + pincode pulls & merges HER data (profile, cart,
+   wishlist, orders, points) — one account everywhere. Pincode is stored as a
+   SHA-256 hash (never plain text). Firestore: accounts/{phone} doc. */
+async function authHash(phone, pin){
+  try{
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(String(phone) + ':sk:' + String(pin)));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }catch(e){ return String(pin); }
+}
+const Auth = {
+  current(){
+    try{ const a = LS.get('sk_auth', null); return (a && a.phone) ? a : null; }catch(e){ return null; }
+  },
+  /* 🔧 create or refresh the account after order / profile save (silent) */
+  async autoCreate(phone, pin){
+    try{
+      phone = String(phone || '').replace(/\D/g, '');
+      pin = String(pin || '').trim();
+      if (phone.length !== 10 || !/^[6-9]/.test(phone) || pin.length < 5) return false;   /* pincode = 6 digits */
+      if (!FS.enabled()) return false;
+      const db = await FS._getDb(); if (!db) return false;
+      const doc = await db.collection('accounts').doc(phone).get();
+      const prev = (doc.exists && doc.data()) || null;
+      const hash = await authHash(phone, pin);
+      if (prev && prev.hash && prev.hash !== hash) return prev;   /* different pin already set → do not overwrite */
+      LS.set('sk_auth', { phone });
+      const data = {
+        ph: phone,
+        hash,
+        profile: Store.profile || {},
+        cart: (Store.cart || []).map(i => ({ id: i.id, qty: i.qty || 1, colour: i.colour || '' })),
+        wish: Store.wish || [],
+        orders: (Store.orders || []).slice(0, 60),
+        points: pointsBalance(),
+        updatedAt: Date.now(),
+      };
+      /* merge: never erase remote orders/points */
+      if (prev){
+        const key = i => i.id + '::' + (i.colour || '');
+        const mc = {}; ((prev.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; }));
+        (data.cart || []).forEach(i => { if (!mc[key(i)]) mc[key(i)] = i; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty); });
+        data.cart = Object.values(mc).slice(-30);
+        const w = {}; (prev.wish || []).concat(data.wish || []).forEach(id => { if (id) w[id] = 1; });
+        data.wish = Object.keys(w);
+        const om = {}; (prev.orders || []).concat(data.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
+        data.orders = Object.values(om).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 60);
+        data.points = Math.max(+prev.points || 0, data.points);
+        if (prev.profile && prev.profile.phone && !String((Store.profile || {}).phone || '').trim()) data.profile = prev.profile;
+      }
+      await db.collection('accounts').doc(phone).set(data, { merge: true });
+      return true;
+    }catch(e){ return false; }
+  },
+  /* 🔓 login: verify mobile + pincode → pull & merge HER data onto this device */
+  async login(phone, pin){
+    try{
+      phone = String(phone || '').replace(/\D/g, '');
+      pin = String(pin || '').trim();
+      if (phone.length !== 10 || !/^[6-9]/.test(phone)) return { ok: false, msg: 'Enter a valid 10-digit mobile number' };
+      if (!pin) return { ok: false, msg: 'Enter your pincode (password)' };
+      if (!FS.enabled()) return { ok: false, msg: 'Account sync needs internet' };
+      const db = await FS._getDb(); if (!db) return { ok: false, msg: 'Connection failed' };
+      const doc = await db.collection('accounts').doc(phone).get();
+      if (!doc.exists) return { ok: false, msg: 'No account for this number yet — place an order or save your profile first' };
+      const acc = doc.data() || {};
+      const hash = await authHash(phone, pin);
+      if (!acc.hash || acc.hash !== hash) return { ok: false, msg: 'Wrong pincode — password is your area pincode' };
+      /* 🔁 MERGE remote data into this device */
+      if (acc.profile && acc.profile.phone) Store.profile = Object.assign({}, Store.profile || {}, acc.profile);
+      const key = i => i.id + '::' + (i.colour || '');
+      const mc = {}; (Store.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; });
+      ((acc.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty || 1); } }));
+      Store.cart = Object.values(mc).slice(-30);
+      const w = {}; (Store.wish || []).concat(acc.wish || []).forEach(id => { if (id) w[id] = 1; });
+      Store.wish = Object.keys(w).slice(-120);
+      const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
+      Store.orders = Object.values(om).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+      try{ localStorage.setItem('sk_points', String(Math.max(pointsBalance(), +acc.points || 0))); }catch(e2){}
+      Store.saveCart(); Store.saveWish(); Store.saveOrders(); Store.saveProfile();
+      LS.set('sk_auth', { phone });
+      return { ok: true, name: (Store.profile || {}).name || '' };
+    }catch(e){ return { ok: false, msg: 'Login failed — try again' }; }
+  },
+  /* 📤 push this device's latest data to the account (keeps devices in sync) */
+  async push(){
+    try{
+      const a = this.current();
+      if (!a || !FS.enabled()) return false;
+      const db = await FS._getDb(); if (!db) return false;
+      const doc = await db.collection('accounts').doc(a.phone).get();
+      const prev = (doc.exists && doc.data()) || {};
+      const key = i => i.id + '::' + (i.colour || '');
+      const mc = {}; ((prev.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; }));
+      (Store.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty); } });
+      const w = {}; (prev.wish || []).concat(Store.wish || []).forEach(id => { if (id) w[id] = 1; });
+      const om = {}; (prev.orders || []).concat(Store.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
+      await db.collection('accounts').doc(a.phone).set({
+        profile: Store.profile || {},
+        cart: Object.values(mc).slice(-30),
+        wish: Object.keys(w).slice(-120),
+        orders: Object.values(om).sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0)).slice(0, 60),
+        points: Math.max(+prev.points || 0, pointsBalance()),
+        updatedAt: Date.now(),
+      }, { merge: true });
+      return true;
+    }catch(e){ return false; }
+  },
+  /* 🔁 quiet sync on visit (only if previously logged in on this device) */
+  async quietSync(){
+    try{
+      const a = this.current();
+      if (!a) return;
+      const db = FS.enabled() ? await FS._getDb() : null;
+      if (!db) return;
+      const doc = await db.collection('accounts').doc(a.phone).get();
+      if (!doc.exists) return;
+      const acc = doc.data() || {};
+      const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
+      const before = Store.orders.length;
+      Store.orders = Object.values(om).sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0));
+      if (Store.orders.length !== before){ Store.saveOrders(); }
+    }catch(e){}
+  },
+  logout(){
+    try{ LS.set('sk_auth', null); }catch(e){}
+    try{ localStorage.removeItem('sk_auth'); }catch(e){}
+  },
+};
+
 /* ============================ 10. TOAST / MODAL ============================ */
 let toastT;
 function toast(msg){
@@ -2202,6 +2335,19 @@ const FS = {
       /* returns the whole doc: {c: like counts, s: share counts} */
       return snap.exists ? (snap.data() || {}) : null;
     }catch(e){ return null; }
+  },
+  /* 📈 batched reel stats — views (v) + watch-seconds (d) maps.
+     ONE write carries many increments → Firestore quota-friendly. */
+  async updateReelStats(pending){
+    const db = await this._getDb(); if (!db || !pending) return false;
+    try{
+      const upd = {};
+      Object.keys(pending.v || {}).forEach(pid => { const n = +pending.v[pid] || 0; if (n) upd['v.' + pid] = window.firebase.firestore.FieldValue.increment(n); });
+      Object.keys(pending.d || {}).forEach(pid => { const s = +pending.d[pid] || 0; if (s) upd['d.' + pid] = window.firebase.firestore.FieldValue.increment(s); });
+      if (!Object.keys(upd).length) return true;
+      await db.collection('reel_stats').doc('likes').set(upd, { merge: true });
+      return true;
+    }catch(e){ return false; }
   },
   async reelShare(pid){
     const db = await this._getDb(); if (!db || !pid) return false;
@@ -2515,6 +2661,7 @@ function renderHeader(){
       <a href="cart.html">🛒 ${t('cart')}</a>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="profile.html">👤 ${t('profile')}</a>
+      <a href="#" data-login="1">🔑 Login — மொபைல் + பின்கோட்</a>
       <div class="sub">${t('shopByCategory')}</div>
       ${CATEGORIES.slice(0, 8).map(c => `<a href="shop.html?cat=${c.slug}">${c.emoji} ${c.name}</a>`).join('')}
       <div class="sub">Help</div>
