@@ -2888,3 +2888,10 @@ h1{ letter-spacing:-.4px }
 .fest-row .fr-name{ flex:1; font-weight:700; font-size:.84rem; line-height:1.35 }
 .fest-row .fr-name small{ display:block; color:var(--muted); font-weight:600; font-size:.66rem }
 .fest-row .fr-go{ color:var(--maroon); font-size:.76rem; font-weight:800; white-space:nowrap }
+
+/* ============================================================================
+   🎬 REELS v5 — 9:16 portrait photos, seen-no-repeat, dwell timing,
+   global share counts, afternoon/evening quotes
+   ========================================================================== */
+.rp-img{ object-fit:cover; object-position:center; width:100%; height:100% }
+.rp-reel{ background:#0d0508 }

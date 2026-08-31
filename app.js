@@ -406,6 +406,56 @@ const REEL_QUOTES = [
   { g: 'ka', ta: 'நாளை ஒரு புது சேலை... நாளை ஒரு புது கவிதை... 🌅✨', te: 'రేపు ఒక కొత్త చీర... రేపు ఒక కొత్త కవిత... 🌅✨', kn: 'ನಾಳೆ ಒಂದು ಹೊಸ ಸೀರೆ... ನಾಳೆ ಒಂದು ಹೊಸ ಕವನ... 🌅✨' },
   { g: 'ka', ta: 'சேலை என்பது துணி இல்லை — ஒரு பெண்ணோட கதையோட அடுத்த பக்கம் 📖', te: 'చీర అంటే గుడ్డ కాదు — ఒక స్త్రీ కథలో తర్వాతి పేజీ 📖', kn: 'ಸೀರೆ ಎಂದರೆ ಬಟ್ಟೆಯಲ್ಲ — ಒಬ್ಬ ಹೆಣ್ಣಿನ ಕಥೆಯ ಮುಂದಿನ ಪುಟ 📖' },
 ];
+/* 💬 MORE quotes — Good Afternoon (மதிய வணக்கம்) + Good Evening (மாலை வணக்கம்)
+   + extra kavithai / GM / GN. Same 3-language format (ta/te/kn). */
+REEL_QUOTES.push(
+  /* ☀️ Good Afternoon (10) */
+  { g: 'ga', ta: 'மதிய வணக்கம்! 🌞 மதிய வெயிலிலும் உங்கள் மனசு குளிரா இருக்கட்டும்!', te: 'మధ్యాహ్న వందనాలు! 🌞 మధ్యాహ్న ఎండలో కూడా మీ మనసు చల్లగా ఉండాలి!', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! 🌞 ಮಧ್ಯಾಹ್ನದ ಬಿಸಿಲಲ್ಲೂ ನಿಮ್ಮ ಮನಸ್ಸು ತಂಪಾಗಿರಲಿ!' },
+  { g: 'ga', ta: 'இனிய மதிய நேரம்! சுவையான மதிய உணவும், ஓரமான ஓய்வும் 🍽️', te: 'ఇంపైన మధ్యాహ్నం! రుచికరమైన భోజనం, పక్కన విశ్రాంతి 🍽️', kn: 'ಇಂಪಾದ ಮಧ್ಯಾಹ್ನ! ರುಚಿಕರವಾದ ಊಟ, ಪಕ್ಕದಲ್ಲಿ ವಿಶ್ರಾಂತಿ 🍽️' },
+  { g: 'ga', ta: 'மதிய வணக்கம்! அரை நாள் வெற்றி — மீதி அரை நாளும் சிறப்பா இருக்கட்டும் ✨', te: 'మధ్యాహ్న వందనాలు! సగం రోజు విజయం — మిగతా సగం కూడా బాగుండాలి ✨', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! ಅರ್ಧ ದಿನ ಜಯ — ಉಳಿದರ್ಧ ದಿನವೂ ಚೆನ್ನಾಗಿರಲಿ ✨' },
+  { g: 'ga', ta: 'வெயில் தணியும் நேரம் — மனசும் தணியட்டும்! மதிய வணக்கம் ☀️', te: 'ఎండ తగ్గే సమయం — మనసు కూడా తగ్గాలి! మధ్யాహ్న వందనాలు ☀️', kn: 'ಬಿಸಿಲು ಕಡಿಮೆಯಾಗುವ ಸಮಯ — ಮನಸ್ಸೂ ತಣಿಯಲಿ! ಮಧ್ಯಾಹ್ನದ ವಂದನೆ ☀️' },
+  { g: 'ga', ta: 'மதிய வணக்கம்! காலை கனவுகள் நனவாகிக் கொண்டிருக்கட்டும் 💫', te: 'మధ్యాహ్న వందనాలు! ఉదయపు కలలు నిజమవుతూ ఉండాలి 💫', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! ಬೆಳಿಗ್ಗಿನ ಕನಸುಗಳು ನನಸಾಗುತ್ತಿರಲಿ 💫' },
+  { g: 'ga', ta: 'சூரியன் உச்சியில் — உங்கள் மனசும் உச்சியில்! மதிய வணக்கம் 🌞', te: 'సూర్యుడు శిఖరంలో — మీ మనసు కూడా శిఖరంలో! మధ్యాహ్న వందనాలు 🌞', kn: 'ಸೂರ್ಯ ಶಿಖರದಲ್ಲಿ — ನಿಮ್ಮ ಮನಸ್ಸೂ ಶಿಖರದಲ್ಲಿ! ಮಧ್ಯಾಹ್ನದ ವಂದನೆ 🌞' },
+  { g: 'ga', ta: 'மதிய வணக்கம்! ஒரு கப் காபி + அழகான சேலை = மனசுக்கு சந்தோஷம் ☕🥻', te: 'మధ్యాహ్న వందనాలు! ఒక కప్పు కాఫీ + అందమైన చీర = మనసుకు సంతోషం ☕🥻', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! ಒಂದು ಕಪ್ ಕಾಫಿ + ಅಂದವಾದ ಸೀರೆ = ಮನಸಿಗೆ ಸಂತೋಷ ☕🥻' },
+  { g: 'ga', ta: 'மதிய வேளை வணக்கம்! வேலையில் சோர்வு இருந்தாலும் முகத்தில் புன்னகை 😊', te: 'మధ్యాహ్న వందనాలు! పనిలో అలసట ఉన్నా ముఖంలో చిరునవ్వు 😊', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! ಕೆಲಸದಲ್ಲಿ ಆಯಾಸ ಇದ್ದರೂ ಮುಖದಲ್ಲಿ ನಗು 😊' },
+  { g: 'ga', ta: 'மதிய வணக்கம்! இன்றைய அரை நாள் கணக்கு — நல்லது தான்! ✅', te: 'మధ్యాహ్న వందనాలు! ఈరోజు సగం లెక్క — బాగుంది! ✅', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! ಇಂದಿನ ಅರ್ಧ ದಿನ ಲೆಕ್ಕ — ಒಳ್ಳೆಯದು! ✅' },
+  { g: 'ga', ta: 'மதிய வணக்கம்! சேலை மாதிரி நிதானமா, அழகா இருங்கள்!', te: 'మధ్యాహ్న వందనాలు! చీర లాగా నిదానంగా, అందంగా ఉండండి!', kn: 'ಮಧ್ಯಾಹ್ನದ ವಂದನೆ! ಸೀರೆಯಂತೆ ನಿಧಾನವಾಗಿ, ಅಂದವಾಗಿ ಇರಿ!' },
+  /* 🌆 Good Evening (10) */
+  { g: 'ge', ta: 'மாலை வணக்கம்! 🌆 மாலை வானம் மாதிரி உங்கள் நாளும் வர்ணமயமா இருக்கட்டும்!', te: 'సాయంత్రం వందనాలు! 🌆 సాయంత్రం ఆకాశం లాగా మీ రోజు కూడా రంగులతో ఉండాలి!', kn: 'ಸಂಜೆಯ ವಂದನೆ! 🌆 ಸಂಜೆಯ ಆಕಾಶದಂತೆ ನಿಮ್ಮ ದಿನವೂ ಬಣ್ಣಮಯವಾಗಿರಲಿ!' },
+  { g: 'ge', ta: 'இனிய மாலை வணக்கம்! சூரியன் மறையட்டும் — உங்கள் புன்னகை மட்டும் மறையாது 😊', te: 'ఇంపైన సాయంత్రం! సూర్యుడు దాగితే పర్వాలేదు — మీ చిరునవ్వు మాత్రం దాగదు 😊', kn: 'ಇಂಪಾದ ಸಂಜೆ! ಸೂರ್ಯ ಮರೆಯಲಿ — ನಿಮ್ಮ ನಗು ಮಾತ್ರ ಮರೆಯದು 😊' },
+  { g: 'ge', ta: 'மாலை வணக்கம்! இன்றைய களைப்பை மாலைக் காற்று அடித்துப் பறக்கட்டும் 🍃', te: 'సాయంత్రం వందనాలు! ఈరోజు అలసటను సాయంత్రం గాలి ఎగరేయాలి 🍃', kn: 'ಸಂಜೆಯ ವಂದನೆ! ಇಂದಿನ ಆಯಾಸವನ್ನು ಸಂಜೆಯ ಗಾಳಿ ಹಾರಿಸಲಿ 🍃' },
+  { g: 'ge', ta: 'மாலை வணக்கம்! மாலை நேரம் = குடும்பம் + சூபு + சிரிப்பு 🏠❤️', te: 'సాయంత్రం వందనాలు! సాయంత్రం = కుటుంబం + సూప్ + నవ్వు 🏠❤️', kn: 'ಸಂಜೆಯ ವಂದನೆ! ಸಂಜೆ = ಕುಟುಂಬ + ಸೂಪ್ + ನಗು 🏠❤️' },
+  { g: 'ge', ta: 'அழகான மாலை! வானம் ஆரஞ்சு நிறம் — நீங்க எந்த நிற சேலை? 🌅', te: 'అందమైన సాయంత్రం! ఆకాశం నారింజ రంగు — మీరు ఏ రంగు చీర? 🌅', kn: 'ಅಂದವಾದ ಸಂಜೆ! ಆಕಾಶ ಕಿತ್ತಳೆ ಬಣ್ಣ — ನೀವು ಯಾವ ಬಣ್ಣದ ಸೀರೆ? 🌅' },
+  { g: 'ge', ta: 'மாலை வணக்கம்! நல்ல மாலை ஒரு நல்ல இரவுக்கு அடித்தளம் 🌙', te: 'సాయంత్రం వందనాలు! మంచి సాయంత్రం మంచి రాత్రికి పునాది 🌙', kn: 'ಸಂಜೆಯ ವಂದನೆ! ಒಳ್ಳೆಯ ಸಂಜೆ ಒಳ್ಳೆಯ ರಾತ್ರಿಗೆ ಅಡಿಪಾಯ 🌙' },
+  { g: 'ge', ta: 'மாலை வணக்கம்! நாளை இன்னும் நல்லா இருக்கும் ✨', te: 'సాయంత్రం వందనాలు! రేపు మరింత బాగుంటుంది ✨', kn: 'ಸಂಜೆಯ ವಂದನೆ! ನಾಳೆ ಇನ್ನಷ್ಟು ಚೆನ್ನಾಗಿರುತ್ತದೆ ✨' },
+  { g: 'ge', ta: 'மாலை வேளை வணக்கம்! கடைசி மணி ஓட்டம் — வெற்றியா முடிக்குங்க! 💪', te: 'సాయంత్రం వందనాలు! చివరి గంట పరుగు — విజయంతో ముగించండి! 💪', kn: 'ಸಂಜೆಯ ವಂದನೆ! ಕೊನೆಯ ಗಂಟೆ ಓಟ — ವಿಜಯದೊಂದಿಗೆ ಮುಗಿಸಿ! 💪' },
+  { g: 'ge', ta: 'மாலை வணக்கம்! ஒரு நல்ல சேலை + மாலை நடை = perfect evening 🥻✨', te: 'సాయంత్రం వందనాలు! మంచి చీర + సాయంత్రం నడక = perfect evening 🥻✨', kn: 'ಸಂಜೆಯ ವಂದನೆ! ಒಳ್ಳೆಯ ಸೀರೆ + ಸಂಜೆಯ ನಡಿಗೆ = perfect evening 🥻✨' },
+  { g: 'ge', ta: 'மாலை வணக்கம்! மாலை மலர் மாதிரி வாசனையா இருங்கள் 🌆', te: 'సాయంత్రం వందనాలు! సాయంత్రం పువ్వు లాగా సువాసనగా ఉండండి 🌆', kn: 'ಸಂಜೆಯ ವಂದನೆ! ಸಂಜೆಯ ಹೂವಿನಂತೆ ಸುಗಂಧದಿಂದ ಇರಿ 🌆' },
+  /* ✨ Extra Kavithai (10) */
+  { g: 'ka', ta: 'மாலை வானம் சேலை கட்டுகிறது — சூரியன் தலைப்பாகை கட்டுகிறான் 🌅', te: 'సాయంత్రం ఆకాశం చీర కట్టుకుంటుంది — సూర్యుడు తలపాగా కట్టుకుంటాడు 🌅', kn: 'ಸಂಜೆಯ ಆಕಾಶ ಸೀರೆ ಧರಿಸುತ್ತದೆ — ಸೂರ್ಯ ಪೇಟ ಧರಿಸುತ್ತಾನೆ 🌅' },
+  { g: 'ka', ta: 'மழை வந்தா மண் மணக்கும் — சேலை வந்தா வீடு மணக்கும் 🌧️🏠', te: 'వర్షం వస్తే నేల సువాసన — చీర వస్తే ఇల్లు సువాసన 🌧️🏠', kn: 'ಮಳೆ ಬಂದರೆ ಮಣ್ಣು ಅಡಕ್ಕುತ್ತದೆ — ಸೀರೆ ಬಂದರೆ ಮನೆ ಅಡಕ್ಕುತ್ತದೆ 🌧️🏠' },
+  { g: 'ka', ta: 'பெண் சிரித்தால் கவிதை ஆகும் — அழுதாலும் கதை ஆகும் 💧✨', te: 'స్త్రీ నవ్వితే కవిత అవుతుంది — ఏడిస్తే కథ అవుతుంది 💧✨', kn: 'ಹೆಣ್ಣು ನಕ್ಕರೆ ಕವನವಾಗುತ್ತದೆ — ಅಳುತ್ತಿದ್ದರೂ ಕಥೆಯಾಗುತ್ತದೆ 💧✨' },
+  { g: 'ka', ta: 'சேலையின் ஜரி மின்னும்போது — ராத்திரி நட்சத்திரம் பொறாமைக்கிறது ⭐', te: 'చీర జరి మెరిసినప్పుడు — రాత్రి నక్షత్రం అసూయపడుతుంది ⭐', kn: 'ಸೀರೆಯ ಜರಿ ಹೊಳೆದಾಗ — ರಾತ್ರಿ ನಕ್ಷತ್ರ ಅಸೂಯೆಪಡುತ್ತದೆ ⭐' },
+  { g: 'ka', ta: 'ஒரு நல்ல சேலை — அணிந்தவருக்கு தைரியம், பார்த்தவருக்கு கவிதை ✨', te: 'మంచి చీర — ధరించిన వారికి ధైర్యం, చూసిన వారికి కవిత ✨', kn: 'ಒಳ್ಳೆಯ ಸೀರೆ — ಧರಿಸಿದವರಿಗೆ ಧೈರ್ಯ, ನೋಡಿದವರಿಗೆ ಕವನ ✨' },
+  { g: 'ka', ta: 'வாழ்க்கை என்பது வெள்ளை சேலை — நாமளே அதற்கு வண்ணம் தீட்டணும் 🎨', te: 'జీవితం అంటే తెలుపు చీర — మనమే దానికి రంగులు వేయాలి 🎨', kn: 'ಬದುಕು ಎಂದರೆ ಬಿಳಿ ಸೀರೆ — ನಾವೇ ಅದಕ್ಕೆ ಬಣ್ಣ ಹಚ್ಚಬೇಕು 🎨' },
+  { g: 'ka', ta: 'கண்ணாடி அழகை காட்டும் — சேலை ஆளுமையை காட்டும் 🪞', te: 'అద్దం అందాన్ని చూపుతుంది — చీర వ్యక్తిత్వాన్ని చూపుతుంది 🪞', kn: 'ಕನ್ನಡಿ ಅಂದವನ್ನು ತೋರಿಸುತ್ತದೆ — ಸೀರೆ ವ್ಯಕ್ತಿತ್ವವನ್ನು ತೋರಿಸುತ್ತದೆ 🪞' },
+  { g: 'ka', ta: 'சேலை அணிந்த பெண் — நடையிலேயே ஒரு பாடல் 💃🎵', te: 'చీర ధరించిన స్త్రీ — నడకలోనే ఒక పాట 💃🎵', kn: 'ಸೀರೆ ಧರಿಸಿದ ಹೆಣ್ಣು — ನಡಿಗೆಯಲ್ಲೇ ಒಂದು ಹಾಡು 💃🎵' },
+  { g: 'ka', ta: 'நல்ல சேலை எந்த கோவிலுக்கும் போகும் — அது பக்தியின் அடையாளம் 🛕', te: 'మంచి చీర ఏ గుడికి అయినా వెళ్ళే — అది భక్తి గుర్తు 🛕', kn: 'ಒಳ್ಳೆಯ ಸೀರೆ ಯಾವ ದೇವಸ್ಥಾನಕ್ಕೂ ಹೋಗುತ್ತದೆ — ಅದು ಭಕ್ತಿಯ ಗುರುತು 🛕' },
+  { g: 'ka', ta: 'மாலை நிழல் நீண்டது போல — நல்ல சேலையின் அழகும் நீளும் 🌇', te: 'సాయంత్రం నీడ పొడిగినట్టే — మంచి చీర అందం కూడా పొడిగి ఉంటుంది 🌇', kn: 'ಸಂಜೆಯ ನೆರಳು ಚಾಚಿದಂತೆ — ಒಳ್ಳೆಯ ಸೀರೆಯ ಅಂದವೂ ಚಾಚುತ್ತದೆ 🌇' },
+  /* ☀️ Extra GM (5) */
+  { g: 'gm', ta: 'காலை வணக்கம்! புது நாள், புது வாய்ப்பு, புது வெற்றி! 🌅', te: 'శుభోదయం! కొత్త రోజు, కొత్త అవకాశం, కొత్త విజయం! 🌅', kn: 'ಶುಭೋದಯ! ಹೊಸ ದಿನ, ಹೊಸ ಅವಕಾಶ, ಹೊಸ ಜಯ! 🌅' },
+  { g: 'gm', ta: 'இனிய காலை! இன்று ஒரு புது சேலை அணிந்து புதுசா உணருங்கள் ✨', te: 'ఇంపైన ఉదయం! ఈరోజు కొత్త చీర ధరించి కొత్తగా అనుభవించండి ✨', kn: 'ಇಂಪಾದ ಬೆಳಗು! ಇಂದು ಹೊಸ ಸೀರೆ ಧರಿಸಿ ಹೊಸದಾಗಿ ಅನುಭವಿಸಿ ✨' },
+  { g: 'gm', ta: 'காலை வணக்கம்! ரோஜா மலர் மாதிரி புத்துணர்ச்சியோடு வாழுங்கள் 🌹', te: 'శుభోదయం! గులాబీ పువ్వు లాగా చైతన్యంగా జీవించండి 🌹', kn: 'ಶುಭೋದಯ! ಗುಲಾಬಿ ಹೂವಿನಂತೆ ಉತ್ಸಾಹದಿಂದ ಬಾಳಿ 🌹' },
+  { g: 'gm', ta: 'காலை வணக்கம்! இன்றைய முதல் அழகு — உங்களுடைய புன்னகை 😊', te: 'శుభోదయం! ఈరోజు మొదటి అందం — మీ చిరునవ్వు 😊', kn: 'ಶುಭೋದಯ! ಇಂದಿನ ಮೊದಲ ಅಂದ — ನಿಮ್ಮ ನಗು 😊' },
+  { g: 'gm', ta: 'சூரிய உதயம் போல பிரகாசமான நாள் வரட்டும்! காலை வணக்கம் ☀️', te: 'సూర్యోదయం లాగా ప్రకాశవంతమైన రోజు రావాలి! శుభోదయం ☀️', kn: 'ಸೂರ್ಯೋದಯದಂತೆ ಪ್ರಕಾಶಮಾನವಾದ ದಿನ ಬರಲಿ! ಶುಭೋದಯ ☀️' },
+  /* 🌙 Extra GN (5) */
+  { g: 'gn', ta: 'இரவு வணக்கம்! இன்றைய அனைத்து நினைவுகளும் இனிமையா தூங்கட்டும் 🌙', te: 'రాత్రి వందనాలు! ఈరోజు జ్ఞాపకాలన్నీ ఇంపుగా నిద్రించాలి 🌙', kn: 'ರಾತ್ರಿ ವಂದನೆ! ಇಂದಿನ ಎಲ್ಲಾ ನೆನಪುಗಳೂ ಇಂಪಾಗಿ ನಿದ್ರಿಸಲಿ 🌙' },
+  { g: 'gn', ta: 'நல்ல இரவு! நட்சத்திரங்கள் உங்கள் கனவுகளுக்கு வழிகாட்டட்டும் ✨', te: 'మంచి రాత్రి! నక్షత్రాలు మీ కలలకు దారి చూపాలి ✨', kn: 'ಒಳ್ಳೆಯ ರಾತ್ರಿ! ನಕ್ಷತ್ರಗಳು ನಿಮ್ಮ ಕನಸುಗಳಿಗೆ ದಾರಿ ತೋರಿಸಲಿ ✨' },
+  { g: 'gn', ta: 'இரவு வணக்கம்! நாளை ஒரு புது அத்தியாயம் — நல்லதா இருக்கும் 📖', te: 'రాత్రి వందనాలు! రేపు కొత్త అధ్యాయం — మంచిదే ఉంటుంది 📖', kn: 'ರಾತ್ರಿ ವಂದನೆ! ನಾಳೆ ಹೊಸ ಅಧ್ಯಾಯ — ಒಳ್ಳೆಯದೇ ಇರುತ್ತದೆ 📖' },
+  { g: 'gn', ta: 'இனிய இரவு! தூக்கத்தில் அமைதியும், கனவில் சந்தோஷமும் 🕊️', te: 'ఇంపైన రాత్రి! నిద్రలో శాంతి, కలలో సంతోషం 🕊️', kn: 'ಇಂಪಾದ ರಾತ್ರಿ! ನಿದ್ರೆಯಲ್ಲಿ ಶಾಂತಿ, ಕನಸಿನಲ್ಲಿ ಸಂತೋಷ 🕊️' },
+  { g: 'gn', ta: 'இரவு வணக்கம்! இன்று நன்றி — நாளை வெற்றி 🌟', te: 'రాత్రి వందనాలు! ఈరోజు కృతజ్ఞత — రేపు విజయం 🌟', kn: 'ರಾತ್ರಿ ವಂದನೆ! ಇಂದು ಕೃತಜ್ಞತೆ — ನಾಳೆ ಜಯ 🌟' }
+);
+
 /* 🌐 reels speak HER language — saved choice first, else device language */
 function reelsLang(){
   try{
@@ -429,11 +479,30 @@ function rloc(ta, te, kn, en){
 /* greeting type by time of day */
 function reelGreetingType(){
   const h = new Date().getHours();
-  if (h >= 5 && h < 12) return 'gm';
-  if (h >= 18 || h < 5) return 'gn';
-  return 'th';
+  if (h >= 5 && h < 11) return 'gm';
+  if (h >= 11 && h < 16) return 'ga';   /* 🌞 மதிய வணக்கம் */
+  if (h >= 16 && h < 19) return 'ge';   /* 🌆 மாலை வணக்கம் */
+  return 'gn';
 }
 /* pick the reel's quote: deterministic per product+day (stable, fresh tomorrow) */
+/* 👀 SEEN TRACKING — she never sees the same saree photo or the same
+   thathuvam/kavithai twice. Seen ids + quote texts stored on her device. */
+function seenQuotes(){ try{ return LS.get('sk_reel_seen_q', []) || []; }catch(e){ return []; } }
+function markQuoteSeen(text){
+  try{
+    if (!text) return;
+    let q = LS.get('sk_reel_seen_q', []) || [];
+    if (q.indexOf(text) === -1){ q.push(text); if (q.length > 260) q = q.slice(-220); LS.set('sk_reel_seen_q', q); }
+  }catch(e){}
+}
+function seenPids(){ try{ return LS.get('sk_reel_seen_pids', []) || []; }catch(e){ return []; } }
+function markReelSeen(pid){
+  try{
+    if (!pid) return;
+    let s = LS.get('sk_reel_seen_pids', []) || [];
+    if (s.indexOf(pid) === -1){ s.push(pid); if (s.length > 320) s = s.slice(-260); LS.set('sk_reel_seen_pids', s); }
+  }catch(e){}
+}
 function reelQuoteFor(p, i){
   try{
     const gtype = reelGreetingType();
@@ -441,7 +510,11 @@ function reelQuoteFor(p, i){
     const want = cycle[i % cycle.length];
     const pool = REEL_QUOTES.filter(q => q.g === want);
     const fallback = REEL_QUOTES.filter(q => q.g !== 'gm' && q.g !== 'gn');
-    const list = pool.length ? pool : fallback;
+    /* 👀 skip quotes she has already seen — always fresh words */
+    const seen = seenQuotes();
+    let unseen = pool.filter(q => seen.indexOf(qText(q)) === -1);
+    if (!unseen.length) unseen = fallback.filter(q => seen.indexOf(qText(q)) === -1);
+    let list = unseen.length ? unseen : (pool.length ? pool : fallback);
     let h = 0; const s = String(p.id || '') + '|' + new Date().toDateString() + '|' + i;
     for (let k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) >>> 0;
     return qText(list[h % list.length]);
@@ -465,8 +538,12 @@ async function loadReelCounts(){
     const cached = LS.get('sk_reel_counts_cache', null);
     if (cached && cached.t && (Date.now() - cached.t) < 1800000 && cached.c){ return cached.c; }   /* 30-min cache */
     if (!FS.enabled()) return (cached && cached.c) || {};
-    const c = await FS.reelLikeCounts();
-    if (c){ LS.set('sk_reel_counts_cache', { t: Date.now(), c }); return c; }
+    const doc = await FS.reelLikeCounts();
+    if (doc){
+      const c = doc.c || doc;   /* ❤️ likes map + 🔁 shares map in one doc */
+      LS.set('sk_reel_counts_cache', { t: Date.now(), c, s: doc.s || {} });
+      return c;
+    }
     return (cached && cached.c) || {};
   }catch(e){ return {}; }
 }
@@ -477,6 +554,43 @@ function applyReelCountsToDom(){
       const sm = btn.querySelector('small');
       if (sm) sm.textContent = n > 0 ? n : '';
     });
+  }catch(e){}
+}
+/* ⏱️ REEL DWELL TIMING — how many seconds she watches each reel feeds the
+   taste algorithm (same sk_dwell map the product pages use). Watching longer
+   = stronger love. */
+let __reelActive = null;
+function setActiveReel(pid){
+  try{
+    const now = Date.now();
+    if (__reelActive && __reelActive.id){
+      const secs = Math.round((now - __reelActive.t) / 1000);
+      if (secs > 0 && secs < 900){
+        const d = LS.get('sk_dwell', {}) || {};
+        d[__reelActive.id] = (d[__reelActive.id] || 0) + secs;
+        LS.set('sk_dwell', d);   /* 🧠 taste engine reads this */
+      }
+    }
+    __reelActive = pid ? { id: pid, t: now } : null;
+  }catch(e){}
+}
+/* 🔁 SHARE COUNTS — global on Firestore, exactly like the like counts */
+function reelSharesOf(pid){
+  try{ const cache = LS.get('sk_reel_counts_cache', null) || {}; return Math.max(0, +((cache.s || {})[pid]) || 0); }catch(e){ return 0; }
+}
+function bumpLocalShares(pid){
+  try{
+    const cache = LS.get('sk_reel_counts_cache', null) || { t: Date.now(), c: {}, s: {} };
+    cache.s = cache.s || {};
+    cache.s[pid] = (+cache.s[pid] || 0) + 1;
+    LS.set('sk_reel_counts_cache', cache);
+  }catch(e){}
+}
+function applyReelShareCount(btn){
+  try{
+    const n = reelSharesOf(btn.dataset.reelshare);
+    const sm = btn.querySelector('small');
+    if (sm) sm.textContent = n > 0 ? n : '';
   }catch(e){}
 }
 function setReelLike(pid, on, reelEl){
@@ -594,14 +708,31 @@ function reelsProductOrder(){
     const pool = PRODUCTS.filter(p => !p.hidden);
     const tp = tasteProfile();
     if (tp.signals){
-      /* 👀 what she views/likes most → those sarees first */
-      return pool.map(p => ({ p, s: tasteScore(p, tp) })).sort((a, b) => b.s - a.s).map(x => x.p);
+      /* 👀 returning user — taste first, but push already-seen sarees back */
+      const seen = seenPids();
+      return pool.map(p => ({ p, s: tasteScore(p, tp) - (seen.indexOf(p.id) !== -1 ? 400 : 0) }))
+                 .sort((a, b) => b.s - a.s).map(x => x.p);
     }
-    return pool.slice().sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+    /* 🌟 FIRST-TIME user — most LIKED (Firestore global counts) + most
+       VIEWED (reviews) sarees first — she starts with the crowd favourites */
+    const cache = (LS.get('sk_reel_counts_cache', null) || {}).c || {};
+    const seen = seenPids();
+    return pool.map(p => ({ p, s: (+cache[p.id] || 0) * 3 + (+p.reviews || 0) + (seen.indexOf(p.id) !== -1 ? -400 : 0) }))
+               .sort((a, b) => b.s - a.s).map(x => x.p);
   }catch(e){ return PRODUCTS.filter(p => !p.hidden); }
 }
 function reelLikesOf(pid){
   try{ const m = LS.get('sk_reel_likes', {}) || {}; return m[pid] || 0; }catch(e){ return 0; }
+}
+/* 🖼️ 9:16 portrait reel photos — the proxy crops every saree photo to a
+   true vertical 9:16 HD frame (TikTok/IG look). Falls back to the original
+   photo instantly if the proxy is slow or down. */
+function reelImgSrc(p){
+  try{
+    const url = p.img || ((p.images || [])[0]);
+    const bare = String(url).replace(/^https?:\/\//, '');
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(bare) + '&w=720&h=1280&fit=cover&output=jpg&q=86';
+  }catch(e){ return p.img || ''; }
 }
 function reelHTML(p, i){
   const q = reelQuoteFor(p, i);
@@ -610,7 +741,7 @@ function reelHTML(p, i){
   const cmts = realReviewCount(p.id);
   const saved = Store.wish.includes(p.id);
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
-    '<img class="rp-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="imgSafe(this)">' +
+    '<img class="rp-img" src="' + esc(reelImgSrc(p)) + '" data-orig="' + esc(p.img || '') + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="if(this.dataset.orig){var o=this.dataset.orig;this.removeAttribute(\'data-orig\');this.src=o;}else{imgSafe(this);}">' +
     '<div class="rp-shade"></div>' +
     '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + rloc('சேலை reels — விரல் மாதில்', 'చీర reels', 'ಆಟವಿಲ್ reels', 'Saree reels — daily wishes') + '</small></div>' +
     '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
@@ -618,7 +749,7 @@ function reelHTML(p, i){
     '<div class="rp-actions">' +
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
       '<button type="button" class="rpa" data-rpcomment="' + esc(p.id) + '" aria-label="Comments"><span class="rpa-ic">💬</span><small>' + (cmts || '') + '</small></button>' +
-      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + rloc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share') + '</small></button>' +
+      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + (reelSharesOf(p.id) > 0 ? reelSharesOf(p.id) : rloc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share')) + '</small></button>' +
       '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + rloc('படம்', 'நிறுவு', 'லோட்', 'Save') + '</small></button>' +
       '<a class="rpa" href="' + esc(CONFIG.social.youtube || 'https://www.youtube.com/') + '" target="_blank" rel="noopener" aria-label="Audio"><span class="rpa-ic rp-disc"><i>♪</i></span><small>Audio</small></a>' +
     '</div>' +
@@ -673,8 +804,12 @@ function appendReels(n){
         __reelViewIO = new IntersectionObserver(ents => {
           ents.forEach(en => {
             if (en.isIntersecting && en.intersectionRatio > 0.6){
-              const p = byId(en.target.dataset.rid);
+              const el = en.target;
+              const p = byId(el.dataset.rid);
               if (p){ try{ trackRecentView(p); }catch(e){} }
+              try{ markReelSeen(el.dataset.rid); }catch(e){}          /* 👀 no repeat sarees */
+              try{ markQuoteSeen(el.dataset.q); }catch(e){}           /* 👀 no repeat quotes */
+              try{ setActiveReel(el.dataset.rid); }catch(e){}          /* ⏱️ dwell → taste engine */
             }
           });
         }, { root: wrap, threshold: 0.6 });
@@ -852,6 +987,12 @@ async function shareReel(p, quote){
   /* 🔗 the share link opens THIS saree's reel (not the product page) —
      the friend lands straight on the same beautiful reel she saw */
   const url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
+  /* 🔁 count the share globally (Firestore) + update the rail count */
+  try{
+    bumpLocalShares(p.id);
+    if (FS.enabled()) FS.reelShare(p.id).catch(() => {});
+    document.querySelectorAll('[data-reelshare="' + String(p.id).replace(/"/g, '') + '"]').forEach(applyReelShareCount);
+  }catch(e0){}
   const msg = (quote ? quote + '\n\n' : '') +
     '🌸 ' + smartTitle(p) + '\n₹' + (p.price || 0).toLocaleString('en-IN') +
     '\n' + rloc('🚚 ₹999+ மேல இலவச டெலிவரி', '🚚 ₹999+ மீதே உசதடி டெலிவரி', '🚚 ₹999+ மேலெ உசித குதிரி', '🚚 FREE delivery above ₹999') + '\n\n👉 ' + url +

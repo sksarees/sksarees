@@ -2199,8 +2199,16 @@ const FS = {
     const db = await this._getDb(); if (!db) return null;
     try{
       const snap = await db.collection('reel_stats').doc('likes').get();
-      return (snap.exists && snap.data() && snap.data().c) || {};
+      /* returns the whole doc: {c: like counts, s: share counts} */
+      return snap.exists ? (snap.data() || {}) : null;
     }catch(e){ return null; }
+  },
+  async reelShare(pid){
+    const db = await this._getDb(); if (!db || !pid) return false;
+    try{
+      await db.collection('reel_stats').doc('likes').set({ ['s.' + pid]: window.firebase.firestore.FieldValue.increment(1) }, { merge: true });
+      return true;
+    }catch(e){ return false; }
   },
   async deleteReview(rid){
     const db = await this._getDb(); if (!db) return false;
