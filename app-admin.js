@@ -138,6 +138,12 @@ function refreshAdminTab(){
   }catch(e){}
 }
 function adminInit(){
+  /* 🔧 standalone admin: openModal needs #modalRoot + close wiring */
+  try{
+    if (!document.getElementById('modalRoot')) document.body.insertAdjacentHTML('beforeend', '<div id="modalRoot"></div><div class="toast" id="toast"></div>');
+    document.addEventListener('click', e => { const c = e.target.closest('[data-close]'); if (c) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  }catch(e){}
   /* Standalone admin: do not inject customer website header/footer. */
   try{ renderCartBadge(); }catch(e){}
   try{ Store.orders.forEach(dispatchOrder); Store.saveOrders(); }catch(e){}
@@ -336,6 +342,7 @@ function renderDashboard(){
     '<div class="form-card" style="margin-top:14px"><h3>📈 Revenue — last 14 days</h3>' + barChart(dayKeys, dayMap) + '</div>' +
     '<div class="form-card" style="margin-top:14px"><h3>📊 Revenue — last 8 weeks</h3>' + barChart(weekKeys, weekMap) + '</div>' +
     '<div style="display:grid;gap:14px;grid-template-columns:1fr;margin-top:14px">' +
+      '<div class="form-card"><h3>📊 Saree Engagement Rankings — Likes • Views • Time Spent</h3><div id="rankBox"><p class="muted small">Loading rankings…</p></div></div>' +
       '<div class="form-card"><h3>🏆 Top Products</h3>' + (topProds.length
         ? topProds.map((p, i) => '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:7px 0;border-bottom:1px dashed var(--line)"><span><b>' + (i + 1) + '.</b> ' + esc(p.name) + ' <span class="muted">×' + p.qty + '</span></span><b>' + money(p.rev) + '</b></div>').join('')
         : '<p class="small muted">No sales yet.</p>') + '</div>' +
@@ -352,10 +359,65 @@ function renderDashboard(){
       '2. Update status → WhatsApp the customer confirmation / delivery reminder.<br>' +
       '3. When shipped, dispatch date + ETA (7 days) auto-capture; auto-Delivered after ETA.<br>' +
       '4. Manage products (add / bulk / XML feed), coupons, resellers &amp; reviews.</p></div>';
+  try{ renderEngagementRankings(); }catch(e){}
 }
 
 /* 🚚 AUTO-DELIVERY (admin): any shipped order whose 7-day window has passed is
    auto-marked delivered (local + Firestore) — the owner never has to remember. */
+
+/* ============================ 📊 ENGAGEMENT RANKINGS ============================
+   Top sarees by ❤️ likes, 👀 views and ⏱ time spent — collected from every
+   visitor on the reels page (Firestore: reel_stats/likes → c=likes, v=views,
+   d=watch-seconds). Rendered on the Dashboard. */
+async function renderEngagementRankings(){
+  const box = document.getElementById('rankBox');
+  if (!box) return;
+  try{
+    if (!FS.enabled()){ box.innerHTML = '<p class="muted small">Firestore not connected.</p>'; return; }
+    const db = await FS._getDb();
+    if (!db){ box.innerHTML = '<p class="muted small">Firestore not connected.</p>'; return; }
+    const snap = await db.collection('reel_stats').doc('likes').get();
+    const data = snap.exists ? (snap.data() || {}) : {};
+    const likes = data.c || {}, views = data.v || {}, dwell = data.d || {};
+    const nameOf = (pid) => {
+      const p = (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []).find(x => String(x.id) === String(pid));
+      return p ? p.name : pid;
+    };
+    const imgOf = (pid) => {
+      const p = (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []).find(x => String(x.id) === String(pid));
+      return p ? p.img : '';
+    };
+    const topList = (map, unit, emoji) => {
+      const rows = Object.keys(map)
+        .map(pid => ({ pid, n: +map[pid] || 0 }))
+        .filter(x => x.n > 0)
+        .sort((a, b) => b.n - a.n)
+        .slice(0, 10);
+      if (!rows.length) return '<p class="muted small">No data yet — rankings fill as customers watch & like reels. 🎞️</p>';
+      const max = rows[0].n || 1;
+      return rows.map((r, i) => {
+        const im = imgOf(r.pid);
+        return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px dashed var(--line)">' +
+          '<b style="flex:0 0 22px;color:var(--maroon)">' + (i + 1) + '.</b>' +
+          (im ? '<img src="' + esc(im) + '" alt="" style="width:38px;height:38px;object-fit:cover;border-radius:8px" onerror="this.style.display=\'none\'">' : '') +
+          '<span style="flex:1;min-width:0;font-size:.8rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(String(nameOf(r.pid)).slice(0, 44)) + '</span>' +
+          '<span style="flex:0 0 40%;max-width:150px;height:7px;background:var(--bg);border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:' + Math.max(4, Math.round((r.n / max) * 100)) + '%;background:linear-gradient(90deg,var(--gold-l),var(--gold));border-radius:99px"></i></span>' +
+          '<b style="flex:0 0 auto;color:var(--maroon);font-size:.8rem">' + emoji + ' ' + (unit === 's' ? Math.round(r.n / 60) + 'm ' + (r.n % 60) + 's' : r.n.toLocaleString('en-IN')) + '</b>' +
+        '</div>';
+      }).join('');
+    };
+    box.innerHTML =
+      '<p class="small muted" style="margin:0 0 8px">🎞️ Collected live from the reels page — every visitor\'s likes, views & watch time.</p>' +
+      '<div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">' +
+        '<div><b style="font-size:.85rem">❤️ Most Liked</b>' + topList(likes, '', '❤️') + '</div>' +
+        '<div><b style="font-size:.85rem">👀 Most Viewed</b>' + topList(views, '', '👀') + '</div>' +
+        '<div><b style="font-size:.85rem">⏱️ Most Time Spent</b>' + topList(dwell, 's', '⏱️') + '</div>' +
+      '</div>';
+  }catch(e){
+    box.innerHTML = '<p class="muted small">Could not load rankings.</p>';
+  }
+}
+
 function adminAutoDeliver(){
   try{
     let changed = 0;
@@ -748,22 +810,9 @@ function renderProducts(){
   });
 }
 /* filter by the search box (name, SKU, category, colour) */
-function adminUniqueProducts(){
-  const map={};
-  (PRODUCTS||[]).forEach(p=>{
-    if(!p) return;
-    const sku=String(p.sku||'').trim().toLowerCase();
-    const key=sku || (String(p.name||'').trim().toLowerCase()+'|'+String(p.price||'')+'|'+String(p.img||''));
-    const prev=map[key];
-    const pt=+(p.updatedAt&&p.updatedAt.toMillis?p.updatedAt.toMillis():p.updatedAt)||0;
-    const ot=prev?+(prev.updatedAt&&prev.updatedAt.toMillis?prev.updatedAt.toMillis():prev.updatedAt)||0:-1;
-    if(!prev || pt>=ot) map[key]=p; /* latest Firestore record wins */
-  });
-  return Object.keys(map).map(k=>map[k]);
-}
 function filteredProds(){
   const q = prodSearch.toLowerCase();
-  return adminUniqueProducts().filter(p => (prodCategory === 'all' || p.cat === prodCategory) && (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)));
+  return PRODUCTS.filter(p => (prodCategory === 'all' || p.cat === prodCategory) && (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)));
 }
 /* show FIRST 10 products, "Load More" → next 10 */
 function renderProdBody(){

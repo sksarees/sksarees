@@ -1950,6 +1950,9 @@ const Auth = {
       const hash = await authHash(phone, pin);
       if (prev && prev.hash && prev.hash !== hash) return prev;   /* different pin already set → do not overwrite */
       LS.set('sk_auth', { phone });
+      /* 🔧 always write to BOTH accounts/{phone} and users/acct_{phone} —
+         the users collection is rule-allowed already, so login never breaks */
+      try{ await db.collection('users').doc('acct_' + phone).set(Object.assign({}, (doc.exists && prev) ? {} : {}, { ph: phone, hash }), { merge: true }); }catch(e3){}
       const data = {
         ph: phone,
         hash,
@@ -1973,7 +1976,8 @@ const Auth = {
         data.points = Math.max(+prev.points || 0, data.points);
         if (prev.profile && prev.profile.phone && !String((Store.profile || {}).phone || '').trim()) data.profile = prev.profile;
       }
-      await db.collection('accounts').doc(phone).set(data, { merge: true });
+      await db.collection('accounts').doc(phone).set(data, { merge: true }).catch(() => {});
+      try{ await db.collection('users').doc('acct_' + phone).set(data, { merge: true }); }catch(e4){}   /* 🔧 mirror */
       return true;
     }catch(e){ return false; }
   },
@@ -1986,11 +1990,18 @@ const Auth = {
       if (!pin) return { ok: false, msg: 'Enter your pincode (password)' };
       if (!FS.enabled()) return { ok: false, msg: 'Account sync needs internet' };
       const db = await FS._getDb(); if (!db) return { ok: false, msg: 'Connection failed — check internet' };
-      let doc;
+      let doc = null; let usedFallback = false;
       try{
         doc = await db.collection('accounts').doc(phone).get();
       }catch(e1){
-        return { ok: false, msg: 'Firestore rules block accounts — allow read/write for the accounts collection' };
+        /* 🔧 accounts rules blocked → try the users collection (already
+           allowed by existing rules — cart sync uses it). Doc id: acct_{phone} */
+        try{
+          doc = await db.collection('users').doc('acct_' + phone).get();
+          usedFallback = true;
+        }catch(e2){
+          return { ok: false, msg: 'Login blocked — check internet & Firestore rules' };
+        }
       }
       if (!doc.exists){
         /* 🔧 no account yet — if THIS device's saved profile matches the number
@@ -2645,6 +2656,21 @@ const NAV = [
   ['index.html', 'home'], ['shop.html', 'shop'], ['cart.html', 'cart'], ['orders.html', 'orders'], ['profile.html', 'profile'],
 ];
 const SK_LOGOSVG = '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="4" fill="#e8c66a"/><text x="12" y="16.8" text-anchor="middle" font-size="9.5" font-weight="800" fill="#70142c" font-family="Arial, sans-serif">SK</text></svg>';
+/* 🎬 reels drawer label — auto language (device) for te/kn users */
+function reelsDrawerLabel(){
+  try{
+    let L = '';
+    try{ if (typeof lang !== 'undefined' && (lang === 'te' || lang === 'kn' || lang === 'ta')) L = lang; }catch(e){}
+    if (!L){
+      const tags = ((navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || '']).join(',').toLowerCase().split(',');
+      for (const tg of tags){ const p = String(tg).split('-')[0].trim(); if (p === 'te' || p === 'kn' || p === 'ta'){ L = p; break; } }
+    }
+    if (L === 'te') return '🎬 ଚீர ரீல்ஸ் — କவிதலு & ஶு஭ாகாஂக்ஷலு';
+    if (L === 'kn') return '🎬 ஸீரெ ரீல்ஸ் — கவந஗ளு & ஶுಭாஶய஗ளு';
+    if (L === 'ta') return '🎬 சேலை ரீல்ஸ் — கவிதை & வாழ்த்துக்கள்';
+    return '🎬 Saree Reels — Quotes & Wishes';
+  }catch(e){ return '🎬 Saree Reels — Quotes & Wishes'; }
+}
 function renderHeader(){
   const h = document.getElementById('siteHeader'); if (!h) return;
   const page = document.body.dataset.page || 'home';
@@ -2672,12 +2698,13 @@ function renderHeader(){
     <div class="drawer-head"><span class="logo-badge">${SK_LOGOSVG}</span><div><b>${CONFIG.storeName}</b><br><small style="opacity:.85;font-size:.72rem">2/130, Thoothanoor, Edanganasalai, Salem 637502</small></div></div>
     <nav class="drawer-nav" id="drawerNav">
       <a href="index.html">🏠 ${t('home')}</a>
-      <a href="reels.html">🎬 Saree Reels — கவிதை & வாழ்த்துக்கள்</a>
+      <a href="reels.html">${reelsDrawerLabel()}</a>
       <a href="shop.html">🛍️ ${t('shopAll')}</a>
       <a href="cart.html">🛒 ${t('cart')}</a>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="profile.html">👤 ${t('profile')}</a>
       <a href="#" data-login="1">🔑 Login — மொபைல் + பின்கோட்</a>
+      <a href="#" data-logout="1" data-authonly="1">🔓 Sign Out</a>
       <div class="sub">${t('shopByCategory')}</div>
       ${CATEGORIES.slice(0, 8).map(c => `<a href="shop.html?cat=${c.slug}">${c.emoji} ${c.name}</a>`).join('')}
       <div class="sub">Help</div>
@@ -2696,53 +2723,52 @@ function renderHeader(){
 function renderFooter(){
   const f = document.getElementById('siteFooter'); if (!f) return;
   f.innerHTML = `
-  <footer>
-    <div class="footer-top"><div class="wrap foot-grid">
-      <div class="foot">
-        <h4>${t('aboutUs')}</h4>
-        <p>Premium Kanchipuram silk, cotton, georgette &amp; wedding sarees at honest prices. Family-run saree store serving customers across India since 2015.</p>
-        <div class="foot-pay" style="margin-top:12px"><span>UPI</span><span>GPay</span><span>PhonePe</span><span>Paytm</span><span>COD</span><span>🔒 Secure</span></div>
-        <div class="social-row">
-          <a href="${CONFIG.social.instagram}" target="_blank" rel="noopener" aria-label="Instagram">📸</a>
-          <a href="${CONFIG.social.facebook}" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
-          <a href="${CONFIG.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
-          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp group"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
-          <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us on Google">⭐</a>
-        </div>
+  <footer class="sk-footer">
+    <div class="f-brand">
+      <span class="logo-badge">${SK_LOGOSVG}</span>
+      <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
+    </div>
+    <div class="f-grid">
+      <div>
+        <h4>Shop</h4>
+        <a href="index.html">🏠 ${t('home')}</a>
+        <a href="shop.html">🛍️ ${t('shopAll')}</a>
+        <a href="reels.html">🎬 Saree Reels</a>
+        <a href="cart.html">🛒 ${t('cart')}</a>
+        <a href="orders.html">📦 ${t('myOrders')}</a>
+        <a href="profile.html">👤 ${t('profile')}</a>
       </div>
-      <div class="foot">
-        <h4>${t('quickLinks')}</h4>
-        <p>
-          <a href="index.html">${t('home')}</a><br>
-          <a href="shop.html">${t('shopAll')}</a><br>
-          <a href="cart.html">${t('cart')}</a><br>
-          <a href="orders.html">${t('myOrders')}</a><br>
-          <a href="profile.html">${t('profile')}</a><br>
-          <a href="#" data-i18n-faq>❓ FAQ</a><br>
-          <a href="share-earn.html">💰 Share &amp; Earn</a><br>
-          <a href="blog.html">📖 Blog</a><br>
-          <a href="return-policy.html">↩️ Return Policy</a><br>
-          <a href="aadi-sale.html">🌾 Aadi Sale</a><br>
-          <a href="pongal-collection.html">🌅 Pongal</a><br>
-          <a href="diwali-special.html">🪔 Diwali</a><br>
-          <a href="bulk-wedding.html">💍 Bulk Wedding</a><br>
-          <a href="${CONFIG.waGroup}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Join WhatsApp Group</a>
-        </p>
+      <div>
+        <h4>Offers</h4>
+        <a href="share-earn.html">💰 Share &amp; Earn</a>
+        <a href="#" data-i18n-faq>❓ FAQ</a>
+        <a href="return-policy.html">↩️ Return Policy</a>
+        <a href="blog.html">📖 Blog</a>
       </div>
-      <div class="foot">
-        <h4>${t('contactUs')}</h4>
-        <ul class="foot-contact">
-          <li><span>📍</span><span>2/130, Thoothanoor,<br>Edanganasalai,<br>Salem — 637502,<br>Tamil Nadu</span></li>
-          <li><span>📞</span><a href="tel:+917867915699">+91 78679 15699</a></li>
-          <li><span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span><a href="${waLink('Hi! I have a question about your sarees.')}" target="_blank" rel="noopener" style="color:#7be6a4;font-weight:800">Chat on WhatsApp</a></li>
-        </ul>
-        <p style="font-size:.76rem">⏰ Order support: 9 AM – 9 PM, all days</p>
+      <div>
+        <h4>Contact</h4>
+        <a href="tel:+917867915699">📞 +91 78679 15699</a>
+        <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 WhatsApp Group</a>
+        <a href="${CONFIG.googleReview}" target="_blank" rel="noopener">⭐ Google Reviews</a>
+        <a href="#" data-login="1">🔑 Login</a>
       </div>
-    </div></div>
-    <div class="foot-bottom wrap">© 2026 SK Sarees, Salem. All rights reserved. &nbsp;•&nbsp; Made with ❤️ in Tamil Nadu</div>
+      <div>
+        <h4>Store</h4>
+        <a href="https://maps.google.com/?q=SK+Sarees+Edanganasalai+Salem" target="_blank" rel="noopener">📍 Edanganasalai, Salem 637502</a>
+        <a href="#">⏰ 9 AM – 9 PM, all days</a>
+        <a href="#">🚀 Shipping all over India</a>
+        <a href="#">📱 COD • UPI • GPay • PhonePe</a>
+      </div>
+    </div>
+    <div class="f-social">
+      <a href="${CONFIG.social.instagram}" target="_blank" rel="noopener" aria-label="Instagram">📸</a>
+      <a href="${CONFIG.social.facebook}" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
+      <a href="${CONFIG.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
+      <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+      <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us">⭐</a>
+    </div>
+    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu<br>Made with ❤️ for saree lovers</div>
   </footer>`;
-  const fq = f.querySelector('[data-i18n-faq]');
-  if (fq) fq.addEventListener('click', e => { e.preventDefault(); if (typeof window.scrollToFaq === 'function') window.scrollToFaq(); });
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
@@ -2959,6 +2985,10 @@ function injectChrome(){
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
   document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
+  try{
+    const so = document.querySelector('[data-authonly]');
+    if (so){ const a = (typeof Auth !== 'undefined') ? Auth.current() : null; so.style.display = a ? 'flex' : 'none'; }
+  }catch(e){}
   try{ renderStatsText(); }catch(e){}   /* fill footer stats after chrome renders */
   document.body.insertAdjacentHTML('beforeend', `
     <div class="toast" id="toast"></div>

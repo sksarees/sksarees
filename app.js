@@ -1035,7 +1035,12 @@ async function shareReel(p, quote){
   if (!p) return;
   /* 🔗 the share link opens THIS saree's reel (not the product page) —
      the friend lands straight on the same beautiful reel she saw */
-  const url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
+  /* 🔗 reel deep link + HER reseller ref — shares now EARN commission */
+  let url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
+  try{
+    const mine = myResellerCode();
+    if (mine) url += '&ref=' + encodeURIComponent(mine);
+  }catch(e0){}
   /* 🔁 count the share globally (Firestore) + update the rail count */
   try{
     bumpLocalShares(p.id);
@@ -1344,7 +1349,7 @@ function festivalDatesCompactHTML(){
       return '<details class="fest-month2"><summary>\U0001F5D3\uFE0F ' + esc(mo.m) + ' <small>' + mo.items.length + ' festivals</small></summary><div style="display:grid;gap:2px">' + rows + '</div></details>';
     }).join('');
     const nf = nextFestival2026();
-    return '<details class="fest-cal2"' + (nf && nf.days <= 30 ? ' open' : '') + '><summary>\U0001F4C5 2026 Auspicious Days — ' + FESTIVAL_DATES_2026.reduce((s, m) => s + m.items.length, 0) + ' festival dates \u25BE</summary>' + details + '</details>';
+    return details;   /* 🧹 outer summary removed */
   }catch(e){ return ''; }
 }
 /* ============================ HOME ============================ */
@@ -3203,7 +3208,8 @@ function drawCo(){
     '<div class="step-dot ' + (co.step > 1 ? 'done' : 'on') + '"><span class="dot">' + (co.step > 1 ? '✓' : '1') + '</span><span class="lbl">Details</span></div>' +
     '<div class="step-line ' + (co.step > 1 ? 'on' : '') + '"></div>' +
     '<div class="step-dot ' + (co.step === 2 ? 'on' : '') + '"><span class="dot">2</span><span class="lbl">Payment</span></div></div>';
-  const itemLines = coItems().map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
+  /* 🖼️ fresh item lines with product thumbnails */
+  const itemLines = coItems().map(i => { const p = byId(i.id); return p ? '<div class="rvw-item"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span>' + esc(p.name) + (i.colour ? ' <small class="muted">(' + esc(i.colour) + ')</small>' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
   if (co.step === 1){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card"><h3>📋 Your Details <span class="muted small" style="font-weight:500">(no login needed)</span></h3>' +
@@ -3223,7 +3229,7 @@ function drawCo(){
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
       (d.payment === 'cod'
         ? '<button type="button" class="btn btn-wa btn-xl" data-confirm-wa><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Confirm Order on WhatsApp</button>'
-        : '<button type="button" class="btn btn-maroon btn-xl" data-cont>Continue to Payment →</button>') +
+        : '<button type="button" class="btn btn-pay btn-xl" data-cont>⚡ Continue to Payment →</button>') +
     '</div>';
   } else {
     const upiPay = d.payment === 'upi';
@@ -3232,15 +3238,18 @@ function drawCo(){
     const note = 'Order ' + co.pendingId + ' SK Sarees';
     const booking = CONFIG.codFee;                      /* COD: ₹70 booking paid now */
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
-      '<div class="form-card"><h3>🧾 Review Your Order</h3>' + itemLines +
-        (t.discount > 0 ? '<div class="row"><span>Coupon discount (' + esc(co.data.coupon) + ')</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
+      '<div class="form-card rvw-card"><h3>🧾 Review Your Order</h3>' + itemLines +
+        (t.discount > 0 ? '<div class="row"><span>🎫 Coupon discount (' + esc(co.data.coupon) + ')</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
         (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(t.bundle) + '</b></div>' : '') +
         (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount||1) + '% off</span><b style="color:var(--green)">−' + money(t.online) + '</b></div>' : '') +
-        '<div class="row"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-        (upiPay ? '' : '<div class="row"><span>COD booking (pay now)</span><b>+' + money(booking) + '</b></div>') +
-        '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
-        '<div class="delivery-card" style="margin-top:10px"><b>⏱ Fast Delivery</b>' + t.eta + '.</div>' +
-        '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:10px;background:var(--bg)"><b>' + esc(d.name) + '</b> • ' + esc(d.phone) + '<br>' + esc(d.address) + ' — ' + esc(d.pincode) + '</p>' +
+        '<div class="row"><span>🚚 Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+        '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
+        '<div class="rvw-meta">' +
+          '<span>👤 ' + esc(d.name) + ' • ' + esc(d.phone) + '</span>' +
+          '<span>📍 ' + esc(d.address) + ' — ' + esc(d.pincode) + '</span>' +
+          '<span>⏱ ' + t.eta + '</span>' +
+          '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 Cash on Delivery (+₹' + CONFIG.codFee + ' booking paid)') + '</span>' +
+        '</div>' +
       '</div>' +
       (upiPay
         ? '<div class="form-card"><h3>📲 Pay by UPI</h3>' +

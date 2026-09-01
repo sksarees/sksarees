@@ -3000,3 +3000,99 @@ h1{ letter-spacing:-.4px }
   .weaver-card{ padding:14px }
   .weaver-img img{ border-radius:14px }
 }
+
+/* ============================================================================
+   🎨 MEGA FIXES — btn-pay, fresh Order Summary, mobile home polish,
+   footer redesign, admin modal mobile
+   ========================================================================== */
+/* ⚡ Continue to Payment — bright, irresistible */
+.btn-pay{
+  background:linear-gradient(135deg,#ffce4f 0%,#ffb52e 40%,#ff8a1f 100%);
+  color:#4a2c05; font-weight:900; letter-spacing:.4px;
+  border:0; border-radius:14px;
+  box-shadow:0 8px 24px rgba(255,150,20,.5), 0 2px 6px rgba(0,0,0,.14);
+  transition:filter .18s ease, transform .15s ease;
+  animation:payPulse 1.9s ease-in-out infinite;
+}
+.btn-pay:hover{ filter:brightness(1.07) }
+.btn-pay:active{ transform:scale(.97) }
+@keyframes payPulse{
+  0%,100%{ box-shadow:0 8px 24px rgba(255,150,20,.5), 0 2px 6px rgba(0,0,0,.14) }
+  50%{ box-shadow:0 11px 34px rgba(255,150,20,.78), 0 3px 8px rgba(0,0,0,.18) }
+}
+
+/* 🧾 FRESH Order Summary (checkout review) */
+.rvw-card{ border-radius:18px; box-shadow:0 4px 16px rgba(61,10,27,.06) }
+.rvw-item{
+  display:flex; align-items:center; gap:10px;
+  padding:9px 0; border-bottom:1px dashed var(--line);
+  font-size:.88rem;
+}
+.rvw-item img{ width:46px; height:46px; object-fit:cover; border-radius:9px; border:1.5px solid var(--gold-l); flex:0 0 auto }
+.rvw-item span{ flex:1; min-width:0; font-weight:700; line-height:1.35 }
+.rvw-item b{ flex:0 0 auto }
+.rvw-total{
+  display:flex; justify-content:space-between; align-items:center;
+  margin:12px -16px -16px; padding:14px 16px;
+  background:linear-gradient(120deg,#70142c,#8f1d3a);
+  border-radius:0 0 16px 16px; color:#fff; font-weight:900;
+}
+.rvw-total b{ font-size:1.25rem; color:#ffd98a; letter-spacing:.3px }
+.rvw-meta{
+  display:grid; gap:4px; margin-top:10px; padding:10px 12px;
+  background:var(--gold-soft); border:1.5px dashed var(--gold-l);
+  border-radius:11px; font-size:.76rem; font-weight:700; color:#4a3f38;
+}
+
+/* 🏠 index mobile — final polish */
+@media(max-width:640px){
+  .hero-in{ text-align:center }
+  .hero-chip{ display:inline-flex }
+  .hero-trust span{ font-size:.66rem; padding:5px 10px }
+  .cat-tile{ min-height:120px }
+  .ct-name{ font-size:.82rem !important }
+  .ct-count{ font-size:.6rem !important; -webkit-line-clamp:1; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden }
+  .reseller-banner{ flex-direction:column; text-align:center; align-items:center }
+  .rb-btns{ width:100% }
+  .rb-btns .btn{ flex:1 1 100% }
+  .quiz-banner{ flex-direction:row; padding:12px }
+  .qb-txt b{ font-size:.9rem }
+  .ig-wrap{ padding-bottom:6px }
+  .deal-day .dd-badge{ font-size:.6rem; padding:4px 9px }
+  .dd-ends{ display:none }
+  .rvw-item img{ width:40px; height:40px }
+  .rvw-total b{ font-size:1.1rem }
+  .rvw-meta{ font-size:.72rem }
+  .fest-month2{ padding:9px 10px }
+  .fest-row .fr-name{ font-size:.72rem }
+  .fest-row .fr-name small{ display:none }
+  .fest-row .fr-go{ display:none }
+}
+
+/* 🦶 FOOTER — full redesign, mobile-first */
+#siteFooter{ background:linear-gradient(180deg,#3d0a1b,#2a060f); color:#f3d9df; margin-top:34px }
+.sk-footer{ max-width:1160px; margin:0 auto; padding:26px 14px 18px }
+.sk-footer .f-brand{ display:flex; align-items:center; gap:11px; margin-bottom:14px }
+.sk-footer .f-brand b{ font-family:var(--font-display); font-size:1.15rem; color:#ffe9b0 }
+.sk-footer .f-brand small{ display:block; color:#d9aeb7; font-size:.68rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase }
+.sk-footer .f-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 14px; padding:14px 0; border-top:1px solid rgba(255,233,176,.14); border-bottom:1px solid rgba(255,233,176,.14) }
+.sk-footer .f-grid h4{ font-size:.72rem; color:#ffd98a; letter-spacing:1.4px; text-transform:uppercase; margin-bottom:8px }
+.sk-footer .f-grid a{ display:block; color:#f3d9df; font-size:.82rem; font-weight:700; padding:4px 0 }
+.sk-footer .f-grid a:active{ color:#ffe9b0 }
+.sk-footer .f-social{ display:flex; gap:9px; justify-content:center; padding:14px 0 6px }
+.sk-footer .f-social a{ width:42px; height:42px; border-radius:12px; background:rgba(255,255,255,.09); border:1px solid rgba(255,233,176,.22); display:flex; align-items:center; justify-content:center; font-size:1.15rem; text-decoration:none }
+.sk-footer .f-bottom{ text-align:center; color:#c99aa8; font-size:.68rem; font-weight:700; padding-top:10px; line-height:1.8 }
+@media(min-width:700px){
+  .sk-footer .f-grid{ grid-template-columns:2fr 1fr 1fr 1fr }
+  .sk-footer{ padding:38px 20px 22px }
+}
+/* 🛠 admin modal — mobile friendly (no iOS zoom, single column) */
+@media(max-width:640px){
+  .m-card input, .m-card select, .m-card textarea{ font-size:16px !important }
+  .m-card .field > div[style*="grid-template-columns:1fr 1fr"]{ grid-template-columns:1fr !important }
+  .m-card h2{ font-size:1rem !important }
+}
+
+/* 📅 festival months list (outer summary removed) */
+.fest-cal2{ padding:0; border:0; background:transparent; margin-top:12px }
+.fest-month2:first-child{ margin-top:0 }
