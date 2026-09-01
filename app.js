@@ -3381,7 +3381,7 @@ function drawCo(){
       '<div class="form-card"><h3>📋 Your Details <span class="muted small" style="font-weight:500">(no login needed)</span></h3>' +
         '<div class="field"><label>Full Name <span class="req">*</span></label><input id="coName" value="' + esc(d.name) + '" placeholder="e.g. Lakshmi S"></div>' +
         '<div class="field"><label>WhatsApp / Mobile <span class="req">*</span></label><input id="coPhone" value="' + esc(d.phone) + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
-        (window.__savedCust && d.phone ? '<p class="small" style="color:var(--green);font-weight:700;margin-top:-2px">✅ Saved customer — number auto-filled (' + esc(d.phone.slice(0,4) + '••••' + d.phone.slice(-2)) + '). Change if needed.</p>' : '') +
+        
         '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area, city…">' + esc(d.address) + '</textarea></div>' +
         '<div class="field"><label>PIN Code <span class="req">*</span></label><input id="coPin" value="' + esc(d.pincode) + '" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"></div>' +
         '<div class="field"><label>🎟️ Coupon Code (optional)</label><input id="coCoupon" value="' + esc(d.coupon || '') + '" placeholder="e.g. AADI10" style="text-transform:uppercase"></div>' +
@@ -3405,17 +3405,19 @@ function drawCo(){
     const booking = CONFIG.codFee;                      /* COD: ₹70 booking paid now */
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card rvw-card"><h3>🧾 Review Your Order</h3>' + itemLines +
-        (t.discount > 0 ? '<div class="row"><span>🎫 Coupon discount (' + esc(co.data.coupon) + ')</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
-        (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(t.bundle) + '</b></div>' : '') +
-        (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount||1) + '% off</span><b style="color:var(--green)">−' + money(t.online) + '</b></div>' : '') +
-        '<div class="row"><span>🚚 Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-        '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
+        '<div class="row"><span>🧺 Items total</span><b>' + money(t.itemsTotal) + '</b></div>' +
+        (t.discount > 0 ? '<div class="row"><span>🎫 Coupon discount (' + esc(co.data.coupon) + ')</span><b class="rvw-save">−' + money(t.discount) + '</b></div>' : '') +
+        (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b class="rvw-save">−' + money(t.bundle) + '</b></div>' : '') +
+        (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount||1) + '% off</span><b class="rvw-save">−' + money(t.online) + '</b></div>' : '') +
+        '<div class="row"><span>🚚 Shipping</span><b class="' + (t.shipping ? '' : 'rvw-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+        (t.codFee ? '<div class="row"><span>💵 COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
         '<div class="rvw-meta">' +
           '<span>👤 ' + esc(d.name) + ' • ' + esc(d.phone) + '</span>' +
           '<span>📍 ' + esc(d.address) + ' — ' + esc(d.pincode) + '</span>' +
           '<span>⏱ ' + t.eta + '</span>' +
           '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 Cash on Delivery (+₹' + CONFIG.codFee + ' booking paid)') + '</span>' +
         '</div>' +
+        '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
       '</div>' +
       (upiPay
         ? '<div class="form-card"><h3>📲 Pay by UPI</h3>' +
@@ -3519,8 +3521,36 @@ function pendingPaymentHTML(o){
   const amount = ((o.totals||{}).grand||0), note = 'Order ' + o.id + ' SK Sarees';
   return '<div class="form-card" style="margin-top:12px;border:1.5px dashed var(--gold)"><h3>📲 Complete UPI Payment</h3><p class="small muted">Payment is not marked yet. Scan QR or open your UPI app, then tap I&apos;ve Paid.</p><div class="qr-box"><div class="pendingQR" data-pendingqr="' + esc(o.id) + '"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div><a class="btn btn-gold" href="' + upiLink(amount,note) + '">📲 Pay ' + money(amount) + ' — Open UPI App</a><button type="button" class="btn btn-maroon" style="margin-top:8px" data-confirm-pending="' + esc(o.id) + '">✅ I&apos;ve Paid — Waiting for Confirmation</button></div>';
 }
+/* 🔌 QR library lazy-loader — orders/profile pages don't include qrcode.min.js
+   in their HTML, so load it on demand (same-origin file at the site root).
+   Works on ANY page without editing the HTML files. */
+function ensureQrLib(){
+  return new Promise(res => {
+    try{
+      if (typeof qrcode !== 'undefined' || window.qrcode) return res(true);
+      if (window.__qrLoading) return setTimeout(() => ensureQrLib().then(res), 180);
+      window.__qrLoading = 1;
+      const s = document.createElement('script');
+      s.src = 'qrcode.min.js';
+      s.onload = () => { window.__qrLoading = 0; res(!!(typeof qrcode !== 'undefined' || window.qrcode)); };
+      s.onerror = () => { window.__qrLoading = 0; res(false); };
+      document.head.appendChild(s);
+    }catch(e){ res(false); }
+  });
+}
 function drawPendingQrs(){
-  try{ const lib = typeof qrcode !== 'undefined' ? qrcode : window.qrcode; if (!lib) return; document.querySelectorAll('[data-pendingqr]').forEach(box => { const o=Store.orders.find(x=>x.id===box.dataset.pendingqr); if (!o) return; const q=lib(0,'M'); q.addData(upiLink((o.totals||{}).grand||0,'Order '+o.id+' SK Sarees')); q.make(); box.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true}); }); }catch(e){}
+  try{
+    const lib = typeof qrcode !== 'undefined' ? qrcode : window.qrcode;
+    if (!lib){ ensureQrLib().then(ok => { if (ok) drawPendingQrs(); }); return; }
+    document.querySelectorAll('[data-pendingqr]').forEach(box => {
+      const o = Store.orders.find(x => x.id === box.dataset.pendingqr);
+      if (!o) return;
+      const q = lib(0, 'M');
+      q.addData(upiLink((o.totals || {}).grand || 0, 'Order ' + o.id + ' SK Sarees'));
+      q.make();
+      box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    });
+  }catch(e){}
 }
 function doPlaceOrder(payment){
   try{
@@ -3881,15 +3911,26 @@ function statusTrack(o){
 }
 function orderCard(o){
   const st = o.status || 'placed';
+  /* 💳 UPI payment waiting? (customer tapped Continue to Payment but hasn't
+     marked "I've Paid") → the QR + Pay block shows INSIDE this card, so she
+     can finish paying right from the Orders tab. */
+  const payWaiting = (o.payment === 'upi' && !o.paidConfirmed);
+  const pill = payWaiting
+    ? '<span class="status-pill status-paywait">💳 Payment Waiting</span>'
+    : (o.payment === 'upi' && o.paidConfirmed && st === 'pending'
+        ? '<span class="status-pill status-pending">⏳ Waiting Confirmation</span>'
+        : '<span class="status-pill status-' + st + '">' + esc(st.replace('_', ' ')) + '</span>');
   return '<div class="order-card">' +
-    '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace('_', ' ')) + '</span></div>' +
+    '<div class="oc-top"><b>#' + o.id + '</b>' + pill + '</div>' +
     '<div class="oc-items">' + fmtDT(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 12–24h') + '</div>' +
     statusTrack(o) +
     '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
     '<button type="button" class="btn btn-outline btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button>' +
-    ((o.payment === 'upi' && !o.paidConfirmed) ? '<button type="button" class="btn btn-gold btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">📲 Pay / QR</button>' : '') +
+    (payWaiting ? '<button type="button" class="btn btn-pay btn-sm" style="flex:1;min-width:130px" data-contpay="' + esc(o.id) + '">💳 Continue Payment</button>' : '') +
     '<button type="button" class="btn btn-maroon btn-sm" style="flex:1;min-width:130px" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
-    '</div></div>';
+    '</div>' +
+    (payWaiting ? '<div class="oc-paywrap">' + pendingPaymentHTML(o) + '</div>' : '') +
+    '</div>';
 }
 /* Full order detail — rendered inline, opens/closes instantly, no page reload */
 function showDetail(o){
@@ -3943,6 +3984,7 @@ function renderOrderList(){
   }
   const visible = list.slice(0, ordersPage * ORDERS_PAGE_SIZE);
   wrap.innerHTML = visible.map(orderCard).join('');
+  try{ drawPendingQrs(); }catch(e){}   /* 💳 QR codes for payment-waiting orders */
   const mo = document.getElementById('moreOrders');
   if (mo){
     const hasMore = ordersPage * ORDERS_PAGE_SIZE < list.length;
@@ -4203,20 +4245,17 @@ function openLoginModal(){
         '<button type="button" class="lg-tab" id="lgTabUp">🆕 ' + loc('புது கணக்கு', 'కొత్త ఖాతా', 'ಹೊಸ ಖಾತೆ', 'Sign Up') + '</button>' +
       '</div>' +
       '<div id="lgIn">' +
-        '<p class="np-sub">' + loc('எண் = username • பின்கோட் = password', 'మొబైల్ = username • పిన్‌కోడ్ = password', 'ಮೊಬೈಲ್ = username • ಪಿನ್‌ಕೋಡ್ = password', 'Mobile number = username • Area pincode = password') + '</p>' +
         '<input id="lgPhone" class="np-input" value="' + esc(pr.phone || '') + '" placeholder="' + loc('மொபைல் எண் (username)', 'మొబైల్ నంబర్', 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', 'Mobile number (username)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
         '<input id="lgPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'పిన్‌కోడ్ (password)', 'ಪಿನ್‌ಕೋಡ್ (password)', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
         '<button type="button" class="btn btn-maroon btn-xl np-save" id="lgGo">🔓 ' + loc('உள்ளேறு', 'లాగిన్', 'ಲಾಗಿನ್', 'Login') + '</button>' +
       '</div>' +
       '<div id="lgUp" style="display:none">' +
-        '<p class="np-sub">' + loc('பெயர் + எண் + பின்கோடு மட்டும் — உடனே கணக்கு! ஆர்டர், விஷ்லிஸ்ட், பாயிண்ட் எல்லாம் எல்லா போன்லயும் ஒண்ணா இருக்கும் ☁️', 'పేరు + నంబర్ + పిన్‌కోడ్ — వెంటనే ఖాతా! ఆర్డర్లు, విష్‌లిస్ట్, పాయింట్లు అన్ని ఫోన్‌లలో ఒకటే ఉంటాయి ☁️', 'ಹೆಸರು + ಸಂಖ್ಯೆ + ಪಿನ್‌ಕೋಡ್ — ತಕ್ಷಣ ಖಾತೆ! ಆರ್ಡರ್, ವಿಷ್‌ಲಿಸ್ಟ್, ಪಾಯಿಂಟ್ ಎಲ್ಲಾ ಫೋನ್‌ನಲ್ಲಿ ಒಂದೇ ಇರುತ್ತದೆ ☁️', 'Name + number + pincode — instant account! Orders, wishlist & points stay the same on every phone ☁️') + '</p>' +
         '<input id="suName" class="np-input" value="' + esc(pr.name || '') + '" placeholder="' + loc('உங்க பெயர்', 'మీ పేరు', 'ನಿಮ್ಮ ಹೆಸರು', 'Your name') + '" autocomplete="off">' +
         '<input id="suPhone" class="np-input" value="' + esc(pr.phone || '') + '" placeholder="' + loc('மொபைல் எண்', 'మొబైల్ నంబర్', 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', 'Mobile number') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
         '<input id="suPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'పిన్‌కోడ్ (password)', 'ಪಿನ್‌ಕೋಡ್ (password)', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
         '<button type="button" class="btn btn-gold btn-xl np-save" id="suGo">🚀 ' + loc('கணக்கு உருவாக்கு', 'ఖాతా సృష్టించు', 'ಖಾತೆ ಸೃಷ್ಟಿಸಿ', 'Create Account') + '</button>' +
       '</div>' +
-      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
-      '<p class="np-note">☁️ ' + loc('கணக்கு Firestore-ல் பாதுகாப்பாக சேமிக்கப்படும் — எந்த போன்ல லாகின் பண்ணாலும் உங்க டேட்டா அதே!', 'ఖాతా Firestoreలో సురక్షితంగా నిల్వ ఉంటుంది — ఏ ఫోన్‌లో లాగిన్ చేసినా మీ డేటా అదే!', 'ಖಾತೆ Firestoreನಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿ ಉಳಿಯುತ್ತದೆ — ಯಾವ ಫೋನ್‌ನಲ್ಲಿ ಲಾಗಿನ್ ಮಾಡಿದರೂ ನಿಮ್ಮ ಡೇಟಾ ಅದೇ!', 'Your account is stored safely in Firestore — same data whichever phone you log in from!') + '</p>' +
+      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'తర్వాత', 'ನಂತర', 'Later') + '</button>' +
     '</div>');
   /* 🔑 tab switching */
   const tabIn = document.getElementById('lgTabIn'), tabUp = document.getElementById('lgTabUp');
@@ -4382,7 +4421,36 @@ document.addEventListener('click', function(e){
   const copy = e.target.closest('[data-copy]');
   if (copy){ e.preventDefault(); copyText(copy.dataset.copy); return; }
   const pending = e.target.closest('[data-confirm-pending]');
-  if (pending){ e.preventDefault(); const o = Store.orders.find(x => x.id === pending.dataset.confirmPending); if (!o) return; o.paidConfirmed=true; o.paymentMarkedAt=new Date().toISOString(); Store.saveOrders(); if (FS.enabled()) FS.saveOrder(o).catch(()=>{}); showDetail(o); toast('✅ Payment confirmation sent to SK Sarees'); return; }
+  if (pending){
+    e.preventDefault();
+    const o = Store.orders.find(x => x.id === pending.dataset.confirmPending);
+    if (!o) return;
+    o.paidConfirmed = true;
+    o.paymentMarkedAt = new Date().toISOString();
+    Store.saveOrders();
+    if (FS.enabled()) FS.saveOrder(o).catch(() => {});
+    /* 💳 refresh the list (payment block disappears) + any open detail */
+    try{ renderOrderList(); }catch(e2){}
+    try{ drawPendingQrs(); }catch(e3){}
+    showDetail(o);
+    toast('✅ Payment confirmation sent to SK Sarees');
+    return;
+  }
+  /* 💳 Continue Payment (orders tab) — scroll to the QR block & flash it */
+  const cpay = e.target.closest('[data-contpay]');
+  if (cpay){
+    e.preventDefault();
+    try{
+      const card = cpay.closest('.order-card');
+      const box = card && card.querySelector('.oc-paywrap');
+      if (box){
+        box.classList.add('oc-payflash');
+        setTimeout(() => box.classList.remove('oc-payflash'), 2200);
+        try{ box.scrollIntoView({ behavior: 'smooth', block: 'center' }); }catch(e4){ box.scrollIntoView(); }
+      }
+    }catch(e5){}
+    return;
+  }
   /* 🎨 try-on preview */
   const tr = e.target.closest('#tryOpen');
   if (tr){ e.preventDefault(); openTryOn(byId(currentProductId())); return; }

@@ -3118,3 +3118,66 @@ h1{ letter-spacing:-.4px }
   .ern-card .ern-stats > div{ flex:1 1 44% }
   .ern-card .ern-code span{ font-size:1.28rem }
 }
+
+/* ============================================================================
+   🎨 SECTION HEADERS — stacked (title on top, link below)
+   ========================================================================== */
+.sec-head{
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+}
+
+/* ============================================================================
+   🧾 REVIEW YOUR ORDER — clean gaps + good font colors
+   ========================================================================== */
+.rvw-card h3{
+  margin-bottom:4px; padding-bottom:10px;
+  border-bottom:2px solid var(--line);
+}
+.rvw-item{
+  padding:11px 0; font-size:.9rem;
+}
+.rvw-item b{ font-weight:900; font-variant-numeric:tabular-nums }
+.rvw-card .row{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:12px; padding:9px 2px; font-size:.88rem;
+  border-bottom:1px dashed var(--line);
+}
+.rvw-card .row span{ color:var(--muted); font-weight:700 }
+.rvw-card .row b{ font-weight:900; color:#2b2320; font-variant-numeric:tabular-nums; text-align:right }
+.rvw-card .row b.rvw-save{ color:var(--green) }           /* discounts & FREE shipping */
+.rvw-meta{ margin-top:12px }
+.rvw-total{
+  margin:14px -16px -16px; padding:15px 18px;
+  border-radius:0 0 16px 16px;
+}
+
+/* ============================================================================
+   💳 PAYMENT WAITING — orders tab (QR block inside the order card) + admin badge
+   ========================================================================== */
+.status-pill.status-paywait{
+  background:linear-gradient(135deg,#fff0f3,#ffe3ea); color:#c2255c;
+  border:1px solid #ffc2d1;
+  animation:paywaitPulse 2.4s ease-in-out infinite;
+}
+@keyframes paywaitPulse{
+  0%, 100%{ box-shadow:0 0 0 0 rgba(194,37,92,.0) }
+  50%{ box-shadow:0 0 0 4px rgba(194,37,92,.12) }
+}
+.oc-paywrap{ margin-top:12px }
+.oc-paywrap .form-card{
+  margin-top:0; border:1.5px dashed #f2b13d; border-radius:14px;
+  background:linear-gradient(180deg,#fffdf5,#fff);
+}
+.oc-paywrap .form-card h3{ font-size:.95rem; margin-bottom:6px }
+.oc-payflash .form-card{
+  animation:ocPayFlash 1s ease 2;
+}
+@keyframes ocPayFlash{
+  0%, 100%{ box-shadow:0 0 0 0 rgba(242,177,61,0) }
+  50%{ box-shadow:0 0 0 6px rgba(242,177,61,.35) }
+}
+/* 📲 login modal — the panes sit closer now that the sub-lines are gone */
+.lg-tabs{ margin-top:4px }
+.np-card .np-input:first-of-type{ margin-top:6px }

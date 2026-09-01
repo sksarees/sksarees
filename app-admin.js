@@ -531,7 +531,15 @@ function orderCard(o){
     '</div>';
   }).join('');
   return '<div class="order-card">' +
-    '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace(/_/g, ' ')) + '</span></div>' +
+    '<div class="oc-top"><b>#' + o.id + '</b><span class="status-pill status-' + st + '">' + esc(st.replace(/_/g, ' ')) + '</span>' +
+      /* UPI payment state - shows the admin which online orders still need
+         payment verification (customer marked paid vs not paid yet) */
+      ((o.payment || '') === 'upi'
+        ? (o.paidConfirmed
+            ? ' <span class="status-pill status-delivered">✅ Marked Paid</span>'
+            : ' <span class="status-pill status-paywait">💳 Payment Not Done</span>')
+        : '') +
+    '</div>' +
     '<div class="oc-items">' + fmtDT(o.date || o.createdAt) + '<br>' +
       '👤 <b style="color:#000">' + esc(c.name || '') + '</b><br>' +
       '📞 ' + esc(c.phone || '') + '<br>' +
