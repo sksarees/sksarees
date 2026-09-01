@@ -1920,12 +1920,14 @@ function skinToneRecommendHTML(p){
   }catch(e){ return ''; }
 }
 
-/* ============================ 🔑 AUTH — mobile = username, pincode = password ============================
-   Auto-account: the first order/profile save creates the account silently
-   (username = mobile number, password = pincode). Logging in on ANY device
-   with the same mobile + pincode pulls & merges HER data (profile, cart,
-   wishlist, orders, points) — one account everywhere. Pincode is stored as a
-   SHA-256 hash (never plain text). Firestore: accounts/{phone} doc. */
+/* ============================ 🔑 AUTH — REAL FIRESTORE LOGIN ============================
+   mobile = username • pincode = password (SHA-256 hashed, never plain text)
+   Account doc lives in Firestore so it works on EVERY device:
+     • primary : users/acct_{phone}    (rules already allow users — cart sync uses it)
+     • mirror  : accounts/{phone}      (best-effort second copy)
+     • local   : sk_acct_{phone} cache (login still works offline / rules blocked)
+   Account is created silently on first order / profile save, and new users
+   can SIGN UP directly from the login modal (name + mobile + pincode). */
 async function authHash(phone, pin){
   try{
     const enc = new TextEncoder();
@@ -1933,9 +1935,32 @@ async function authHash(phone, pin){
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }catch(e){ return String(pin); }
 }
+/* 💾 local account cache — login works even if Firestore reads are blocked */
+function authLocalGet(phone){
+  try{ const a = JSON.parse(localStorage.getItem('sk_acct_' + phone)); return (a && a.ph === phone) ? a : null; }catch(e){ return null; }
+}
+function authLocalSet(phone, data){
+  try{ localStorage.setItem('sk_acct_' + phone, JSON.stringify(data)); }catch(e){}
+}
 const Auth = {
   current(){
     try{ const a = LS.get('sk_auth', null); return (a && a.phone) ? a : null; }catch(e){ return null; }
+  },
+  /* 📖 read the account — users mirror first (rules allow it), then accounts */
+  async _read(db, phone){
+    let doc = null;
+    try{ doc = await db.collection('users').doc('acct_' + phone).get(); }catch(e1){}
+    if (!doc || !doc.exists){
+      try{ doc = await db.collection('accounts').doc(phone).get(); }catch(e2){}
+    }
+    return (doc && doc.exists) ? (doc.data() || {}) : null;
+  },
+  /* 📝 write the account — users mirror first, accounts second (both merge) */
+  async _write(db, phone, data){
+    let ok = false;
+    try{ await db.collection('users').doc('acct_' + phone).set(data, { merge: true }); ok = true; }catch(e1){}
+    try{ await db.collection('accounts').doc(phone).set(data, { merge: true }); ok = true; }catch(e2){}
+    return ok;
   },
   /* 🔧 create or refresh the account after order / profile save (silent) */
   async autoCreate(phone, pin){
@@ -1943,16 +1968,20 @@ const Auth = {
       phone = String(phone || '').replace(/\D/g, '');
       pin = String(pin || '').trim();
       if (phone.length !== 10 || !/^[6-9]/.test(phone) || pin.length < 5) return false;   /* pincode = 6 digits */
-      if (!FS.enabled()) return false;
-      const db = await FS._getDb(); if (!db) return false;
-      const doc = await db.collection('accounts').doc(phone).get();
-      const prev = (doc.exists && doc.data()) || null;
       const hash = await authHash(phone, pin);
-      if (prev && prev.hash && prev.hash !== hash) return prev;   /* different pin already set → do not overwrite */
+      /* 💾 ALWAYS save the local cache first — login works on this device
+         even if Firestore rules block reads or she is offline */
+      authLocalSet(phone, { ph: phone, hash: hash, name: ((Store.profile || {}).name) || '', savedAt: Date.now() });
       LS.set('sk_auth', { phone });
-      /* 🔧 always write to BOTH accounts/{phone} and users/acct_{phone} —
-         the users collection is rule-allowed already, so login never breaks */
-      try{ await db.collection('users').doc('acct_' + phone).set(Object.assign({}, (doc.exists && prev) ? {} : {}, { ph: phone, hash }), { merge: true }); }catch(e3){}
+      if (!FS.enabled()) return true;                       /* local-only account for now */
+      const db = await FS._getDb(); if (!db) return true;   /* local account saved anyway */
+      const prev = await Auth._read(db, phone);
+      if (prev && prev.hash && prev.hash !== hash){
+        /* a different pin is already set in the cloud → keep the CLOUD pin
+           (and fix our local cache) so login stays consistent everywhere */
+        authLocalSet(phone, { ph: phone, hash: prev.hash, name: prev.name || ((Store.profile || {}).name) || '', savedAt: Date.now() });
+        return prev;
+      }
       const data = {
         ph: phone,
         hash,
@@ -1960,7 +1989,7 @@ const Auth = {
         cart: (Store.cart || []).map(i => ({ id: i.id, qty: i.qty || 1, colour: i.colour || '' })),
         wish: Store.wish || [],
         orders: (Store.orders || []).slice(0, 60),
-        points: pointsBalance(),
+        points: (typeof pointsBalance === 'function') ? pointsBalance() : 0,
         updatedAt: Date.now(),
       };
       /* merge: never erase remote orders/points */
@@ -1976,10 +2005,51 @@ const Auth = {
         data.points = Math.max(+prev.points || 0, data.points);
         if (prev.profile && prev.profile.phone && !String((Store.profile || {}).phone || '').trim()) data.profile = prev.profile;
       }
-      await db.collection('accounts').doc(phone).set(data, { merge: true }).catch(() => {});
-      try{ await db.collection('users').doc('acct_' + phone).set(data, { merge: true }); }catch(e4){}   /* 🔧 mirror */
+      await Auth._write(db, phone, data);
       return true;
     }catch(e){ return false; }
+  },
+  /* 🆕 SIGN UP — name + mobile + pincode → real Firestore account (2 minutes) */
+  async signup(name, phone, pin){
+    try{
+      name = String(name || '').trim();
+      phone = String(phone || '').replace(/\D/g, '');
+      pin = String(pin || '').trim();
+      if (!name) return { ok: false, msg: 'Enter your name' };
+      if (phone.length !== 10 || !/^[6-9]/.test(phone)) return { ok: false, msg: 'Enter a valid 10-digit mobile number' };
+      if (pin.length < 5) return { ok: false, msg: 'Enter your area pincode (6 digits)' };
+      const hash = await authHash(phone, pin);
+      /* remember her name + number on this device (prefills checkout too) */
+      try{
+        const pr = Store.profile || {};
+        Store.profile = Object.assign({}, pr, { name: pr.name || name, phone: pr.phone || phone });
+        Store.saveProfile();
+      }catch(e0){}
+      authLocalSet(phone, { ph: phone, hash: hash, name: name, savedAt: Date.now() });
+      LS.set('sk_auth', { phone });
+      let cloud = false;
+      if (FS.enabled()){
+        try{
+          const db = await FS._getDb();
+          if (db){
+            const prev = await Auth._read(db, phone);
+            if (prev && prev.hash && prev.hash !== hash) return { ok: false, msg: 'This number already has an account — please Login instead' };
+            const data = {
+              ph: phone, hash, profile: Store.profile || {},
+              cart: (Store.cart || []).map(i => ({ id: i.id, qty: i.qty || 1, colour: i.colour || '' })),
+              wish: Store.wish || [],
+              orders: (Store.orders || []).slice(0, 60),
+              points: (typeof pointsBalance === 'function') ? pointsBalance() : 0,
+              createdAt: Date.now(), updatedAt: Date.now(),
+            };
+            await Auth._write(db, phone, data);
+            cloud = true;
+          }
+        }catch(e1){}
+      }
+      try{ if (typeof autoRegisterReseller === 'function') autoRegisterReseller(name, phone); }catch(e2){}   /* 🤝 instant Share & Earn code too */
+      return { ok: true, cloud: cloud, name: name };
+    }catch(e){ return { ok: false, msg: 'Sign up failed — try again' }; }
   },
   /* 🔓 login: verify mobile + pincode → pull & merge HER data onto this device */
   async login(phone, pin){
@@ -1988,49 +2058,51 @@ const Auth = {
       pin = String(pin || '').trim();
       if (phone.length !== 10 || !/^[6-9]/.test(phone)) return { ok: false, msg: 'Enter a valid 10-digit mobile number' };
       if (!pin) return { ok: false, msg: 'Enter your pincode (password)' };
-      if (!FS.enabled()) return { ok: false, msg: 'Account sync needs internet' };
-      const db = await FS._getDb(); if (!db) return { ok: false, msg: 'Connection failed — check internet' };
-      let doc = null; let usedFallback = false;
-      try{
-        doc = await db.collection('accounts').doc(phone).get();
-      }catch(e1){
-        /* 🔧 accounts rules blocked → try the users collection (already
-           allowed by existing rules — cart sync uses it). Doc id: acct_{phone} */
+      const hash = await authHash(phone, pin);
+      /* 1️⃣ Firestore — the REAL cloud account (users mirror first, then accounts) */
+      let acc = null; let fromCloud = false;
+      if (FS.enabled()){
         try{
-          doc = await db.collection('users').doc('acct_' + phone).get();
-          usedFallback = true;
-        }catch(e2){
-          return { ok: false, msg: 'Login blocked — check internet & Firestore rules' };
-        }
+          const db = await FS._getDb();
+          if (db){ acc = await Auth._read(db, phone); fromCloud = !!acc; }
+        }catch(e1){}
       }
-      if (!doc.exists){
-        /* 🔧 no account yet — if THIS device's saved profile matches the number
-           and has a pincode, create the account from it right now, then log in */
+      /* 2️⃣ local cache — login still works offline or if rules block reads */
+      if (!acc){
+        const lc = authLocalGet(phone);
+        if (lc) acc = { ph: phone, hash: lc.hash, profile: { name: lc.name || '', phone: phone } };
+      }
+      /* 3️⃣ no account anywhere — if THIS device's saved profile matches the
+            number and has a pincode, create the account from it right now */
+      if (!acc){
         const pr = Store.profile || {};
         if (String(pr.phone || '').replace(/\D/g, '') === phone && String(pr.pincode || '').trim()){
           const made = await Auth.autoCreate(phone, pr.pincode);
-          if (made === true){
-            return { ok: true, name: (pr.name || ''), created: true };
-          }
+          if (made === true) return { ok: true, name: pr.name || '', created: true };
         }
-        return { ok: false, msg: 'No account for this number yet — place an order or save your profile (with pincode) first' };
+        return { ok: false, needSignup: true, msg: 'No account for this number yet — create one now (2 minutes)' };
       }
-      const acc = doc.data() || {};
-      const hash = await authHash(phone, pin);
-      if (!acc.hash || acc.hash !== hash) return { ok: false, msg: 'Wrong pincode — password is your area pincode' };
-      /* 🔁 MERGE remote data into this device */
-      if (acc.profile && acc.profile.phone) Store.profile = Object.assign({}, Store.profile || {}, acc.profile);
-      const key = i => i.id + '::' + (i.colour || '');
-      const mc = {}; (Store.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; });
-      ((acc.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty || 1); } }));
-      Store.cart = Object.values(mc).slice(-30);
-      const w = {}; (Store.wish || []).concat(acc.wish || []).forEach(id => { if (id) w[id] = 1; });
-      Store.wish = Object.keys(w).slice(-120);
-      const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
-      Store.orders = Object.values(om).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-      try{ localStorage.setItem('sk_points', String(Math.max(pointsBalance(), +acc.points || 0))); }catch(e2){}
+      /* ✅ verify password: SHA-256 hash, or a legacy plain-pin record */
+      if (!acc.hash || (acc.hash !== hash && acc.hash !== String(pin))){
+        return { ok: false, msg: 'Wrong pincode — password is your area pincode' };
+      }
+      /* 🔁 MERGE cloud data into this device */
+      if (fromCloud){
+        if (acc.profile && acc.profile.phone) Store.profile = Object.assign({}, Store.profile || {}, acc.profile);
+        const key = i => i.id + '::' + (i.colour || '');
+        const mc = {}; (Store.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; });
+        ((acc.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty || 1); } }));
+        Store.cart = Object.values(mc).slice(-30);
+        const w = {}; (Store.wish || []).concat(acc.wish || []).forEach(id => { if (id) w[id] = 1; });
+        Store.wish = Object.keys(w).slice(-120);
+        const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
+        Store.orders = Object.values(om).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        try{ localStorage.setItem('sk_points', String(Math.max(pointsBalance(), +acc.points || 0))); }catch(e2){}
+      }
       Store.saveCart(); Store.saveWish(); Store.saveOrders(); Store.saveProfile();
       LS.set('sk_auth', { phone });
+      /* keep the local cache fresh with the pin that just worked */
+      authLocalSet(phone, { ph: phone, hash: hash, name: ((Store.profile || {}).name) || '', savedAt: Date.now() });
       return { ok: true, name: (Store.profile || {}).name || '' };
     }catch(e){ return { ok: false, msg: 'Login failed — try again' }; }
   },
@@ -2040,21 +2112,20 @@ const Auth = {
       const a = this.current();
       if (!a || !FS.enabled()) return false;
       const db = await FS._getDb(); if (!db) return false;
-      const doc = await db.collection('accounts').doc(a.phone).get();
-      const prev = (doc.exists && doc.data()) || {};
+      const prev = (await Auth._read(db, a.phone)) || {};
       const key = i => i.id + '::' + (i.colour || '');
       const mc = {}; ((prev.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; }));
       (Store.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty); } });
       const w = {}; (prev.wish || []).concat(Store.wish || []).forEach(id => { if (id) w[id] = 1; });
       const om = {}; (prev.orders || []).concat(Store.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
-      await db.collection('accounts').doc(a.phone).set({
+      await Auth._write(db, a.phone, {
         profile: Store.profile || {},
         cart: Object.values(mc).slice(-30),
         wish: Object.keys(w).slice(-120),
         orders: Object.values(om).sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0)).slice(0, 60),
-        points: Math.max(+prev.points || 0, pointsBalance()),
+        points: Math.max(+prev.points || 0, (typeof pointsBalance === 'function') ? pointsBalance() : 0),
         updatedAt: Date.now(),
-      }, { merge: true });
+      });
       return true;
     }catch(e){ return false; }
   },
@@ -2065,9 +2136,8 @@ const Auth = {
       if (!a) return;
       const db = FS.enabled() ? await FS._getDb() : null;
       if (!db) return;
-      const doc = await db.collection('accounts').doc(a.phone).get();
-      if (!doc.exists) return;
-      const acc = doc.data() || {};
+      const acc = await Auth._read(db, a.phone);
+      if (!acc) return;
       const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
       const before = Store.orders.length;
       Store.orders = Object.values(om).sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0));

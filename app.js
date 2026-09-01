@@ -781,7 +781,8 @@ function reelHTML(p, i){
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
     '<img class="rp-img" src="' + esc(reelImgSrc(p)) + '" data-orig="' + esc(p.img || '') + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="if(this.dataset.orig){var o=this.dataset.orig;this.removeAttribute(\'data-orig\');this.src=o;}else{imgSafe(this);}">' +
     '<div class="rp-shade"></div>' +
-    '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + rloc('சேலை reels — விரல் மாதில்', 'చీర reels', 'ಆಟವಿಲ್ reels', 'Saree reels — daily wishes') + '</small></div>' +
+    '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + rloc('சேலை ரீல்ஸ் — தினமும் வாழ்த்துக்கள்', 'చీర రీల్స్ — రోజు శుభాకాంక్షలు', 'ಸೀರೆ ರೀಲ್ಸ್ — ದಿನನಿತ್ಯ ಶುಭಾಶಯಗಳು', 'Saree reels — daily wishes') + '</small>' +
+      '<button type="button" class="rp-earn-chip" data-rpearn="1" aria-label="Share and Earn">💰 <span>' + rloc('வருமானம்', 'సంಪాదన', 'ಆದಾಯ', 'Earn') + '</span></button></div>' +
     '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
     /* Instagram-style action rail */
     '<div class="rp-actions">' +
@@ -789,6 +790,7 @@ function reelHTML(p, i){
       '<button type="button" class="rpa" data-rpcomment="' + esc(p.id) + '" aria-label="Comments"><span class="rpa-ic">💬</span><small>' + (cmts || '') + '</small></button>' +
       '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + (reelSharesOf(p.id) > 0 ? reelSharesOf(p.id) : rloc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share')) + '</small></button>' +
       '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + rloc('படம்', 'நிறுவு', 'லோட்', 'Save') + '</small></button>' +
+      '<button type="button" class="rpa rp-status" data-rpstatus="' + esc(p.id) + '" aria-label="Set as WhatsApp Status"><span class="rpa-ic">📲</span><small>' + rloc('ஸ்டேட்டஸ்', 'స్టేటస్', 'ಸ್ಟೇಟಸ್', 'Status') + '</small></button>' +
       '<a class="rpa" href="' + esc(CONFIG.social.youtube || 'https://www.youtube.com/') + '" target="_blank" rel="noopener" aria-label="Audio"><span class="rpa-ic rp-disc"><i>♪</i></span><small>Audio</small></a>' +
     '</div>' +
     '<div class="rp-bottom">' +
@@ -1030,17 +1032,215 @@ async function saveReelImage(p, quote){
     toast('📸 ' + loc('போட்டோ திறந்தது — நீண்ட நேரம் அழுத்தி save பண்ணுங்கள்', 'ఫోటో తెరిచింది — నొక్కి పట్టుకుని సేవ్ చేయండి', 'ಫೋಟೊ ತೆರೆದಿದೆ — ಒತ್ತಿ ಹಿಡಿದು ಸೇವ್ ಮಾಡಿ', 'Photo opened — long-press to save it'));
   }
 }
+/* 📲 WHATSAPP STATUS PHOTO — full 9:16 (1080×1920) HD. Everyone can set the
+   saree + wish as her WhatsApp Status → her ENTIRE contact list sees the
+   saree + www.sksaree.shop (viral, free marketing). Shares the image straight
+   into WhatsApp (with the reseller's ref link in the text) or downloads it. */
+async function saveReelStatus(p, quote){
+  if (!p) return;
+  try{
+    toast('📲 ' + rloc('Status போட்டோ தயார் ஆகிறது…', 'స్టేటస్ ఫోటో రెడీ అవుతోంది…', 'ಸ್ಟೇಟಸ್ ಫೋಟೊ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…', 'Preparing your status photo…'));
+    const url = p.img || ((p.images || [])[0]);
+    let img = null;
+    try{
+      const blob = await fetchImageBlob(url, true);   /* 🌟 HD photo */
+      if (blob) img = await imageFromBlob(blob);
+    }catch(e){}
+    const loaded = !!img;
+    const W = 1080, H = 1920;   /* true WhatsApp status size (9:16 full screen) */
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext ? cv.getContext('2d') : null;
+    if (ctx){
+      ctx.fillStyle = '#1d0a12';
+      ctx.fillRect(0, 0, W, H);
+      if (loaded){
+        const sc = Math.max(W / img.width, H / img.height);
+        const dw = img.width * sc, dh = img.height * sc;
+        ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      }
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, 'rgba(0,0,0,.55)');
+      g.addColorStop(0.30, 'rgba(0,0,0,0)');
+      g.addColorStop(0.70, 'rgba(0,0,0,.66)');
+      g.addColorStop(1, 'rgba(0,0,0,.94)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      /* the wish — big, centred (perfect status size) */
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 58px Georgia, "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", sans-serif';
+      wrapText(ctx, quote || '', W / 2, 250, W - 120, 66);
+      /* brand card at the bottom */
+      ctx.fillStyle = '#ffd98a';
+      ctx.font = 'bold 30px Georgia, serif';
+      ctx.fillText('— SK SAREES • SALEM —', W / 2, H - 300);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 42px Georgia, serif';
+      const title = String(smartTitle(p));
+      ctx.fillText(title.length > 42 ? title.slice(0, 42) + '…' : title, W / 2, H - 240);
+      ctx.fillStyle = '#ffd98a';
+      ctx.font = 'bold 48px Georgia, serif';
+      ctx.fillText('₹' + (p.price || 0).toLocaleString('en-IN'), W / 2, H - 180);
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.font = 'bold 32px Georgia, serif';
+      ctx.fillText('www.sksaree.shop', W / 2, H - 120);
+      ctx.fillStyle = 'rgba(255,255,255,.62)';
+      ctx.font = 'bold 26px Georgia, serif';
+      ctx.fillText('🛍️ Order on WhatsApp • Cash on Delivery', W / 2, H - 74);
+    }
+    /* 🔁 a status post IS a share — count it globally */
+    try{
+      bumpLocalShares(p.id);
+      if (FS.enabled()) FS.reelShare(p.id).catch(() => {});
+      document.querySelectorAll('[data-reelshare="' + String(p.id).replace(/"/g, '') + '"]').forEach(applyReelShareCount);
+    }catch(e0){}
+    /* 📤 share the image file itself (with text) → she posts it as her Status */
+    const shareTxt = rloc('இந்த அழகான சேலையை உங்க WhatsApp Status-ஆ வையுங்க 🥰✨', 'ఈ అందమైన చీరను మీ WhatsApp స్టేటస్‌గా పెట్టండి 🥰✨', 'ಈ ಸುಂದರವಾದ ಸೀರೆಯನ್ನು ನಿಮ್ಮ WhatsApp ಸ್ಟೇಟಸ್ ಆಗಿ ಇಡಿ 🥰✨', 'Set this beautiful saree as your WhatsApp Status 🥰✨') +
+      '\n\n🌸 ' + smartTitle(p) + ' — ₹' + (p.price || 0).toLocaleString('en-IN') +
+      '\n👉 ' + reelShareLink(p);
+    try{
+      if (ctx && cv.toBlob && navigator.share){
+        const blob = await new Promise(r => { try{ cv.toBlob(r, 'image/jpeg', 0.92); }catch(e1){ r(null); } });
+        if (blob && navigator.canShare){
+          const file = new File([blob], 'sk-sarees-status.jpg', { type: 'image/jpeg' });
+          if (navigator.canShare({ files: [file] })){
+            navigator.share({ files: [file], text: shareTxt, title: 'SK Sarees' }).then(() => {}, () => {});
+            toast('📲 ' + rloc('Status-ஆ வையுங்க! உங்க contact list எல்லாரும் பார்ப்பாங்க 💜', 'స్టేటస్‌గా పెట్టండి! మీ కాంటాక్ట్ లిస్ట్ అందరూ చూస్తారు 💜', 'ಸ್ಟೇಟಸ್ ಆಗಿ ಇಡಿ! ನಿಮ್ಮ ಸಂಪರ್ಕ ಪಟ್ಟಿ ಎಲ್ಲರೂ ನೋಡುತ್ತಾರೆ 💜', 'Post it as your Status! Your whole contact list sees it 💜'));
+            maybeEarnHint();
+            return;
+          }
+        }
+      }
+    }catch(e2){}
+    /* fallback: download the status photo + clear instructions */
+    try{
+      if (ctx && cv.toDataURL){
+        const data = cv.toDataURL('image/jpeg', 0.92);
+        const a = document.createElement('a');
+        a.href = data;
+        a.download = 'sk-status-' + String(p.id || 'saree').replace(/[^a-z0-9-]/gi, '') + '.jpg';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        toast('✅ ' + rloc('Status போட்டோ download ஆனது! WhatsApp → Status → Gallery-ல இருந்து வையுங்க 💜', 'స్టేటస్ ఫోటో డౌన్‌లోడ్ అయింది! Gallery నుండి స్టేటస్ పెట్టండి 💜', 'ಸ್ಟೇಟಸ್ ಫೋಟೊ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ! Gallery ನಿಂದ ಸ್ಟೇಟಸ್ ಇಡಿ 💜', 'Status photo downloaded! WhatsApp → Status → pick from Gallery 💜'));
+        maybeEarnHint();
+        return;
+      }
+    }catch(e3){}
+    /* no canvas at all → open the raw photo for a long-press save */
+    try{ window.open(url || '', '_blank'); }catch(e4){}
+    toast('📸 ' + rloc('போட்டோ திறந்தது — நீண்ட நேரம் அழுத்தி save பண்ணி Status வையுங்க', 'ఫోటో తెరిచింది — నొక్కి పట్టుకుని సేవ్ చేసి స్టేటస్ పెట్టండి', 'ಫೋಟೊ ತೆರೆದಿದೆ — ಒತ್ತಿ ಹಿಡಿದು ಸೇವ್ ಮಾಡಿ ಸ್ಟೇಟಸ್ ಇಡಿ', 'Photo opened — long-press to save, then post as your Status'));
+  }catch(e){
+    try{ window.open((p && p.img) || '', '_blank'); }catch(e2){}
+    toast('📸 ' + rloc('போட்டோ திறந்தது — save பண்ணி Status வையுங்க', 'ఫోటో తెరిచింది — సేవ్ చేసి స్టేటస్ పెట్టండి', 'ಫೋಟೊ ತೆರೆದಿದೆ — ಸೇವ್ ಮಾಡಿ ಸ್ಟೇಟಸ್ ಇಡಿ', 'Photo opened — save it & post as your Status'));
+  }
+}
+/* 🔗 the reel share link — ALWAYS carries the reseller ref so shares EARN */
+function reelShareLink(p){
+  try{
+    let url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
+    const mine = myResellerCode();
+    if (mine) url += '&ref=' + encodeURIComponent(mine);
+    return url;
+  }catch(e){ return CONFIG.siteUrl || 'https://www.sksaree.shop'; }
+}
+/* 💰 first share without a reseller code → invite her to register (once) */
+function maybeEarnHint(){
+  try{
+    if (myResellerCode()) return;
+    if (LS.get('sk_earn_hint_done', 0)) return;
+    LS.set('sk_earn_hint_done', 1);
+    setTimeout(() => {
+      try{
+        toast('💰 ' + rloc('இதை share பண்ணி வருமானம் பாருங்க! பதிவு இலவசம் 👆', 'దీన్ని షేర్ చేసి సంపాదించండి! నమోదు ఉచితం 👆', 'ಇದನ್ನು ಹಂಚಿ ಆದಾಯ ಪಡೆಯಿರಿ! ನೋಂದಣಿ ಉಚಿತ 👆', 'Share & earn on this! Registration is free 👆'), 3500);
+      }catch(e){}
+    }, 900);
+  }catch(e){}
+}
+/* 💰 REELS SHARE & EARN — one tap on the "💰 வருமானம்" chip:
+   • no code yet  → register with name + WhatsApp number → INSTANT code
+   • already has one → her code, views, orders & earnings dashboard
+   Every reel share link then carries ?ref=CODE → friend's order = 5% for her. */
+function reelEarnModal(){
+  const mine = myResellerCode();
+  if (mine){
+    const r = resellerByCode(mine) || { code: mine, orders: 0, margin: 0, pendingMargin: 0, views: 0 };
+    openModal('<div class="np-card ern-card">' +
+      '<div class="np-emoji">💰</div>' +
+      '<h3 class="np-title">' + rloc('உங்க வருமானக் கணக்கு', 'మీ సంపాదన ఖాతా', 'ನಿಮ್ಮ ಆದಾಯ ಖಾತೆ', 'Your Earn Account') + '</h3>' +
+      '<div class="ern-code"><span>' + esc(r.code) + '</span><button type="button" class="btn btn-outline btn-sm" style="width:auto" data-copy="' + esc(r.code) + '">📋 ' + rloc('நகல்', 'కాపీ', 'ಕಾಪಿ', 'Copy') + '</button></div>' +
+      '<p class="np-sub">' + rloc('ஒவ்வொரு reel share link-லயும் இந்த கோடு வரும் — friend ஆர்டர் போட்டா', 'ప్రతి రీల్ షేర్ లింక్‌లో ఈ కోడ్ ఉంటుంది — స్నేహితురాలు ఆర్డర్ చేస్తే', 'ಪ್ರತಿ ರೀಲ್ ಹಂಚಿಕೆ ಲಿಂಕ್‌ನಲ್ಲಿ ಈ ಕೋಡ್ ಇರುತ್ತದೆ — ಸ್ನೇಹಿತರು ಆರ್ಡರ್ ಮಾಡಿದರೆ', 'Every reel share link carries this code — a friend orders') + ' <b>' + (CONFIG.resellerMarginPct || 5) + '% ' + rloc('உங்களுக்கே!', 'మీకే!', 'ನಿಮಗೇ!', 'is yours!') + '</b></p>' +
+      '<div class="ern-stats">' +
+        '<div><small>👁 ' + rloc('பார்வைகள்', 'వ్యూస్', 'ವೀಕ್ಷಣೆಗಳು', 'Views') + '</small><b>' + (+r.views || 0) + '</b></div>' +
+        '<div><small>🛍 ' + rloc('ஆர்டர்கள்', 'ఆర్డర్లు', 'ಆರ್ಡರ್‌ಗಳು', 'Orders') + '</small><b>' + (+r.orders || 0) + '</b></div>' +
+        '<div><small>⏳ ' + rloc('நிலுவை', 'పెండింగ్', 'ಬಾಕಿ', 'Pending') + '</small><b>₹' + Math.round(+r.pendingMargin || 0) + '</b></div>' +
+        '<div><small>✅ ' + rloc('பெறப்பட்டது', 'సంపాదించారు', 'ಗಳಿಸಿದ', 'Earned') + '</small><b>₹' + Math.round(+r.margin || 0) + '</b></div>' +
+      '</div>' +
+      '<div class="ern-steps">' +
+        '<p>1️⃣ ' + rloc('எந்த reel-லயும் 🔁 share / 📲 status அழுத்துங்க', 'ఏ రీల్‌లోను 🔁 షేర్ / 📲 స్టేటస్ నొక్కండి', 'ಯಾವುದೇ ರೀಲ್‌ನಲ್ಲಿ 🔁 ಹಂಚಿಕೆ / 📲 ಸ್ಟೇಟಸ್ ಒತ್ತಿರಿ', 'Tap 🔁 Share / 📲 Status on any reel') + '</p>' +
+        '<p>2️⃣ ' + rloc('Link-ல உங்க கோடு தானா வந்துடும்', 'లింక్‌లో మీ కోడ్ అప్పటికే ఉంటుంది', 'ಲಿಂಕ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಕೋಡ್ ಸ್ವಯಂ ಬರುತ್ತದೆ', 'Your code is inside the link automatically') + '</p>' +
+        '<p>3️⃣ ' + rloc('Friend வாங்கினா கிட்டத்தட்ட தச்சு கிடைக்கும்', 'స్నేహితురాలు కొంటే నగదు వస్తుంది', 'ಸ್ನೇಹಿತರು ಖರೀದಿಸಿದರೆ ಹಣ ಬರುತ್ತದೆ', 'Friend buys → money comes to you') + '</p>' +
+      '</div>' +
+      '<a class="btn btn-gold btn-xl np-save" href="share-earn.html">📊 ' + rloc('முழு dashboard பார்க்க', 'పూర్తి డాష్‌బోర్డ్ చూడండి', 'ಪೂರ್ಣ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನೋಡಿ', 'See full dashboard') + '</a>' +
+      '<button type="button" class="np-skip" data-close>' + rloc('மூடு', 'మూసివేయి', 'ಮುಚ್ಚಿ', 'Close') + '</button>' +
+    '</div>');
+    return;
+  }
+  openModal('<div class="np-card ern-card">' +
+      '<div class="np-emoji">💰</div>' +
+      '<h3 class="np-title">' + rloc('Reels share பண்ணி வருமானம் பாருங்க!', 'రీల్స్ షేర్ చేసి సంపాదించండి!', 'ರೀಲ್ಸ್ ಹಂಚಿ ಆದಾಯ ಪಡೆಯಿರಿ!', 'Share Reels & Earn!') + '</h3>' +
+      '<p class="np-sub">' + rloc('பெயர் + WhatsApp எண் கொடுங்க — உடனே உங்க கோடு கிடைக்கும். நீங்க share பண்ணும் ஒவ்வொரு reel link-லயும் அது வந்துடும் — friend ஆர்டர் போட்டா', 'పేరు + WhatsApp నంబర్ ఇవ్వండి — వెంటనే మీ కోడ్ వస్తుంది. మీరు షేర్ చేసే ప్రతి రీల్ లింక్‌లో అది ఉంటుంది — స్నేహితురాలు ఆర్డర్ చేస్తే', 'ಹೆಸರು + WhatsApp ಸಂಖ್ಯೆ ನೀಡಿ — ತಕ್ಷಣ ನಿಮ್ಮ ಕೋಡ್ ಸಿಗುತ್ತದೆ. ನೀವು ಹಂಚಿದ ಪ್ರತಿ ರೀಲ್ ಲಿಂಕ್‌ನಲ್ಲಿ ಅದು ಇರುತ್ತದೆ — ಸ್ನೇಹಿತರು ಆರ್ಡರ್ ಮಾಡಿದರೆ', 'Give your name + WhatsApp number — you get a code instantly. It goes into every reel link you share — when a friend orders') + ' <b>' + (CONFIG.resellerMarginPct || 5) + '% ' + rloc('உங்களுக்கு!', 'మీకు!', 'ನಿಮಗೆ!', 'is yours!') + '</b></p>' +
+      '<input id="reName" class="np-input" placeholder="' + rloc('உங்க பெயர்', 'మీ పేరు', 'ನಿಮ್ಮ ಹೆಸರು', 'Your name') + '" autocomplete="off">' +
+      '<input id="rePhone" class="np-input" placeholder="' + rloc('WhatsApp எண் (10 இலக்கம்)', 'WhatsApp నంబర్ (10 అంకెలు)', 'WhatsApp ಸಂಖ್ಯೆ (10 ಅಂಕೆ)', 'WhatsApp number (10 digits)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
+      '<button type="button" class="btn btn-maroon btn-xl np-save" id="reGo">🚀 ' + rloc('உடனே என் கோடு வேணும்!', 'వెంటనే నా కోడ్ కావాలి!', 'ಈಗಲೇ ನನ್ನ ಕೋಡ್ ಬೇಕು!', 'Get my code now!') + '</button>' +
+      '<button type="button" class="np-skip" data-close>' + rloc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
+      '<p class="np-note">💵 ' + rloc('குறைந்தபட்ச பணம் எடுப்பது ₹' + (CONFIG.resellerMinPayout || 100) + ' • கிட்டத்தட்ட உடனடி பேஅவுட்', 'కనీసపు పేఅవుట్ ₹' + (CONFIG.resellerMinPayout || 100), 'ಕನಿಷ್ಠ ಪಾವತಿ ₹' + (CONFIG.resellerMinPayout || 100), 'Minimum payout ₹' + (CONFIG.resellerMinPayout || 100) + ' • UPI payout') + '</p>' +
+    '</div>');
+  const go = document.getElementById('reGo');
+  if (go) go.addEventListener('click', async () => {
+    try{
+      const nm = ((document.getElementById('reName') || {}).value || '').trim();
+      const ph = String(((document.getElementById('rePhone') || {}).value || '')).replace(/\D/g, '');
+      if (!nm){ toast('⚠️ ' + rloc('பெயர் எழுதுங்கள்', 'పేరు రాయండి', 'ಹೆಸರು ಬರೆಯಿರಿ', 'Enter your name')); return; }
+      if (ph.length !== 10 || !/^[6-9]/.test(ph)){ toast('⚠️ ' + rloc('சரியான 10 இலக்க WhatsApp எண் கொடுங்கள்', 'సరైన 10 అంకెల WhatsApp నంబర్ ఇవ్వండి', 'ಸರಿಯಾದ 10 ಅಂಕೆಯ WhatsApp ಸಂಖ್ಯೆ ನೀಡಿ', 'Enter a valid 10-digit WhatsApp number')); return; }
+      go.textContent = '⏳ …'; go.disabled = true;
+      const r = autoRegisterReseller(nm, ph);
+      if (r && r.code){
+        /* remember her name+phone so future orders & shares are prefilled */
+        try{
+          const pr = Store.profile || {};
+          if (!pr.name || !pr.phone){ Store.profile = Object.assign({}, pr, { name: nm, phone: ph }); Store.saveProfile(); }
+        }catch(e1){}
+        closeModal();
+        toast('🎉 ' + rloc('உங்க கோடு தயார்: ', 'మీ కోడ్ సిద్ధం: ', 'ನಿಮ್ಮ ಕೋಡ್ ಸಿದ್ಧ: ', 'Your code is ready: ') + r.code + rloc(' — இப்போ reels share பண்ணுங்க!', ' — ఇప్పుడు రీల్స్ షేర్ చేయండి!', ' — ಈಗ ರೀಲ್ಸ್ ಹಂಚಿ!', ' — share reels now!'));
+        setTimeout(() => { try{ reelEarnModal(); }catch(e2){} }, 350);   /* show her account view */
+      } else {
+        toast('⚠️ ' + rloc('முயற்சிக்க தவறியது — மீண்டும் முயற்சி செய்யவும்', 'ప్రయత్నం విఫలమైంది — మళ్ళీ ప్రయత్నించండి', 'ಪ್ರಯತ್ನ ವಿಫಲವಾಯಿತು — ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ', 'Failed — try again'));
+        go.textContent = '🚀 ' + rloc('உடனே என் கோடு வேணும்!', 'వెంటనే నా కోడ్ కావాలి!', 'ಈಗಲೇ ನನ್ನ ಕೋಡ್ ಬೇಕು!', 'Get my code now!'); go.disabled = false;
+      }
+    }catch(e){}
+  });
+}
 /* 📢 share a reel — photo + wish + saree link straight into WhatsApp (viral!) */
 async function shareReel(p, quote){
   if (!p) return;
   /* 🔗 the share link opens THIS saree's reel (not the product page) —
      the friend lands straight on the same beautiful reel she saw */
-  /* 🔗 reel deep link + HER reseller ref — shares now EARN commission */
-  let url = (location.origin + '/reels.html?reel=' + encodeURIComponent(p.id));
+  /* 🔗 reel deep link + HER reseller ref — shares now EARN commission.
+     💰 NO code yet? If her number is saved (profile / checkout) she gets a
+     code INSTANTLY — so every share from a real customer earns her 5%. */
   try{
-    const mine = myResellerCode();
-    if (mine) url += '&ref=' + encodeURIComponent(mine);
-  }catch(e0){}
+    if (!myResellerCode()){
+      const pr = Store.profile || {};
+      const ph = String(pr.phone || '').replace(/\D/g, '');
+      if (ph.length === 10 && /^[6-9]/.test(ph)){
+        const r = autoRegisterReseller(pr.name || 'SK Friend', ph);
+        if (r && r.code) toast('💰 ' + rloc('உங்க code: ', 'మీ కోడ్: ', 'ನಿಮ್ಮ ಕೋಡ್: ', 'Your code: ') + r.code + rloc(' — இந்த share வழியா வருமானம்!', ' — ఈ షేర్ ద్వారా సంపాదన!', ' — ಈ ಹಂಚಿಕೆಯ ಮೂಲಕ ಆದಾಯ!', ' — this share now earns for you!'));
+      }
+    }
+  }catch(e9){}
+  const url = reelShareLink(p);
   /* 🔁 count the share globally (Firestore) + update the rail count */
   try{
     bumpLocalShares(p.id);
@@ -1070,6 +1270,7 @@ async function shareReel(p, quote){
     }
   }catch(e){}
   try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+  maybeEarnHint();   /* 💰 first share without a code → invite her to earn */
 }
 
 /* ============================ FEED PAGE (public) ============================
@@ -1290,24 +1491,6 @@ const FESTIVAL_DATES_2026 = [
     { d: 24, n: 'Arudra Darshan (Thiruvathirai)', s: 'Nataraja festival' },
   ]},
 ];
-/* 📅 render the calendar — every festival links to matching sarees */
-function festivalCalendarHTML(){
-  try{
-    const months = FESTIVAL_DATES_2026.map(mo => {
-      const rows = mo.items.map(f =>
-        '<a class="fest-row" href="shop.html?q=' + encodeURIComponent(f.n.split('(')[0].trim()) + '">' +
-          '<span class="fr-date">' + f.d + '</span>' +
-          '<span class="fr-name">' + esc(f.n) + '<small>' + esc(f.s) + '</small></span>' +
-          '<span class="fr-go">Shop sarees →</span>' +
-        '</a>').join('');
-      return '<div class="fest-month"><h4>🗓️ ' + esc(mo.m) + '<span class="fm-count">' + mo.items.length + ' festivals</span></h4>' + rows + '</div>';
-    }).join('');
-    return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Tamil Festival Calendar 2026 — ' + loc('சிறப்பு நாட்கள்', 'పండుగ దినాలు', 'ಹಬ್ಬದ ದಿನಗಳು', 'Auspicious Days') + '</h2>' +
-      '<a href="shop.html">' + t('viewAll') + '</a></div>' +
-      '<div class="fest-cal">' + months + '</div></section>';
-  }catch(e){ return ''; }
-}
-
 /* ⏭️ next real festival from the 2026 calendar → chip in the section heading */
 function nextFestival2026(){
   try{
@@ -1334,22 +1517,6 @@ function nextFestivalChip2026(){
     const nm = nf.name.split('(')[0].trim();
     const ds = nf.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     return ' <span class="nf-chip">\u23f0 ' + esc(nm) + ' — ' + ds + (nf.days > 0 ? ' • ' + nf.days + 'd' : ' • today') + '</span>';
-  }catch(e){ return ''; }
-}
-/* 📅 the REAL 2026 dates — compact expandable list inside the festival section */
-function festivalDatesCompactHTML(){
-  try{
-    const details = FESTIVAL_DATES_2026.map(mo => {
-      const rows = mo.items.map(f =>
-        '<a class="fest-row" href="shop.html?q=' + encodeURIComponent(f.n.split('(')[0].trim()) + '">' +
-          '<span class="fr-date">' + f.d + '</span>' +
-          '<span class="fr-name">' + esc(f.n) + '<small>' + esc(f.s) + '</small></span>' +
-          '<span class="fr-go">Shop \u2192</span>' +
-        '</a>').join('');
-      return '<details class="fest-month2"><summary>\U0001F5D3\uFE0F ' + esc(mo.m) + ' <small>' + mo.items.length + ' festivals</small></summary><div style="display:grid;gap:2px">' + rows + '</div></details>';
-    }).join('');
-    const nf = nextFestival2026();
-    return details;   /* 🧹 outer summary removed */
   }catch(e){ return ''; }
 }
 /* ============================ HOME ============================ */
@@ -1413,7 +1580,6 @@ function renderHome(){
         '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
           '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
         '</div>' +
-        festivalDatesCompactHTML() +   /* 📅 real 2026 dates — Auspicious Days */
       '</section>' +
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 ' + (lang === 'ta' ? t('reviews') : 'What Our Customers Say') + '</h2></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
@@ -4019,43 +4185,114 @@ function openLoginModal(){
   if (a){
     openModal('<div class="np-card">' +
       '<div class="np-emoji">🔑</div>' +
-      '<h3 class="np-title">' + loc('கணக்கு செய்யப்பட்டது', 'கணக்கு தெரியுத்தது', 'கணக்கு வெல்லத்தது', 'Account') + '</h3>' +
+      '<h3 class="np-title">' + loc('கணக்கு செய்யப்பட்டது', 'ఖాతా సిద్ధం', 'ಖಾತೆ ಸಿದ್ಧ', 'Account') + '</h3>' +
       '<p class="np-sub">📱 <b>' + esc(a.phone.slice(0, 2) + '\u2022\u2022\u2022\u2022\u2022' + a.phone.slice(-3)) + '</b><br>' +
-        loc('இந்த எண்ணில் எல்லா சாதனம் ஒன்றாக ஒன்று.', 'ஈ நம்பர் அனைதேது மோதமாத் தேவனைகி.', 'ஈ நம்பர் எல்லா வி஧ாந஗ளல்லி ஒஂ஦ே.', 'Same number → same data on every device.') + '</p>' +
-      '<button type="button" class="btn btn-maroon btn-xl np-save" data-logout="1">🔓 ' + loc('வெளியேறு', 'லா஗்அவுட்', 'லா஗்அபீட்', 'Logout') + '</button>' +
+        loc('இந்த எண்ணில் எல்லா சாதனம் ஒன்றாக ஒன்று.', 'ఈ నంబర్‌లో అన్ని పరికరాలు ఒక్కటే.', 'ಈ ಸಂಖ್ಯೆಯಲ್ಲಿ ಎಲ್ಲಾ ಸಾಧನಗಳು ಒಂದೇ.', 'Same number → same data on every device.') + '</p>' +
+      '<button type="button" class="btn btn-maroon btn-xl np-save" data-logout="1">🔓 ' + loc('வெளியேறு', 'లాగ్అవుట్', 'ಲಾಗ್ಅವುಟ್', 'Logout') + '</button>' +
     '</div>');
     return;
   }
+  const pr = Store.profile || {};
   openModal(
     '<div class="np-card">' +
       '<div class="np-emoji">🔑</div>' +
-      '<h3 class="np-title">' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</h3>' +
-      '<p class="np-sub">' + loc('எண்ணி = username • பின்கோட் = password', 'மொபைல் = username • பிந்கோட் = password', 'மொபைல் = username • பிந்கோட் = password', 'Mobile number = username • Area pincode = password') + '</p>' +
-      '<input id="lgPhone" class="np-input" value="' + esc(((Store.profile || {}).phone || '')) + '" placeholder="' + loc('எண் எண் (username)', 'மொபைல் நம்பர்', 'மொபைல் நம்பர்', 'Mobile number (username)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
-      '<input id="lgPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'பின்கோட்', 'பின்கோட்', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
-      '<button type="button" class="btn btn-maroon btn-xl np-save" id="lgGo">🔓 ' + loc('உள்ளேறு', 'லா஗ின்', 'லா஗ிந்', 'Login') + '</button>' +
-      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'தருவாதி', 'நஂதர', 'Later') + '</button>' +
-      '<p class="np-note">📢 ' + loc('கணக்கு இல்லையா? முதல் ஆர்டர் போடும்்போது எளிதிலேயே உருவாகிறது!', 'கணக்கு இல்ல஦ொதா? மொ஦டி ஆர்டர் வேறிடது', '஖ாதெ இல்ல஦ொதா? மொ஦ல ஆர்டர் இதுவதது', 'No account yet? It is created automatically with your first order!') + '</p>' +
+      '<h3 class="np-title">SK Account</h3>' +
+      /* 🔑 tabs: Login | Sign Up */
+      '<div class="lg-tabs">' +
+        '<button type="button" class="lg-tab on" id="lgTabIn">🔓 ' + loc('உள்நுழை', 'లాగిన్', 'ಲಾಗಿನ್', 'Login') + '</button>' +
+        '<button type="button" class="lg-tab" id="lgTabUp">🆕 ' + loc('புது கணக்கு', 'కొత్త ఖాతా', 'ಹೊಸ ಖಾತೆ', 'Sign Up') + '</button>' +
+      '</div>' +
+      '<div id="lgIn">' +
+        '<p class="np-sub">' + loc('எண் = username • பின்கோட் = password', 'మొబైల్ = username • పిన్‌కోడ్ = password', 'ಮೊಬೈಲ್ = username • ಪಿನ್‌ಕೋಡ್ = password', 'Mobile number = username • Area pincode = password') + '</p>' +
+        '<input id="lgPhone" class="np-input" value="' + esc(pr.phone || '') + '" placeholder="' + loc('மொபைல் எண் (username)', 'మొబైల్ నంబర్', 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', 'Mobile number (username)') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
+        '<input id="lgPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'పిన్‌కోడ్ (password)', 'ಪಿನ್‌ಕೋಡ್ (password)', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
+        '<button type="button" class="btn btn-maroon btn-xl np-save" id="lgGo">🔓 ' + loc('உள்ளேறு', 'లాగిన్', 'ಲಾಗಿನ್', 'Login') + '</button>' +
+      '</div>' +
+      '<div id="lgUp" style="display:none">' +
+        '<p class="np-sub">' + loc('பெயர் + எண் + பின்கோடு மட்டும் — உடனே கணக்கு! ஆர்டர், விஷ்லிஸ்ட், பாயிண்ட் எல்லாம் எல்லா போன்லயும் ஒண்ணா இருக்கும் ☁️', 'పేరు + నంబర్ + పిన్‌కోడ్ — వెంటనే ఖాతా! ఆర్డర్లు, విష్‌లిస్ట్, పాయింట్లు అన్ని ఫోన్‌లలో ఒకటే ఉంటాయి ☁️', 'ಹೆಸರು + ಸಂಖ್ಯೆ + ಪಿನ್‌ಕೋಡ್ — ತಕ್ಷಣ ಖಾತೆ! ಆರ್ಡರ್, ವಿಷ್‌ಲಿಸ್ಟ್, ಪಾಯಿಂಟ್ ಎಲ್ಲಾ ಫೋನ್‌ನಲ್ಲಿ ಒಂದೇ ಇರುತ್ತದೆ ☁️', 'Name + number + pincode — instant account! Orders, wishlist & points stay the same on every phone ☁️') + '</p>' +
+        '<input id="suName" class="np-input" value="' + esc(pr.name || '') + '" placeholder="' + loc('உங்க பெயர்', 'మీ పేరు', 'ನಿಮ್ಮ ಹೆಸರು', 'Your name') + '" autocomplete="off">' +
+        '<input id="suPhone" class="np-input" value="' + esc(pr.phone || '') + '" placeholder="' + loc('மொபைல் எண்', 'మొబైల్ నంబర్', 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', 'Mobile number') + '" inputmode="numeric" maxlength="10" autocomplete="off">' +
+        '<input id="suPin" class="np-input" placeholder="' + loc('பின்கோட் (password)', 'పిన్‌కోడ్ (password)', 'ಪಿನ್‌ಕೋಡ್ (password)', 'Pincode (password)') + '" inputmode="numeric" maxlength="6" autocomplete="off">' +
+        '<button type="button" class="btn btn-gold btn-xl np-save" id="suGo">🚀 ' + loc('கணக்கு உருவாக்கு', 'ఖాతా సృష్టించు', 'ಖಾತೆ ಸೃಷ್ಟಿಸಿ', 'Create Account') + '</button>' +
+      '</div>' +
+      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
+      '<p class="np-note">☁️ ' + loc('கணக்கு Firestore-ல் பாதுகாப்பாக சேமிக்கப்படும் — எந்த போன்ல லாகின் பண்ணாலும் உங்க டேட்டா அதே!', 'ఖాతా Firestoreలో సురక్షితంగా నిల్వ ఉంటుంది — ఏ ఫోన్‌లో లాగిన్ చేసినా మీ డేటా అదే!', 'ಖಾತೆ Firestoreನಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿ ಉಳಿಯುತ್ತದೆ — ಯಾವ ಫೋನ್‌ನಲ್ಲಿ ಲಾಗಿನ್ ಮಾಡಿದರೂ ನಿಮ್ಮ ಡೇಟಾ ಅದೇ!', 'Your account is stored safely in Firestore — same data whichever phone you log in from!') + '</p>' +
     '</div>');
+  /* 🔑 tab switching */
+  const tabIn = document.getElementById('lgTabIn'), tabUp = document.getElementById('lgTabUp');
+  const paneIn = document.getElementById('lgIn'), paneUp = document.getElementById('lgUp');
+  const showTab = up => {
+    if (tabIn) tabIn.classList.toggle('on', !up);
+    if (tabUp) tabUp.classList.toggle('on', !!up);
+    if (paneIn) paneIn.style.display = up ? 'none' : '';
+    if (paneUp) paneUp.style.display = up ? '' : 'none';
+  };
+  if (tabIn) tabIn.addEventListener('click', () => showTab(false));
+  if (tabUp) tabUp.addEventListener('click', () => showTab(true));
+  /* 🔓 LOGIN */
   const go = document.getElementById('lgGo');
   const doLogin = async () => {
     const ph = (document.getElementById('lgPhone') || {}).value || '';
     const pn = (document.getElementById('lgPin') || {}).value || '';
-    if (go){ go.textContent = '⏳ ' + loc('சரிபார்க்குகிறது…', 'சரிபரீக்ஷிஸ்துந்நா஡ி…', 'பரிசீலிஸுத்தி஦ெ…', 'Checking…'); go.disabled = true; }
+    if (go){ go.textContent = '⏳ ' + loc('சரிபார்க்குகிறது…', 'చెక్ చేస్తున్నాం…', 'ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ…', 'Checking…'); go.disabled = true; }
     const r = await Auth.login(ph, pn);
     if (r.ok){
       closeModal();
-      toast('✅ ' + loc('வணக்கம், ' + ((r.name || '').split(' ')[0] || '!') + '! எல்லா சாதனம் ஒன்றாக ஒன்று 🎉', 'பொருவுகுகளு லைவு!', 'பாவதெந்து ஒந்றா஗ி஦ெ!', 'Welcome back! Your data is here 🎉'));
+      toast('✅ ' + loc('வணக்கம், ' + ((r.name || '').split(' ')[0] || '!') + '! உங்க டேட்டா இருக்கு 🎉', 'వెల్‌కమ్! మీ డేటా ఇక్కడ ఉంది 🎉', 'ವೆಲ್‌ಕಮ್! ನಿಮ್ಮ ಡೇಟಾ ಇಲ್ಲಿದೆ 🎉', 'Welcome back! Your data is here 🎉'));
       try{ rerenderPage(); }catch(e){ try{ location.reload(); }catch(e2){} }
     } else {
       toast('⚠️ ' + (r.msg || 'Login failed'));
-      if (go){ go.textContent = '🔓 Login'; go.disabled = false; }
+      if (r.needSignup){ showTab(true); const sp = document.getElementById('suPhone'); if (sp && !sp.value) sp.value = ph.replace(/\D/g, ''); }   /* no account → straight to Sign Up */
+      if (go){ go.textContent = '🔓 ' + loc('உள்ளேறு', 'లాగిన్', 'ಲಾಗಿನ್', 'Login'); go.disabled = false; }
     }
   };
   if (go) go.addEventListener('click', doLogin);
   const inp = document.getElementById('lgPin');
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  /* 🆕 SIGN UP (real Firestore account) */
+  const su = document.getElementById('suGo');
+  const doSignup = async () => {
+    const nm = ((document.getElementById('suName') || {}).value || '').trim();
+    const ph = ((document.getElementById('suPhone') || {}).value || '').replace(/\D/g, '');
+    const pn = ((document.getElementById('suPin') || {}).value || '').trim();
+    if (su){ su.textContent = '⏳ ' + loc('கணக்கு உருவாக்குகிறது…', 'ఖాతా సృష్టిస్తున్నాం…', 'ಖಾತೆ ಸೃಷ್ಟಿಸುತ್ತಿದ್ದೇವೆ…', 'Creating…'); su.disabled = true; }
+    const r = await Auth.signup(nm, ph, pn);
+    if (r.ok){
+      closeModal();
+      toast('🎉 ' + loc('கணக்கு தயார்! வணக்கம், ' + ((r.name || '').split(' ')[0] || '') + '!', 'ఖాతా సిద్ధం! వెల్‌కమ్!', 'ಖಾತೆ ಸಿದ್ಧ! ವೆಲ್‌ಕಮ್!', 'Account created! Welcome!'));
+      try{ rerenderPage(); }catch(e){ try{ location.reload(); }catch(e2){} }
+    } else {
+      toast('⚠️ ' + (r.msg || 'Sign up failed'));
+      if (su){ su.textContent = '🚀 ' + loc('கணக்கு உருவாக்கு', 'ఖాతా సృష్టించు', 'ಖಾತೆ ಸೃಷ್ಟಿಸಿ', 'Create Account'); su.disabled = false; }
+    }
+  };
+  if (su) su.addEventListener('click', doSignup);
+  const sin = document.getElementById('suPin');
+  if (sin) sin.addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
 }
+
+/* 🔑 LOGIN / LOGOUT links — drawer, footer, profile & account card.
+   (Global handler: tapping "🔑 Login" anywhere opens the login modal,
+   "🔓 Sign Out" logs out and refreshes the page.) */
+document.addEventListener('click', function(e){
+  const lg = e.target.closest('[data-login]');
+  if (lg){
+    e.preventDefault();
+    try{ closeDrawer(); }catch(err){}
+    try{ openLoginModal(); }catch(err2){ console.warn(err2); }
+    return;
+  }
+  const lo = e.target.closest('[data-logout]');
+  if (lo){
+    e.preventDefault();
+    try{ Auth.logout(); }catch(err){}
+    try{ closeDrawer(); }catch(err){}
+    try{ closeModal(); }catch(err2){}
+    toast('🔓 ' + loc('வெளியேறிவிட்டீர்கள்', 'లాగ్అవుట్ అయింది', 'ಲಾಗ್ಅವುಟ್ ಆಗಿದೆ', 'Logged out'));
+    try{ rerenderPage(); }catch(err3){ try{ location.reload(); }catch(e4){} }
+  }
+});
+
 
 document.addEventListener('click', function(e){
   /* add to cart (from cards, product page, wishlist) */
@@ -4192,6 +4429,23 @@ document.addEventListener('click', function(e){
       const reel = rs.closest('.rp-reel');
       saveReelImage(byId(rs.dataset.rpsave), reel ? reel.dataset.q : '');
     }catch(e2){}
+    return;
+  }
+  /* 📲 reel STATUS — full 9:16 WhatsApp status photo (share or download) */
+  const rst = e.target.closest('[data-rpstatus]');
+  if (rst){
+    e.preventDefault();
+    try{
+      const reel = rst.closest('.rp-reel');
+      saveReelStatus(byId(rst.dataset.rpstatus), reel ? reel.dataset.q : '');
+    }catch(e2){}
+    return;
+  }
+  /* 💰 reels EARN — register / dashboard modal (share & earn) */
+  const rea = e.target.closest('[data-rpearn]');
+  if (rea){
+    e.preventDefault();
+    try{ reelEarnModal(); }catch(e2){}
     return;
   }
   /* ✍️ post comment from the reel comment box */
