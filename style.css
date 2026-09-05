@@ -3277,3 +3277,122 @@ h1{ letter-spacing:-.4px }
   .pd-btns{ flex-direction:column }
   .pd-btns .btn{ width:100%; min-height:52px; font-size:1rem }
 }
+
+/* ============================================================================
+   🛒 SHOPPING REELS v6 — sales funnel: video → product info → price → BUY
+   (clean top bar · 3 rail actions · glass product card)
+   ========================================================================== */
+/* ☰ minimal top bar on reels — the saree gets the attention, not the menu */
+body[data-page="reels"] .topbar{ height:48px; background:linear-gradient(180deg,rgba(10,4,8,.55),rgba(10,4,8,0)); box-shadow:none }
+body[data-page="reels"] .topbar-in{ height:48px; gap:4px }
+body[data-page="reels"] .logo span{ display:none }                       /* brand text off */
+body[data-page="reels"] .logo-badge{ width:34px; height:34px; border-radius:10px }
+body[data-page="reels"] .desk-nav,
+body[data-page="reels"] .header-greet{ display:none !important }          /* nav links off */
+body[data-page="reels"] .top-actions .icon-btn{ display:none }            /* profile icon off… */
+body[data-page="reels"] .top-actions .icon-btn:last-child{ display:flex } /* …cart stays (shopping!) */
+body[data-page="reels"] .top-actions .icon-btn:last-child{ color:#fff; background:rgba(0,0,0,.30); border-radius:11px }
+body[data-page="reels"] .burger{ color:#fff; background:rgba(0,0,0,.30); border-radius:11px; width:40px; height:38px }
+/* rail — exactly 3 actions, vertically centred beside the video */
+.rp-actions{
+  top:47%; bottom:auto; transform:translateY(-50%);
+  right:8px; gap:16px;
+}
+.rpa .rpa-ic.rpa-wa{
+  background:rgba(18,140,126,.42);
+  box-shadow:0 3px 10px rgba(18,140,126,.5), inset 0 0 0 1.5px rgba(37,211,102,.55);
+}
+/* quote sits above the product card (never crowded) */
+.rp-quote{ padding-bottom:calc(180px + env(safe-area-inset-bottom)) }
+/* 🛍️ the product card — everything needed to buy, in one clean glass card */
+.rp-bottom{
+  position:absolute; left:10px; right:10px;
+  bottom:calc(10px + env(safe-area-inset-bottom));
+}
+.rp-card{
+  background:rgba(18,9,14,.78);
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:16px; padding:12px 14px 13px; color:#fff;
+  box-shadow:0 8px 26px rgba(0,0,0,.45);
+}
+.rpc-title{
+  display:block; font-size:.9rem; line-height:1.35; font-weight:800;
+  margin-bottom:6px; letter-spacing:.2px;
+}
+.rpc-price s{ opacity:.6; font-size:.92rem; font-weight:700; margin-right:8px }
+.rpc-price b{ font-size:1.4rem; font-weight:900; color:#ffd98a; letter-spacing:.3px }
+.rpc-off{
+  display:inline-block; vertical-align:4px; margin-left:8px;
+  background:#c2255c; color:#fff; font-size:.62rem; font-weight:900;
+  border-radius:999px; padding:3px 9px; letter-spacing:.4px;
+}
+.rpc-trust{
+  margin-top:5px; font-size:.68rem; font-weight:800; color:#b9f2cf;
+  letter-spacing:.3px;
+}
+.rpc-urg{
+  margin-top:4px; font-size:.72rem; font-weight:900; color:#ffd98a;
+}
+.rpc-buy{
+  display:flex; width:100%; min-height:50px; margin-top:9px;
+  align-items:center; justify-content:center;
+  font-size:1.02rem; font-weight:900; letter-spacing:.4px;
+  animation:rpcPulse 2.4s ease-in-out infinite;
+}
+@keyframes rpcPulse{
+  0%, 100%{ box-shadow:0 6px 18px rgba(224,0,50,.4) }
+  50%{ box-shadow:0 6px 26px rgba(224,0,50,.75) }
+}
+.rpc-wa{
+  display:flex; width:100%; min-height:44px; margin-top:8px;
+  align-items:center; justify-content:center;
+  font-size:.88rem; font-weight:800;
+}
+/* desktop: keep the funnel identical, just roomier */
+@media(min-width:900px){
+  .rp-bottom{ left:calc(50% - 230px); right:calc(50% - 230px) }
+  .rp-card{ padding:15px 18px 16px }
+  .rpc-title{ font-size:1rem }
+  .rpc-price b{ font-size:1.6rem }
+}
+
+/* ============================================================================
+   🎯 PRODUCT FIRST SCREEN — trust chips, green BUY NOW, real-photo block
+   (photo → name → rating → price → trust → BUY — all visible on load)
+   ========================================================================== */
+/* 🛡️ trust chips — right under the price */
+.pd-trust{ display:flex; flex-wrap:wrap; gap:6px; margin:9px 0 2px }
+.pd-trust span{
+  background:#e9f7ef; color:#1e7d46; font-size:.66rem; font-weight:900;
+  border-radius:999px; padding:5px 11px; letter-spacing:.2px; white-space:nowrap;
+}
+.pd-trust span:nth-child(2){ background:#fff3e0; color:#b26a00 }
+.pd-trust span:nth-child(3){ background:#fdf0f3; color:#c2255c }
+.pd-trust span:nth-child(4){ background:#e3f2fd; color:#1565c0 }
+/* 🟢 BUY NOW — big green primary (price ON the button) */
+.btn-buygreen{
+  background:linear-gradient(0deg,#0a7a40,#12a456 55%,#26c46e);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(16,140,80,.45);
+}
+.btn-buygreen:active{ transform:scale(.98) }
+.pd-btns .btn-buygreen{ flex:1.35; font-size:1.02rem; letter-spacing:.4px }
+/* 📸 real photo / video block */
+.pd-realphoto{
+  margin-top:10px; display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,#fdf6e3,#fff);
+  border:1.5px dashed #e8c66a; border-radius:13px; padding:10px 12px;
+}
+.pd-realphoto .prp-txt{ flex:1; min-width:0 }
+.pd-realphoto .prp-txt b{ display:block; font-size:.8rem; color:#5c4a1e; line-height:1.4 }
+.pd-realphoto .prp-txt small{ color:#8a7a70; font-size:.68rem; font-weight:700 }
+.pd-realphoto .btn{ width:auto; min-width:132px; flex:0 0 auto; min-height:44px }
+/* 📱 mobile — photo capped so name+price+BUY fit the FIRST screen */
+@media(max-width:640px){
+  .pd-gal .main{ min-height:auto }
+  .pd-gal .main img{ max-height:44vh; width:100%; height:auto; object-fit:cover }
+  .pd-realphoto{ flex-direction:column; text-align:center; align-items:stretch; gap:8px }
+  .pd-realphoto .btn{ width:100%; min-width:0 }
+  .pd-trust span{ font-size:.6rem; padding:4px 9px }
+}

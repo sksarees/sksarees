@@ -37,7 +37,6 @@ async function init(){
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
   try{ startActiveEngine(); }catch(e){} /* ⏱️ counts REAL browsing seconds (visible tab only) */
   try{ maybeAskName(); }catch(e){}      /* 👤 1st visit: ask her name after 1 min of REAL browsing */
-  try{ maybeScratchCard(); }catch(e){}  /* 🎁 Scratch & Win after 2 min of browsing (viral) */
   try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
   try{ startOfferTimers(); }catch(e){}  /* ⏰ Meesho-style "offer ends in" countdowns */
   try{ initReelCards(); }catch(e){}     /* 🎞️ swipeable shop cards */
@@ -776,31 +775,40 @@ function reelHTML(p, i){
   const q = reelQuoteFor(p, i);
   const liked = !!LS.get('sk_reel_liked_' + p.id, 0);
   const likes = reelCountOf(p.id);   /* 🔥 global Firestore count */
-  const cmts = realReviewCount(p.id);
-  const saved = Store.wish.includes(p.id);
+  const off = offPct(p);
+  const price = p.price || 0;
+  const stockLeft = (p.stock != null && p.stock > 0) ? +p.stock : null;
+  /* 🛒 SHOPPING REEL — funnel: video → product info → price → BUY.
+     Clean top (menu lives in the site bar), only 3 rail actions, and a
+     glass product card at the bottom with everything needed to decide. */
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
     '<img class="rp-img" src="' + esc(reelImgSrc(p)) + '" data-orig="' + esc(p.img || '') + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="if(this.dataset.orig){var o=this.dataset.orig;this.removeAttribute(\'data-orig\');this.src=o;}else{imgSafe(this);}">' +
     '<div class="rp-shade"></div>' +
-    '<div class="rp-top"><b>🎬 SK Sarees</b><small>' + rloc('சேலை ரீல்ஸ் — தினமும் வாழ்த்துக்கள்', 'చీర రీల్స్ — రోజు శుభాకాంక్షలు', 'ಸೀರೆ ರೀಲ್ಸ್ — ದಿನನಿತ್ಯ ಶುಭಾಶಯಗಳು', 'Saree reels — daily wishes') + '</small>' +
-      '<button type="button" class="rp-earn-chip" data-rpearn="1" aria-label="Share and Earn">💰 <span>' + rloc('வருமானம்', 'సంಪాదన', 'ಆದಾಯ', 'Earn') + '</span></button></div>' +
     '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
-    /* Instagram-style action rail */
+    /* rail — ❤️ Like · 💬 WhatsApp · ↗ Share (3 actions only) */
     '<div class="rp-actions">' +
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
-      '<button type="button" class="rpa" data-rpcomment="' + esc(p.id) + '" aria-label="Comments"><span class="rpa-ic">💬</span><small>' + (cmts || '') + '</small></button>' +
-      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">🔁</span><small>' + (reelSharesOf(p.id) > 0 ? reelSharesOf(p.id) : rloc('பகிர்', 'షేర్', 'ಶೇರ್', 'Share')) + '</small></button>' +
-      '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + rloc('படம்', 'நிறுவு', 'லோட்', 'Save') + '</small></button>' +
-      '<button type="button" class="rpa rp-status" data-rpstatus="' + esc(p.id) + '" aria-label="Set as WhatsApp Status"><span class="rpa-ic">📲</span><small>' + rloc('ஸ்டேட்டஸ்', 'స్టేటస్', 'ಸ್ಟೇಟಸ್', 'Status') + '</small></button>' +
-      '<a class="rpa" href="' + esc(CONFIG.social.youtube || 'https://www.youtube.com/') + '" target="_blank" rel="noopener" aria-label="Audio"><span class="rpa-ic rp-disc"><i>♪</i></span><small>Audio</small></a>' +
+      '<a class="rpa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><span class="rpa-ic rpa-wa">💬</span><small>' + rloc('ஆர்டர்', 'ఆర్డర్', 'ಆర్డర్', 'Order') + '</small></a>' +
+      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">↗</span><small>' + (reelSharesOf(p.id) > 0 ? reelSharesOf(p.id) : rloc('பகிர்', 'షేర్', 'ಶేర్', 'Share')) + '</small></button>' +
     '</div>' +
-    '<div class="rp-bottom">' +
-      '<div class="rp-prod"><b>' + esc(smartTitle(p)) + '</b><span>₹' + (p.price || 0).toLocaleString('en-IN') + '</span></div>' +
-      '<div class="rp-btns">' +
-        '<a class="btn btn-gold rp-shop" href="product.html?id=' + encodeURIComponent(p.id) + '">🛍️ ' + rloc('இந்த சேலையை வாங்கு', 'ఈ చీరా కొను', 'ಈ ಆಟವಿನ್ನು ತೆಗೆದು', 'Shop this saree') + '</a>' +
+    /* 🛍️ product card — title → price → trust → urgency → BUY NOW → WhatsApp */
+    '<div class="rp-bottom"><div class="rp-card">' +
+      '<b class="rpc-title">' + esc(smartTitle(p)) + '</b>' +
+      '<div class="rpc-price">' +
+        (p.mrp && p.mrp > price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') +
+        '<b>₹' + price.toLocaleString('en-IN') + '</b>' +
+        (off >= 5 ? '<span class="rpc-off">🔥 ' + off + '% OFF</span>' : '') +
       '</div>' +
-    '</div>' +
+      '<div class="rpc-trust">🚚 COD Available • Fast Delivery</div>' +
+      '<div class="rpc-urg">🔥 ' + rloc('இன்னிக்கு இந்த சேலை ₹' + price.toLocaleString('en-IN') + ' மட்டும்', 'ఈ రోజు ఈ చీర ₹' + price.toLocaleString('en-IN') + ' మాత్రమే', 'ಇಂದು ಈ ಸೀರೆ ₹' + price.toLocaleString('en-IN') + ' ಮಾತ್ರ', 'Today only — ₹' + price.toLocaleString('en-IN')) +
+        (stockLeft && stockLeft <= 5 ? ' • 👗 ' + rloc('கடைசி ' + stockLeft + ' பீஸ்!', 'చివరి ' + stockLeft + ' ముక్కలు!', 'ಕೊನೆಯ ' + stockLeft + ' ತುಣುಕುಗಳು!', 'Only ' + stockLeft + ' left!') : '') +
+      '</div>' +
+      '<a class="btn btn-buy rpc-buy" href="product.html?id=' + encodeURIComponent(p.id) + '">🛒 BUY NOW — ₹' + price.toLocaleString('en-IN') + '</a>' +
+      '<a class="btn btn-wa rpc-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 ' + rloc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
+    '</div></div>' +
   '</section>';
 }
+
 function renderReelsPage(){
   const app = document.getElementById('app'); if (!app) return;
   __reelsState = { order: reelsProductOrder(), next: 0, qi: 0 };
@@ -1538,7 +1546,7 @@ function landingCardHTML(p){
       '<div class="lpc-price">' + (p.mrp && p.mrp > p.price ? '<s>' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b></div>' +
       '<span class="lpc-trust">⭐ ' + (p.rating || 4.5) + '/5' + (revs > 0 ? ' • ' + revs + ' reviews' : '') + ' • 🚚 Fast Delivery • 💵 COD</span>' +
       '<div class="lpc-btns">' +
-        '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW ' + money(onlinePrice(p)) + '</a>' +
+        '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>' +
         '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Order</a>' +
       '</div>' +
     '</div>' +
@@ -2230,122 +2238,7 @@ async function shareSite(){
   try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
 }
 
-/* ============================ 🎁 SCRATCH & WIN (viral daily coupon) ============================
-   Once a day a golden scratch card pops in: she scratches with her finger →
-   wins a coupon (real % code) → coupon AUTO-APPLIES at checkout → and she can
-   share her luck with friends on WhatsApp (viral loop!). All local, zero
-   Firestore. Deterministic per day — everyone gets a stable code each day. */
-function scratchPickCoupon(){
-  try{
-    const list = getCoupons().filter(c => c && c.active && !couponExpired(c) && c.type === 'percent' && (+c.value) >= 1);
-    if (!list.length) return { code: 'SHARE5', pct: 5 };
-    let h = 0;
-    const s = 'sk-scratch-' + new Date().toDateString();
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    const c = list[h % list.length];
-    return { code: String(c.code).trim().toUpperCase(), pct: +c.value };
-  }catch(e){ return { code: 'SHARE5', pct: 5 }; }
-}
-function maybeScratchCard(){
-  try{
-    const today = new Date().toDateString();
-    if (LS.get('sk_scratch_day', '') === today) return;   /* already played today */
-    /* ⏱️ comes after 2 FULL MINUTES of real browsing — she's engaged, the gift
-       feels earned (and never interrupts her first browse) */
-    const iv = setInterval(() => {
-      try{
-        if (LS.get('sk_scratch_day', '') === today){ clearInterval(iv); return; }
-        if (activeMs() < 120000) return;
-        clearInterval(iv);
-        if (document.querySelector('#modalRoot .modal')) return;  /* popup busy — next page retries */
-        openScratchCard();
-      }catch(e){}
-    }, 2000);
-  }catch(e){}
-}
-function openScratchCard(){
-  const won = scratchPickCoupon();
-  LS.set('sk_scratch_won', won.code);
-  LS.set('sk_scratch_day', new Date().toDateString());
-  openModal(
-    '<div class="sc-card">' +
-      '<div class="sc-emoji">🎁</div>' +
-      '<h3 class="sc-title">' + loc('ஸ்கிராட்ச் செய்து வெல்லுங்கள்!', 'స్క్రాచ్ చేసి గెలవండి!', 'ಸ್ಕ್ರಾಚ್ ಮಾಡಿ ಗೆಲ್ಲಿ!', 'Scratch & Win!') + '</h3>' +
-      '<p class="sc-sub">' + loc('இன்று உங்களுக்கான அதிர்ஷ்ட கூப்பன் — விரலால் ஸ்கிராட்ச் பண்ணுங்க ✨', 'ఈ రోజు మీ అదృష్ట కూపన్ — వేలితో స్క్రాచ్ చేయండి ✨', 'ಇಂದು ನಿಮ್ಮ ಅದೃಷ್ಟದ ಕೂಪನ್ — ಬೆರಳಿಂದ ಸ್ಕ್ರಾಚ್ ಮಾಡಿ ✨', 'Today\'s lucky coupon — scratch with your finger ✨') + '</p>' +
-      '<div class="sc-wrap">' +
-        '<div class="sc-prize"><b class="sc-pct">' + won.pct + '% OFF</b><span class="sc-code">' + esc(won.code) + '</span><small>' + loc('செக்அவுட்டில் தானாக apply ஆகும்!', 'చెక్అవుట్‌లో ఆటో apply అవుతుంది!', 'ಚೆಕ್ಔಟ್‌ನಲ್ಲಿ ಆಟೋ apply ಆಗುತ್ತದೆ!', 'auto-applied at checkout!') + '</small></div>' +
-        '<canvas id="scCanvas" class="sc-canvas" width="600" height="240"></canvas>' +
-      '</div>' +
-      '<button type="button" class="btn btn-maroon btn-xl" id="scShop">🛍️ ' + loc('இந்த சலுகையுடன் ஷாப் செய்யுங்கள்', 'ఈ ఆఫర్‌తో షాప్ చేయండి', 'ಈ ಆಫರ್‌ನೊಂದಿಗೆ ಶಾಪ್ ಮಾಡಿ', 'Shop with this offer') + '</button>' +
-      '<div class="sc-btns">' +
-        '<button type="button" class="btn btn-wa btn-sm" id="scShare" style="flex:1;min-width:140px">📢 ' + loc('நண்பர்களுக்கு பகிர்', 'స్నేహితులతో షేర్', 'ಗೆಳೆಯರೊಂದಿಗೆ ಹಂಚಿ', 'Share with friends') + '</button>' +
-        '<button type="button" class="np-skip" data-close style="flex:0 0 auto">' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
-      '</div>' +
-    '</div>');
-  drawScratch();
-  const shopBtn = document.getElementById('scShop');
-  if (shopBtn) shopBtn.addEventListener('click', () => { closeModal(); try{ location.href = 'shop.html'; }catch(e){} });
-  const shBtn = document.getElementById('scShare');
-  if (shBtn) shBtn.addEventListener('click', () => shareScratchWin(won));
-}
-/* ✍️ the scratch surface — finger/mouse erases the golden foil */
-function drawScratch(){
-  try{
-    const c = document.getElementById('scCanvas'); if (!c) return;
-    const ctx = c.getContext && c.getContext('2d'); if (!ctx) return;   /* very old browser → prize simply shows */
-    ctx.fillStyle = '#cdb694';
-    ctx.fillRect(0, 0, c.width, c.height);
-    ctx.fillStyle = 'rgba(255,255,255,.28)';
-    for (let i = 0; i < 70; i++){ ctx.beginPath(); ctx.arc(Math.random() * c.width, Math.random() * c.height, Math.random() * 2.2 + .6, 0, 7); ctx.fill(); }
-    ctx.fillStyle = '#6b4c05';
-    ctx.font = 'bold 34px Georgia, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('👆 SCRATCH HERE', c.width / 2, c.height / 2 - 6);
-    ctx.font = '17px Georgia, serif';
-    ctx.fillStyle = '#8a6d1d';
-    ctx.fillText(loc('விரலால் தேயுங்கள்…', 'వేలితో రుద్దండి…', 'ಬೆರಳಿಂದ ಉಜ್ಜಿ…', 'rub with your finger…'), c.width / 2, c.height / 2 + 28);
-    let down = false, strokes = 0, done = false;
-    const pt = (e) => {
-      const r = c.getBoundingClientRect();
-      const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
-      return { x: (t.clientX - r.left) * (c.width / r.width), y: (t.clientY - r.top) * (c.height / r.height) };
-    };
-    const scratchAt = (x, y) => {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.beginPath(); ctx.arc(x, y, 38, 0, Math.PI * 2); ctx.fill();
-      strokes++;
-      if (strokes > 24 && !done){ done = true; onScratchRevealed(); }
-    };
-    c.addEventListener('pointerdown', e => { down = true; const p = pt(e); scratchAt(p.x, p.y); });
-    c.addEventListener('pointermove', e => { if (!down) return; const p = pt(e); scratchAt(p.x, p.y); });
-    window.addEventListener('pointerup', () => { down = false; });
-    c.addEventListener('touchstart', e => { down = true; const p = pt(e); scratchAt(p.x, p.y); try{ e.preventDefault(); }catch(e2){} }, { passive: false });
-    c.addEventListener('touchmove', e => { if (!down) return; const p = pt(e); scratchAt(p.x, p.y); try{ e.preventDefault(); }catch(e2){} }, { passive: false });
-  }catch(e){}
-}
-/* 🎉 scratch complete → auto-apply the won coupon + celebration */
-function onScratchRevealed(){
-  try{
-    const code = LS.get('sk_scratch_won', '');
-    if (code && !co.data.coupon){ co.data.coupon = code; try{ saveCoDraft(); }catch(e){} }
-    const cv = document.getElementById('scCanvas');
-    if (cv){ cv.style.transition = 'opacity .5s'; cv.style.opacity = '0'; cv.style.pointerEvents = 'none'; }
-    toast('🎉 ' + (code ? code + ' — ' : '') + loc('கூப்பன் கிடைச்சது! செக்அவுட்டில் ready 🎁', 'కూపన్ గెలిచారు! చెక్అవుట్‌లో ready 🎁', 'ಕೂಪನ್ ಗೆದ್ದಿರಿ! ಚೆಕ್ಔಟ್‌ನಲ್ಲಿ ready 🎁', 'coupon unlocked — ready at checkout 🎁'));
-  }catch(e){}
-}
-/* 📢 share the win — viral loop: friends scratch their own coupon */
-function shareScratchWin(won){
-  try{
-    const url = (CONFIG.siteUrl || location.origin) + '/';
-    const msg = loc(
-      '🎁 நான் SK Sarees-ல ' + won.pct + '% OFF கூப்பன் வென்றேன்! நீங்களும் முயற்சி செய்யுங்கள் 🎉\n\n👉 ' + url + '\n\n🪡 அழகான சேலைகள் • ₹649 முதல் • இலவச டெலிவரி ₹999+',
-      '🎁 నేను SK Sarees లో ' + won.pct + '% OFF కూపన్ గెలిచాను! మీరు కూడా ప్రయత్నించండి 🎉\n\n👉 ' + url + '\n\n🪡 అందమైన చీరలు • ₹649 నుండి • ఫ్రీ డెలివరీ ₹999+',
-      '🎁 ನಾನು SK Sarees ನಲ್ಲಿ ' + won.pct + '% OFF ಕೂಪನ್ ಗೆದ್ದೆ! ನೀವೂ ಪ್ರಯತ್ನಿಸಿ 🎉\n\n👉 ' + url + '\n\n🪡 ಅಂದವಾದ ಸೀರೆಗಳು • ₹649 ರಿಂದ • ಉಚಿತ ಡೆಲಿವರಿ ₹999+',
-      '🎁 I just won ' + won.pct + '% OFF at SK Sarees — try your luck! 🎉\n\n👉 ' + url + '\n\n🪡 Beautiful sarees • from ₹649 • FREE delivery ₹999+');
-    try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
-  }catch(e){}
-}
-
+/* 🎫 Scratch & Win REMOVED on request (2026-09-05) — clean shopping focus */
 /* ============================ ✨ AI STYLE QUIZ ============================
    3 taps — occasion · budget · colour vibe → AI curates her personal
    collection instantly (taste engine + quiz filters). Answers also FEED the
@@ -2844,20 +2737,25 @@ function renderProduct(){
         starsHTML(p) +
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
         '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-        /* 🚚 ONE clear shipping rule everywhere (same as hero/cart/checkout) */
-        '<div class="pd-ship">🚚 <b>FREE</b> delivery above ₹999 (else ₹30/saree) • 💵 COD <b>₹' + CONFIG.codFee + '</b> booking only • 🔁 7-day replacement</div>' +
+        /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
+        '<div class="pd-trust"><span>🚚 Fast Delivery</span><span>💵 COD Available</span><span>↩️ 7-Day Replacement</span><span>🔒 Secure UPI</span></div>' +
+        /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
+        '<div class="pd-ship">💵 <b>COD Available</b> — booking ₹' + CONFIG.codFee + ' only • 🚚 Delivery <b>2–5 days</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 999) + '</div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '') +
-        /* 🛒 TWO CLEAR CTAs — BUY NOW first, then Order on WhatsApp */
+        /* 🟢 BUY NOW — the hero CTA (price ON the button), WhatsApp right under */
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ BUY NOW ' + money(onlinePrice(p)) + '</a>') +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
+            : '<a class="btn btn-buygreen btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
+          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp Order — Instant Confirmation', 'WhatsApp ఆర్డర్ — వెంటనే కన్ఫర్మేషన్', 'WhatsApp ಆರ್ಡರ್ — ತಕ್ಷಣ ದೃಢೀಕರಣ', 'WhatsApp Order — Instant Confirmation') + '</a>' +
         '</div>' +
+        /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
+        '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
+          '<a class="btn btn-maroon" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTO', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTO') + '</a></div>' +
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
           (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'வண்டியில் சேர்', 'Add to Cart', 'Add to Cart') + '</button>') +
@@ -2940,9 +2838,9 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '⚡ BUY NOW ' + money(onlinePrice(p) * n); }
+    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '⚡ BUY NOW ' + money(onlinePrice(p) * n); }
+    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
