@@ -1135,7 +1135,7 @@ function waProductMsg(p){
      if the sharer is a reseller the link carries ?ref=CODE (any page) */
   const url = shareUrl(p);
   const off = offPct(p);
-  return `🪡 Hi! I found this beautiful saree on SK Sarees 🛍️\n\n✨ ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n📱 Order in 2 minutes — COD & UPI available, fast delivery!\n👉 ${url}\n\nIs it available? Please confirm 😊`;
+  return `🪡 Hi! I want to order this saree from SK Sarees 🛍️\n\n✨ ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n👉 ${url}\n\nPlease send more saree photos & confirm availability 😊`;
 }
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';

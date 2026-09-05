@@ -1520,105 +1520,113 @@ function nextFestivalChip2026(){
   }catch(e){ return ''; }
 }
 /* ============================ HOME ============================ */
+/* ============================ HOME — 🎯 SALES LANDING PAGE ============================
+   One goal: "which saree to buy?" — offer hero → 5 BEST SELLERS (BUY NOW +
+   WhatsApp Order) → real customer reviews → Why SK Sarees? → categories.
+   Everything else (AI picks, weaver story, festival calendar, FAQ, video
+   catalog…) is trimmed — catalog page became a sales landing page. */
+function landingCardHTML(p){
+  const off = offPct(p);
+  const revs = (p.reviews || 0) + realReviewCount(p.id);
+  return '<div class="lpc">' +
+    '<a class="lpc-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
+      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+      (off >= 5 ? '<span class="lpc-off">🔥 ' + off + '% OFF</span>' : '') +
+    '</a>' +
+    '<div class="lpc-b">' +
+      '<a href="product.html?id=' + encodeURIComponent(p.id) + '"><b>' + esc(smartTitle(p)) + '</b></a>' +
+      '<div class="lpc-price">' + (p.mrp && p.mrp > p.price ? '<s>' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b></div>' +
+      '<span class="lpc-trust">⭐ ' + (p.rating || 4.5) + '/5' + (revs > 0 ? ' • ' + revs + ' reviews' : '') + ' • 🚚 Fast Delivery • 💵 COD</span>' +
+      '<div class="lpc-btns">' +
+        '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW ' + money(onlinePrice(p)) + '</a>' +
+        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Order</a>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+/* 🤝 Why SK Sarees? — 6 honest trust tiles */
+function whyUsHTML(){
+  const items = [
+    ['💵', 'COD Available', '₹70 booking only — balance at delivery'],
+    ['🚚', 'Fast Delivery', 'Dispatch 12–24h • TN 2–4 days'],
+    ['✅', 'Quality Checked', 'Every saree hand-inspected'],
+    ['🔄', 'Easy Replacement', '7-day replacement for issues'],
+    ['⭐', '2,300+ Customers', 'Trusted across Tamil Nadu & India'],
+    ['📺', 'YouTube Live', 'Live shopping — see before you buy'],
+  ];
+  return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🤝 Why SK Sarees?</h2></div>' +
+    '<div class="why-grid">' + items.map(i => '<div class="why-tile"><span>' + i[0] + '</span><b>' + i[1] + '</b><small>' + i[2] + '</small></div>').join('') + '</div></section>';
+}
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
-  const best = PRODUCTS.filter(p => !p.hidden && p.badge === 'Bestseller').slice(0, 4);
-  const fresh = PRODUCTS.filter(p => !p.hidden && p.badge === 'New').slice(0, 4);
-  const deals = PRODUCTS.filter(p => !p.hidden && offPct(p) >= 35).slice(0, 4);
+  /* 🔥 5 BEST SELLERS — badge products first, then top-rated fill */
+  const pool = PRODUCTS.filter(p => !p.hidden && (+p.price || 0) >= 100);
+  const best = pool.filter(p => p.badge === 'Bestseller');
+  const fill = pool.filter(p => p.badge !== 'Bestseller')
+    .sort((a, b) => (((b.rating || 0) * 10) + (b.reviews || 0)) - (((a.rating || 0) * 10) + (a.reviews || 0)));
+  const five = best.concat(fill).slice(0, 5);
+  /* 💰 honest "starting at" price — from the LIVE catalog, never a fake number */
+  let starting = 0;
+  try{ const ps = pool.map(p => +p.price || 0).filter(x => x > 0); if (ps.length) starting = Math.min.apply(null, ps); }catch(e){}
+  /* 🛟 categories that actually have sarees in stock (no "0 designs" tiles) */
+  const liveCats = CATEGORIES
+    .map(c => ({ c: c, n: PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length }))
+    .filter(x => x.n > 0).sort((a, b) => b.n - a.n);
   app.innerHTML = personalGreetHTML() +
-    '<section class="hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
-      '<span class="hero-chip">🔥 ' + (lang === 'ta' ? 'ஆடி திருவிழா சலுகை — 40% வரை தள்ளுபடி' : 'Aadi Festival Sale — Up to 40% OFF') + '</span>' +
+    /* 🔥 HERO — today's offer + the 2 CTAs a buyer needs */
+    '<section class="hero lpd-hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
+      '<span class="hero-chip lpd-chip">🔥 TODAY ONLY — SAREES STARTING ₹' + starting + '</span>' +
       '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
-      '<p>' + (lang === 'ta' ? t('heroSub') : 'Authentic Kanchipuram silk, soft cotton &amp; wedding sarees. Order in 2 minutes — pay by UPI or Cash on Delivery.') + '</p>' +
+      '<p class="lpd-sub">🚚 Fast Delivery • 💵 COD Available • ⭐ 2,300+ Happy Customers</p>' +
       '<div class="hero-ctas">' +
-        '<a class="btn btn-gold" href="shop.html">🛍️ ' + (lang === 'ta' ? t('shopBest') : 'Shop Best Sellers') + '</a>' +
-        '<a class="btn btn-wa" href="' + waLink('Hi! I would like to see your saree collection & current offers.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp</a>' +
+        '<a class="btn btn-gold btn-xl" href="shop.html">🛍️ SHOP NOW</a>' +
+        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I want to buy a saree. Please send me your latest saree photos & prices 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
       '</div>' +
-      '<div class="hero-trust"><span>⭐ <b>2,300+</b> Happy Customers</span><span>🚚 <b>Free</b> above ₹999</span></div>' +
-      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 ' + (lang === 'ta' ? t('searchHero') : 'Search by saree name, SKU or colour…') + '" autocomplete="off"><button type="submit" class="btn btn-gold">' + (lang === 'ta' ? t('search') : 'Search') + '</button></form>' +
+      '<p class="lpd-ship">🚚 FREE delivery above ₹999 (else ₹30/saree) • 💵 COD ₹' + CONFIG.codFee + ' booking only</p>' +
+      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search sarees, colour, SKU…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
     '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
-        '<div class="cat-grid">' + CATEGORIES.slice(0, 12).map(c => {
-          const count = PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length;
-          return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
-            '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
-            '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
-            '<span class="ct-count">' + count + ' designs • ' + c.blurb + '</span></div></a>';
-        }).join('') + '</div></section>' +
-    '<section class="flash" id="flashSec"><div><h3>⚡ ' + (lang === 'ta' ? 'இன்றைய சிறப்பு சலுகை' : 'Flash Sale — Today Only') + '</h3><p>' + (lang === 'ta' ? 'தேர்ந்தெடுத்த சேலைகளில் 40% வரை தள்ளுபடி — சீக்கிரம் வாங்குங்கள்!' : 'Up to 40% OFF on selected sarees. Hurry, stock is limited!') + '</p></div><div class="flash-timer" id="flashTimer"></div></section>' +
-    dealOfDayHTML() +
-    likedSareesHTML() +        /* ❤️ "{Name}'s Liked Sarees" */
-    tastePicksHTML(6) +        /* ✨ "{Name} Will Love" — taste engine */
-    recentViewHTML() +
-    '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
-      '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
-      '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>5% off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
-      '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
-      '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
-    '</section></div>' +
     '<div class="wrap">' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ ' + (lang === 'ta' ? t('bestSellers') : 'Best Sellers') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
-        '<div class="prow">' + best.map(cardHTML).join('') + '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>✨ ' + (lang === 'ta' ? t('newIn') : 'New Arrivals') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
-        '<div class="prow">' + fresh.map(cardHTML).join('') + '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 ' + (lang === 'ta' ? t('deals') : 'Today\'s Deals') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
-        '<div class="prow">' + deals.map(cardHTML).join('') + '</div></section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎬 Video Catalog</h2>' +
-        '<a href="' + esc(CONFIG.social.youtube) + '" target="_blank" rel="noopener">Watch on YouTube →</a></div>' +
-        '<div class="video-grid">' + CONFIG.videos.map(v =>
-          '<div class="video-card"><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(v.id) + '?rel=0" title="' + esc(v.title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
-          '<b>' + esc(v.title) + '</b></div>').join('') + '</div></section>' +
-      instagramReelsHTML() +      /* 🎬 @sksarees_collection reels showcase */
-      occasionQuickShopHTML() +
-      weaverStoryHTML() +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📅 Festival Calendar & Early Access' + nextFestivalChip2026() + '</h2>' +
-        '<a href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">Join WhatsApp Group →</a></div>' +
-        '<div class="fest-grid">' + FESTIVALS.map(f =>
-          '<a class="fest-tile' + (currentFestival() === f.slug ? ' fest-live' : '') + '" href="shop.html?cat=' + f.slug + '"><span class="fest-emoji">' + f.emoji + '</span>' +
-          '<b>' + esc(f.name) + '</b><small>' + esc(festivalTag(f.slug)) + '</small><span class="fest-blurb">' + esc(f.blurb) + '</span></a>'
-        ).join('') +
-        '<a class="fest-tile fest-early" href="' + esc(CONFIG.waGroup) + '" target="_blank" rel="noopener">' +
-          '<span class="fest-emoji">🔔</span><b>Early Access</b><small>WhatsApp group</small><span class="fest-blurb">Members get new festival collections first + exclusive offers.</span></a>' +
-        '</div>' +
+      /* 🔥 5 BEST SELLING SAREES — price → rating → COD → BUY NOW + WhatsApp
+         (exactly the decision info a saree buyer needs, nothing else) */
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 5 Best Selling Sarees</h2><a href="shop.html">View All</a></div>' +
+        '<div class="lpd-grid">' + five.map(landingCardHTML).join('') + '</div></section>' +
+      /* 💬 WhatsApp strip — FB/IG visitors skip the website steps entirely */
+      '<section class="lpd-wa"><b>📱 Facebook / Instagram-ல இருந்து வந்துட்டீங்களா?</b>' +
+        '<p>Website-ல பல steps போக வேண்டாம் — WhatsApp-ல "எனக்கு saree வேணும்"னு அனுப்புங்க.<br>நாங்க <b>saree photo + price</b> அனுப்புவோம், பிடிச்சத home deliver ஆகும்! 💬</p>' +
+        '<a class="btn btn-xl lpd-wabtn" href="' + waLink('Hi! எனக்கு saree வேணும் — latest photos & prices அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' WhatsApp-ல Saree Photo அனுப்பி Order பண்ணுங்க</a>' +
       '</section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>💬 ' + (lang === 'ta' ? t('reviews') : 'What Our Customers Say') + '</h2></div>' +
+      /* ⭐ real customer reviews */
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ What Our Customers Say</h2>' +
+        '<a href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">Google Reviews →</a></div>' +
         '<div class="rev-grid">' + REVIEWS.map(r =>
           '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
           '<div><b>' + esc(r.name) + '</b><small>' + esc(r.place) + ' • Customer review ⭐</small></div></div>' +
           '<div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div><p>' + esc(r.text) + '</p></div>'
         ).join('') + '</div>' +
         '<div style="text-align:center;margin-top:16px"><a class="btn btn-outline" style="max-width:320px;margin:0 auto" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Rate us on Google — share your experience!</a></div>' +
-        '</section>' +
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ Google Reviews</h2>' +
-        '<a href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">See all reviews →</a></div>' +
-        '<div class="google-rev-box"><div style="text-align:center;padding:10px">' +
-        '<div style="font-size:1.6rem">⭐⭐⭐⭐⭐</div><b style="font-size:1.1rem">Rated on Google</b>' +
-        '<p class="small muted" style="margin:6px 0 10px">Real customer reviews on our Google Business Profile — 2/130, Thoothanoor, Edanganasalai, Salem 637502.</p>' +
-        '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
-        '<a class="btn btn-maroon btn-sm" style="width:auto;min-width:180px" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Write a Review</a>' +
-        '<button type="button" class="btn btn-outline btn-sm" id="showMapBtn" style="width:auto;min-width:180px">📍 Show Store on Map</button>' +
-        '</div><div id="gmapBox" style="margin-top:10px;display:none"></div></div></div></section>' +
-      '<section class="sec faq"><div class="sec-head"><h2><span class="tick"></span>❓ ' + (lang === 'ta' ? t('faq') : 'FAQ') + '</h2></div>' +
-        FAQ.map(f => '<details><summary>' + esc(f.q) + '</summary><p>' + esc(f.a) + '</p></details>').join('') + '</section>' +
+      '</section>' +
+      /* 🤝 Why SK Sarees? */
+      whyUsHTML() +
+      /* 🛍️ Categories — only ones with sarees in stock */
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+        '<div class="cat-grid">' + liveCats.slice(0, 12).map(x => {
+          const c = x.c;
+          return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
+            '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
+            '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
+            '<span class="ct-count">' + x.n + ' designs • ' + c.blurb + '</span></div></a>';
+        }).join('') + '</div></section>' +
+      /* 💰 Share & Earn (business model — one banner) */
+      '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
+        '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
+        '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>5% off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+        '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
+        '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
+      '</section></div>' +
     '</div>';
-  try{ renderStatsText(); }catch(e){}   /* hero counters */
-  /* 🔥 festival countdown — urgency drives orders */
-  try{ festivalCountdown(); }catch(e){}
-  /* Google map loads only when the user taps "Show Store on Map" (fast + light) */
-  try{
-    const mb = document.getElementById('showMapBtn');
-    if (mb) mb.addEventListener('click', () => {
-      const box = document.getElementById('gmapBox');
-      if (!box) return;
-      if (!box.innerHTML){
-        box.innerHTML = '<iframe src="https://maps.google.com/maps?q=SK%20Sarees%20Edanganasalai%20Salem&t=&z=13&ie=UTF8&iwloc=&output=embed" title="SK Sarees on Google Maps" loading="lazy" style="border:0;width:100%;height:260px;border-radius:14px"></iframe>';
-      }
-      box.style.display = 'block';
-      mb.textContent = '📍 Hide Map';
-      mb.classList.toggle('on', box.style.display === 'block');
-    });
-  }catch(e){}
+  try{ renderStatsText(); }catch(e){}   /* hero counters (guarded, optional) */
 }
+
 
 /* ============================ SHOP ============================ */
 let shopState = { cat: '', q: '', fabric: '', colour: '', max: 3000, sort: 'viewed', shown: 12, list: [] };   /* 🔥 default = most viewed */
@@ -1680,8 +1688,10 @@ function renderShop(){
 }
 function drawChips(){
   const chips = document.getElementById('catChips'); if (!chips) return;
+  /* 🛟 hide categories with ZERO products — a customer can never land on an empty grid */
+  const live = CATEGORIES.filter(c => PRODUCTS.some(p => !p.hidden && p.cat === c.slug));
   chips.innerHTML = '<button type="button" class="chip' + (!shopState.cat ? ' on' : '') + '" data-cat="">All</button>' +
-    CATEGORIES.map(c => '<button type="button" class="chip' + (shopState.cat === c.slug ? ' on' : '') + '" data-cat="' + c.slug + '">' + c.emoji + ' ' + c.name + '</button>').join('');
+    live.map(c => '<button type="button" class="chip' + (shopState.cat === c.slug ? ' on' : '') + '" data-cat="' + c.slug + '">' + c.emoji + ' ' + c.name + '</button>').join('');
 }
 function bindShop(){
   const el = (id) => document.getElementById(id);
@@ -1827,10 +1837,29 @@ function updateShopList(){
   shopState.list = shopList();
   const grid = document.getElementById('grid'); if (!grid) return;
   const visible = shopState.list.slice(0, shopState.shown);
+  const cl = document.getElementById('countLbl');
+  const empty = document.getElementById('empty');
+  const lm = document.getElementById('loadMore');
+  /* 🛟 NO EMPTY PAGE EVER — a category/filter with no matches shows our popular
+     sarees + a WhatsApp ask, instead of "No sarees found" (bounce killer) */
+  if (!visible.length){
+    const fb = PRODUCTS.filter(p => !p.hidden && (+p.price || 0) >= 100)
+      .sort((a, b) => ((b.badge === 'Bestseller' ? 900 : 0) + (b.rating || 0) * 10 + (b.reviews || 0)) - ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10 + (a.reviews || 0)))
+      .slice(0, 8);
+    grid.innerHTML = fb.map(cardReelHTML).join('');
+    if (cl) cl.innerHTML = '😊 இந்த தேர்வில் exact match இல்லை — ஆனால் இதோ நம்ம பிரபலமான சேலைகள் 👇';
+    if (empty){
+      empty.style.display = 'block';
+      empty.innerHTML = '<div class="e-ic">🪡</div><b>இந்த வகையில் இப்போது பொருத்தம் இல்லை!</b>நீங்கள் விரும்புவதை WhatsApp-ல் கேளுங்கள் — நாங்கள் புகைப்படங்களை அனுப்பி காட்டுகிறோம்! 😊' +
+        '<a class="btn btn-wa" style="max-width:340px;margin:10px auto 0" href="' + waLink('Hi! I am looking for: ' + (shopState.cat || shopState.q || 'sarees') + '. Please send me photos & prices 🙏') + '" target="_blank" rel="noopener">💬 WhatsApp-ல் கேளுங்கள் — நாங்கள் புகைப்படங்களை அனுப்புகிறோம்</a>';
+    }
+    if (lm) lm.style.display = 'none';
+    return;
+  }
   grid.innerHTML = visible.map(cardReelHTML).join('');   /* 🎞️ reels-style cards */
-  const cl = document.getElementById('countLbl'); if (cl) cl.textContent = shopState.list.length + ' sarees';
-  const empty = document.getElementById('empty'); if (empty) empty.style.display = visible.length ? 'none' : 'block';
-  const lm = document.getElementById('loadMore'); if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';
+  if (cl) cl.textContent = shopState.list.length + ' sarees';
+  if (empty) empty.style.display = 'none';
+  if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';
 }
 
 /* ============================ FAST ORDER (ads → WhatsApp, no friction) ============================
@@ -2762,7 +2791,12 @@ function renderProduct(){
     ? userRevs.slice().reverse().map(revCardHTML).join('')
     : '') +
     '<div id="remoteRevs"></div>' +   /* 📡 reviews + photos from ALL customers (Firestore) */
-    (userRevs.length ? '' : '<p class="muted small">No customer reviews yet — be the first! 💬</p>');
+    /* 🛟 never show a negative empty state — products with catalog reviews show
+       their rating; brand-new ones show an honest order-risk-free trust line */
+    (userRevs.length ? '' :
+      (p.reviews > 0
+        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (p.rating || 4.5) + '/5 — ' + p.reviews + ' customers loved this saree 💜</p>'
+        : '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">✅ COD Available • 7-day replacement • 2,300+ happy customers — order risk-free!</p>'));
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
   const gal = [];
   try{
@@ -2810,6 +2844,8 @@ function renderProduct(){
         starsHTML(p) +
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
         '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        /* 🚚 ONE clear shipping rule everywhere (same as hero/cart/checkout) */
+        '<div class="pd-ship">🚚 <b>FREE</b> delivery above ₹999 (else ₹30/saree) • 💵 COD <b>₹' + CONFIG.codFee + '</b> booking only • 🔁 7-day replacement</div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
@@ -2820,7 +2856,7 @@ function renderProduct(){
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<a class="btn btn-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ BUY NOW ' + money(onlinePrice(p)) + '</a>') +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
+          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
         '</div>' +
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
