@@ -3709,3 +3709,70 @@ body[data-page="product"]{ padding-bottom:74px }   /* content never hides behind
 .rpc-urg{ font-size:.78rem; text-align:center; margin-bottom:2px }
 .rpc-buy{ min-height:52px; font-size:1.02rem; letter-spacing:.5px }
 .rpc-wa{ min-height:44px; font-size:.84rem }
+
+/* ============================================================================
+   🎬 REELS QUOTE — blur removed (crisp text, clear photo) + 🧵 COMBO PAGE
+   ========================================================================== */
+.rp-quote, .rp-quote p{
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+/* ── 🧵 dhoti+shirt & saree combo page ─────────────────────────────────────── */
+.cmb-hero{
+  background:linear-gradient(135deg,#5c1024,#8f1d3a 60%,#a63a52);
+  border-radius:0 0 22px 22px; padding:26px 16px 22px;
+  color:#fff; text-align:center;
+}
+.cmb-kick{
+  display:inline-block; background:rgba(255,255,255,.15); border:1px solid rgba(232,198,106,.5);
+  color:#ffd98a; font-size:.66rem; font-weight:900; letter-spacing:.6px;
+  border-radius:999px; padding:5px 13px; margin-bottom:10px; text-transform:uppercase;
+}
+.cmb-hero h1{ font-size:1.35rem; line-height:1.3; margin:0 0 8px; font-family:'Playfair Display',Georgia,serif }
+.cmb-hero p{ font-size:.84rem; line-height:1.7; opacity:.95; margin:0 }
+.cmb-courier{
+  display:inline-block; margin-top:12px;
+  background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.22);
+  color:#ffe9c9; font-size:.72rem; font-weight:800; border-radius:999px; padding:7px 14px;
+}
+.cmb-sec{ margin:16px 0; background:#fff; border:1.5px solid #eadfd6; border-radius:16px; padding:14px 14px 12px }
+.cmb-sec h2{ font-size:.98rem; color:#8f1d3a; margin:0 0 10px }
+.cmb-sec h2 small{ font-weight:600; font-size:.68rem }
+.cmb-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:700px){ .cmb-grid{ grid-template-columns:repeat(4,1fr) } }
+.cmb-pick{
+  position:relative; background:#faf5ef; border:2px solid #eadfd6; border-radius:14px;
+  padding:0 0 10px; cursor:pointer; text-align:center; overflow:hidden;
+  transition:border-color .15s ease, transform .15s ease;
+}
+.cmb-pick img{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block }
+.cmb-pick b{ display:block; font-size:.74rem; line-height:1.3; margin-top:7px; padding:0 6px; color:#2b2320;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+.cmb-pick small{ color:#8f1d3a; font-weight:900; font-size:.9rem }
+.cmb-off{
+  position:absolute; top:7px; left:7px; background:#c2255c; color:#fff;
+  font-size:.58rem; font-weight:900; padding:3px 8px; border-radius:999px;
+}
+.cmb-check{
+  position:absolute; top:7px; right:7px; width:24px; height:24px; border-radius:50%;
+  background:#17a45f; color:#fff; font-size:.8rem; font-weight:900;
+  display:none; align-items:center; justify-content:center;
+}
+.cmb-pick.on{ border-color:#17a45f; box-shadow:0 0 0 3px rgba(23,164,95,.18); transform:translateY(-2px) }
+.cmb-pick.on .cmb-check{ display:flex }
+.cmb-sizes{ display:flex; flex-wrap:wrap; gap:8px }
+.cmb-size{
+  background:#fff; border:2px solid #eadfd6; color:#6b4a3a;
+  border-radius:12px; font-size:.82rem; font-weight:900; padding:10px 16px; cursor:pointer;
+  min-width:64px; text-align:center;
+  transition:all .15s ease;
+}
+.cmb-size.on{ background:#8f1d3a; border-color:#8f1d3a; color:#fff }
+.cmb-sum{
+  margin-top:16px; background:linear-gradient(135deg,#fdf6e3,#fffdf8);
+  border:1.5px solid #ecd9a8; border-radius:16px; padding:16px;
+  display:grid; gap:7px;
+}
+.cmb-sum b{ color:#5c4a1e; font-size:.95rem }
+.cmb-sum span{ font-size:.86rem; font-weight:700; color:#4a3b33 }
+.cmb-sum .btn{ margin-top:8px }

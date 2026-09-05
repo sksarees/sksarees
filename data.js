@@ -12,8 +12,8 @@ const CONFIG = {
   waDisplay : '78679 15699',
   upiId     : 'sk7867915699-1@oksbi',
   upiName   : 'SK SAREES',
-  codFee    : 70,
-  shipFreeAbove : 999,
+  codFee    : 100,
+  shipFreeAbove : 2999,
   /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
      1 saree TN ₹30 · 2 sarees ₹60 · 3 sarees ₹90 (per unit × qty). */
   shipFee       : 30,
@@ -29,7 +29,7 @@ const CONFIG = {
   resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
   resellerCoupon : 'SHARE5',         // 5% off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
-  onlineDiscount : 1,                 // 💳 1% off when paying ONLINE (UPI); COD = full price
+  onlineDiscount : 0,                 // 1% online discount REMOVED (2026-09-05)
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get 5% off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
@@ -56,11 +56,16 @@ const CONFIG = {
 
 /* ============================ 2. DELIVERY ZONES (by PIN code) ============================ */
 const ZONES = {
-  tn:        { name:'Tamil Nadu',         ship: 30, days: [2, 3] },
-  andra:     { name:'Andhra / Telangana', ship: 40, days: [3, 4] },
-  karnataka: { name:'Karnataka',          ship: 40, days: [3, 4] },
-  other:     { name:'Other states',       ship: 60, days: [5, 7] },
+  /* 🚚 courier by QUANTITY: [1 pc, 2 pcs, 3+ pcs] • 💵 COD booking • 🧵 combo set courier */
+  tn:        { name:'Tamil Nadu',         ship: 30,  tiers:[30, 60, 80],      cod: 100, combo: 60,  days: [2, 3] },
+  andra:     { name:'Andhra / Telangana', ship: 40,  tiers:[40, 80, 100],     cod: 120, combo: 80,  days: [3, 4] },
+  karnataka: { name:'Karnataka',          ship: 40,  tiers:[40, 80, 100],     cod: 120, combo: 80,  days: [3, 4] },
+  other:     { name:'Other states',       ship: 100, tiers:[100, 100, 100],   cod: 150, combo: 100, days: [5, 7] },
 };
+/* 💵 COD booking charge by state (TN ₹100 • AP/KA ₹120 • others ₹150) */
+const codFeeFor = (pincode) => (ZONES[deliveryZone(pincode)] || ZONES.tn).cod || CONFIG.codFee;
+/* 🧵 dhoti+shirt & saree COMBO set courier (TN ₹60 • AP/KA ₹80 • others ₹100) */
+const comboShipFor = (pincode) => (ZONES[deliveryZone(pincode)] || ZONES.tn).combo || 60;
 /* ============================ 2b. FESTIVAL CALENDAR + EARLY ACCESS ============================ */
 const FESTIVALS = [
   { slug:'aadi',     emoji:'🌾', name:'Aadi Sale',        blurb:'Aadi month specials — up to 40% off' },
@@ -840,9 +845,10 @@ const realReviewCount = id => { try{ return (LS.get('sk_reviews_' + id, [])).len
    Free above ₹999. Falls back to 1 unit when no count given. */
 const cartCount = () => Store.cart.reduce((s, i) => s + (i.qty || 1), 0);
 const shippingFor = (total, pincode, qty) => {
-  if (total >= CONFIG.shipFreeAbove) return 0;
-  const fee = (ZONES[deliveryZone(pincode)] || ZONES.tn).ship;
-  return fee * Math.max(1, +qty || cartCount() || 1);
+  if (total >= CONFIG.shipFreeAbove) return 0;          /* 🚚 FREE above ₹2999 */
+  const z = ZONES[deliveryZone(pincode)] || ZONES.tn;
+  const n = Math.max(1, +qty || cartCount() || 1);      /* 1→tier[0], 2→tier[1], 3+→tier[2] */
+  return (z.tiers || [z.ship])[Math.min(n, (z.tiers || [z.ship]).length) - 1];
 };
 
 /* Delivery estimate — zone + payment aware.
@@ -894,8 +900,8 @@ const REVIEWS = [
   { name:'Anitha V.', place:'Salem', avatar:'#7a4fb0', rating:5, text:'Local pickup saved me delivery time. The owner patiently showed options on a video call. Highly recommended!' },
 ];
 const FAQ = [
-  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (+₹70). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within 12–24 hours (COD orders: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹999 (else ₹30 / ₹40 / ₹60 by state).' },
+  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (booking ₹100–₹150 by state). UPI is 100% secure — we never see your card details.' },
+  { q:'How long does delivery take?', a:'We dispatch within 12–24 hours (COD orders: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹2999 — else ₹30–₹100 by state & quantity (TN ₹30/₹60/₹80, AP & Karnataka ₹40/₹80/₹100, other states ₹100).' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -1177,8 +1183,8 @@ function upiAppLink(app, amount, note){
 }
 function calcTotals(payment, pincode){
   const itemsTotal = cartTotal();
-  const codFee = payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal, pincode);
+  const codFee = payment === 'cod' ? codFeeFor(pincode) : 0;
+  const shipping = shippingFor(itemsTotal, pincode, cartCount());
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
 }
 
@@ -2773,7 +2779,7 @@ function renderHeader(){
       <a href="cart.html">🛒 ${t('cart')}</a>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="profile.html">👤 ${t('profile')}</a>
-      <a href="#" data-login="1">🔑 Login — மொபைல் + பின்கோட்</a>
+      <a href="#" data-login="1">🔑 Login</a>
       <a href="#" data-logout="1" data-authonly="1">🔓 Sign Out</a>
       <div class="sub">${t('shopByCategory')}</div>
       ${CATEGORIES.slice(0, 8).map(c => `<a href="shop.html?cat=${c.slug}">${c.emoji} ${c.name}</a>`).join('')}
@@ -2799,6 +2805,17 @@ function renderFooter(){
       <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
     </div>
     <div class="f-grid">
+      <div>
+        <h4>Saree Categories</h4>
+        <a href="/kanchipuram-sarees/">👑 Kanchipuram Sarees</a>
+        <a href="/soft-silk-sarees/">✨ Soft Silk Sarees</a>
+        <a href="/cotton-sarees/">🌿 Cotton Sarees</a>
+        <a href="/wedding-sarees/">💍 Wedding Sarees</a>
+        <a href="/party-wear-sarees/">🎉 Party Wear Sarees</a>
+        <a href="/daily-wear-sarees/">🌤️ Daily Wear Sarees</a>
+        <a href="/bridal-sarees/">👰 Bridal Sarees</a>
+        <a href="/combo.html">🧵 Dhoti + Shirt Combos</a>
+      </div>
       <div>
         <h4>Shop</h4>
         <a href="index.html">🏠 ${t('home')}</a>
@@ -3053,7 +3070,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹${CONFIG.shipFreeAbove} &nbsp;•&nbsp; 💵 COD Available &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   try{
     const so = document.querySelector('[data-authonly]');

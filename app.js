@@ -33,6 +33,7 @@ async function init(){
     else if (page === 'profile') renderProfilePage();
     else if (page === 'feed') renderFeedPage();
     else if (page === 'reels') renderReelsPage();
+    else if (page === 'combo') renderComboPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
   try{ startActiveEngine(); }catch(e){} /* ⏱️ counts REAL browsing seconds (visible tab only) */
@@ -51,6 +52,7 @@ window.addEventListener('skcatalogready', () => {
     if (page === 'home') renderHome();
     else if (page === 'shop') renderShop();
     else if (page === 'reels') renderReelsPage();
+    else if (page === 'combo') renderComboPage();
   }catch(e){}
 });
 
@@ -1592,7 +1594,7 @@ function renderHome(){
         '<a class="btn btn-gold btn-xl" href="shop.html">🛍️ SHOP NOW</a>' +
         '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I want to buy a saree. Please send me your latest saree photos & prices 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
       '</div>' +
-      '<p class="lpd-ship">🚚 FREE delivery above ₹999 (else ₹30/saree) • 💵 COD ₹' + CONFIG.codFee + ' booking only</p>' +
+      '<p class="lpd-ship">🚚 FREE delivery above ₹' + (CONFIG.shipFreeAbove || 2999) + ' • 💵 COD booking from ₹100 • ⏱ Fast Delivery</p>' +
       '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search sarees, colour, SKU…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
     '</div></section>' +
     '<div class="wrap">' +
@@ -1638,6 +1640,69 @@ function renderHome(){
 }
 
 
+/* ============================ 🧵 DHOTI+SHIRT & SAREE COMBO ============================
+   Family combo sets: pick a saree + shirt size (S36–XXL44) + dhoti size →
+   one WhatsApp order (owner quotes the combo price) + combo courier rates
+   (TN ₹60 • AP/KA ₹80 • others ₹100). */
+let __comboSel = { pid: '', shirt: '', dhoti: '' };
+function comboPick(pid){
+  __comboSel.pid = pid;
+  try{ renderComboPage(); }catch(e){}
+}
+function comboSize(kind, size){
+  __comboSel[kind] = (__comboSel[kind] === size ? '' : size);
+  try{ renderComboPage(); }catch(e){}
+}
+function renderComboPage(){
+  const app = document.getElementById('app'); if (!app) return;
+  const SHIRT_SIZES = ['S36', 'M38', 'L40', 'XL42', 'XXL44'];
+  const picks = (typeof PRODUCTS !== 'undefined' && PRODUCTS.length)
+    ? PRODUCTS.filter(p => !p.hidden && (+p.price || 0) >= 300)
+        .sort((a, b) => ((b.badge === 'Bestseller' ? 900 : 0) + (b.rating || 0) * 10) - ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10)).slice(0, 8)
+    : [];
+  const sel = picks.find(p => p.id === __comboSel.pid) || null;
+  const sizeChips = (kind) => SHIRT_SIZES.map(s =>
+    '<button type="button" class="cmb-size' + (__comboSel[kind] === s ? ' on' : '') + '" data-combosize="' + kind + '|' + s + '">' + s + '</button>').join('');
+  const cardSel = (p) => 'cmb-pick' + (__comboSel.pid === p.id ? ' on' : '');
+  app.innerHTML = '<div class="wrap page">' +
+    '<div class="cmb-hero"><span class="cmb-kick">🧵 FAMILY COMBO OFFER</span>' +
+      '<h1>👨‍👩‍👧‍👦 Dhoti + Shirt &amp; Saree Combo Sets</h1>' +
+      '<p>குடும்பமா ஒரே மாதிரி அழகு! Wedding, function, festival-க்கு பொருத்தமான <b>saree + dhoti + shirt</b> combo sets.<br>நீங்க saree-ஐ தேர்ந்தெடுங்கள் — shirt &amp; dhoti size-ஐ சொல்லுங்கள் — நாங்கள் combo price-ஐ WhatsApp-ல் அனுப்புகிறோம்! 💬</p>' +
+      '<div class="cmb-courier">🚚 Combo courier: <b>TN ₹60</b> • <b>AP/KA ₹80</b> • <b>Others ₹100</b> &nbsp;•&nbsp; 💵 COD Available</div>' +
+    '</div>' +
+    /* step 1 — pick the saree */
+    '<section class="cmb-sec"><h2>1️⃣ Saree-ஐ தேர்ந்தெடுங்கள் <small class="muted">(tap to select)</small></h2>' +
+      '<div class="cmb-grid">' + picks.map(p =>
+        '<button type="button" class="' + cardSel(p) + '" data-combopick="' + esc(p.id) + '">' +
+          '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+          (p.mrp && p.mrp > p.price ? '<span class="cmb-off">🔥 ' + offPct(p) + '% OFF</span>' : '') +
+          '<span class="cmb-check">✓</span>' +
+          '<b>' + esc(String(smartTitle(p)).split(' | ')[0]) + '</b>' +
+          '<small>₹' + (p.price || 0).toLocaleString('en-IN') + '</small>' +
+        '</button>').join('') + '</div></section>' +
+    /* step 2 — shirt size */
+    '<section class="cmb-sec"><h2>2️⃣ Shirt Size</h2>' +
+      '<div class="cmb-sizes">' + sizeChips('shirt') + '</div>' +
+      '<p class="small muted">S36 • M38 • L40 • XL42 • XXL44 — regular fit cotton shirt</p></section>' +
+    /* step 3 — dhoti size */
+    '<section class="cmb-sec"><h2>3️⃣ Dhoti (Veshti) Size</h2>' +
+      '<div class="cmb-sizes">' + sizeChips('dhoti') + '</div>' +
+      '<p class="small muted">Same size chart — 2 muzham readymade dhoti</p></section>' +
+    /* summary + CTA */
+    '<div class="cmb-sum">' +
+      '<b>📋 Your Combo</b>' +
+      '<span>' + (sel ? '🥻 ' + esc(String(smartTitle(sel)).split(' | ')[0]) + ' — ₹' + sel.price.toLocaleString('en-IN') : '🥻 Saree: இன்னும் select பண்ணல') + '</span>' +
+      '<span>👔 Shirt: ' + (__comboSel.shirt || '—') + '</span>' +
+      '<span>🧣 Dhoti: ' + (__comboSel.dhoti || '—') + '</span>' +
+      (__comboSel.pid && __comboSel.shirt && __comboSel.dhoti
+        ? '<a class="btn btn-wa btn-xl" href="' + waLink('🧵 COMBO ORDER — SK Sarees!\n\n🥻 Saree: ' + smartTitle(sel) + ' — ₹' + sel.price.toLocaleString('en-IN') + '\n👉 ' + shareUrl(sel) + '\n👔 Shirt Size: ' + __comboSel.shirt + '\n🧣 Dhoti Size: ' + __comboSel.dhoti + '\n\nPlease send the combo price & confirm 🙏') + '" target="_blank" rel="noopener">💬 Order Combo on WhatsApp</a>' +
+          '<button type="button" class="btn btn-outline" data-add="' + esc(__comboSel.pid) + '">🛒 Add Saree to Cart</button>'
+        : '<p class="small muted" style="text-align:center">மேலே saree + ரெண்டு size-உம் select பண்ணா WhatsApp order button வரும் 😊</p>') +
+    '</div>' +
+    '<div style="text-align:center;margin:14px 0"><a class="btn btn-maroon" href="shop.html">🛍️ Full Saree Collection பார்க்க</a></div>' +
+  '</div>';
+}
+
 /* ============================ SHOP ============================ */
 let shopState = { cat: '', q: '', fabric: '', colour: '', max: 3000, sort: 'viewed', shown: 12, list: [] };   /* 🔥 default = most viewed */
 function renderShop(){
@@ -1645,6 +1710,8 @@ function renderShop(){
   const params = safeParams();
   const cq = params.get('cat');
   if (cq && CATEGORIES.some(c => c.slug === cq)) shopState.cat = cq;  /* ignore unknown/festival slugs */
+  /* 📁 category-folder pages (e.g. /kanchipuram-sarees/) preset the filter */
+  else if (window.__CAT_PRESET && CATEGORIES.some(c => c.slug === window.__CAT_PRESET)) shopState.cat = window.__CAT_PRESET;
   const sq = params.get('q');
   if (sq) shopState.q = sq;                     /* search by name/SKU/colour from index */
   /* 🎨 unique colours across the live catalog (drives the Colour filter) */
@@ -1663,7 +1730,7 @@ function renderShop(){
   const datalist = suggest.length ? '<datalist id="searchSuggest">' + suggest.map(s => '<option value="' + esc(s) + '">').join('') + '</datalist>' : '';
   app.innerHTML =
     '<div class="wrap page">' +
-      '<h1>🛍️ Shop All Sarees</h1>' +
+      '<h1>🛍️ ' + (window.__CAT_PRESET && CATEGORIES.some(c => c.slug === window.__CAT_PRESET) ? (function(){ const c = CATEGORIES.find(x => x.slug === window.__CAT_PRESET); return c.emoji + ' ' + c.name; })() : 'Shop All Sarees') + '</h1>' +
       '<div style="display:flex;gap:8px">' +
         '<input id="shopSearch" list="searchSuggest" type="search" placeholder="🔍 Search sarees, fabric, colour… (suggestions as you type)" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
       '</div>' + datalist +
@@ -2216,10 +2283,10 @@ function personalProfileCardHTML(){
 async function shareSite(){
   const url = (CONFIG.siteUrl || location.origin) + '/';
   const msg = loc(
-    '🪡 SK Sarees — Salem-ன் பிரீமியம் சேலை கடை! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 முதல் • 40% வரை OFF\n🚚 ₹999+ இலவச டெலிவரி • COD & UPI உண்டு\n\n👉 ' + url,
-    '🪡 SK Sarees — Salem ప్రీమియం చీరల షాప్! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 నుండి • 40% వరకు OFF\n🚚 ₹999+ ఫ్రీ డెలివరీ • COD & UPI ఉన్నాయి\n\n👉 ' + url,
-    '🪡 SK Sarees — Salem ಪ್ರೀಮಿಯಂ ಸೀರೆ ಅಂಗಡಿ! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 ರಿಂದ • 40% ವರೆಗೆ OFF\n🚚 ₹999+ ಉಚಿತ ಡೆಲಿವರಿ • COD & UPI ಇವೆ\n\n👉 ' + url,
-    '🪡 SK Sarees — Premium saree shop from Salem! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 From ₹649 • Up to 40% OFF\n🚚 FREE delivery above ₹999 • COD & UPI available\n\n👉 ' + url);
+    '🪡 SK Sarees — Salem-ன் பிரீமியம் சேலை கடை! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 முதல் • 40% வரை OFF\n🚚 ₹2999+ இலவச டெலிவரி • COD & UPI உண்டு\n\n👉 ' + url,
+    '🪡 SK Sarees — Salem ప్రీమియం చీరల షాప్! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 నుండి • 40% వరకు OFF\n🚚 ₹2999+ ఫ్రీ డెలివరీ • COD & UPI ఉన్నాయి\n\n👉 ' + url,
+    '🪡 SK Sarees — Salem ಪ್ರೀಮಿಯಂ ಸೀರೆ ಅಂಗಡಿ! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 ₹649 ರಿಂದ • 40% ವರೆಗೆ OFF\n🚚 ₹2999+ ಉಚಿತ ಡೆಲಿವರಿ • COD & UPI ಇವೆ\n\n👉 ' + url,
+    '🪡 SK Sarees — Premium saree shop from Salem! 🥻\n\n✨ Kanchipuram silk, soft silk, cotton & wedding sarees\n💰 From ₹649 • Up to 40% OFF\n🚚 FREE delivery above ₹2999 • COD & UPI available\n\n👉 ' + url);
   /* 🖼️ attach the premium banner image */
   let file = null;
   try{
@@ -2740,9 +2807,9 @@ function renderProduct(){
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
         '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
         /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
-        '<div class="pd-trust"><span>🚚 Free Shipping ₹999+</span><span>↩️ Easy Returns</span><span>✅ 100% Original</span><span>💵 COD Available</span></div>' +
+        '<div class="pd-trust"><span>🚚 Free Shipping ₹' + (CONFIG.shipFreeAbove || 2999) + '+</span><span>↩️ Easy Returns</span><span>✅ 100% Original</span><span>💵 COD Available</span></div>' +
         /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
-        '<div class="pd-ship">💵 <b>COD Available</b> — booking ₹' + CONFIG.codFee + ' only • 🚚 Delivery <b>2–5 days</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 999) + '</div>' +
+        '<div class="pd-ship">💵 <b>COD Available</b> — booking ₹100–₹150 by state • 🚚 Delivery <b>2–5 days</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 2999) + '</div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
@@ -2985,7 +3052,7 @@ async function shareEarnProduct(p){
   try{
     const url = shareUrl(p);   /* carries ?ref=CODE automatically when she has one */
     const msg = loc(
-      '\U0001F338 ' + p.name + '\n\U0001F4B0 \u0bb5\u0bbf\u0bb2\u0bc8: ' + money(p.price) + '\n\U0001F381 \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bc1\u0b95\u0bcd\u0b95\u0bc1 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A \u20B9999+ \u0b87\u0bb2\u0bb5\u0b9a \u0b9f\u0bc6\u0bb2\u0bbf\u0bb5\u0bb0\u0bbf \u2022 COD & UPI\n\n\U0001F449 ' + url,
+      '\U0001F338 ' + p.name + '\n\U0001F4B0 \u0bb5\u0bbf\u0bb2\u0bc8: ' + money(p.price) + '\n\U0001F381 \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bc1\u0b95\u0bcd\u0b95\u0bc1 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A \u20B92999+ \u0b87\u0bb2\u0bb5\u0b9a \u0b9f\u0bc6\u0bb2\u0bbf\u0bb5\u0bb0\u0bbf \u2022 COD & UPI\n\n\U0001F449 ' + url,
       '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url,
       '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url,
       '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF with code ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url);
@@ -3149,7 +3216,7 @@ function renderCartPage(){
       '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
         '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
       '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
-      '<p class="small" style="color:var(--green);font-weight:800;margin-top:6px">💳 Pay online (UPI) &amp; get ' + (CONFIG.onlineDiscount||1) + '% off — <b>save ' + money(Math.round(t * (CONFIG.onlineDiscount||1) / 100)) + '</b> on this order!</p>' +
+
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
         : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
@@ -3209,14 +3276,13 @@ function coCartTotal(){
 }
 function coTotals(){
   const itemsTotal = coCartTotal();
-  const codFee = co.data.payment === 'cod' ? CONFIG.codFee : 0;
+  const codFee = co.data.payment === 'cod' ? codFeeFor(co.data.pincode) : 0;   /* 💵 ₹100/₹120/₹150 by state */
   const shipping = shippingFor(itemsTotal, co.data.pincode, coItems().reduce((s, i) => s + (i.qty || 1), 0));
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = bundleDiscount();               /* buy 2+ → ₹50 off */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
-  /* 💳 1% online-payment discount (COD = full) */
-  const online = (co.data.payment === 'upi') ? Math.round(itemsTotal * (CONFIG.onlineDiscount || 1) / 100) : 0;
-  const totalDisc = discount + bundle + pts + online;
+  const online = 0;                              /* 1% online discount removed (2026-09-05) */
+  const totalDisc = discount + bundle + pts;
   const grand = Math.max(0, itemsTotal - totalDisc) + codFee + shipping;
   return { itemsTotal, codFee, shipping, discount, bundle, pts, online, grand, eta: deliveryEstimate(co.data.pincode, co.data.payment).text, zone: deliveryEstimate(co.data.pincode, co.data.payment).zone };
 }
@@ -4468,6 +4534,11 @@ document.addEventListener('click', function(e){
     }catch(e2){}
     return;
   }
+  /* 🧵 COMBO page — saree pick + shirt/dhoti size chips */
+  const cpick = e.target.closest('[data-combopick]');
+  if (cpick){ e.preventDefault(); comboPick(cpick.dataset.combopick); return; }
+  const csize = e.target.closest('[data-combosize]');
+  if (csize){ e.preventDefault(); const kv = String(csize.dataset.combosize).split('|'); comboSize(kv[0], kv[1]); return; }
   /* 💰 reels EARN — register / dashboard modal (share & earn) */
   const rea = e.target.closest('[data-rpearn]');
   if (rea){
