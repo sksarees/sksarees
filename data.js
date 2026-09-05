@@ -123,6 +123,7 @@ const CATEGORIES = [
   { slug:'blouse',      name:'Blouse Material',    emoji:'🧵', cls:'c-blouse',      blurb:'Matching pieces' },
   { slug:'accessories', name:'Accessories',        emoji:'🪡', cls:'c-accessories', blurb:'Borders & more' },
   { slug:'bridal-sarees', name:'Bridal Sarees',    emoji:'👰', cls:'c-wedding',      blurb:'Wedding & bridal silks' },
+  { slug:'combo',        name:'Combo Sets',       emoji:'🧵', cls:'c-wedding',      blurb:'Dhoti+shirt & saree combos' },
   { slug:'gayathri-silk', name:'Gayathri Silk',    emoji:'✨', cls:'c-soft-silk',    blurb:'Soft traditional silks' },
   { slug:'samuthrika',    name:'Samuthrika Sarees',emoji:'🌿', cls:'c-silk',         blurb:'Classic drape styles' },
 ];
@@ -1121,7 +1122,10 @@ function waLink(text, num = CONFIG.waNumber){
 }
 /* absolute product page URL — classic format: product.html?id=SK75279 */
 function repoBase(){
-  try{ return location.pathname.replace(/[^/]*$/, ''); }catch(e){ return '/'; }
+  /* 🔧 SITE ROOT — always '/' (www.sksaree.shop is at the domain root).
+     Reading location.pathname broke links from category-folder pages
+     (/kanchipuram-sarees/product.html → 404). */
+  return '/';
 }
 function productUrl(p){
   try{ return location.origin + repoBase() + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){ return 'product.html?id=' + encodeURIComponent(p.id); }
@@ -1145,7 +1149,7 @@ function waProductMsg(p){
 }
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
-  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}${location.pathname.replace(/[^/]*$/, '')}product.html?id=${encodeURIComponent(p.id)}`; });
+  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
   m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
   return m;
@@ -1205,7 +1209,7 @@ function abandonedCartBanner(){
     /* also fire a browser push/local notification */
     try{ notifyLocal('🧺 Your cart is waiting!', CONFIG.cartCoupon.label + ' Use coupon ' + CONFIG.cartCoupon.code, 'cart.html'); }catch(e){}
     const items = Store.cart.map(i => { const p = byId(i.id); return p ? '• ' + p.name + ' ×' + i.qty : ''; }).filter(Boolean).join('\n');
-    const cartUrl = location.origin + location.pathname.replace(/[^/]*$/, '') + 'cart.html';
+    const cartUrl = location.origin + '/cart.html';
     const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items +
       '\n\n🎟️ Use coupon ' + CONFIG.cartCoupon.code + ' for ' + CONFIG.cartCoupon.off + '% off — offer valid today!\n\n👉 Complete your order: ' + cartUrl + '\n\nHappy shopping! 😊';
     const div = document.createElement('div');
@@ -2938,7 +2942,7 @@ function seoInject(){
   try{
     if (document.getElementById('ld-seo')) return;
     const page = (document.body && document.body.dataset.page) || '';
-    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    const base = location.origin + '/';
     const ld = [];
     /* 🌐 Open Graph + Twitter meta (social sharing cards — makes sharing famous) */
     try{

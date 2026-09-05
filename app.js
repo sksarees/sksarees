@@ -1656,10 +1656,19 @@ function comboSize(kind, size){
 function renderComboPage(){
   const app = document.getElementById('app'); if (!app) return;
   const SHIRT_SIZES = ['S36', 'M38', 'L40', 'XL42', 'XXL44'];
-  const picks = (typeof PRODUCTS !== 'undefined' && PRODUCTS.length)
-    ? PRODUCTS.filter(p => !p.hidden && (+p.price || 0) >= 300)
-        .sort((a, b) => ((b.badge === 'Bestseller' ? 900 : 0) + (b.rating || 0) * 10) - ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10)).slice(0, 8)
-    : [];
+  /* 🧵 combo-category products first (admin: set product category = "combo");
+     none yet → popular sarees so the page always sells */
+  const rank = (a, b) => ((b.badge === 'Bestseller' ? 900 : 0) + (b.rating || 0) * 10) - ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10);
+  let picks = [];
+  try{
+    picks = PRODUCTS.filter(p => !p.hidden && p.cat === 'combo' && (+p.price || 0) >= 100)
+      .sort(rank).slice(0, 8);
+  }catch(e){}
+  if (!picks.length){
+    picks = (typeof PRODUCTS !== 'undefined' && PRODUCTS.length)
+      ? PRODUCTS.filter(p => !p.hidden && (+p.price || 0) >= 300).sort(rank).slice(0, 8)
+      : [];
+  }
   const sel = picks.find(p => p.id === __comboSel.pid) || null;
   const sizeChips = (kind) => SHIRT_SIZES.map(s =>
     '<button type="button" class="cmb-size' + (__comboSel[kind] === s ? ' on' : '') + '" data-combosize="' + kind + '|' + s + '">' + s + '</button>').join('');
@@ -1680,24 +1689,19 @@ function renderComboPage(){
           '<b>' + esc(String(smartTitle(p)).split(' | ')[0]) + '</b>' +
           '<small>₹' + (p.price || 0).toLocaleString('en-IN') + '</small>' +
         '</button>').join('') + '</div></section>' +
-    /* step 2 — shirt size */
-    '<section class="cmb-sec"><h2>2️⃣ Shirt Size</h2>' +
+    /* step 2 — ONE size select (shirt; dhoti = same size) */
+    '<section class="cmb-sec"><h2>2️⃣ Shirt &amp; Dhoti Size <small class="muted">(ஒரே size — shirt &amp; dhoti ரெண்டுக்கும்)</small></h2>' +
       '<div class="cmb-sizes">' + sizeChips('shirt') + '</div>' +
-      '<p class="small muted">S36 • M38 • L40 • XL42 • XXL44 — regular fit cotton shirt</p></section>' +
-    /* step 3 — dhoti size */
-    '<section class="cmb-sec"><h2>3️⃣ Dhoti (Veshti) Size</h2>' +
-      '<div class="cmb-sizes">' + sizeChips('dhoti') + '</div>' +
-      '<p class="small muted">Same size chart — 2 muzham readymade dhoti</p></section>' +
+      '<p class="small muted">S36 • M38 • L40 • XL42 • XXL44 — regular fit shirt + matching readymade dhoti</p></section>' +
     /* summary + CTA */
     '<div class="cmb-sum">' +
       '<b>📋 Your Combo</b>' +
       '<span>' + (sel ? '🥻 ' + esc(String(smartTitle(sel)).split(' | ')[0]) + ' — ₹' + sel.price.toLocaleString('en-IN') : '🥻 Saree: இன்னும் select பண்ணல') + '</span>' +
-      '<span>👔 Shirt: ' + (__comboSel.shirt || '—') + '</span>' +
-      '<span>🧣 Dhoti: ' + (__comboSel.dhoti || '—') + '</span>' +
-      (__comboSel.pid && __comboSel.shirt && __comboSel.dhoti
-        ? '<a class="btn btn-wa btn-xl" href="' + waLink('🧵 COMBO ORDER — SK Sarees!\n\n🥻 Saree: ' + smartTitle(sel) + ' — ₹' + sel.price.toLocaleString('en-IN') + '\n👉 ' + shareUrl(sel) + '\n👔 Shirt Size: ' + __comboSel.shirt + '\n🧣 Dhoti Size: ' + __comboSel.dhoti + '\n\nPlease send the combo price & confirm 🙏') + '" target="_blank" rel="noopener">💬 Order Combo on WhatsApp</a>' +
+      '<span>👔 Shirt / Dhoti Size: ' + (__comboSel.shirt || '—') + '</span>' +
+      (__comboSel.pid && __comboSel.shirt
+        ? '<a class="btn btn-wa btn-xl" href="' + waLink('🧵 COMBO ORDER — SK Sarees!\n\n🥻 Saree: ' + smartTitle(sel) + ' — ₹' + sel.price.toLocaleString('en-IN') + '\n👉 ' + shareUrl(sel) + '\n👔 Shirt Size: ' + __comboSel.shirt + '\n🧣 Dhoti: same size\n\nPlease send the combo price & confirm 🙏') + '" target="_blank" rel="noopener">💬 Order Combo on WhatsApp</a>' +
           '<button type="button" class="btn btn-outline" data-add="' + esc(__comboSel.pid) + '">🛒 Add Saree to Cart</button>'
-        : '<p class="small muted" style="text-align:center">மேலே saree + ரெண்டு size-உம் select பண்ணா WhatsApp order button வரும் 😊</p>') +
+        : '<p class="small muted" style="text-align:center">மேலே saree + shirt size select பண்ணா WhatsApp order button வரும் 😊</p>') +
     '</div>' +
     '<div style="text-align:center;margin:14px 0"><a class="btn btn-maroon" href="shop.html">🛍️ Full Saree Collection பார்க்க</a></div>' +
   '</div>';
@@ -3719,7 +3723,7 @@ function myShareLinkCard(){
   try{
     const code = myResellerCode();
     if (code){
-      const link = location.origin + location.pathname.replace(/[^/]*$/, '') + 'shop.html?ref=' + encodeURIComponent(code);
+      const link = location.origin + '/shop.html?ref=' + encodeURIComponent(code);
       return '<div class="form-card"><h3>🔗 Get Your Personal Share Link</h3>' +
         '<p class="small muted" style="margin-bottom:8px">Your code: <b>' + esc(code) + '</b> — every order via this link earns you <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> (UPI orders, confirmed on shipment).</p>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap"><input id="mslLink" readonly value="' + esc(link) + '" style="flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.78rem;background:var(--bg);outline:none"><button type="button" class="btn btn-maroon btn-sm" id="mslCopy" style="width:auto;min-width:110px">📋 Copy</button>' +
