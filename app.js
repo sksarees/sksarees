@@ -459,11 +459,26 @@ REEL_QUOTES.push(
 /* 🌐 reels speak HER language — saved choice first, else device language */
 function reelsLang(){
   try{
+    /* 🌐 HER manual choice (language chip on the reels page) always wins */
+    const saved = String(localStorage.getItem('sk_reels_lang') || '').trim();
+    if (saved === 'te' || saved === 'kn' || saved === 'ta' || saved === 'en') return saved;
     if (lang === 'te' || lang === 'kn' || lang === 'ta') return lang;
     const tags = ((navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || '']).join(',').toLowerCase().split(',');
     for (const tg of tags){ const p = String(tg).split('-')[0].trim(); if (p === 'te' || p === 'kn') return p; }
   }catch(e){}
   return 'ta';
+}
+/* 🌐 language picker — Tamil / Telugu / Kannada / English (saved on her phone) */
+function reelLangModal(){
+  const opts = [['ta','தமிழ்','Tamil'], ['te','తెలుగు','Telugu'], ['kn','ಕನ್ನಡ','Kannada'], ['en','English','English']];
+  const cur = reelsLang();
+  openModal('<div class="np-card">' +
+    '<div class="np-emoji">🌐</div>' +
+    '<h3 class="np-title">மொழி / Language</h3>' +
+    '<p class="np-sub">வாழ்த்துக்கள் எந்த மொழியில் வேண்டும்?<br>Which language for the wishes?</p>' +
+    opts.map(o => '<button type="button" class="btn ' + (o[0] === cur ? 'btn-maroon' : 'btn-outline') + ' rlang-btn" data-rlang="' + o[0] + '" style="width:100%;margin:5px 0;min-height:46px">' + (o[0] === cur ? '✅ ' : '') + o[1] + ' <small style="opacity:.7">· ' + o[2] + '</small></button>').join('') +
+    '<button type="button" class="np-skip" data-close>' + rloc('மூடு', 'మూసివేయి', 'ಮುಚ್ಚಿ', 'Close') + '</button>' +
+  '</div>');
 }
 function qText(q){ const L = reelsLang(); return (q && (q[L] || q.ta)) || ''; }
 /* 🌐 reels UI auto-translates to HER language (device-detected) — the
@@ -784,7 +799,9 @@ function reelHTML(p, i){
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
     '<img class="rp-img" src="' + esc(reelImgSrc(p)) + '" data-orig="' + esc(p.img || '') + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="if(this.dataset.orig){var o=this.dataset.orig;this.removeAttribute(\'data-orig\');this.src=o;}else{imgSafe(this);}">' +
     '<div class="rp-shade"></div>' +
-    '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
+    /* 💬 wish chip — pinned at the TOP zone; the saree photo stays 100% clean.
+       🌐 one tap switches the language (Tamil / Telugu / Kannada / English). */
+    '<div class="rp-quote"><p>' + esc(q) + '</p><button type="button" class="rp-lang" data-rplang="1" aria-label="Language">🌐 ' + ({ ta: 'அ', te: 'అ', kn: 'ಅ', en: 'A' }[reelsLang()] || 'அ') + '</button></div>' +
     /* rail — ❤️ Like · 💬 WhatsApp · ↗ Share (3 actions only) */
     '<div class="rp-actions">' +
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
@@ -4443,6 +4460,24 @@ document.addEventListener('click', function(e){
     try{
       const reel = rst.closest('.rp-reel');
       saveReelStatus(byId(rst.dataset.rpstatus), reel ? reel.dataset.q : '');
+    }catch(e2){}
+    return;
+  }
+  /* 🌐 reels LANGUAGE — Tamil / Telugu / Kannada / English picker */
+  const rlb = e.target.closest('[data-rplang]');
+  if (rlb){
+    e.preventDefault();
+    try{ reelLangModal(); }catch(e2){}
+    return;
+  }
+  const rls = e.target.closest('[data-rlang]');
+  if (rls){
+    e.preventDefault();
+    try{
+      localStorage.setItem('sk_reels_lang', String(rls.dataset.rlang || 'ta').trim());
+      closeModal();
+      toast('🌐 ' + ({ ta: 'தமிழ் வாழ்த்துக்கள் ready!', te: 'తెలుగు శుభాకాంక్షలు ready!', kn: 'ಕನ್ನಡ ಶುಭಾಶಯಗಳು ready!', en: 'English wishes ready!' }[rls.dataset.rlang] || 'Ready!'));
+      renderReelsPage();   /* re-render every reel in HER language */
     }catch(e2){}
     return;
   }
