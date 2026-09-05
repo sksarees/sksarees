@@ -2758,7 +2758,7 @@ function renderProduct(){
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
         '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
         /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
-        '<div class="pd-trust"><span>🚚 Fast Delivery</span><span>💵 COD Available</span><span>↩️ 7-Day Replacement</span><span>🔒 Secure UPI</span></div>' +
+        '<div class="pd-trust"><span>🚚 Free Shipping ₹999+</span><span>↩️ Easy Returns</span><span>✅ 100% Original</span><span>💵 COD Available</span></div>' +
         /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
         '<div class="pd-ship">💵 <b>COD Available</b> — booking ₹' + CONFIG.codFee + ' only • 🚚 Delivery <b>2–5 days</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 999) + '</div>' +
         (out
@@ -2770,17 +2770,16 @@ function renderProduct(){
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<a class="btn btn-buygreen btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp Order — Instant Confirmation', 'WhatsApp ఆర్డర్ — వెంటనే కన్ఫర్మేషన్', 'WhatsApp ಆರ್ಡರ್ — ತಕ್ಷಣ ದೃಢೀಕರಣ', 'WhatsApp Order — Instant Confirmation') + '</a>' +
+            : '<a class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
+          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp Order — Instant Confirmation', 'WhatsApp ఆర్డర్ — వెంటనే కన్ఫర్మేషన్', 'WhatsApp ಆರ್ಡರ್ — ತಕ್ಷಣ ದೃಢೀಕರಣ', 'WhatsApp Order — Instant Confirmation') + '</a>' +
         '</div>' +
         /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
-        '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
-          '<a class="btn btn-maroon" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTO', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTO') + '</a></div>' +
+        '<div class="pd-realphoto"><span class="prp-cam">📷</span><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
+          '<a class="btn btn-maroon" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTOS', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTOS') + '</a></div>' +
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
-          (out ? '' : '<button type="button" class="btn btn-outline" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'வண்டியில் சேர்', 'Add to Cart', 'Add to Cart') + '</button>') +
-          '<a class="btn btn-outline" href="share-earn.html">💰 ' + loc('Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%', 'Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%') + '</a>' +
-          '<button type="button" class="btn btn-outline" data-share-wa="' + esc(p.id) + '" aria-label="Share on WhatsApp with photo">📢 ' + loc('பகிர்', 'தேலிகீ', 'லோ஗னு', 'Share') + '</button>' +
+          (out ? '' : '<button type="button" class="btn" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'Add to Cart', 'Add to Cart', 'Add to Cart') + '</button>') +
+          '<a class="btn" href="share-earn.html">💰 Share & Earn ' + (CONFIG.resellerMarginPct || 5) + '%</a>' +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
@@ -2809,11 +2808,11 @@ function renderProduct(){
       '</div>' +
     '</div>' +
     '<div class="wrap" id="recSection"></div>' +
-    '<div class="sticky-bar">' +
-      '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b><small>' + off + '% off</small></div>' +
-      '<a class="btn btn-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">⚡ Buy at ' + money(onlinePrice(p)) + '</a>' +
-      '<button type="button" class="btn btn-maroon sb-add" data-add="' + p.id + '" aria-label="Add to Cart" title="Add to Cart"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>' +
-      '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>' +
+    /* 📌 clean sticky bar — price + BUY NOW + WhatsApp (premium, minimal) */
+    '<div class="sticky-bar sb2">' +
+      '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b>' + (off >= 5 ? '<small>🔥 ' + off + '% off</small>' : '<small>' + esc(p.sku || '') + '</small>') + '</div>' +
+      '<a class="btn btn-pd-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>' +
+      '<a class="btn sb-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -2852,13 +2851,13 @@ function renderProduct(){
     const n = Math.max(1, Math.min(10, +v.textContent || 1));
     const dyn = document.getElementById('qtyTotal');
     if (dyn) dyn.textContent = money(p.price * n);
-    const addB = document.querySelector('.pd-btns [data-add]');
-    if (addB) addB.textContent = '🛒 Add to Cart ×' + n;
-    /* mobile floating Buy Now — amount + qty link update too */
+    /* 📌 sticky bar — price + BUY NOW stay live as qty changes */
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
     if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
+    const addB = document.querySelector('.pd-btns [data-add]');
+    if (addB) addB.textContent = '🛒 Add to Cart ×' + n;
     const pdBuy = document.getElementById('pdBuyBtn');
     if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
   };
@@ -3281,6 +3280,14 @@ function orderSuccessRecs(o){
 }
 /* 🧾 LIVE ORDER SUMMARY — items + price + courier details (zone/shipping/ETA
    per pincode) shown ABOVE the payment method; refreshes as the user types. */
+/* 🎉 total savings on this order — MRP drop + coupon + bundle + online + points.
+   "You saved ₹X" is the strongest single checkout-conversion line. */
+function orderSavings(t){
+  try{
+    const mrpSave = coItems().reduce((s, i) => { const p = byId(i.id); return s + (p && p.mrp > p.price ? (p.mrp - p.price) * (i.qty || 1) : 0); }, 0);
+    return Math.round(mrpSave + (t.discount || 0) + (t.bundle || 0) + (t.online || 0) + (t.pts || 0));
+  }catch(e){ return 0; }
+}
 function coSummaryHTML(){
   try{
     const t = coTotals();
@@ -3291,12 +3298,27 @@ function coSummaryHTML(){
     const courier = pin
       ? '📦 Courier: <b>' + esc(zn.name) + '</b> • Ship ' + (t.shipping ? money(t.shipping) : 'FREE') + ' • ' + t.eta
       : '📦 Enter your <b>PIN code</b> to see courier + delivery date';
-    return '<div class="form-card"><h3>🧾 Order Summary</h3>' +
+    /* 🎉 savings + 🚚 FREE-delivery nudge (grows the order value) */
+    const saved = orderSavings(t);
+    const need = (CONFIG.shipFreeAbove || 999) - t.itemsTotal;
+    const nudge = (t.shipping > 0 && need > 0)
+      ? '<p class="co-nudge">🚚 ' + loc('இன்னொரு saree add பண்ணா delivery இலவசம்!', 'మరో చీర జోడిస్తే డెలివరీ ఫ్రీ!', 'ಇನ್ನೊಂದು ಸೀರೆ ಸೇರಿಸಿದರೆ ಡೆಲಿವರಿ ಉಚಿತ!', 'Add one more saree — delivery FREE!') + ' <a href="shop.html">+ ₹' + need + loc(' வாங்குங்க →', ' కొనండి →', ' ಖರೀದಿಸಿ →', ' more →') + '</a></p>'
+      : '';
+    return '<div class="form-card co-sum"><h3>🧾 Order Summary</h3>' +
       (rows || '<p class="small muted">No items yet.</p>') +
-      (t.discount > 0 ? '<div class="row"><span>Coupon discount</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
-      '<div class="row"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+      /* every rupee visible — the rows now ADD UP to the Total (trust!) */
+      '<div class="row"><span>🧺 Items total</span><b>' + money(t.itemsTotal) + '</b></div>' +
+      (t.discount > 0 ? '<div class="row"><span>🎫 Coupon (' + esc(co.data.coupon || '') + ')</span><b class="co-save">−' + money(t.discount) + '</b></div>' : '') +
+      (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal</span><b class="co-save">−' + money(t.bundle) + '</b></div>' : '') +
+      (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount || 1) + '% off</span><b class="co-save">−' + money(t.online) + '</b></div>' : '') +
+      (t.pts > 0 ? '<div class="row"><span>⭐ Loyalty points</span><b class="co-save">−' + money(t.pts) + '</b></div>' : '') +
+      '<div class="row"><span>🚚 Shipping</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+      (t.codFee > 0 ? '<div class="row"><span>💵 COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
-      '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:9px;background:var(--bg);margin-top:8px">' + courier + '</p></div>';
+      (saved > 0 ? '<p class="co-saved">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + saved.toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
+      nudge +
+      '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:9px;background:var(--bg);margin-top:8px">' + courier + '</p>' +
+      '<p class="small muted" style="text-align:center;margin-top:8px;font-weight:700">✅ Secure Order • 💵 COD Available • ↩️ 7-Day Replacement</p></div>';
   }catch(e){ return ''; }
 }
 /* 🎟️ perks under the coupon: loyalty points to use + reseller commission on this order */
@@ -3306,7 +3328,7 @@ function checkoutPerksHTML(){
     let html = '';
     const pts = pointsBalance();
     if (pts > 0){
-      html += '<label style="display:flex;gap:8px;align-items:center;font-size:.82rem;font-weight:700;padding:6px 0;border-top:1px dashed var(--line);margin-top:8px"><input type="checkbox" id="usePts" style="width:18px;height:18px"' + (co.data.usePoints ? ' checked' : '') + '> ⭐ Use my ' + pts + ' loyalty points (−' + money(Math.min(pointsRedeemable(), t.itemsTotal - t.discount - t.bundle)) + ' on this order)</label>';
+      html += '<label class="pts-card"><input type="checkbox" id="usePts"' + (co.data.usePoints ? ' checked' : '') + '><span class="pts-ic">⭐</span><span class="pts-txt"><b>Use my ' + pts + ' Loyalty Points</b><small>Save more on this order!</small></span><span class="pts-amt">−' + money(Math.min(pointsRedeemable(), t.itemsTotal - t.discount - t.bundle)) + '</span></label>';
     }
     const res = currentReseller();
     /* 🤫 commission is PRIVATE — only show it when the person CHECKING OUT is
@@ -3344,7 +3366,7 @@ function drawCo(){
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
       '<div class="form-card"><h3>💳 Payment Method</h3><div class="pay-grid">' +
         '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>UPI — Pay Online</b><small>GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
-        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery — extra ₹' + CONFIG.codFee + '</small></span><span class="radio"></span></div>' +
+        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery (+₹' + CONFIG.codFee + ')</small></span><span class="radio"></span></div>' +
       '</div></div>' +
       '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
       (d.payment === 'cod'
@@ -3371,6 +3393,7 @@ function drawCo(){
           '<span>⏱ ' + t.eta + '</span>' +
           '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 Cash on Delivery (+₹' + CONFIG.codFee + ' booking paid)') + '</span>' +
         '</div>' +
+        (orderSavings(t) > 0 ? '<p class="co-saved" style="margin:0">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + orderSavings(t).toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
         '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
       '</div>' +
       (upiPay

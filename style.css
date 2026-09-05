@@ -3482,3 +3482,184 @@ body[data-page="reels"] .burger{ color:#fff; background:rgba(0,0,0,.30); border-
 }
 /* language modal buttons */
 .rlang-btn small{ font-weight:700 }
+
+/* ============================================================================
+   🧾 ORDER SUMMARY CORRECTED (step-1 box) + 🎉 savings + sticky bar removed
+   ========================================================================== */
+/* 🚫 floating sticky bar — REMOVED (user request); rule keeps it dead even
+   if an old cached page still has the markup */
+.sticky-bar{ display:none !important }
+body[data-page="product"] .pd-info{ padding-bottom:10px }
+/* 🧾 step-1 Order Summary rows — properly styled (were unstyled: labels and
+   values ran together, Total looked like a plain line) */
+.form-card .row{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding:8px 2px; font-size:.88rem;
+  border-bottom:1px dashed var(--line);
+}
+.form-card .row span{ color:var(--muted); font-weight:700 }
+.form-card .row b{ font-weight:900; color:#2b2320; font-variant-numeric:tabular-nums; text-align:right }
+.form-card .row.total{
+  border-bottom:0; border-top:2px dashed var(--line); margin-top:4px; padding-top:12px;
+  font-weight:900; font-size:1.02rem;
+}
+.form-card .row.total span{ color:#2b2320; font-weight:900 }
+.form-card .row.total b{ color:var(--maroon); font-size:1.15rem }
+/* 💚 discount values */
+.co-save{ color:var(--green) !important }
+/* 🎉 "You saved ₹X" — the strongest checkout line */
+.co-saved{
+  text-align:center; color:var(--green); font-weight:800; font-size:.86rem;
+  background:#e9f7ef; border:1.5px dashed #9edcb6; border-radius:11px;
+  padding:8px 10px; margin:10px 0 0;
+}
+.co-saved b{ font-size:1.02rem }
+/* 🚚 FREE-delivery nudge (grows the order) */
+.co-nudge{
+  border:1.5px dashed var(--gold); border-radius:11px; padding:8px 10px;
+  background:var(--gold-soft); color:#6b4c05;
+  font-size:.8rem; font-weight:800; margin-top:8px; text-align:center;
+}
+.co-nudge a{ color:var(--maroon); font-weight:900; text-decoration:underline }
+
+/* ============================================================================
+   🎨 PREMIUM UI — product page + checkout (maroon + cream, soft shadows,
+   modern rounded, mobile-first — 2026 redesign)
+   ========================================================================== */
+/* ── product page ─────────────────────────────────────────────────────────── */
+/* 🛒 primary BUY — deep maroon, large rounded, soft shadow */
+.btn-pd-buy{
+  background:linear-gradient(0deg,#5c1024,#8f1d3a 60%,#a63a52);
+  color:#fff;
+  border-radius:16px;
+  box-shadow:0 8px 22px rgba(143,29,58,.42);
+  font-weight:900; letter-spacing:.4px;
+}
+.btn-pd-buy:active{ transform:scale(.98) }
+.pd-btns .btn-pd-buy{ flex:1.35; font-size:1.04rem; min-height:54px }
+/* 💬 secondary — OUTLINED green WhatsApp */
+.btn-wa-o{
+  background:#fff;
+  color:#0e7d46;
+  border:2px solid #17a45f;
+  border-radius:16px;
+  font-weight:800;
+}
+.btn-wa-o svg{ fill:#0e7d46 }
+.btn-wa-o:active{ background:#e9f7ef }
+/* 📸 real photos — camera icon + cream gradient */
+.pd-realphoto{
+  background:linear-gradient(135deg,#fdf3e0,#fffdf8);
+  border:1.5px solid #ecd9a8;
+  border-radius:16px;
+  box-shadow:0 3px 12px rgba(160,120,40,.08);
+}
+.prp-cam{
+  flex:0 0 auto; width:44px; height:44px;
+  background:linear-gradient(135deg,#f7e3b0,#efd188);
+  border-radius:13px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem;
+  box-shadow:0 3px 8px rgba(160,120,40,.22);
+}
+.pd-realphoto .btn{ background:linear-gradient(0deg,#0e7d46,#17a45f); color:#fff; border:0; border-radius:13px; box-shadow:0 4px 12px rgba(23,164,95,.32) }
+/* 🛍️ secondary row — smaller elegant chips */
+.pd-secondary{ gap:8px }
+.pd-secondary .btn{
+  background:#faf5ef; border:1.5px solid #eadfd6; color:#6b4a3a;
+  border-radius:13px; font-size:.8rem; font-weight:800;
+  min-height:42px; box-shadow:none;
+}
+.pd-secondary .btn:active{ background:#f3e9de }
+/* 📌 sticky bar — clean premium (price + BUY + WhatsApp icon) */
+.sticky-bar.sb2{
+  display:flex !important;              /* re-activated (old kill rule overridden) */
+  background:rgba(255,255,255,.98);
+  backdrop-filter:blur(10px);
+  border-top:0;
+  box-shadow:0 -10px 30px rgba(60,10,25,.14);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  gap:10px;
+}
+.sticky-bar.sb2 .sb-price b{ font-size:1.18rem; color:#8f1d3a }
+.sticky-bar.sb2 .sb-price small{ color:#1e7d46; font-weight:900 }
+.sticky-bar.sb2 .btn-pd-buy{ flex:1; min-height:50px; font-size:.95rem; border-radius:14px }
+.sticky-bar.sb2 .sb-wa{
+  flex:0 0 auto; width:50px; min-height:50px; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  background:#fff; border:2px solid #17a45f; border-radius:14px;
+}
+.sticky-bar.sb2 .sb-wa svg{ fill:#0e7d46; margin:0 }
+body[data-page="product"]{ padding-bottom:74px }   /* content never hides behind the bar */
+/* price + OFF badge — bigger, bolder */
+.pd-price b{ font-size:1.75rem }
+.pd-price .off{
+  background:linear-gradient(135deg,#e0173a,#ff2d55);
+  color:#fff; font-size:.72rem; font-weight:900;
+  padding:6px 12px; border-radius:999px;
+  box-shadow:0 3px 10px rgba(224,23,58,.35);
+}
+/* ── checkout page ────────────────────────────────────────────────────────── */
+/* 🧾 cards — premium rounded + soft shadow */
+.form-card{ border-radius:18px; box-shadow:0 4px 18px rgba(61,10,27,.05); border-color:#efe4da }
+/* ⭐ loyalty points — prominent gold card */
+.pts-card{
+  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg,#fdf6e3,#fffdf6);
+  border:1.5px solid #ecd9a8;
+  border-radius:16px; padding:12px 14px; margin-top:10px;
+  cursor:pointer; position:relative;
+}
+.pts-card input{ position:absolute; opacity:0; }
+.pts-card .pts-ic{
+  width:42px; height:42px; border-radius:12px;
+  background:linear-gradient(135deg,#f7e3b0,#efd188);
+  display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  box-shadow:0 3px 8px rgba(160,120,40,.2);
+}
+.pts-card .pts-txt{ flex:1; min-width:0 }
+.pts-card .pts-txt b{ display:block; font-size:.86rem; color:#5c4a1e }
+.pts-card .pts-txt small{ color:#8a7a70; font-size:.7rem; font-weight:700 }
+.pts-card .pts-amt{
+  color:#1e7d46; font-weight:900; font-size:1rem;
+  background:#e9f7ef; border-radius:999px; padding:6px 12px;
+}
+.pts-card:has(input:checked){ border-color:#17a45f; box-shadow:0 0 0 3px rgba(23,164,95,.15) }
+.pts-card:has(input:checked)::after{
+  content:'✓'; position:absolute; top:-7px; right:-7px;
+  width:22px; height:22px; border-radius:50%;
+  background:#17a45f; color:#fff; font-size:.72rem; font-weight:900;
+  display:flex; align-items:center; justify-content:center;
+}
+/* 💳 payment method cards — modern */
+.pay-grid{ gap:10px }
+.pay-opt{
+  border-radius:16px; border:1.5px solid #eadfd6;
+  background:#fff; box-shadow:0 2px 10px rgba(61,10,27,.04);
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.pay-opt.on{
+  border-color:#8f1d3a;
+  box-shadow:0 0 0 3px rgba(143,29,58,.14), 0 4px 14px rgba(143,29,58,.1);
+  background:linear-gradient(135deg,#fff,#fdf4f7);
+}
+.pay-opt .radio{
+  width:22px; height:22px; border-radius:50%;
+  border:2px solid #d9c9bd; background:#fff; flex:0 0 auto;
+}
+.pay-opt.on .radio{ border-color:#8f1d3a; background:radial-gradient(circle at center,#8f1d3a 45%,#fff 50%) }
+.pay-opt small{ color:#9c8b80; font-weight:700 }
+/* 🚚 delivery info — soft cream highlight */
+.delivery-card{
+  background:linear-gradient(135deg,#fdf6e3,#fffdf8);
+  border:1.5px solid #ecd9a8; border-radius:16px;
+  color:#5c4a1e;
+}
+/* 🧾 order summary + review — bigger bold Total */
+.form-card .row.total b{ font-size:1.3rem; color:#8f1d3a }
+.rvw-total b{ font-size:1.5rem }
+.rvw-card{ border-radius:18px }
+@media(max-width:640px){
+  .pd-btns .btn-pd-buy{ min-height:52px }
+  .pd-realphoto .btn{ min-width:0; font-size:.78rem }
+}
