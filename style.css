@@ -3396,3 +3396,39 @@ body[data-page="reels"] .burger{ color:#fff; background:rgba(0,0,0,.30); border-
   .pd-realphoto .btn{ width:100%; min-width:0 }
   .pd-trust span{ font-size:.6rem; padding:4px 9px }
 }
+
+/* ============================================================================
+   🎯 COMPACT CARDS + MINI QUOTE (card height −20%, photo-first reels)
+   ========================================================================== */
+/* 🎬 reels quote — small & subtle: the SAREE is the hero, not the text */
+.rp-quote{ padding:0 56px calc(160px + env(safe-area-inset-bottom)) 14px }
+.rp-quote p{
+  font-size:1rem !important; line-height:1.55 !important;
+  max-width:340px; margin:0 auto;
+  text-shadow:0 2px 10px rgba(0,0,0,.7);
+  opacity:.95;
+}
+/* reels card — 4 trust points wrap neatly, tighter card */
+.rp-card{ padding:11px 13px 12px }
+.rpc-trust{ font-size:.63rem; line-height:1.6; letter-spacing:.2px }
+.rpc-buy{ min-height:48px; font-size:.95rem }
+.rpc-wa{ min-height:42px; font-size:.8rem }
+/* 🛍️ landing cards — compact (image + 2-line title + price + chip + 2 CTAs) */
+.lpc-b{ padding:8px 9px 10px; gap:5px }
+.lpc-t{ text-decoration:none }
+.lpc-t b{
+  font-size:.8rem; line-height:1.28; color:#2b2320; display:block;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.lpc-t small{
+  display:block; margin-top:1px;
+  color:#8a7a70; font-size:.66rem; font-weight:800; line-height:1.3;
+  display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;
+}
+.lpc-price b{ font-size:1.06rem }
+.lpc-price s{ font-size:.72rem; margin-left:6px; margin-right:0 }
+.lpc-trust{ font-size:.62rem; padding:3px 9px }
+.lpc-btns{ gap:5px }
+.lpc-btns .btn{ min-height:38px; font-size:.78rem; padding:6px 8px }
+.lpc-btns .btn-wa{ min-height:34px; font-size:.74rem }
+.lpc-img{ aspect-ratio:3/4 }

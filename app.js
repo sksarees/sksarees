@@ -799,12 +799,12 @@ function reelHTML(p, i){
         '<b>₹' + price.toLocaleString('en-IN') + '</b>' +
         (off >= 5 ? '<span class="rpc-off">🔥 ' + off + '% OFF</span>' : '') +
       '</div>' +
-      '<div class="rpc-trust">🚚 COD Available • Fast Delivery</div>' +
+      '<div class="rpc-trust">🚚 2–5 Days Delivery • 💵 COD Available • 🔄 Easy Exchange • 🔒 Secure Order</div>' +
       '<div class="rpc-urg">🔥 ' + rloc('இன்னிக்கு இந்த சேலை ₹' + price.toLocaleString('en-IN') + ' மட்டும்', 'ఈ రోజు ఈ చీర ₹' + price.toLocaleString('en-IN') + ' మాత్రమే', 'ಇಂದು ಈ ಸೀರೆ ₹' + price.toLocaleString('en-IN') + ' ಮಾತ್ರ', 'Today only — ₹' + price.toLocaleString('en-IN')) +
         (stockLeft && stockLeft <= 5 ? ' • 👗 ' + rloc('கடைசி ' + stockLeft + ' பீஸ்!', 'చివరి ' + stockLeft + ' ముక్కలు!', 'ಕೊನೆಯ ' + stockLeft + ' ತುಣುಕುಗಳು!', 'Only ' + stockLeft + ' left!') : '') +
       '</div>' +
-      '<a class="btn btn-buy rpc-buy" href="product.html?id=' + encodeURIComponent(p.id) + '">🛒 BUY NOW — ₹' + price.toLocaleString('en-IN') + '</a>' +
-      '<a class="btn btn-wa rpc-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 ' + rloc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
+      '<a class="btn btn-buy rpc-buy" href="product.html?id=' + encodeURIComponent(p.id) + '">' + rloc('🛒 இந்த சேலையை ₹' + price.toLocaleString('en-IN') + 'க்கு வாங்குங்கள்', '🛒 ఈ చీరను ₹' + price.toLocaleString('en-IN') + 'కి కొనండి', '🛒 ಈ ಸೀರೆಯನ್ನು ₹' + price.toLocaleString('en-IN') + 'ಗೆ ಖರೀದಿಸಿ', '🛒 BUY NOW — ₹' + price.toLocaleString('en-IN')) + '</a>' +
+      '<a class="btn btn-wa rpc-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">💬 ' + rloc('WhatsApp-ல் Order செய்யுங்கள் | Quick Reply', 'WhatsApp లో ఆర్డర్ చేయండి | వేగవంతమైన ప్రతిస్పందన', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ | ತ್ವರಿತ ಪ್ರತಿಕ್ರಿಯೆ', 'WhatsApp Order | Quick Reply') + '</a>' +
     '</div></div>' +
   '</section>';
 }
@@ -1542,9 +1542,12 @@ function landingCardHTML(p){
       (off >= 5 ? '<span class="lpc-off">🔥 ' + off + '% OFF</span>' : '') +
     '</a>' +
     '<div class="lpc-b">' +
-      '<a href="product.html?id=' + encodeURIComponent(p.id) + '"><b>' + esc(smartTitle(p)) + '</b></a>' +
-      '<div class="lpc-price">' + (p.mrp && p.mrp > p.price ? '<s>' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b></div>' +
-      '<span class="lpc-trust">⭐ ' + (p.rating || 4.5) + '/5' + (revs > 0 ? ' • ' + revs + ' reviews' : '') + ' • 🚚 Fast Delivery • 💵 COD</span>' +
+      /* clean 2-line title — full name + type, no "..." truncation */
+      '<a class="lpc-t" href="product.html?id=' + encodeURIComponent(p.id) + '"><b>' + esc((String(smartTitle(p)).split(' | ')[0]) || smartTitle(p)) + '</b>' +
+        (String(smartTitle(p)).split(' | ').length > 1 ? '<small>' + esc(String(smartTitle(p)).split(' | ').slice(1).join(' • ')) + '</small>' : '') + '</a>' +
+      /* offer price FIRST (big), struck MRP beside — instant value read */
+      '<div class="lpc-price"><b>' + money(p.price) + '</b>' + (p.mrp && p.mrp > p.price ? '<s>' + money(p.mrp) + '</s>' : '') + '</div>' +
+      '<span class="lpc-trust">⭐ ' + (p.rating || 4.5) + '/5 • 🚚 Fast Delivery</span>' +
       '<div class="lpc-btns">' +
         '<a class="btn btn-buy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>' +
         '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Order</a>' +
@@ -1596,7 +1599,7 @@ function renderHome(){
     '<div class="wrap">' +
       /* 🔥 5 BEST SELLING SAREES — price → rating → COD → BUY NOW + WhatsApp
          (exactly the decision info a saree buyer needs, nothing else) */
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 5 Best Selling Sarees</h2><a href="shop.html">View All</a></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 5 Best Selling Sarees</h2><a href="shop.html">View All Sarees →</a></div>' +
         '<div class="lpd-grid">' + five.map(landingCardHTML).join('') + '</div></section>' +
       /* 💬 WhatsApp strip — FB/IG visitors skip the website steps entirely */
       '<section class="lpd-wa"><b>📱 Facebook / Instagram-ல இருந்து வந்துட்டீங்களா?</b>' +
@@ -1616,7 +1619,7 @@ function renderHome(){
       /* 🤝 Why SK Sarees? */
       whyUsHTML() +
       /* 🛍️ Categories — only ones with sarees in stock */
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">' + t('viewAll') + '</a></div>' +
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">All Categories →</a></div>' +
         '<div class="cat-grid">' + liveCats.slice(0, 12).map(x => {
           const c = x.c;
           return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
