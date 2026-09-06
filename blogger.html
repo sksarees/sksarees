@@ -3,255 +3,188 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Product CSV from Image URLs</title>
+  <title>Product CSV</title>
   <style>
     :root {
-      --bg: #07111c;
-      --card: rgba(12, 24, 38, 0.88);
-      --line: rgba(255, 255, 255, 0.08);
-      --text: #e8f1f8;
-      --muted: #8aa0b5;
-      --accent: #1f8a70;
-      --accent-2: #3ecf8e;
-      --head: #143024;
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-      --radius: 18px;
+      --bg: #f3f1ec;
+      --ink: #141414;
+      --muted: #6b6560;
+      --line: #e6e1d8;
+      --card: #ffffff;
+      --accent: #111111;
+      --gold: #b8892d;
+      --soft: #faf8f4;
+      --ok: #1f7a4d;
+      --shadow: 0 10px 40px rgba(20, 16, 10, 0.06);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
-
     body {
       font-family: "Segoe UI", "Noto Sans Tamil", Inter, system-ui, sans-serif;
-      color: var(--text);
+      color: var(--ink);
       background:
-        radial-gradient(900px 420px at 0% 0%, rgba(31, 138, 112, 0.22), transparent 55%),
-        radial-gradient(700px 360px at 100% 0%, rgba(62, 207, 142, 0.1), transparent 50%),
+        radial-gradient(900px 420px at 100% -10%, rgba(184, 137, 45, 0.12), transparent 50%),
         var(--bg);
     }
-
-    .wrap { max-width: 1360px; margin: 0 auto; padding: 28px 16px 56px; }
-
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 18px 64px; }
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
     }
-
     .brand { display: flex; gap: 12px; align-items: center; }
-
     .logo {
-      width: 48px; height: 48px; border-radius: 14px;
-      background: linear-gradient(145deg, var(--accent), var(--accent-2));
-      color: #042016; font-weight: 800; display: grid; place-items: center;
-      box-shadow: 0 10px 24px rgba(31, 138, 112, 0.35);
+      width: 46px; height: 46px; border-radius: 14px;
+      background: var(--ink); color: #fff; font-weight: 800;
+      display: grid; place-items: center; letter-spacing: -0.04em;
     }
-
-    h1 { font-size: 1.4rem; letter-spacing: -0.03em; }
-    .sub { color: var(--muted); font-size: 0.92rem; margin-top: 2px; }
-
-    .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    h1 { font-size: 1.45rem; letter-spacing: -0.04em; font-weight: 750; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-top: 3px; }
+    .pills { display: flex; gap: 8px; }
     .pill {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 7px 12px;
-      color: var(--muted);
-      font-size: 0.84rem;
+      background: #fff; border: 1px solid var(--line); border-radius: 999px;
+      padding: 7px 12px; color: var(--muted); font-size: 0.82rem;
     }
-    .pill b { color: var(--text); }
-
-    .top {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
+    .pill b { color: var(--ink); }
+    .top { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; margin-bottom: 14px; }
     @media (max-width: 980px) { .top { grid-template-columns: 1fr; } }
-
     .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 20px; box-shadow: var(--shadow); overflow: hidden;
     }
-
     .card-head {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 16px 0; gap: 10px;
+      padding: 16px 18px 0; gap: 10px;
     }
-    .card-head h2 { font-size: 0.92rem; }
-    .hint { color: var(--muted); font-size: 0.76rem; }
-
+    .card-head h2 { font-size: 0.84rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .hint { color: var(--muted); font-size: 0.75rem; }
+    .note {
+      margin: 12px 18px 0; padding: 10px 12px; border-radius: 12px;
+      background: #fff8ea; border: 1px solid #f0e0bc; color: #6b5420;
+      font-size: 0.78rem; line-height: 1.45;
+    }
     textarea {
-      width: 100%; min-height: 210px; resize: vertical; border: 0; outline: none;
-      background: transparent; color: var(--text); padding: 12px 16px 14px;
-      font: 12.5px/1.5 ui-monospace, Consolas, monospace;
+      width: 100%; min-height: 188px; resize: vertical; border: 0; outline: none;
+      background: transparent; color: var(--ink); padding: 12px 18px 8px;
+      font: 13px/1.5 ui-monospace, Consolas, monospace;
     }
-    textarea::placeholder { color: #5d7388; }
-
-    .defaults {
-      padding: 12px 16px 8px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    .defaults { padding: 12px 18px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 560px) { .defaults { grid-template-columns: 1fr; } }
-
     .field { display: flex; flex-direction: column; gap: 4px; }
-    .field span { font-size: 0.74rem; color: var(--muted); }
-    .field input, .field select {
-      background: #0a1824;
-      border: 1px solid var(--line);
-      color: var(--text);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font: inherit;
-      font-size: 0.88rem;
+    .field span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .field input {
+      background: var(--soft); border: 1px solid var(--line); color: var(--ink);
+      border-radius: 11px; padding: 9px 11px; font: inherit; font-size: 0.9rem;
     }
-    .field input:focus, .field select:focus, .cell:focus {
-      outline: 2px solid rgba(62, 207, 142, 0.35);
-      border-color: #2aa37a;
-    }
-
-    .opts { padding: 4px 16px 0; display: flex; flex-wrap: wrap; gap: 12px 16px; }
+    .field input:focus, .cell:focus { outline: 2px solid rgba(184, 137, 45, 0.35); border-color: var(--gold); }
+    .opts { padding: 6px 18px 0; display: flex; flex-wrap: wrap; gap: 10px 14px; }
     label.opt { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 0.82rem; cursor: pointer; }
-    label.opt input { accent-color: var(--accent-2); }
-
-    .actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px 16px; }
-
+    label.opt input { accent-color: var(--gold); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 18px 16px; }
     button {
-      border: 0; border-radius: 11px; padding: 10px 14px;
-      font-weight: 700; cursor: pointer; font-size: 0.88rem; font-family: inherit;
+      border: 0; border-radius: 999px; padding: 10px 15px;
+      font-weight: 700; cursor: pointer; font-size: 0.86rem; font-family: inherit;
     }
-    .btn-primary { background: linear-gradient(135deg, #1f8a70, #3ecf8e); color: #042016; }
-    .btn-good { background: #f4c430; color: #2a2100; }
-    .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--line); }
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-good { background: var(--gold); color: #fff; }
+    .btn-ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .sheet { overflow: auto; max-height: calc(100vh - 180px); }
-
+    .sheet { overflow: auto; max-height: calc(100vh - 160px); }
     table { width: 100%; border-collapse: collapse; min-width: 1180px; font-size: 0.82rem; }
-
     thead th {
-      position: sticky; top: 0; z-index: 2;
-      background: #143024;
-      color: #d7ffe9;
-      text-align: left;
-      font-weight: 700;
-      padding: 11px 8px;
-      border-bottom: 1px solid #1f5a42;
-      white-space: nowrap;
+      position: sticky; top: 0; z-index: 2; background: #111; color: #fff;
+      text-align: left; font-weight: 650; padding: 12px 8px; white-space: nowrap;
     }
-
     tbody td {
-      padding: 6px 6px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: middle;
-      background: rgba(8, 18, 28, 0.4);
+      padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; background: #fff;
     }
-
-    tbody tr:nth-child(even) td { background: rgba(20, 48, 36, 0.18); }
-
-    .idx { width: 42px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+    tbody tr:hover td { background: #fbf8f2; }
+    .idx { width: 40px; color: var(--muted); text-align: center; }
     .thumb {
-      width: 40px; height: 40px; border-radius: 7px; object-fit: cover;
-      background: #07111c; border: 1px solid var(--line); display: block;
+      width: 44px; height: 44px; border-radius: 10px; object-fit: cover;
+      background: var(--soft); border: 1px solid var(--line); display: block;
     }
-
     .cell {
-      width: 100%;
-      background: #0b1824;
-      border: 1px solid transparent;
-      color: var(--text);
-      border-radius: 8px;
-      padding: 7px 8px;
-      font: inherit;
-      font-size: 0.82rem;
+      width: 100%; background: var(--soft); border: 1px solid transparent;
+      color: var(--ink); border-radius: 9px; padding: 8px 9px; font: inherit; font-size: 0.82rem;
     }
-    .cell.url { font-size: 0.74rem; color: #b7d8c8; min-width: 240px; }
-    .cell.name { min-width: 160px; font-weight: 600; }
-    .num { max-width: 92px; }
-    .sku { max-width: 120px; }
-
-    .empty { padding: 56px 20px; text-align: center; color: var(--muted); }
-    .empty .big { font-size: 2rem; margin-bottom: 8px; }
-
+    .cell.url { font-size: 0.73rem; color: #3d3a36; min-width: 220px; }
+    .cell.name { min-width: 150px; font-weight: 650; }
+    .num { max-width: 90px; }
+    .sku { max-width: 92px; font-weight: 700; letter-spacing: 0.02em; }
+    .empty { padding: 58px 20px; text-align: center; color: var(--muted); }
+    .empty .big { font-size: 1.8rem; margin-bottom: 8px; }
     .toast {
-      position: fixed; bottom: 20px; right: 20px;
-      background: #102433; border: 1px solid var(--line); color: var(--text);
-      padding: 11px 14px; border-radius: 12px; box-shadow: var(--shadow);
+      position: fixed; bottom: 20px; right: 20px; background: #111; color: #fff;
+      padding: 12px 15px; border-radius: 14px; box-shadow: var(--shadow);
       opacity: 0; transform: translateY(8px); pointer-events: none; transition: 0.22s ease; z-index: 20;
     }
     .toast.show { opacity: 1; transform: none; }
-
-    footer { margin-top: 12px; color: var(--muted); font-size: 0.78rem; }
-
-    .del {
-      background: transparent; color: #f87171; border: 0; cursor: pointer;
-      font-size: 1rem; padding: 4px 8px; border-radius: 8px;
+    footer { margin-top: 14px; color: var(--muted); font-size: 0.78rem; }
+    .del { background: transparent; color: #c24141; border: 0; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 8px; }
+    .swatch {
+      width: 14px; height: 14px; border-radius: 99px; border: 1px solid #ddd;
+      display: inline-block; vertical-align: middle; margin-right: 6px;
     }
-    .del:hover { background: rgba(248, 113, 113, 0.12); }
+    .colour-wrap { display: flex; align-items: center; min-width: 130px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo">CSV</div>
+        <div class="logo">SK</div>
         <div>
-          <h1>Product sheet from HTML images</h1>
-          <p class="sub">HTML paste → Image URL extract → Name, Price, MRP, Category, Badge, SKU, Stock, Colours CSV</p>
+          <h1>Product CSV studio</h1>
+          <p class="sub">Blog link / HTML → images → colour auto detect → CSV</p>
         </div>
       </div>
       <div class="pills">
-        <div class="pill">Products: <b id="count">0</b></div>
-        <div class="pill">Columns: <b>9</b></div>
+        <div class="pill">Products <b id="count">0</b></div>
+        <div class="pill">SKU <b>SK + 4 digit</b></div>
       </div>
     </header>
 
     <div class="top">
       <section class="card">
         <div class="card-head">
-          <h2>1. HTML / Blogger code paste</h2>
-          <span class="hint">ஒவ்வொரு image-ம் ஒரு product row ஆகும்</span>
+          <h2>Source</h2>
+          <span class="hint">URL அல்லது HTML paste</span>
         </div>
-        <textarea id="input" placeholder="இங்க HTML paste பண்ணுங்க. img src / href / markdown URL எல்லாம் எடுக்கப்படும்..."></textarea>
+        <div class="note">Desktop Chrome-ல இந்த file-ஐ open பண்ணுங்க. URL block ஆனா blog page-ல Ctrl+U செய்து HTML paste பண்ணுங்க.</div>
+        <textarea id="input" placeholder="https://sksareescollection.blogspot.com/2026/08/sakthi-tex.html"></textarea>
         <div class="opts">
-          <label class="opt"><input type="checkbox" id="preferLarge" checked /> Blogger-ஐ s4000 ஆக்கு</label>
-          <label class="opt"><input type="checkbox" id="dedupe" checked /> Duplicate URL remove</label>
-          <label class="opt"><input type="checkbox" id="imagesOnly" checked /> Image URL மட்டும்</label>
+          <label class="opt"><input type="checkbox" id="preferLarge" checked /> Large image (s4000)</label>
+          <label class="opt"><input type="checkbox" id="dedupe" checked /> Duplicate remove</label>
+          <label class="opt"><input type="checkbox" id="usePageTitle" checked /> Title → Name</label>
+          <label class="opt"><input type="checkbox" id="autoColour" checked /> Image-ல இருந்து colour auto</label>
         </div>
         <div class="actions">
-          <button class="btn-primary" id="extractBtn" type="button">Extract & fill sheet</button>
-          <button class="btn-ghost" id="addRowBtn" type="button">+ Empty row</button>
+          <button class="btn-primary" id="extractBtn" type="button">Fetch images</button>
+          <button class="btn-ghost" id="detectBtn" type="button">Re-detect colours</button>
+          <button class="btn-ghost" id="addRowBtn" type="button">+ Row</button>
           <button class="btn-ghost" id="clearBtn" type="button">Clear</button>
         </div>
       </section>
 
       <section class="card">
         <div class="card-head">
-          <h2>2. Common values (எல்லா row-க்கும் apply)</h2>
-          <span class="hint">Name type பண்ணி Apply அழுத்தினா எல்லா row-க்கும் போகும்</span>
+          <h2>Defaults</h2>
+          <span class="hint">Name Apply அழுத்தினா எல்லா row-க்கும் போகும்</span>
         </div>
         <div class="defaults">
-          <label class="field" style="grid-column: 1 / -1;"><span>Name</span><input id="defName" type="text" placeholder="Product name — எல்லா row-க்கும்" /></label>
-          <label class="field"><span>Price</span><input id="defPrice" type="text" placeholder="499" /></label>
-          <label class="field"><span>MRP</span><input id="defMrp" type="text" placeholder="999" /></label>
-          <label class="field"><span>Category</span><input id="defCategory" type="text" placeholder="Sarees" /></label>
-          <label class="field"><span>Badge</span><input id="defBadge" type="text" placeholder="New / Sale" /></label>
-          <label class="field"><span>Stock</span><input id="defStock" type="text" placeholder="10" /></label>
-          <label class="field"><span>Colours</span><input id="defColours" type="text" placeholder="multi color" value="multi color" /></label>
+          <label class="field" style="grid-column:1/-1"><span>Name</span><input id="defName" placeholder="Product name" /></label>
+          <label class="field"><span>Price</span><input id="defPrice" placeholder="499" /></label>
+          <label class="field"><span>MRP</span><input id="defMrp" placeholder="999" /></label>
+          <label class="field"><span>Category</span><input id="defCategory" placeholder="Sarees" /></label>
+          <label class="field"><span>Badge</span><input id="defBadge" placeholder="New" /></label>
+          <label class="field"><span>Stock</span><input id="defStock" placeholder="10" /></label>
+          <label class="field"><span>Colours fallback</span><input id="defColours" placeholder="auto from image" /></label>
         </div>
         <div class="opts">
-          <label class="opt"><input type="checkbox" id="overwrite" /> Already typed values-ஐயும் overwrite பண்ணு</label>
+          <label class="opt"><input type="checkbox" id="overwrite" /> Overwrite typed values</label>
         </div>
         <div class="actions">
-          <button class="btn-ghost" id="applyBtn" type="button">Apply to all rows</button>
+          <button class="btn-ghost" id="applyBtn" type="button">Apply to all</button>
           <button class="btn-good" id="csvBtn" type="button" disabled>Download CSV</button>
           <button class="btn-ghost" id="copyBtn" type="button" disabled>Copy CSV</button>
         </div>
@@ -260,26 +193,21 @@
 
     <section class="card">
       <div class="card-head">
-        <h2>3. Product sheet — edit பண்ணிட்டு download பண்ணுங்க</h2>
-        <span class="hint" id="status">இன்னும் extract பண்ணல</span>
+        <h2>Sheet</h2>
+        <span class="hint" id="status">ready</span>
       </div>
       <div class="sheet" id="sheet">
-        <div class="empty">
-          <div class="big">📋</div>
-          HTML paste செய்து Extract அழுத்தினா இந்த format-ல sheet வரும்:<br />
-          Name · Price · MRP · Image URL · Category · Badge · SKU · Stock · Colours
-        </div>
+        <div class="empty"><div class="big">▣</div>Link paste செய்து Fetch images அழுத்துங்க</div>
       </div>
     </section>
-
-    <footer>SKU format: SK65361 — random 5 digit. ஒரு தடவை வந்த code மறுபடி generate ஆகாது (இந்த browser-ல save ஆகும்).</footer>
+    <footer>SKU format SK4821 — 4 digit random. ஒரு தடவை வந்த code இந்த browser-ல save ஆகி மறுபடி வராது. Colour image-ல இருந்து auto select ஆகும்.</footer>
   </div>
-
   <div class="toast" id="toast"></div>
 
   <script>
     const COLUMNS = ["Name", "Price", "MRP", "Image URL", "Category", "Badge", "SKU", "Stock", "Colours"];
     const KEYS = ["name", "price", "mrp", "imageUrl", "category", "badge", "sku", "stock", "multi"];
+    const SKU_STORE = "used-skus-v2";
 
     const input = document.getElementById("input");
     const sheet = document.getElementById("sheet");
@@ -288,189 +216,263 @@
     const csvBtn = document.getElementById("csvBtn");
     const copyBtn = document.getElementById("copyBtn");
     const toast = document.getElementById("toast");
-
     let rows = [];
 
     function showToast(msg) {
       toast.textContent = msg;
       toast.classList.add("show");
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), 2200);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 2400);
     }
-
-    function csvEscape(value) {
-      const s = String(value ?? "");
-      if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-      return s;
+    function csvEscape(v) {
+      const s = String(v ?? "");
+      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
     }
-
     function filenameFromUrl(url) {
       try {
-        const clean = url.split("?")[0].split("#")[0];
-        const last = decodeURIComponent(clean.split("/").filter(Boolean).pop() || "image");
+        const last = decodeURIComponent((url.split("?")[0].split("/").filter(Boolean).pop() || ""));
         return last.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").trim();
-      } catch {
-        return "";
-      }
+      } catch { return ""; }
     }
-
+    function preferLarge(url) {
+      return String(url || "").replace(/\/s\d+(-[a-z0-9-]+)?\//i, "/s4000/").replace(/\/w\d+(-h\d+)?\//i, "/s4000/");
+    }
+    function imageKey(url) {
+      const m = String(url).match(/\/(AVvXs[^/]+)\//);
+      return m ? m[1] : url.split("?")[0].toLowerCase();
+    }
     function looksLikeImage(url) {
+      if (!url || url.startsWith("data:")) return false;
       const u = url.toLowerCase();
-      if (/\.(jpe?g|png|gif|webp|bmp|svg|avif|heic|tiff?)(\?|#|$)/i.test(u)) return true;
-      if (u.includes("blogger.googleusercontent.com/img/")) return true;
-      if (/\/s\d+\//.test(u) && u.includes("googleusercontent.com")) return true;
-      return false;
+      if (u.includes("e.img") || u.includes("favicon") || u.includes("/s72-c/")) return false;
+      return u.includes("blogger.googleusercontent.com/img/") || /\.(jpe?g|png|gif|webp|bmp|avif)(\?|#|$)/i.test(u);
     }
-
-    function preferLargeBlogger(url) {
-      return url.replace(/\/s\d+(-[a-z0-9-]+)?\//i, "/s4000/");
-    }
-
     function normalizeCandidate(raw) {
       if (!raw) return "";
-      let u = raw.trim()
-        .replace(/^['"<\[]+/, "")
-        .replace(/['">\]]+$/, "")
-        .replace(/&amp;/g, "&")
-        .replace(/\\\//g, "/");
+      let u = raw.trim().replace(/&amp;/g, "&");
       const md = u.match(/https?:\/\/[^\s"'<>\]]+/i);
       if (md) u = md[0];
       return u.replace(/[),.;]+$/g, "");
     }
-
-    function extractUrls(html) {
+    function extractImages(html) {
       const found = [];
       const push = (raw) => {
         const u = normalizeCandidate(raw);
-        if (!u || !/^https?:\/\//i.test(u)) return;
-        found.push(u);
+        if (u && /^https?:\/\//i.test(u) && looksLikeImage(u)) found.push(u);
       };
-      const attrRe = /(?:src|href|data-src|data-original|data-lazy-src|data-original-src)\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
+      const attrRe = /(?:src|href|data-src|data-original|data-lazy-src|content)\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
       let m;
       while ((m = attrRe.exec(html))) push(m[1] || m[2] || m[3]);
-      const mdRe = /!?\[.*?\]\((https?:\/\/[^)\s]+)\)/gi;
-      while ((m = mdRe.exec(html))) push(m[1]);
       const bareRe = /https?:\/\/[^\s"'<>]+/gi;
       while ((m = bareRe.exec(html))) push(m[0]);
-      return found;
+      const prefer = document.getElementById("preferLarge").checked;
+      const dedupe = document.getElementById("dedupe").checked;
+      const out = [], seen = new Set();
+      for (let u of found) {
+        if (prefer) u = preferLarge(u);
+        const key = imageKey(u);
+        if (dedupe && seen.has(key)) continue;
+        seen.add(key);
+        out.push(u);
+      }
+      return out;
     }
-
-    const SKU_STORE = "used-skus-v1";
+    function extractTitle(html) {
+      const og = html.match(/property=["']og:title["'][^>]*content=["']([^"']+)["']/i)
+        || html.match(/content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
+      let t = og ? og[1] : "";
+      if (!t) {
+        const tm = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        t = tm ? tm[1].replace(/<[^>]+>/g, "") : "";
+      }
+      return t.replace(/\s+/g, " ").trim().replace(/\s*-\s*SK SAREES.*$/i, "").trim();
+    }
+    function extractPageUrls(text) {
+      const urls = [], seen = new Set();
+      const re = /https?:\/\/[^\s\]\)"'<>]+/gi;
+      let m;
+      while ((m = re.exec(text))) {
+        let u = m[0].replace(/[),.;]+$/g, "").split("#")[0].replace(/\?m=1$/i, "").replace(/^http:\/\//i, "https://");
+        if (!/^https:\/\//i.test(u) || looksLikeImage(u)) continue;
+        if (seen.has(u.toLowerCase())) continue;
+        seen.add(u.toLowerCase());
+        urls.push(u);
+      }
+      return urls;
+    }
+    async function fetchHtml(url) {
+      const proxies = [
+        (u) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+        (u) => "https://corsproxy.io/?" + encodeURIComponent(u),
+        (u) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u)
+      ];
+      try {
+        const direct = await fetch(url, { mode: "cors" });
+        if (direct.ok) {
+          const html = await direct.text();
+          if (html && html.length > 400) return html;
+        }
+      } catch (_) {}
+      for (const make of proxies) {
+        try {
+          const res = await fetch(make(url));
+          if (!res.ok) continue;
+          const html = await res.text();
+          if (html && html.length > 400) return html;
+        } catch (_) {}
+      }
+      throw new Error("FETCH_FAIL");
+    }
 
     function loadUsedSkus() {
       try {
         const arr = JSON.parse(localStorage.getItem(SKU_STORE) || "[]");
         return new Set(Array.isArray(arr) ? arr.map((s) => String(s).toUpperCase()) : []);
-      } catch {
-        return new Set();
-      }
+      } catch { return new Set(); }
     }
-
     let usedSkus = loadUsedSkus();
-
-    function saveUsedSkus() {
-      localStorage.setItem(SKU_STORE, JSON.stringify([...usedSkus]));
-    }
-
     function rememberSku(sku) {
       const s = String(sku || "").trim().toUpperCase();
-      if (!s) return;
-      if (!usedSkus.has(s)) {
-        usedSkus.add(s);
-        saveUsedSkus();
-      }
+      if (!s || usedSkus.has(s)) return;
+      usedSkus.add(s);
+      localStorage.setItem(SKU_STORE, JSON.stringify([...usedSkus]));
     }
-
-    function takenSkus() {
-      const taken = new Set(usedSkus);
-      rows.forEach((r) => {
-        const s = String(r.sku || "").trim().toUpperCase();
-        if (s) taken.add(s);
-      });
-      return taken;
-    }
-
     function uniqueSku() {
-      const taken = takenSkus();
-      for (let digits = 5; digits <= 7; digits++) {
-        const min = digits === 5 ? 10000 : Math.pow(10, digits - 1);
-        const span = Math.pow(10, digits) - min;
-        for (let i = 0; i < 4000; i++) {
-          const n = min + Math.floor(Math.random() * span);
-          const sku = "SK" + n;
-          if (!taken.has(sku)) {
-            rememberSku(sku);
-            return sku;
-          }
-        }
+      const taken = new Set(usedSkus);
+      rows.forEach((r) => { if (r.sku) taken.add(String(r.sku).trim().toUpperCase()); });
+      for (let i = 0; i < 8000; i++) {
+        const n = 1000 + Math.floor(Math.random() * 9000);
+        const sku = "SK" + String(n).padStart(4, "0");
+        if (!taken.has(sku)) { rememberSku(sku); return sku; }
       }
-      const fallback = "SK" + Date.now().toString().slice(-8);
+      const fallback = "SK" + String(1000 + (Date.now() % 9000));
       rememberSku(fallback);
       return fallback;
     }
 
-    function emptyRow() {
-      return { name: "", price: "", mrp: "", imageUrl: "", category: "", badge: "", sku: "", stock: "", multi: "" };
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h = 0, s = 0, l = (max + min) / 2;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h *= 60;
+      }
+      return [h, s, l];
+    }
+    function colorName(h, s, l) {
+      if (l < 0.11) return "Black";
+      if (s < 0.1 && l > 0.88) return "White";
+      if (s < 0.12) return l > 0.72 ? "Off White" : (l < 0.32 ? "Charcoal" : "Grey");
+      if (l > 0.78 && s < 0.32 && h >= 25 && h <= 65) return "Cream";
+      if (h < 14 || h >= 345) return l < 0.32 ? "Maroon" : (l > 0.62 ? "Pink" : "Red");
+      if (h < 28) return l < 0.38 ? "Brown" : "Orange";
+      if (h < 48) return l > 0.52 ? "Gold" : "Mustard";
+      if (h < 70) return "Yellow";
+      if (h < 165) return l < 0.32 ? "Bottle Green" : (h < 95 ? "Mehendi" : "Green");
+      if (h < 195) return "Teal";
+      if (h < 255) return l < 0.32 ? "Navy" : "Blue";
+      if (h < 290) return "Purple";
+      return l > 0.55 ? "Pink" : "Magenta";
+    }
+    function nameToHex(name) {
+      const map = {
+        Black: "#111", White: "#f4f4f4", "Off White": "#f3eee6", Cream: "#f2e4c4",
+        Grey: "#8a8a8a", Charcoal: "#3a3a3a", Maroon: "#7a1f2b", Pink: "#e38aa8",
+        Red: "#c62828", Brown: "#6b3e26", Orange: "#e07a2f", Gold: "#c9a227",
+        Mustard: "#c9a227", Yellow: "#e4c441", "Bottle Green": "#14532d",
+        Mehendi: "#4d7c0f", Green: "#2e7d32", Teal: "#0f766e", Navy: "#1e3a5f",
+        Blue: "#2563eb", Purple: "#7e22ce", Magenta: "#c026d3", Multi: "#888"
+      };
+      return map[name] || "#bbb";
     }
 
-    function readSheet() {
-      sheet.querySelectorAll("tbody tr").forEach((tr) => {
-        const i = Number(tr.dataset.i);
-        if (!rows[i]) return;
-        KEYS.forEach((key) => {
-          const el = tr.querySelector('[data-k="' + key + '"]');
-          if (el) rows[i][key] = el.value;
-        });
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
       });
     }
-
-    function process() {
-      readSheet();
-      const prevByUrl = new Map(rows.filter((r) => r.imageUrl).map((r) => [r.imageUrl, r]));
-
-      let raw = extractUrls(input.value || "");
-      if (document.getElementById("imagesOnly").checked) raw = raw.filter(looksLikeImage);
-      if (document.getElementById("preferLarge").checked) {
-        raw = raw.map((u) =>
-          u.includes("blogger.googleusercontent.com") || /\/s\d+\//.test(u) ? preferLargeBlogger(u) : u
-        );
-      }
-
-      const seen = new Set();
-      const urls = [];
-      for (const u of raw) {
-        if (document.getElementById("dedupe").checked && seen.has(u)) continue;
-        seen.add(u);
-        urls.push(u);
-      }
-
-      const def = defaults();
-      rows = urls.map((u, i) => {
-        const old = prevByUrl.get(u);
-        if (old) {
-          return {
-            ...old,
-            imageUrl: u,
-            name: def.name || old.name
-          };
+    function sampleName(img) {
+      const w = 48, h = 48;
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, w, h);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      const buckets = {};
+      let hexR = 0, hexG = 0, hexB = 0, n = 0;
+      for (let y = 8; y < 40; y++) {
+        for (let x = 10; x < 38; x++) {
+          const i = (y * w + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+          if (a < 120) continue;
+          const [hh, ss, ll] = rgbToHsl(r, g, b);
+          if (ll > 0.9 && ss < 0.16) continue;
+          const name = colorName(hh, ss, ll);
+          buckets[name] = (buckets[name] || 0) + 1;
+          hexR += r; hexG += g; hexB += b; n++;
         }
-        return {
-          name: def.name || filenameFromUrl(u),
-          price: def.price,
-          mrp: def.mrp,
-          imageUrl: u,
-          category: def.category,
-          badge: def.badge,
-          sku: uniqueSku(),
-          stock: def.stock,
-          multi: def.multi || "multi color"
-        };
-      });
-
+      }
+      const ranked = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
+      if (!ranked.length) return { name: "", hex: "#ccc" };
+      let name = ranked[0][0];
+      if (ranked[1] && ranked[1][1] > ranked[0][1] * 0.62 && ranked[1][0] !== name) {
+        name = name + ", " + ranked[1][0];
+      }
+      const hex = n ? "#" + [hexR, hexG, hexB].map((v) => Math.round(v / n).toString(16).padStart(2, "0")).join("") : nameToHex(ranked[0][0]);
+      return { name, hex };
+    }
+    function proxyThumbs(url) {
+      const small = preferLarge(url).replace("/s4000/", "/s200/");
+      const bare = small.replace(/^https?:\/\//, "");
+      return [
+        "https://images.weserv.nl/?url=" + encodeURIComponent(bare) + "&w=96&h=96&fit=cover",
+        "https://corsproxy.io/?" + encodeURIComponent(small),
+        small
+      ];
+    }
+    async function detectOne(url) {
+      const tries = proxyThumbs(url);
+      for (const src of tries) {
+        try {
+          const img = await loadImage(src);
+          return sampleName(img);
+        } catch (_) {}
+      }
+      return { name: "", hex: "#ccc" };
+    }
+    async function detectColours(force) {
+      if (!rows.length) return;
+      statusEl.textContent = "Colours detect ஆகுது...";
+      const fallback = document.getElementById("defColours").value.trim();
+      for (let i = 0; i < rows.length; i++) {
+        if (!force && rows[i].multi && rows[i].multi !== "multi color") continue;
+        try {
+          const res = await detectOne(rows[i].imageUrl);
+          rows[i].multi = res.name || fallback || "Multi";
+          rows[i].colourHex = res.hex;
+        } catch (_) {
+          if (!rows[i].multi) rows[i].multi = fallback || "Multi";
+        }
+        if (i % 4 === 0) {
+          statusEl.textContent = "Colour " + (i + 1) + "/" + rows.length;
+        }
+      }
       render();
-      showToast(rows.length ? rows.length + " products ready" : "Image URL ஒன்னும் கிடைக்கல");
+      showToast("Colours image-ல இருந்து fill ஆயிடுச்சு");
     }
 
+    function emptyRow() {
+      return { name: "", price: "", mrp: "", imageUrl: "", category: "", badge: "", sku: "", stock: "", multi: "", colourHex: "" };
+    }
     function defaults() {
       return {
         name: document.getElementById("defName").value.trim(),
@@ -482,44 +484,116 @@
         multi: document.getElementById("defColours").value.trim()
       };
     }
+    function readSheet() {
+      sheet.querySelectorAll("tbody tr").forEach((tr) => {
+        const i = Number(tr.dataset.i);
+        if (!rows[i]) return;
+        KEYS.forEach((key) => {
+          const el = tr.querySelector('[data-k="' + key + '"]');
+          if (el) rows[i][key] = el.value;
+        });
+      });
+    }
+    function fillRows(urls, pageTitle) {
+      readSheet();
+      const prev = new Map(rows.filter((r) => r.imageUrl).map((r) => [r.imageUrl, r]));
+      const def = defaults();
+      if (!def.name && document.getElementById("usePageTitle").checked && pageTitle) {
+        document.getElementById("defName").value = pageTitle;
+        def.name = pageTitle;
+      }
+      rows = urls.map((u) => {
+        const old = prev.get(u);
+        if (old) return { ...old, imageUrl: u, name: def.name || old.name };
+        return {
+          name: def.name || filenameFromUrl(u),
+          price: def.price, mrp: def.mrp, imageUrl: u,
+          category: def.category, badge: def.badge, sku: uniqueSku(),
+          stock: def.stock, multi: "", colourHex: ""
+        };
+      });
+      render();
+    }
+
+    async function process() {
+      const text = (input.value || "").trim();
+      if (!text) { showToast("URL அல்லது HTML paste பண்ணுங்க"); return; }
+      const btn = document.getElementById("extractBtn");
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = "Working...";
+      try {
+        const pageUrls = extractPageUrls(text);
+        const looksHtml = /<img|<html|<div|blogger\.googleusercontent/i.test(text);
+        let htmlParts = [], title = "";
+        if (pageUrls.length) {
+          statusEl.textContent = "Fetching...";
+          for (const url of pageUrls) {
+            try {
+              const html = await fetchHtml(url);
+              htmlParts.push(html);
+              if (!title) title = extractTitle(html);
+            } catch (_) {}
+          }
+          if (!htmlParts.length && looksHtml) htmlParts.push(text);
+          if (!htmlParts.length) {
+            showToast("URL block. Ctrl+U HTML paste பண்ணுங்க");
+            return;
+          }
+        } else if (looksHtml) {
+          htmlParts.push(text);
+          title = extractTitle(text);
+        } else {
+          showToast("சரியான URL இல்லை");
+          return;
+        }
+        const urls = extractImages(htmlParts.join("\n"));
+        fillRows(urls, title);
+        showToast(urls.length ? urls.length + " images ready" : "Image இல்லை");
+        if (urls.length && document.getElementById("autoColour").checked) {
+          await detectColours(true);
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    }
 
     function applyDefaults() {
       readSheet();
       const def = defaults();
+      if (!rows.length) { showToast("முதலில் Fetch பண்ணுங்க"); return; }
       const overwrite = document.getElementById("overwrite").checked;
-      const map = { name: "name", price: "price", mrp: "mrp", category: "category", badge: "badge", stock: "stock", multi: "multi" };
+      const auto = document.getElementById("autoColour").checked;
+      const map = { price: "price", mrp: "mrp", category: "category", badge: "badge", stock: "stock" };
       rows.forEach((r) => {
+        if (def.name) r.name = def.name;
         Object.entries(map).forEach(([from, key]) => {
           if (!def[from]) return;
           if (overwrite || !String(r[key] || "").trim()) r[key] = def[from];
         });
+        if (def.multi && (!auto || overwrite || !r.multi)) r.multi = def.multi;
       });
       render();
-      showToast("Common values apply ஆயிடுச்சு");
+      showToast("Apply ஆயிடுச்சு");
     }
 
     function esc(s) {
-      return String(s ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/"/g, "&quot;");
+      return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
     }
-
     function render() {
       countEl.textContent = rows.length;
-      csvBtn.disabled = rows.length === 0;
-      copyBtn.disabled = rows.length === 0;
-      statusEl.textContent = rows.length ? rows.length + " rows — click cell to edit" : "இன்னும் extract பண்ணல";
-
+      csvBtn.disabled = !rows.length;
+      copyBtn.disabled = !rows.length;
+      statusEl.textContent = rows.length ? rows.length + " rows" : "ready";
       if (!rows.length) {
-        sheet.innerHTML = '<div class="empty"><div class="big">📋</div>HTML paste செய்து Extract அழுத்தினா இந்த format-ல sheet வரும்:<br />Name · Price · MRP · Image URL · Category · Badge · SKU · Stock · Colours</div>';
+        sheet.innerHTML = '<div class="empty"><div class="big">▣</div>Link paste செய்து Fetch images அழுத்துங்க</div>';
         return;
       }
-
       const head = "<tr><th></th><th>#</th>" + COLUMNS.map((c) => "<th>" + c + "</th>").join("") + "<th></th></tr>";
       const body = rows.map((r, i) => `
         <tr data-i="${i}">
-          <td><img class="thumb" src="${esc(r.imageUrl)}" alt="" onerror="this.style.opacity=.2" /></td>
+          <td><img class="thumb" src="${esc(r.imageUrl)}" alt="" onerror="this.style.opacity=.25" /></td>
           <td class="idx">${i + 1}</td>
           <td><input class="cell name" data-k="name" value="${esc(r.name)}" /></td>
           <td><input class="cell num" data-k="price" value="${esc(r.price)}" /></td>
@@ -529,67 +603,47 @@
           <td><input class="cell" data-k="badge" value="${esc(r.badge)}" /></td>
           <td><input class="cell sku" data-k="sku" value="${esc(r.sku)}" /></td>
           <td><input class="cell num" data-k="stock" value="${esc(r.stock)}" /></td>
-          <td><input class="cell" data-k="multi" value="${esc(r.multi)}" /></td>
-          <td><button class="del" type="button" data-del="${i}" title="Remove">✕</button></td>
-        </tr>
-      `).join("");
-
+          <td><div class="colour-wrap"><span class="swatch" style="background:${esc(r.colourHex || nameToHex((r.multi || "").split(",")[0].trim()))}"></span><input class="cell" data-k="multi" value="${esc(r.multi)}" /></div></td>
+          <td><button class="del" type="button" data-del="${i}">✕</button></td>
+        </tr>`).join("");
       sheet.innerHTML = "<table><thead>" + head + "</thead><tbody>" + body + "</tbody></table>";
     }
-
     function buildCsv() {
       readSheet();
-      const lines = [COLUMNS.join(",")];
-      rows.forEach((r) => {
-        lines.push(KEYS.map((k) => csvEscape(r[k])).join(","));
-      });
-      return "\uFEFF" + lines.join("\r\n");
+      return "\uFEFF" + [COLUMNS.join(",")].concat(rows.map((r) => KEYS.map((k) => csvEscape(r[k])).join(","))).join("\r\n");
     }
-
     function downloadCsv() {
       if (!rows.length) return;
-      const blob = new Blob([buildCsv()], { type: "text/csv;charset=utf-8" });
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
+      a.href = URL.createObjectURL(new Blob([buildCsv()], { type: "text/csv;charset=utf-8" }));
       a.download = "products.csv";
       a.click();
       URL.revokeObjectURL(a.href);
-      showToast("products.csv download ஆயிடுச்சு");
+      showToast("products.csv ready");
     }
-
     async function copyCsv() {
       if (!rows.length) return;
       try {
         await navigator.clipboard.writeText(buildCsv().replace(/^\uFEFF/, ""));
-        showToast("CSV clipboard-ல copy ஆயிடுச்சு");
-      } catch {
-        showToast("Copy fail");
-      }
+        showToast("CSV copied");
+      } catch { showToast("Copy fail"); }
     }
 
     document.getElementById("extractBtn").addEventListener("click", process);
+    document.getElementById("detectBtn").addEventListener("click", () => detectColours(true));
     document.getElementById("csvBtn").addEventListener("click", downloadCsv);
     document.getElementById("copyBtn").addEventListener("click", copyCsv);
     document.getElementById("applyBtn").addEventListener("click", applyDefaults);
     document.getElementById("addRowBtn").addEventListener("click", () => {
       readSheet();
-      const r = emptyRow();
       const def = defaults();
-      Object.assign(r, {
-        name: def.name,
-        price: def.price, mrp: def.mrp, category: def.category,
-        badge: def.badge, stock: def.stock, multi: def.multi || "multi",
-        sku: uniqueSku()
-      });
-      rows.push(r);
+      rows.push(Object.assign(emptyRow(), {
+        name: def.name, price: def.price, mrp: def.mrp, category: def.category,
+        badge: def.badge, stock: def.stock, multi: def.multi, sku: uniqueSku()
+      }));
       render();
     });
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      input.value = "";
-      rows = [];
-      render();
-    });
-
+    document.getElementById("clearBtn").addEventListener("click", () => { input.value = ""; rows = []; render(); });
     sheet.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-del]");
       if (!btn) return;
@@ -597,17 +651,12 @@
       rows.splice(Number(btn.dataset.del), 1);
       render();
     });
-
     sheet.addEventListener("input", (e) => {
       const inp = e.target.closest("[data-k]");
       if (!inp) return;
-      const tr = inp.closest("tr");
-      const i = Number(tr.dataset.i);
+      const i = Number(inp.closest("tr").dataset.i);
       if (rows[i]) rows[i][inp.dataset.k] = inp.value;
-      if (inp.dataset.k === "imageUrl") {
-        const img = tr.querySelector(".thumb");
-        if (img) img.src = inp.value;
-      }
+      if (inp.dataset.k === "sku") rememberSku(inp.value);
     });
   </script>
 </body>
