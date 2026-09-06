@@ -87,8 +87,13 @@ function printOrderLabel(id){
       '.box b{font-size:1.1rem;display:block;margin-bottom:6px}' +
       '.box p{margin:3px 0;font-size:1.02rem;line-height:1.6}' +
       '.from{background:#f0f0f0}' +
-      '.to{background:#fff8e1;border:2px solid #000}' +
-      '.to b{font-size:1.25rem}' +
+      '.to{background:#fff8e1;border:2px solid #000;text-align:center}' +
+      '.to .box, .to p{text-align:center}' +
+      '.to-h{font-size:1rem;letter-spacing:1px}' +
+      '.to-name{font-weight:bold;font-size:1.35rem;margin:4px 0}' +
+      '.to-addr{font-weight:normal;font-size:1.05rem;line-height:1.6;margin:4px 0}' +
+      '.to-pin{font-weight:bold;font-size:1.2rem;margin:6px 0 2px}' +
+      '.to-phone{font-weight:bold;font-size:1.2rem;margin:2px 0}' +
       '.foot{margin-top:12px;font-size:.8rem;text-align:center;color:#444}' +
       '@media print{body{padding:0}.label{border-radius:0}}' +
       '</style></head><body><div class="label">' +
@@ -96,10 +101,11 @@ function printOrderLabel(id){
       '<div class="box from"><b>FROM — SK SAREES</b>' +
         '<p>2/130, Thoothanoor, Edanganasalai, Salem, Tamil Nadu 637502</p>' +
         '<p>📞 +91 78679 15699</p></div>' +
-      '<div class="box to"><b>TO — ' + esc(c.name || '') + '</b>' +
-        '<p>📞 ' + esc(c.phone || '') + '</p>' +
-        '<p>' + esc(c.address || '') + '</p>' +
-        '<p>PIN: <b>' + esc(c.pincode || '') + '</b></p></div>' +
+      '<div class="box to"><b class="to-h">To:</b>' +
+        '<p class="to-name">' + esc(c.name || '') + '</p>' +
+        '<p class="to-addr">' + esc(c.address || '') + '</p>' +
+        '<p class="to-pin">PIN: ' + esc(c.pincode || '') + '</p>' +
+        '<p class="to-phone">📞 ' + esc(c.phone || '') + '</p></div>' +
       '<p class="foot">Order: ' + esc(o.id) + ' • SK Sarees • www.sksaree.shop</p>' +
       '</div><script>window.onload = function(){ setTimeout(function(){ window.print(); }, 400); };<\/script></body></html>';
     const win = window.open('', '_blank', 'width=820,height=900');

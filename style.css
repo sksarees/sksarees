@@ -3848,3 +3848,10 @@ body[data-page="product"]{ padding-bottom:74px }   /* content never hides behind
 .cmb-qty span{
   min-width:52px; text-align:center; font-size:1.3rem; font-weight:900; color:#8f1d3a;
 }
+
+/* ============================================================================
+   📱 FLOATING BUTTONS — mobile only (removed on desktop, 2026-09-06)
+   ========================================================================== */
+@media(min-width:900px){
+  .wa-float, .ai-float, .wa-bubble{ display:none !important }
+}

@@ -1414,6 +1414,18 @@ function shareUrl(p){
   if (mine) return base + (base.indexOf('?') === -1 ? '?' : '&') + 'ref=' + encodeURIComponent(mine);
   return base;
 }
+/* 📁 category-folder URLs (short names) — drawer + footer link these
+   SEO landing pages instead of shop.html?cat= */
+const CAT_FOLDERS = {
+  kanchipuram:'kanchipuram', 'soft-silk':'soft-silk', cotton:'cotton', silk:'silk',
+  wedding:'wedding', party:'party-wear', georgette:'georgette', designer:'designer',
+  printed:'printed', office:'office-wear', daily:'daily-wear', fancy:'fancy',
+  'half-saree':'half-saree', kids:'kids', 'men-dhoti':'mens-dhoti', blouse:'blouse',
+  accessories:'accessories', 'bridal-sarees':'bridal', 'gayathri-silk':'gayathri-silk',
+  samuthrika:'samuthrika', combo:'combo',
+};
+function catUrl(slug){ return CAT_FOLDERS[slug] ? '/' + CAT_FOLDERS[slug] + '/' : 'shop.html?cat=' + slug; }
+
 /* 🔐 safe query-param reader — tolerates MALFORMED share URLs like
    product.html?id=SK75250?ref=SHA9088 (double ?) by converting every extra ?
    into &, and strips stray ? / spaces from values. Never throws, so no page
@@ -2800,7 +2812,7 @@ function renderHeader(){
       <a href="#" data-login="1">🔑 Login</a>
       <a href="#" data-logout="1" data-authonly="1">🔓 Sign Out</a>
       <div class="sub">${t('shopByCategory')}</div>
-      ${CATEGORIES.slice(0, 8).map(c => `<a href="shop.html?cat=${c.slug}">${c.emoji} ${c.name}</a>`).join('')}
+      ${CATEGORIES.slice(0, 8).map(c => `<a href="${catUrl(c.slug)}">${c.emoji} ${c.name}</a>`).join('')}
       <div class="sub">Help</div>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="share-earn.html">💰 Share &amp; Earn</a>
@@ -2825,13 +2837,13 @@ function renderFooter(){
     <div class="f-grid">
       <div>
         <h4>Saree Categories</h4>
-        <a href="/kanchipuram-sarees/">👑 Kanchipuram Sarees</a>
-        <a href="/soft-silk-sarees/">✨ Soft Silk Sarees</a>
-        <a href="/cotton-sarees/">🌿 Cotton Sarees</a>
-        <a href="/wedding-sarees/">💍 Wedding Sarees</a>
-        <a href="/party-wear-sarees/">🎉 Party Wear Sarees</a>
-        <a href="/daily-wear-sarees/">🌤️ Daily Wear Sarees</a>
-        <a href="/bridal-sarees/">👰 Bridal Sarees</a>
+        <a href="/kanchipuram/">👑 Kanchipuram Sarees</a>
+        <a href="/soft-silk/">✨ Soft Silk Sarees</a>
+        <a href="/cotton/">🌿 Cotton Sarees</a>
+        <a href="/wedding/">💍 Wedding Sarees</a>
+        <a href="/party-wear/">🎉 Party Wear Sarees</a>
+        <a href="/daily-wear/">🌤️ Daily Wear Sarees</a>
+        <a href="/bridal/">👰 Bridal Sarees</a>
         <a href="/combo.html">🧵 Dhoti + Shirt Combos</a>
       </div>
       <div>

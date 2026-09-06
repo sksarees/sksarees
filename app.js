@@ -1718,6 +1718,11 @@ function renderComboPage(){
       '<input type="hidden" id="pdSelColour" value="' + esc(__comboSel.shirt || '') + '">' +
       (sel && __comboSel.shirt
         ? '<a class="btn btn-wa btn-xl" href="' + waLink('🧵 COMBO ORDER — SK Sarees!\n\n🧵 Combo: ' + smartTitle(sel) + ' — ₹' + (sel.price || 0).toLocaleString('en-IN') + '\n👉 ' + shareUrl(sel) + '\n👔 Shirt Size: ' + __comboSel.shirt + '\n🧣 Dhoti: same size\n📦 Quantity: ' + __comboSel.qty + ' set' + (__comboSel.qty > 1 ? 's' : '') + '\n💰 Total: ₹' + total.toLocaleString('en-IN') + '\n\nPlease confirm 🙏') + '" target="_blank" rel="noopener">💬 Order Combo on WhatsApp</a>' +
+          /* 💳 ONLINE PAYMENT — UPI (GPay / PhonePe / Paytm) */
+          (total > 0
+            ? '<a class="btn btn-gold btn-xl" href="' + upiLink(total, 'Combo ' + (sel.sku || sel.id) + ' SK Sarees') + '">💳 Pay Online — ₹' + total.toLocaleString('en-IN') + '</a>' +
+              '<p class="small muted" style="text-align:center;margin:4px 0 0">💳 UPI: GPay • PhonePe • Paytm — payment பண்ணப்பட்டதும் WhatsApp-ல் screenshot அனுப்புங்கள்</p>'
+            : '') +
           '<button type="button" class="btn btn-outline" data-add="' + esc(sel.id) + '">🛒 Add to Cart (size ' + esc(__comboSel.shirt) + ' × ' + __comboSel.qty + ')</button>'
         : '<p class="small muted" style="text-align:center">மேலே combo set + shirt size select பண்ணா order buttons வரும் 😊</p>') +
     '</div>' +
