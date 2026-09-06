@@ -76,39 +76,31 @@ function printOrderLabel(id){
     const o = adminAllOrders().find(x => x.id === id);
     if (!o){ toast('⚠️ Order not found'); return; }
     const c = o.customer || {};
-    const items = (o.items || []).map(i => {
-      const p = byId(i.id) || {};
-      return { name: i.name || p.name || 'Saree', sku: p.sku || i.sku || i.id || '', qty: i.qty || 1, price: i.price || p.price || 0 };
-    });
-    const rows = items.map(i => '<tr><td>' + esc(i.name) + '</td><td>' + esc(i.sku) + '</td><td>' + i.qty + '</td><td>' + money(i.price * i.qty) + '</td></tr>').join('');
-    const t = o.totals || {};
+    /* 🧾 SIMPLE COURIER LABEL — from-address → to-address ONLY
+       (order details removed on request 2026-09-06) */
     const label = '<!doctype html><html><head><meta charset="utf-8"><title>Courier Label ' + esc(o.id) + '</title>' +
       '<style>' +
       'body{font-family:Arial,sans-serif;margin:0;padding:18px;color:#000}' +
       '.label{border:2px solid #000;border-radius:10px;padding:16px;max-width:760px;margin:0 auto}' +
-      'h2{margin:0 0 10px;font-size:1.3rem}' +
-      '.box{border:1px solid #999;border-radius:8px;padding:10px;margin-bottom:12px}' +
-      '.box b{font-size:1.05rem;display:block;margin-bottom:4px}' +
-      '.box p{margin:2px 0;font-size:.95rem}' +
-      '.from{background:#f0f0f0}.to{background:#fff8e1;border:2px solid #000}' +
-      'table{width:100%;border-collapse:collapse;font-size:.9rem}' +
-      'td,th{border:1px solid #999;padding:6px 8px;text-align:left}' +
-      '.foot{margin-top:12px;font-size:.85rem;text-align:center}' +
+      'h2{margin:0 0 12px;font-size:1.3rem}' +
+      '.box{border:1px solid #999;border-radius:8px;padding:14px;margin-bottom:14px}' +
+      '.box b{font-size:1.1rem;display:block;margin-bottom:6px}' +
+      '.box p{margin:3px 0;font-size:1.02rem;line-height:1.6}' +
+      '.from{background:#f0f0f0}' +
+      '.to{background:#fff8e1;border:2px solid #000}' +
+      '.to b{font-size:1.25rem}' +
+      '.foot{margin-top:12px;font-size:.8rem;text-align:center;color:#444}' +
       '@media print{body{padding:0}.label{border-radius:0}}' +
       '</style></head><body><div class="label">' +
       '<h2>📦 SK Sarees — Courier Label</h2>' +
       '<div class="box from"><b>FROM — SK SAREES</b>' +
         '<p>2/130, Thoothanoor, Edanganasalai, Salem, Tamil Nadu 637502</p>' +
         '<p>📞 +91 78679 15699</p></div>' +
-      '<div class="box to"><b>TO — ' + esc(c.name || '') + '  •  📞 ' + esc(c.phone || '') + '</b>' +
-        '<p>' + esc(c.address || '') + (c.pincode ? ' — ' + esc(c.pincode) : '') + '</p>' +
-        '<p>PIN: ' + esc(c.pincode || '') + '</p></div>' +
-      '<div class="box"><b>Order ' + esc(o.id) + '</b>' +
-        '<p>' + fmtDT(o.date) + ' • Payment: ' + (o.payment || '').toUpperCase() + ' • Status: ' + esc((o.status || 'placed').replace('_', ' ')) + '</p>' +
-        '<table><thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Amount</th></tr></thead><tbody>' + rows +
-        '</tbody></table>' +
-        '<p style="margin-top:8px">Total: <b>' + money(t.grand || 0) + '</b> (incl. ship ' + money(t.shipping || 0) + (t.codFee ? ' + COD ' + money(t.codFee) : '') + ')</p></div>' +
-      '<p class="foot">SK Sarees • Edanganasalai, Salem • www.sksaree.shop • Thank you! 🪡</p>' +
+      '<div class="box to"><b>TO — ' + esc(c.name || '') + '</b>' +
+        '<p>📞 ' + esc(c.phone || '') + '</p>' +
+        '<p>' + esc(c.address || '') + '</p>' +
+        '<p>PIN: <b>' + esc(c.pincode || '') + '</b></p></div>' +
+      '<p class="foot">Order: ' + esc(o.id) + ' • SK Sarees • www.sksaree.shop</p>' +
       '</div><script>window.onload = function(){ setTimeout(function(){ window.print(); }, 400); };<\/script></body></html>';
     const win = window.open('', '_blank', 'width=820,height=900');
     if (win){ win.document.write(label); win.document.close(); }
