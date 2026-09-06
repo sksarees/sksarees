@@ -1584,7 +1584,11 @@ function renderHome(){
   const liveCats = CATEGORIES
     .map(c => ({ c: c, n: PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length }))
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n);
+  const bestSection = '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 5 Best Selling Sarees</h2><a href="shop.html">View All Sarees →</a></div>' +
+        '<div class="lpd-grid">' + five.map(landingCardHTML).join('') + '</div></section>';
   app.innerHTML = personalGreetHTML() +
+    /* 🔥 5 BEST SELLERS FIRST — she sees sarees + prices instantly */
+    '<div class="wrap" style="padding-top:12px">' + bestSection + '</div>' +
     /* 🔥 HERO — today's offer + the 2 CTAs a buyer needs */
     '<section class="hero lpd-hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
       '<span class="hero-chip lpd-chip">🔥 TODAY ONLY — SAREES STARTING ₹' + starting + '</span>' +
@@ -1598,14 +1602,14 @@ function renderHome(){
       '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search sarees, colour, SKU…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
     '</div></section>' +
     '<div class="wrap">' +
-      /* 🔥 5 BEST SELLING SAREES — price → rating → COD → BUY NOW + WhatsApp
-         (exactly the decision info a saree buyer needs, nothing else) */
-      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 5 Best Selling Sarees</h2><a href="shop.html">View All Sarees →</a></div>' +
-        '<div class="lpd-grid">' + five.map(landingCardHTML).join('') + '</div></section>' +
       /* 💬 WhatsApp strip — FB/IG visitors skip the website steps entirely */
-      '<section class="lpd-wa"><b>📱 Facebook / Instagram-ல இருந்து வந்துட்டீங்களா?</b>' +
-        '<p>Website-ல பல steps போக வேண்டாம் — WhatsApp-ல "எனக்கு saree வேணும்"னு அனுப்புங்க.<br>நாங்க <b>saree photo + price</b> அனுப்புவோம், பிடிச்சத home deliver ஆகும்! 💬</p>' +
-        '<a class="btn btn-xl lpd-wabtn" href="' + waLink('Hi! எனக்கு saree வேணும் — latest photos & prices அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' WhatsApp-ல Saree Photo அனுப்பி Order பண்ணுங்க</a>' +
+      '<section class="lpd-wa"><b>📱 ' + loc('Facebook / Instagram-ல இருந்து வந்துட்டீங்களா?', 'Facebook / Instagram నుండి వచ్చారా?', 'Facebook / Instagram ನಿಂದ ಬಂದಿರಾ?', 'Came from Facebook / Instagram?') + '</b>' +
+        '<p>' + loc(
+          'Website-ல பல steps போக வேண்டாம் — WhatsApp-ல "எனக்கு saree வேணும்"னு அனுப்புங்க.<br>நாங்க <b>saree photo + price</b> அனுப்புவோம், பிடிச்சத home deliver ஆகும்! 💬',
+          'చాలా steps అవసరం లేదు — WhatsApp లో "నాకు చీర కావాలి" అని పంపండి.<br>మేము <b>చీర ఫోటోలు + ధరలు</b> పంపుతాము, నచ్చినది ఇంటికి డెలివరీ! 💬',
+          'ಹಲವು steps ಬೇಡ — WhatsApp ನಲ್ಲಿ "ನನಗೆ ಸೀರೆ ಬೇಕು" ಎಂದು ಕಳುಹಿಸಿ.<br>ನಾವು <b>ಸೀರೆ ಫೋಟೊ + ಬೆಲೆ</b> ಕಳುಹಿಸುತ್ತೇವೆ, ಇಷ್ಟವಾದ್ದು ಮನೆಗೆ ಡೆಲಿವರಿ! 💬',
+          'No long browsing — just message "I want a saree" on WhatsApp.<br>We send <b>saree photos + prices</b>, and your favourite is home-delivered! 💬') + '</p>' +
+        '<a class="btn btn-xl lpd-wabtn" href="' + waLink('Hi! எனக்கு saree வேணும் — latest photos & prices அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' ' + loc('WhatsApp-ல Saree Photo அனுப்பி Order பண்ணுங்க', 'WhatsApp లో చీర ఫోటో పంపి ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಸೀರೆ ಫೋಟೊ ಕಳುಹಿಸಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Send "I want a saree" on WhatsApp') + '</a>' +
       '</section>' +
       /* ⭐ real customer reviews */
       '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ What Our Customers Say</h2>' +
@@ -1709,6 +1713,16 @@ function renderComboPage(){
 
 /* ============================ SHOP ============================ */
 let shopState = { cat: '', q: '', fabric: '', colour: '', max: 3000, sort: 'viewed', shown: 12, list: [] };   /* 🔥 default = most viewed */
+/* 🖼️ category-folder hero image — a real saree photo from THAT category
+   (fallback: any product, then the share banner). Also used for og:image. */
+function catHeroImage(slug){
+  /* 🖼️ SAME image as the folder page's og:image → what she SHARES is what
+     she SEES (category product photo; share-banner for empty categories) */
+  try{
+    const inCat = PRODUCTS.find(p => !p.hidden && p.cat === slug && p.img);
+    return inCat ? inCat.img : 'share-banner.jpg';
+  }catch(e){ return 'share-banner.jpg'; }
+}
 function renderShop(){
   const app = document.getElementById('app'); if (!app) return;
   const params = safeParams();
@@ -1732,13 +1746,22 @@ function renderShop(){
     });
   }catch(e){}
   const datalist = suggest.length ? '<datalist id="searchSuggest">' + suggest.map(s => '<option value="' + esc(s) + '">').join('') + '</datalist>' : '';
+  /* 📁 category-folder page = CLEAN LANDING: hero image + grid only
+     (search, chips, filters removed — the sarees are the hero) */
+  const presetCat = (window.__CAT_PRESET && CATEGORIES.find(c => c.slug === window.__CAT_PRESET)) || null;
   app.innerHTML =
     '<div class="wrap page">' +
-      '<h1>🛍️ ' + (window.__CAT_PRESET && CATEGORIES.some(c => c.slug === window.__CAT_PRESET) ? (function(){ const c = CATEGORIES.find(x => x.slug === window.__CAT_PRESET); return c.emoji + ' ' + c.name; })() : 'Shop All Sarees') + '</h1>' +
+      (presetCat
+        ? '<div class="cat-hero"><img class="cat-hero-img" src="' + esc(catHeroImage(presetCat.slug)) + '" alt="' + esc(presetCat.name) + '" fetchpriority="high" decoding="async" onload="imgLoaded(this)" onerror="imgSafe(this)">' +
+            '<div class="cat-hero-over"><span class="ch-kick">' + presetCat.emoji + ' SK Sarees</span>' +
+            '<h1>' + esc(presetCat.name) + '</h1>' +
+            '<p>💵 COD Available • 🚚 Fast Delivery • ↩️ Easy Returns</p></div></div>'
+        : '<h1>🛍️ Shop All Sarees</h1>' +
       '<div style="display:flex;gap:8px">' +
         '<input id="shopSearch" list="searchSuggest" type="search" placeholder="🔍 Search sarees, fabric, colour… (suggestions as you type)" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
       '</div>' + datalist +
       '<div class="cat-chips" id="catChips" style="margin-top:12px"></div>' +
+      (presetCat ? '' :
       '<div class="pd-block shop-tools" style="margin-top:10px"><div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Fabric</label>' +
         '<select id="fFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All fabrics</option><option>Silk</option><option>Cotton</option><option>Georgette</option><option>Linen</option><option>Organza</option><option>Net</option></select></div>' +
@@ -1752,7 +1775,7 @@ function renderShop(){
         '<option value="foryou">✨ For You (AI)</option>' +
         '<option value="newest">Newest</option><option value="bestselling">Best Selling</option><option value="popular">Popularity</option>' +
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
-      '</div></div>' +
+      '</div></div>')) +
       '<p class="small muted" id="countLbl" style="margin:12px 0 6px"></p>' +
       '<div class="reel-grid" id="grid"></div>' +
       '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="loadMore" style="width:auto;min-width:200px">Load More ↓</button></div>' +
@@ -2827,8 +2850,8 @@ function renderProduct(){
           '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp Order — Instant Confirmation', 'WhatsApp ఆర్డర్ — వెంటనే కన్ఫర్మేషన్', 'WhatsApp ಆರ್ಡರ್ — ತಕ್ಷಣ ದೃಢೀಕರಣ', 'WhatsApp Order — Instant Confirmation') + '</a>' +
         '</div>' +
         /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
-        '<div class="pd-realphoto"><span class="prp-cam">📷</span><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
-          '<a class="btn btn-maroon" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTOS', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTOS') + '</a></div>' +
+        '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
+          '<a class="btn prp-btn" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTOS', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTOS') + ' →</a></div>' +
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
           (out ? '' : '<button type="button" class="btn" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'Add to Cart', 'Add to Cart', 'Add to Cart') + '</button>') +
