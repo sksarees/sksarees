@@ -461,6 +461,9 @@ REEL_QUOTES.push(
 /* 🌐 reels speak HER language — saved choice first, else device language */
 function reelsLang(){
   try{
+    /* 🌐 manual choice (language icon) always wins */
+    const saved = String(localStorage.getItem('sk_reels_lang') || '').trim();
+    if (saved === 'te' || saved === 'kn' || saved === 'ta' || saved === 'en') return saved;
     if (lang === 'te' || lang === 'kn' || lang === 'ta') return lang;
     /* 🌐 FULL AUTO-SWITCH — the reel speaks HER device language:
        Tamil / Telugu / Kannada / English phones get their own quotes */
@@ -472,7 +475,18 @@ function reelsLang(){
   }catch(e){}
   return 'ta';
 }
-/* 🌐 language icon removed — full auto-switch by device language */function qText(q){ const L = reelsLang(); return (q && (q[L] || q.ta)) || ''; }
+/* 🌐 language picker — auto-detect by default, manual override anytime */
+function reelLangModal(){
+  const opts = [['ta','தமிழ்','Tamil'], ['te','తెలుగు','Telugu'], ['kn','ಕನ್ನಡ','Kannada'], ['en','English','English']];
+  const cur = reelsLang();
+  openModal('<div class="np-card">' +
+    '<div class="np-emoji">🌐</div>' +
+    '<h3 class="np-title">மொழி / Language</h3>' +
+    '<p class="np-sub">வாழ்த்துக்கள் எந்த மொழியில் வேண்டும்?<br>Which language for the wishes?</p>' +
+    opts.map(o => '<button type="button" class="btn ' + (o[0] === cur ? 'btn-maroon' : 'btn-outline') + ' rlang-btn" data-rlang="' + o[0] + '" style="width:100%;margin:5px 0;min-height:46px">' + (o[0] === cur ? '✅ ' : '') + o[1] + ' <small style="opacity:.7">· ' + o[2] + '</small></button>').join('') +
+    '<button type="button" class="np-skip" data-close>' + rloc('மூடு', 'మూసివేయి', 'ಮುಚ್ಚಿ', 'Close') + '</button>' +
+  '</div>');
+}function qText(q){ const L = reelsLang(); return (q && (q[L] || q.ta)) || ''; }
 /* 🌐 reels UI auto-translates to HER language (device-detected) — the
    website itself stays English-first (manual change only), but reels speak
    Tamil / Telugu / Kannada automatically */
@@ -791,8 +805,9 @@ function reelHTML(p, i){
   return '<section class="rp-reel" data-rid="' + esc(p.id) + '" data-q="' + esc(q) + '">' +
     '<img class="rp-img" src="' + esc(reelImgSrc(p)) + '" data-orig="' + esc(p.img || '') + '" alt="' + esc(p.name) + '" loading="lazy" onload="imgLoaded(this)" onerror="if(this.dataset.orig){var o=this.dataset.orig;this.removeAttribute(\'data-orig\');this.src=o;}else{imgSafe(this);}">' +
     '<div class="rp-shade"></div>' +
-    /* 💬 the wish — centred on the reel, auto HER language (device-detected) */
+    /* 💬 the wish — centred, auto HER language + 🌐 manual switch */
     '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
+    '<button type="button" class="rp-lang" data-rplang="1" aria-label="Language">🌐 ' + ({ ta: 'அ', te: 'అ', kn: 'ಅ', en: 'A' }[reelsLang()] || 'அ') + '</button>' +
     /* rail — ❤️ Like · 💬 WhatsApp · ↗ Share (3 actions only) */
     '<div class="rp-actions">' +
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
@@ -2830,7 +2845,7 @@ function renderProduct(){
         '<div class="pd-gal">' +
           '<div class="pd-heart"><button type="button" class="heart-btn' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist" title="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button></div>' +
           '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></div>' +
-          '<div class="pd-swipe-hint">👈 👉 swipe to see all photos</div>' +
+
           '<div class="pd-thumbs">' + thumbs + '</div>' +
         '</div>' +
         vidBlock +
@@ -2855,22 +2870,38 @@ function renderProduct(){
         /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
         '<div class="pd-trust"><span>🚚 Free Shipping ₹' + (CONFIG.shipFreeAbove || 2999) + '+</span><span>↩️ Easy Returns</span><span>✅ 100% Original</span><span>💵 COD Available</span></div>' +
         /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
-        '<div class="pd-ship">💵 <b>COD Available</b> — booking ₹100–₹150 by state • 🚚 Delivery <b>2–5 days</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 2999) + '</div>' +
+        '<div class="pd-ship">💵 <b>COD Available</b> (booking ₹100–₹150 by state) • 🚚 TN <b>2–4 days</b>, other states 3–7 days • ⚡ <b>Dispatch within 24 hours</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 2999) + '</div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '') +
+        /* 🎨 COLOUR SELECTION — pick her favourite, rides into checkout */
+        ((p.colors || []).length
+          ? '<div class="pd-colours" id="pdColours"><small class="muted" style="font-weight:800">🎨 ' + loc('நிறம் தேர்ந்தெடுங்கள்:', 'రంగు ఎంచుకోండి:', 'ಬಣ್ಣ ಆರಿಸಿ:', 'Choose colour:') + '</small><div class="pd-chips">' +
+            p.colors.map((c, i) => '<button type="button" class="pd-colour' + (i === 0 ? ' on' : '') + '" data-colour="' + esc(c) + '">' + esc(c) + '</button>').join('') +
+          '</div></div>'
+          : '') +
         /* 🟢 BUY NOW — the hero CTA (price ON the button), WhatsApp right under */
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<a class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
-          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp Order — Instant Confirmation', 'WhatsApp ఆర్డర్ — వెంటనే కన్ఫర్మేషన్', 'WhatsApp ಆರ್ಡರ್ — ತಕ್ಷಣ ದೃಢೀಕರಣ', 'WhatsApp Order — Instant Confirmation') + '</a>' +
+          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order ' + (p.sku || 'இந்த சேலையை') + ' on WhatsApp', 'Order ' + (p.sku || 'ఈ చీరను') + ' on WhatsApp', 'Order ' + (p.sku || 'ಈ ಸೀರೆಯನ್ನು') + ' on WhatsApp', 'Order ' + (p.sku || 'This Saree') + ' on WhatsApp') + '</a>' +
         '</div>' +
         /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
         '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
           '<a class="btn prp-btn" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTOS', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTOS') + ' →</a></div>' +
+        /* ✨ WHY YOU'LL LOVE IT — benefit bullets beat long descriptions */
+        '<div class="pd-love"><b>✨ ' + loc('இந்த சேலையை ஏன் விரும்புவீர்கள்?', 'ఈ చీరను ఎందుకు ఇష్టపడతారు?', 'ಈ ಸೀರೆಯನ್ನು ಏಕೆ ಇಷ್ಟಪಡುತ್ತೀರಿ?', "Why You'll Love This Saree") + '</b>' +
+          '<ul>' +
+            '<li>✓ ' + loc('பிரீமியம் ' + (p.fabric || 'தரமான') + ' துணி', 'ప్రీమియం ' + (p.fabric || 'నాణ్యమైన') + ' ఫ్యాబ్రిక్', 'ಪ್ರೀಮಿಯಂ ' + (p.fabric || 'ಗುಣಮಟ್ಟದ') + ' ಫ್ಯಾಬ್ರಿಕ್', 'Premium ' + (p.fabric || 'quality') + ' fabric') + '</li>' +
+            '<li>✓ ' + loc('அழகான பார்டர் & பல்லு', 'అందమైన బోర్డర్ & పల్లు', 'ಅಂದವಾದ ಬಾರ್ಡರ್ & ಪಲ್ಲು', 'Beautiful border & pallu') + '</li>' +
+            '<li>✓ ' + loc('நீண்ட நேரம் வசதியாக', 'ఎక్కువ సేపు సౌకర్యంగా', 'ದೀರ್ಘಕಾಲ ಆರಾಮದಾಯಕ', 'Comfortable for long hours') + '</li>' +
+            '<li>✓ ' + loc('விழாக்கள் & திருமணங்களுக்கு ஏற்றது', 'వేడుకలు & పెళ్లిళ్లకు సరిపోతుంది', 'ಹಬ್ಬಗಳು & ಮದುವೆಗಳಿಗೆ ಸೂಕ್ತ', 'Perfect for functions & festivals') + '</li>' +
+            '<li>✓ ' + loc('பவுஸ் பீஸ் உட்பட', 'బ్లౌస్ పీస్ ఉంది', 'ಬ್ಲೌಸ್ ಪೀಸ್ ಸೇರಿದೆ', 'Blouse piece included') + '</li>' +
+            '<li>✓ ' + loc('அனுப்பும் முன் தரச் சோதனை', 'పంపే ముందు క్వాలిటీ చెక్', 'ಕಳುಹಿಸುವ ಮೊದಲು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ', 'Quality checked before dispatch') + '</li>' +
+          '</ul></div>' +
         /* secondary row — Add to Cart + 💰 Share & Earn (clean: no heart/share/colour clutter) */
         '<div class="pd-secondary">' +
           (out ? '' : '<button type="button" class="btn" data-add="' + p.id + '">🛒 ' + loc('Add to Cart', 'Add to Cart', 'Add to Cart', 'Add to Cart') + '</button>') +
@@ -2914,10 +2945,9 @@ function renderProduct(){
   /* ⏱️ dwell-time signal: remember WHEN she opened this saree — flushed on
      leave/hidden so the taste engine knows which sarees she STUDIED */
   try{ window.__pdpStart = Date.now(); window.__pdpId = p.id; }catch(e){}
-  /* 📏 blouse size guide (after fabric & details) + dynamic OG title */
+  /* 📏 blouse size guide REMOVED (2026-09-06) + dynamic OG title */
   try{
-    const t = document.querySelector('.pd-block table');
-    if (t) t.closest('.pd-block').insertAdjacentHTML('afterend', blouseGuideHTML());
+    const t = null;
     const ogt = document.querySelector('meta[property="og:title"]');
     if (ogt) ogt.setAttribute('content', document.title);
     const ogd = document.querySelector('meta[property="og:description"]');
@@ -4577,6 +4607,20 @@ document.addEventListener('click', function(e){
     try{
       const reel = rst.closest('.rp-reel');
       saveReelStatus(byId(rst.dataset.rpstatus), reel ? reel.dataset.q : '');
+    }catch(e2){}
+    return;
+  }
+  /* 🌐 reels LANGUAGE picker */
+  const rlb = e.target.closest('[data-rplang]');
+  if (rlb){ e.preventDefault(); try{ reelLangModal(); }catch(e2){} return; }
+  const rls = e.target.closest('[data-rlang]');
+  if (rls){
+    e.preventDefault();
+    try{
+      localStorage.setItem('sk_reels_lang', String(rls.dataset.rlang || 'ta').trim());
+      closeModal();
+      toast('🌐 ' + ({ ta: 'தமிழ் வாழ்த்துக்கள்!', te: 'తెలుగు శుభాకాంక్షలు!', kn: 'ಕನ್ನಡ ಶುಭಾಶಯಗಳು!', en: 'English wishes!' }[rls.dataset.rlang] || 'Ready!'));
+      renderReelsPage();
     }catch(e2){}
     return;
   }

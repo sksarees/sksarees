@@ -3855,3 +3855,55 @@ body[data-page="product"]{ padding-bottom:74px }   /* content never hides behind
 @media(min-width:900px){
   .wa-float, .ai-float, .wa-bubble{ display:none !important }
 }
+
+/* ============================================================================
+   ✨ PRODUCT PAGE v2 — colour chips, why-you'll-love, sticky mobile-only,
+   wa-o fix, reels language chip
+   ========================================================================== */
+/* 🎨 colour selection chips */
+.pd-colours{ margin:10px 0 2px }
+.pd-colours .pd-chips{ display:flex; flex-wrap:wrap; gap:7px; margin-top:6px }
+.pd-colour{
+  background:#fff; border:1.5px solid #eadfd6; color:#6b4a3a;
+  border-radius:999px; padding:8px 15px; font-size:.78rem; font-weight:800;
+  cursor:pointer; transition:all .15s ease;
+}
+.pd-colour.on{
+  background:var(--maroon); border-color:var(--maroon); color:#fff;
+  box-shadow:0 3px 10px rgba(143,29,58,.3);
+}
+/* ✨ Why You'll Love This Saree */
+.pd-love{
+  margin-top:12px; background:#faf5ef;
+  border:1.5px solid #eadfd6; border-radius:14px; padding:12px 14px;
+}
+.pd-love b{ color:#70142c; font-size:.9rem }
+.pd-love ul{ list-style:none; margin:8px 0 0; padding:0; display:grid; gap:5px }
+.pd-love li{ font-size:.8rem; font-weight:700; color:#4a3b33; line-height:1.5 }
+/* 📌 sticky BUY bar — MOBILE ONLY (desktop has the big green button) */
+@media(min-width:900px){
+  .sticky-bar.sb2{ display:none !important }
+  body[data-page="product"]{ padding-bottom:0 }
+}
+/* 💬 outlined WhatsApp button — corrected (visible on any background) */
+.btn-wa-o{
+  background:#fff !important;
+  color:#0e7d46 !important;
+  border:2px solid #17a45f !important;
+  border-radius:16px;
+  font-weight:800;
+  box-shadow:0 3px 10px rgba(23,164,95,.14);
+}
+.btn-wa-o svg{ fill:#0e7d46 !important }
+.btn-wa-o:active{ background:#e9f7ef !important }
+/* 🌐 reels language chip (top-right, manual override) */
+.rp-lang{
+  position:absolute; top:calc(58px + env(safe-area-inset-top)); right:10px;
+  z-index:5; cursor:pointer; pointer-events:auto;
+  background:rgba(10,4,8,.55); color:#ffd98a;
+  border:1px solid rgba(232,198,106,.45);
+  border-radius:999px; font-size:.68rem; font-weight:900;
+  padding:8px 12px; line-height:1;
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+}
+.rp-lang:active{ transform:scale(.93) }
