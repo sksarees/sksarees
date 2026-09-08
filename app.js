@@ -1591,7 +1591,7 @@ function renderHome(){
   const best = pool.filter(p => p.badge === 'Bestseller');
   const fill = pool.filter(p => p.badge !== 'Bestseller')
     .sort((a, b) => (((b.rating || 0) * 10) + (b.reviews || 0)) - (((a.rating || 0) * 10) + (a.reviews || 0)));
-  const five = best.concat(fill).slice(0, 5);
+  const six = best.concat(fill).slice(0, 6);   /* 🔥 top 6 on the index page */
   /* 💰 honest "starting at" price — from the LIVE catalog, never a fake number */
   let starting = 0;
   try{ const ps = pool.map(p => +p.price || 0).filter(x => x > 0); if (ps.length) starting = Math.min.apply(null, ps); }catch(e){}
@@ -1599,8 +1599,8 @@ function renderHome(){
   const liveCats = CATEGORIES
     .map(c => ({ c: c, n: PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length }))
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n);
-  const bestSection = '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 5 Best Selling Sarees</h2><a href="shop.html">View All Sarees →</a></div>' +
-        '<div class="lpd-grid">' + five.map(landingCardHTML).join('') + '</div></section>';
+  const bestSection = '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 6 Best Selling Sarees</h2><a href="shop.html">View All Sarees →</a></div>' +
+        '<div class="lpd-grid">' + six.map(landingCardHTML).join('') + '</div></section>';
   app.innerHTML = personalGreetHTML() +
     /* 🔥 5 BEST SELLERS FIRST — she sees sarees + prices instantly */
     '<div class="wrap" style="padding-top:12px">' + bestSection + '</div>' +
@@ -2887,7 +2887,7 @@ function renderProduct(){
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<a class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
-          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order ' + (p.sku || 'இந்த சேலையை') + ' on WhatsApp', 'Order ' + (p.sku || 'ఈ చీరను') + ' on WhatsApp', 'Order ' + (p.sku || 'ಈ ಸೀರೆಯನ್ನು') + ' on WhatsApp', 'Order ' + (p.sku || 'This Saree') + ' on WhatsApp') + '</a>' +
+          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp', 'Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp', 'Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp', 'Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp') + '</a>' +
         '</div>' +
         /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
         '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +

@@ -3907,3 +3907,13 @@ body[data-page="product"]{ padding-bottom:74px }   /* content never hides behind
   -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
 }
 .rp-lang:active{ transform:scale(.93) }
+
+/* ============================================================================
+   ✨ TOP 6 GRID + 🌐 language icon visibility fix
+   ========================================================================== */
+/* 🔥 6 best sellers — 3 columns × 2 rows on desktop (clean grid) */
+@media(min-width:1020px){
+  .lpd-grid{ grid-template-columns:repeat(3,1fr) !important }
+}
+/* 🌐 reels language icon — VISIBLE (old display:none kill rule overridden) */
+.rp-lang{ display:inline-block !important }
