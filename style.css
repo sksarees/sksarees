@@ -4374,3 +4374,44 @@ body[data-page="admin"] h2{ color:#212121 }
   .cat-grid{ grid-template-columns:repeat(3,1fr); gap:6px }
   .btn-xl{ min-height:46px; font-size:.9rem }
 }
+
+/* ============================================================================
+   🏠 INDEX PAGE — "All Categories →" BIGGER + greet-strip hidden
+   ========================================================================== */
+/* hide greet-strip on index page (still shows on other pages if needed) */
+body[data-page="home"] .greet-strip{ display:none !important }
+
+/* "All Categories →" — BIG, orange, bold (prominent CTA) */
+.sec-head a[href*="shop.html"]{
+  font-size:.95rem !important;
+  font-weight:900 !important;
+  color:#e8570f !important;
+  text-decoration:none;
+  padding:8px 16px;
+  border:2px solid #e8570f;
+  border-radius:4px;
+  background:#fff3ed;
+  transition:all .15s ease;
+  white-space:nowrap;
+}
+.sec-head a[href*="shop.html"]:hover{
+  background:#e8570f;
+  color:#fff !important;
+  box-shadow:0 3px 10px rgba(232,87,15,.3);
+}
+.sec-head a[href*="shop.html"]:active{ transform:scale(.97) }
+
+/* "View All Sarees →" same treatment for consistency */
+.sec-head a[href="shop.html"]{
+  font-size:.95rem !important;
+  font-weight:900 !important;
+  color:#e8570f !important;
+  border:2px solid #e8570f;
+  border-radius:4px;
+  padding:8px 16px;
+  background:#fff3ed;
+}
+.sec-head a[href="shop.html"]:hover{
+  background:#e8570f;
+  color:#fff !important;
+}

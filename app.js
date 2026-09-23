@@ -1636,7 +1636,8 @@ function renderHome(){
             '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
             '<span class="ct-count">' + x.n + ' designs • ' + c.blurb + '</span></div></a>';
         }).join('') + '</div></section>';
-  app.innerHTML = personalGreetHTML() +
+  /* greet-strip removed (2026-09-23) — cleaner index page */
+  app.innerHTML =
     /* 🛍️ SHOP BY CATEGORY at the very top, then 🔥 best sellers (no hero) */
     '<div class="wrap" style="padding-top:12px">' + catSection + bestSection + '</div>' +
     '<div class="wrap">' +
