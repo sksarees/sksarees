@@ -1637,39 +1637,13 @@ function renderHome(){
             '<span class="ct-count">' + x.n + ' designs • ' + c.blurb + '</span></div></a>';
         }).join('') + '</div></section>';
   app.innerHTML = personalGreetHTML() +
-    /* 🛍️ SHOP BY CATEGORY at the very top, then 🔥 best sellers */
+    /* 🛍️ SHOP BY CATEGORY at the very top, then 🔥 best sellers (no hero) */
     '<div class="wrap" style="padding-top:12px">' + catSection + bestSection + '</div>' +
-    /* 🔥 HERO — today's offer + the 2 CTAs a buyer needs */
-    '<section class="hero lpd-hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
-      '<span class="hero-chip lpd-chip">🔥 TODAY ONLY — SAREES STARTING ₹' + starting + '</span>' +
-      '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
-      '<p class="lpd-sub">🚚 Fast Delivery • 💵 COD Available • ⭐ 2,300+ Happy Customers</p>' +
-      '<div class="hero-ctas">' +
-        '<a class="btn btn-gold btn-xl" href="shop.html">🛍️ SHOP NOW</a>' +
-        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I want to buy a saree. Please send me your latest saree photos & prices 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
-      '</div>' +
-      '<p class="lpd-ship">🚚 FREE delivery above ₹' + (CONFIG.shipFreeAbove || 2999) + ' • 💵 COD booking from ₹100 • ⏱ Fast Delivery</p>' +
-      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search sarees, colour, SKU…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
-    '</div></section>' +
     '<div class="wrap">' +
-      /* 💬 WhatsApp strip — FB/IG visitors skip the website steps entirely */
-      '<section class="lpd-wa"><b>📱 ' + loc('Facebook / Instagram-ல இருந்து வந்துட்டீங்களா?', 'Facebook / Instagram నుండి వచ్చారా?', 'Facebook / Instagram ನಿಂದ ಬಂದಿರಾ?', 'Came from Facebook / Instagram?') + '</b>' +
-        '<p>' + loc(
-          'Website-ல பல steps போக வேண்டாம் — WhatsApp-ல "எனக்கு saree வேணும்"னு அனுப்புங்க.<br>நாங்க <b>saree photo + price</b> அனுப்புவோம், பிடிச்சத home deliver ஆகும்! 💬',
-          'చాలా steps అవసరం లేదు — WhatsApp లో "నాకు చీర కావాలి" అని పంపండి.<br>మేము <b>చీర ఫోటోలు + ధరలు</b> పంపుతాము, నచ్చినది ఇంటికి డెలివరీ! 💬',
-          'ಹಲವು steps ಬೇಡ — WhatsApp ನಲ್ಲಿ "ನನಗೆ ಸೀರೆ ಬೇಕು" ಎಂದು ಕಳುಹಿಸಿ.<br>ನಾವು <b>ಸೀರೆ ಫೋಟೊ + ಬೆಲೆ</b> ಕಳುಹಿಸುತ್ತೇವೆ, ಇಷ್ಟವಾದ್ದು ಮನೆಗೆ ಡೆಲಿವರಿ! 💬',
-          'No long browsing — just message "I want a saree" on WhatsApp.<br>We send <b>saree photos + prices</b>, and your favourite is home-delivered! 💬') + '</p>' +
-        '<a class="btn btn-xl lpd-wabtn" href="' + waLink('Hi! எனக்கு saree வேணும் — latest photos & prices அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' ' + loc('WhatsApp-ல Saree Photo அனுப்பி Order பண்ணுங்க', 'WhatsApp లో చీర ఫోటో పంపి ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಸೀರೆ ಫೋಟೊ ಕಳುಹಿಸಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Send "I want a saree" on WhatsApp') + '</a>' +
-      '</section>' +
+      
       /* 🤝 Why SK Sarees? */
       whyUsHTML() +
-      /* 💰 Share & Earn (business model — one banner) */
-      '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
-        '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
-        '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>5% off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
-        '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
-        '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
-      '</section></div>' +
+      
     '</div>';
   try{ renderStatsText(); }catch(e){}   /* hero counters (guarded, optional) */
 }
@@ -2860,7 +2834,7 @@ function renderProduct(){
       '<div>' +
         '<div class="pd-gal">' +
           '<div class="pd-heart"><button type="button" class="heart-btn' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist" title="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button></div>' +
-          '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></div>' +
+          '<div class="main" id="pdMain" title="Tap to view this saree as a reel"><a href="reels.html?reel=' + encodeURIComponent(p.id) + '"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>' +
 
           '<div class="pd-thumbs">' + thumbs + '</div>' +
         '</div>' +

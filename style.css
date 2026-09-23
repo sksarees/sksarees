@@ -3917,3 +3917,128 @@ body[data-page="product"]{ padding-bottom:74px }   /* content never hides behind
 }
 /* 🌐 reels language icon — VISIBLE (old display:none kill rule overridden) */
 .rp-lang{ display:inline-block !important }
+
+/* ============================================================================
+   🎨 THEME REBRAND — DARK SKY BLUE buttons + LIGHT BABY PINK backgrounds
+   (2026-09-10 — overrides everything above; last rules win)
+   ========================================================================== */
+/* 🎨 palette swap */
+:root{
+  --maroon:#0c5fa8;              /* primary → dark sky blue */
+  --maroon-d:#084a8a;
+  --maroon-deep:#063a6e;
+  --maroon-soft:#e3f0fb;
+  --gold:#0c6fc0;
+  --gold-l:#6db8ea;
+  --gold-soft:#e8f3fc;
+  --bg:#fdf0f5;                  /* light baby pink background */
+  --card:#fff;
+  --line:#f3d9e3;
+  --sh:0 8px 26px rgba(180,120,150,.10);
+  --sh-sm:0 2px 10px rgba(180,120,150,.07);
+}
+body{ background:var(--bg) !important }
+.wrap{ background:transparent }
+/* 🛒 ALL buttons → same dark sky blue */
+.btn-maroon, .btn-gold, .btn-buy, .btn-pay, .btn-buygreen, .btn-pd-buy,
+.btn-wa, .btn-wa-o, .btn-wa-o:hover, .prp-btn, .btn-pd-buy:hover,
+.btn-maroon:hover, .btn-gold:hover, .btn-buy:hover, .btn-pay:hover{
+  background:linear-gradient(0deg,#084a8a,#0c5fa8 55%,#1173c4) !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:14px;
+  box-shadow:0 6px 18px rgba(12,95,168,.38) !important;
+}
+.btn-maroon svg, .btn-gold svg, .btn-wa svg, .btn-wa-o svg,
+.btn-pay svg, .btn-buy svg, .btn-pd-buy svg{
+  fill:#fff !important;
+}
+.btn-outline{ background:#fff !important; color:#0c5fa8 !important; border:1.5px solid #a8cdeb !important }
+.btn-ghost{ color:#0c5fa8 !important }
+.btn-wa-o{ background:#fff !important; color:#0c5fa8 !important; border:2px solid #1173c4 !important; box-shadow:none !important }
+/* cards + form-cards → white on pink */
+.form-card, .sec, .rev, .cat-tile, .lpc, .why-tile, .order-card,
+.rvw-card, .pts-card, .delivery-card, .pd-realphoto, .cmb-sec, .cmb-sum,
+.pd-love, .blog-sec, .faq details{
+  background:#fff !important;
+}
+.pd-block{ background:#fff !important }
+/* topbar + drawer → blue on pink */
+.topbar{ background:#fff !important; border-bottom:1.5px solid var(--line) }
+.drawer{ background:#fff }
+.drawer-nav a{ color:#2b2320 }
+.drawer-nav .sub{ color:#0c5fa8 }
+.logo{ color:#0c5fa8 !important }
+.promo-strip{ background:linear-gradient(90deg,#0c5fa8,#1173c4) !important }
+/* hero + reels brand accents */
+.hero{ background:#084a8a !important }
+.rvw-total{ background:linear-gradient(120deg,#084a8a,#0c5fa8) !important }
+.lpd-wa{ background:linear-gradient(135deg,#084a8a,#0c5fa8 60%,#1173c4) !important }
+.lpd-wabtn{ background:#fff !important; color:#0c5fa8 !important }
+.sk-footer{ background:linear-gradient(180deg,#063a6e,#084a8a) !important }
+/* product page accents */
+.pd-trust span:nth-child(1){ background:#e3f0fb; color:#0c5fa8 }
+.pd-trust span:nth-child(2){ background:#fdf0f5; color:#a03050 }
+.pd-trust span:nth-child(3){ background:#e3f0fb; color:#0c5fa8 }
+.pd-trust span:nth-child(4){ background:#fdf0f5; color:#a03050 }
+.pd-ship{ background:#e8f3fc !important; color:#0a4a80 !important; border-color:#a8cdeb !important }
+.pd-love{ background:#fdf0f5 !important; border-color:#f3d9e3 !important }
+.pd-love b{ color:#084a8a !important }
+.pd-colour.on{ background:#0c5fa8 !important }
+/* cat-hero overlay */
+.cat-hero{ background:#fdf0f5 }
+.ch-kick{ background:rgba(12,95,168,.2); border-color:rgba(108,184,234,.5); color:#6db8ea }
+/* shop cards (reel-grid) */
+.reel-card{ background:#fff !important }
+.pcard{ background:#fff !important }
+/* coupon + points */
+.pts-card{ border-color:#a8cdeb !important }
+/* toast + modal */
+.toast{ background:#084a8a }
+.m-card{ background:#fff !important }
+/* cmb page */
+.cmb-hero{ background:linear-gradient(135deg,#084a8a,#0c5fa8 60%,#1173c4) !important }
+.cmb-size.on{ background:#0c5fa8 !important; border-color:#0c5fa8 !important }
+.cmb-pick.on{ border-color:#1173c4 !important; box-shadow:0 0 0 3px rgba(12,95,168,.18) !important }
+.cmb-qty button{ background:linear-gradient(0deg,#084a8a,#0c5fa8) !important }
+/* status pills */
+.status-placed{ background:#e3f0fb; color:#0c5fa8 }
+.status-pending{ background:#fdf0f5; color:#a03050 }
+.status-delivered{ background:#e8f9ee; color:#1d8a4e }
+.status-shipped{ background:#e3f0fb; color:#084a8a }
+/* checkout */
+.steps-ui .step-dot.on .dot{ background:#0c5fa8 !important }
+.pay-opt.on{ border-color:#0c5fa8 !important; box-shadow:0 0 0 3px rgba(12,95,168,.14) !important }
+.pay-opt.on .radio{ border-color:#0c5fa8 !important; background:radial-gradient(circle at center,#0c5fa8 45%,#fff 50%) !important }
+.form-card .row.total b{ color:#0c5fa8 !important }
+.rvw-total b{ color:#6db8ea !important }
+.co-saved{ background:#e8f9ee; color:#1d8a4e }
+.co-nudge{ background:#e8f3fc; border-color:#a8cdeb; color:#0a4a80 }
+/* sale/badge colors */
+.lpc-off, .rpc-off, .off{ background:#0c5fa8 !important }
+.ct-count{ color:#6d6270 }
+/* ticket/tick accents */
+.sec-head h2 .tick{ background:#0c5fa8 !important }
+/* sticky bar + sb2 */
+.sticky-bar.sb2{ background:rgba(255,255,255,.98) !important }
+.sticky-bar.sb2 .sb-price b{ color:#0c5fa8 }
+/* reels page keep dark (video background) but brand accents blue */
+body[data-page="reels"]{ background:#0a1620 !important }
+body[data-page="reels"] .topbar{ background:transparent }
+/* WhatsApp floating */
+.wa-float{ background:linear-gradient(135deg,#2ee06f,#1da851) }
+/* category chips on shop */
+.chip.on{ background:#0c5fa8 !important; color:#fff !important }
+/* FAQ */
+.faq details{ border-color:#f3d9e3 !important }
+/* headings */
+.sec-head h2{ color:#084a8a !important }
+h1{ color:#084a8a }
+/* blog */
+.blog-hero{ background:linear-gradient(135deg,#084a8a 0%,#0c5fa8 55%,#1173c4 100%) !important }
+.blog-sec h2{ color:#084a8a !important }
+.blog-road{ background:#fdf0f5 !important; border-color:#f3d9e3 !important }
+/* why-us tiles */
+.why-tile b{ color:#0c5fa8 !important }
+/* footer social */
+.f-social a{ color:#fff }
