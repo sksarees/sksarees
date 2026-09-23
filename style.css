@@ -4042,3 +4042,335 @@ h1{ color:#084a8a }
 .why-tile b{ color:#0c5fa8 !important }
 /* footer social */
 .f-social a{ color:#fff }
+
+/* ============================================================================
+   🛒 SHOPCLUES STYLE THEME — full website rebrand
+   Orange CTA buttons + light-gray body + white bordered cards + marketplace look
+   (2026-09-23 — overrides EVERYTHING above; last rules win)
+   ========================================================================== */
+
+/* ── palette swap ──────────────────────────────────────────────────────────── */
+:root{
+  --maroon:#e8570f;               /* primary → Shopclues orange */
+  --maroon-d:#c74a0a;
+  --maroon-deep:#a03c08;
+  --maroon-soft:#fff3ed;
+  --gold:#1a73e8;                 /* links → blue */
+  --gold-l:#6ea8f0;
+  --gold-soft:#eef5fe;
+  --bg:#f4f4f4;                   /* light gray marketplace background */
+  --card:#fff;
+  --ink:#212121;
+  --muted:#757575;
+  --line:#e0e0e0;
+  --r:4px; --r-sm:3px;            /* sharp Shopclues corners */
+  --sh:0 1px 4px rgba(0,0,0,.08);
+  --sh-sm:0 1px 2px rgba(0,0,0,.05);
+  --green:#2e7d32;
+}
+
+/* ── body + typography ────────────────────────────────────────────────────── */
+body{ background:var(--bg) !important; font-family:Roboto,Arial,"Noto Sans","Noto Sans Tamil",sans-serif }
+.wrap{ max-width:1200px; margin:0 auto; padding:0 10px }
+h1,h2,h3{ color:#212121; letter-spacing:-.2px }
+h1{ font-size:1.15rem; font-weight:700; margin:12px 0 }
+a{ color:#1a73e8 }
+
+/* ── topbar (Shopclues white header + orange bottom border) ────────────────── */
+.topbar{
+  background:#fff !important;
+  border-bottom:3px solid #e8570f;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+  backdrop-filter:none;
+}
+.topbar-in{ height:58px }
+.logo{ color:#e8570f !important; font-size:1.05rem; font-weight:800; letter-spacing:-.3px }
+.logo small{ color:#757575; font-size:.56rem; letter-spacing:1px }
+.logo-badge{ background:#e8570f; border-radius:3px; box-shadow:none }
+.icon-btn{ color:#424242; border-radius:3px }
+.icon-btn:active{ background:#fff3ed }
+.cart-badge{ background:#e8570f; color:#fff; border-color:#fff }
+.header-greet{ background:#fff3ed; border-color:#e8570f; color:#e8570f }
+.burger{ color:#424242 }
+
+/* ── promo strip (orange marquee, Shopclues top strip) ─────────────────────── */
+.promo-strip{
+  background:#e8570f !important;
+  color:#fff !important;
+  font-size:.76rem; font-weight:600;
+  padding:6px 10px;
+  box-shadow:none;
+}
+
+/* ── ALL buttons → Shopclues orange gradient (sharp corners) ───────────────── */
+.btn-maroon, .btn-gold, .btn-buy, .btn-pay, .btn-buygreen, .btn-pd-buy,
+.btn-wa, .btn-wa-o:hover, .prp-btn, .btn-maroon:hover, .btn-gold:hover,
+.btn-buy:hover, .btn-pay:hover, .btn-pd-buy:hover{
+  background:linear-gradient(0deg,#c74a0a,#e8570f 55%,#ff6b1a) !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:4px !important;
+  box-shadow:0 2px 8px rgba(232,87,15,.3) !important;
+  text-transform:uppercase;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+.btn-wa{
+  background:linear-gradient(0deg,#1a9e4b,#25b862 55%,#2ecc71) !important; /* green WhatsApp */
+  border-radius:4px !important;
+}
+.btn-wa-o{
+  background:#fff !important;
+  color:#1a9e4b !important;
+  border:1.5px solid #25b862 !important;
+  border-radius:4px !important;
+  box-shadow:none !important;
+  text-transform:none;
+}
+.btn-outline{ background:#fff !important; color:#1a73e8 !important; border:1px solid #d0d8e8 !important; border-radius:4px !important }
+.btn-ghost{ color:#1a73e8 !important; background:transparent !important }
+.btn{ border-radius:4px }
+.btn-xl{ min-height:48px; font-size:.95rem }
+
+/* ── cards & sections (white, 1px border, sharp — Shopclues style) ────────── */
+.sec{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:14px; margin:10px 0 }
+.sec-head h2{ font-size:1rem; font-weight:700; color:#212121; padding:0 0 8px; border-bottom:1px solid var(--line); margin:0 0 12px }
+.sec-head h2 .tick{ background:#e8570f; width:3px; height:16px; border-radius:1px; margin-right:8px }
+.sec-head a{ color:#1a73e8; font-size:.78rem; font-weight:700; text-decoration:none }
+.form-card{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:14px; box-shadow:none }
+.pd-block{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:12px }
+
+/* ── category tiles (Shopclues grid look) ──────────────────────────────────── */
+.cat-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px }
+.cat-tile{ background:#fff; border:1px solid var(--line); border-radius:4px; overflow:hidden; text-decoration:none; transition:box-shadow .15s }
+.cat-tile:hover{ box-shadow:0 2px 8px rgba(0,0,0,.12); border-color:#bbb }
+.cat-tile .ct-name{ font-size:.8rem; font-weight:700; color:#212121 }
+.cat-tile .ct-count{ font-size:.66rem; color:#757575 }
+
+/* ── product cards (Shopclues: white, border, "Deal Price" look) ───────────── */
+.pcard, .lpc, .reel-card{
+  background:#fff !important;
+  border:1px solid var(--line) !important;
+  border-radius:4px !important;
+  box-shadow:none !important;
+  overflow:hidden;
+  transition:box-shadow .15s;
+}
+.pcard:hover, .lpc:hover, .reel-card:hover{ box-shadow:0 2px 10px rgba(0,0,0,.12) !important }
+.lpc-img{ aspect-ratio:3/4; background:#fafafa }
+.lpc-img img{ object-fit:contain; padding:8px }
+.lpc-off{
+  position:absolute; top:6px; left:6px;
+  background:#2e7d32; color:#fff;
+  font-size:.58rem; font-weight:800;
+  padding:3px 7px; border-radius:2px;
+  letter-spacing:.3px;
+}
+.lpc-t b{ color:#212121; font-size:.8rem }
+.lpc-t small{ color:#757575; font-size:.66rem; font-weight:600 }
+.lpc-price b{ color:#212121; font-size:1.05rem; font-weight:800 }
+.lpc-price s{ color:#9e9e9e; font-size:.72rem }
+.lpc-trust{ background:#e8f5e9; color:#2e7d32; font-size:.6rem; border-radius:2px; padding:3px 8px; font-weight:800 }
+.lpc-btns .btn{ min-height:36px; font-size:.74rem; border-radius:3px; padding:5px 6px }
+
+/* ── shop grid (reel-card → Shopclues bordered cards) ──────────────────────── */
+.reel-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }
+.reel-card{ display:flex; flex-direction:column }
+.reel-card .reel-imgs img{ object-fit:contain; padding:6px; background:#fff }
+.reel-card h3, .reel-card b{ font-size:.78rem; color:#212121; font-weight:600 }
+.reel-card .old-price, .reel-card s{ color:#9e9e9e; font-size:.72rem }
+.reel-card .price, .reel-card b.price{ color:#212121; font-size:1rem; font-weight:800 }
+
+/* ── drawer ────────────────────────────────────────────────────────────────── */
+.drawer{ background:#fff; border-right:1px solid var(--line) }
+.drawer-head{ background:#e8570f; color:#fff; padding:14px }
+.drawer-head b{ color:#fff }
+.drawer-head small{ color:rgba(255,255,255,.8) !important }
+.drawer-nav a{ color:#424242; font-size:.86rem; font-weight:600; padding:8px 14px; border-bottom:1px solid #f5f5f5 }
+.drawer-nav a:hover{ background:#fff3ed; color:#e8570f }
+.drawer-nav .sub{ color:#e8570f; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:10px 14px 4px }
+
+/* ── footer (dark gray Shopclues footer) ───────────────────────────────────── */
+.sk-footer{ background:#26232a !important }
+.f-brand, .f-grid h4{ color:#fff }
+.f-grid a{ color:#b0b0b0; font-size:.78rem }
+.f-social a{ background:#3a3740; color:#fff; border-radius:3px }
+.f-bottom{ color:#888 }
+.f-grid a:hover{ color:#ff8a50 }
+
+/* ── product page ──────────────────────────────────────────────────────────── */
+.pd-wrap{ display:grid; grid-template-columns:1fr; gap:10px }
+@media(min-width:900px){ .pd-wrap{ grid-template-columns:1.05fr 1fr; gap:16px } }
+.pd-gal{ border:1px solid var(--line); border-radius:4px; background:#fff }
+.pd-gal .main{ min-height:auto; background:#fff }
+.pd-gal .main img{ max-height:480px; object-fit:contain }
+.pd-thumb{ border:1px solid var(--line); border-radius:3px }
+.pd-thumb.on{ border-color:#e8570f; border-width:2px }
+.pd-info{ padding:0 }
+.pd-cat{ color:#1a73e8; font-size:.76rem; font-weight:700 }
+.pd-price b{ color:#212121; font-size:1.6rem }
+.pd-price .off{ background:#2e7d32; color:#fff; font-size:.66rem; font-weight:800; padding:4px 10px; border-radius:2px }
+.pd-trust span{ background:#fff; border:1px solid var(--line); color:#424242; font-size:.62rem; border-radius:2px; padding:4px 8px }
+.pd-trust span:nth-child(2){ color:#2e7d32; border-color:#c8e6c9 }
+.pd-ship{ background:#f5f5f5; border:1px solid var(--line); color:#424242; border-radius:3px }
+.pd-love{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.pd-love b{ color:#212121 }
+.pd-love li{ color:#424242 }
+.pd-colour.on{ background:#e8570f !important; border-color:#e8570f !important }
+.pd-secondary .btn{ background:#fff !important; border:1px solid #e8570f !important; color:#e8570f !important; border-radius:3px !important; box-shadow:none !important; text-transform:none }
+.qty-row .qty button{ background:#e8570f }
+.pin-check{ background:#fff; border:1px solid var(--line); border-radius:4px }
+
+/* ── checkout ──────────────────────────────────────────────────────────────── */
+.steps-ui .step-dot .dot{ background:#e0e0e0; color:#9e9e9e }
+.steps-ui .step-dot.on .dot, .steps-ui .step-dot.done .dot{ background:#e8570f !important; color:#fff }
+.form-card input, .form-card select, .form-card textarea{
+  border:1px solid #d0d0d0; border-radius:3px; font-size:16px; background:#fff
+}
+.form-card input:focus{ border-color:#e8570f }
+.form-card .row{ border-bottom:1px solid #f0f0f0 }
+.form-card .row b{ color:#212121 }
+.form-card .row.total{ border-top:2px solid #e8570f; margin-top:6px; padding-top:10px }
+.form-card .row.total b{ color:#e8570f }
+.co-save{ color:#2e7d32 }
+.rvw-card{ border:1px solid var(--line); border-radius:4px }
+.rvw-total{ background:linear-gradient(120deg,#c74a0a,#e8570f); border-radius:0 0 4px 4px }
+.rvw-total b{ color:#ffcc80 }
+.pay-opt{ border:1px solid var(--line); border-radius:4px; background:#fff }
+.pay-opt.on{ border-color:#e8570f; box-shadow:0 0 0 2px rgba(232,87,15,.15) }
+.pay-opt.on .radio{ border-color:#e8570f; background:radial-gradient(circle at center,#e8570f 45%,#fff 50%) }
+.pts-card{ border:1px solid var(--line); background:#fff; border-radius:4px }
+.pts-card:has(input:checked){ border-color:#2e7d32 }
+.delivery-card{ background:#fff3ed; border:1px solid #ffccbc; border-radius:4px; color:#a03c08 }
+.co-nudge{ background:#e8f5e9; border-color:#c8e6c9; color:#2e7d32 }
+.co-saved{ background:#e8f5e9; border-color:#a5d6a7; color:#2e7d32 }
+
+/* ── shop filters + chips ──────────────────────────────────────────────────── */
+.shop-tools select, .shop-tools input[type=range]{ border:1px solid #d0d0d0; border-radius:3px }
+.cat-chips .chip{ background:#fff; border:1px solid #d0d0d0; color:#424242; border-radius:3px; font-size:.74rem; font-weight:600 }
+.cat-chips .chip.on{ background:#e8570f; border-color:#e8570f; color:#fff }
+
+/* ── category folder hero ──────────────────────────────────────────────────── */
+.cat-hero{ border:1px solid var(--line); border-radius:4px; min-height:180px }
+.ch-kick{ background:#e8570f; color:#fff; border:0; border-radius:2px }
+
+/* ── reels page (keep dark for video, Shopclues accents) ──────────────────── */
+body[data-page="reels"]{ background:#1a1a1a !important }
+body[data-page="reels"] .topbar{ background:transparent !important; border-bottom:0 }
+.rp-card{ background:rgba(20,20,20,.88); border:1px solid rgba(255,255,255,.12); border-radius:4px }
+.rpc-buy{ background:linear-gradient(0deg,#c74a0a,#e8570f 55%,#ff6b1a) !important; border-radius:4px }
+.rpc-wa{ background:rgba(37,184,98,.25) !important; border:1px solid rgba(46,204,113,.5); color:#a5d6a7; border-radius:4px }
+.rpc-urg{ color:#ffcc80 }
+.rp-lang{ background:rgba(232,87,15,.6); border-color:#ff8a50; color:#ffcc80; border-radius:3px }
+
+/* ── combo page ────────────────────────────────────────────────────────────── */
+.cmb-hero{ background:linear-gradient(135deg,#c74a0a,#e8570f 60%,#ff6b1a) !important; border-radius:4px }
+.cmb-hero h1{ color:#fff }
+.cmb-kick{ background:rgba(255,255,255,.2); border-color:rgba(255,255,255,.4); color:#ffcc80; border-radius:2px }
+.cmb-sec{ border:1px solid var(--line); border-radius:4px; background:#fff }
+.cmb-pick{ border:1px solid var(--line); border-radius:4px; background:#fff }
+.cmb-pick.on{ border-color:#2e7d32; box-shadow:0 0 0 2px rgba(46,125,50,.15) }
+.cmb-size.on{ background:#e8570f; border-color:#e8570f; border-radius:3px }
+.cmb-sum{ border:1px solid var(--line); background:#fff; border-radius:4px }
+.cmb-qty button{ background:linear-gradient(0deg,#c74a0a,#e8570f); border-radius:3px }
+
+/* ── orders page ───────────────────────────────────────────────────────────── */
+.order-card{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.status-pill{ border-radius:2px; font-size:.62rem }
+.status-placed{ background:#e3f2fd; color:#1565c0 }
+.status-pending{ background:#fff3e0; color:#e65100 }
+.status-confirmed{ background:#e8f5e9; color:#2e7d32 }
+.status-shipped{ background:#e3f2fd; color:#1565c0 }
+.status-delivered{ background:#e8f5e9; color:#2e7d32 }
+.status-cancelled{ background:#ffebee; color:#c62828 }
+
+/* ── profile ───────────────────────────────────────────────────────────────── */
+.pts-ic{ background:#e8570f; border-radius:3px }
+
+/* ── sticky bar ────────────────────────────────────────────────────────────── */
+.sticky-bar.sb2{ background:#fff; border-top:2px solid #e8570f; box-shadow:0 -2px 10px rgba(0,0,0,.08) }
+.sticky-bar.sb2 .sb-price b{ color:#e8570f }
+
+/* ── floating buttons ──────────────────────────────────────────────────────── */
+.wa-float{ background:linear-gradient(135deg,#25d366,#1da851); border-radius:4px }
+.ai-float{ background:linear-gradient(135deg,#e8570f,#c74a0a); border-radius:4px }
+
+/* ── modal ─────────────────────────────────────────────────────────────────── */
+.m-card{ background:#fff; border-radius:4px; border:1px solid var(--line) }
+.m-card h2{ color:#212121 }
+.m-close{ background:#e8570f; color:#fff; border-radius:2px }
+.np-card .np-emoji{ font-size:2rem }
+.np-title{ color:#212121 }
+.np-input{ border:1px solid #d0d0d0; border-radius:3px }
+.np-input:focus{ border-color:#e8570f }
+
+/* ── login tabs ────────────────────────────────────────────────────────────── */
+.lg-tabs{ border:1px solid #d0d0d0; border-radius:3px; overflow:hidden }
+.lg-tab.on{ background:#e8570f; color:#fff }
+
+/* ── toast ─────────────────────────────────────────────────────────────────── */
+.toast{ background:#26232a; border-radius:3px; font-size:.8rem }
+
+/* ── blog ──────────────────────────────────────────────────────────────────── */
+.blog-hero{ background:linear-gradient(135deg,#c74a0a,#e8570f 60%,#ff6b1a) !important; border-radius:4px }
+.blog-sec{ border:1px solid var(--line); border-radius:4px; background:#fff }
+.blog-sec h2{ color:#212121; border-bottom:1px solid var(--line) }
+.blog-note{ background:#fff3ed; border:1px solid #ffccbc; border-radius:3px }
+.shop-row{ background:#fff; border:1px solid #ffe0b2; border-radius:3px }
+.blog-cta{ background:linear-gradient(135deg,#c74a0a,#e8570f); border-radius:4px }
+
+/* ── FAQ ───────────────────────────────────────────────────────────────────── */
+.faq details{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.faq summary{ color:#212121; font-weight:700 }
+.faq summary::after{ color:#e8570f }
+
+/* ── misc ──────────────────────────────────────────────────────────────────── */
+.rev{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.why-tile{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.why-tile b{ color:#e8570f }
+.why-tile span{ font-size:1.4rem }
+.pd-realphoto{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.prp-cam{ background:#e8570f; border-radius:3px }
+.empty{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.success{ background:#fff; border:1px solid #c8e6c9; border-radius:4px }
+.hero{ background:transparent; border:0; border-radius:0; color:#212121; padding:0; margin:0 }
+.hero-bg{ display:none }
+.hero-in{ color:#212121; padding:0 }
+.ig-wrap{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.video-card{ background:#fff; border:1px solid var(--line); border-radius:4px; overflow:hidden }
+.deal-day{ background:#fff; border:1px solid var(--line); border-radius:4px }
+.flash{ background:#e8570f; border-radius:4px; color:#fff }
+.flash h3{ color:#fff }
+.flash-timer{ background:rgba(255,255,255,.2); border-radius:3px; color:#fff }
+.greet-strip{ background:#fff; border:1px solid var(--line); border-radius:4px; margin:8px 0 }
+.greet-strip .gs-txt b{ color:#e8570f }
+.reel-slide img{ object-fit:contain; background:#fff }
+
+/* ── admin ─────────────────────────────────────────────────────────────────── */
+body[data-page="admin"] .topbar{ border-bottom-color:#e8570f }
+body[data-page="admin"] h2{ color:#212121 }
+.pay-opt .po-ic{ border-radius:3px }
+
+/* ── search icon in topbar ─────────────────────────────────────────────────── */
+.top-actions .icon-btn svg{ stroke:#424242 }
+
+/* ── scrollbar (Shopclues style) ───────────────────────────────────────────── */
+::-webkit-scrollbar{ width:8px; height:8px }
+::-webkit-scrollbar-track{ background:#f0f0f0 }
+::-webkit-scrollbar-thumb{ background:#e8570f; border-radius:0 }
+::-webkit-scrollbar-thumb:hover{ background:#c74a0a }
+
+/* ── selection ─────────────────────────────────────────────────────────────── */
+::selection{ background:#e8570f; color:#fff }
+
+/* ── responsive tweaks ─────────────────────────────────────────────────────── */
+@media(max-width:640px){
+  .topbar-in{ height:52px }
+  .logo{ font-size:.95rem }
+  .sec{ padding:10px; margin:8px 0; border-radius:4px }
+  .form-card{ padding:10px; border-radius:4px }
+  .pd-gal .main img{ max-height:360px }
+  .lpd-grid{ grid-template-columns:repeat(2,1fr); gap:8px }
+  .cat-grid{ grid-template-columns:repeat(3,1fr); gap:6px }
+  .btn-xl{ min-height:46px; font-size:.9rem }
+}
