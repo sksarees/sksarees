@@ -1,7 +1,9 @@
 User-agent: *
 Allow: /
-Disallow: /admin.html
-Disallow: /cart.html
-Disallow: /checkout.html
 
+# Sitemap
 Sitemap: https://www.sksaree.shop/sitemap.xml
+
+# Block admin and internal pages
+Disallow: /admin.html
+Disallow: /sw.js

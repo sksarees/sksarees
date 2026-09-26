@@ -4425,6 +4425,66 @@ document.addEventListener('click', function(e){
 });
 
 
+
+
+/* ============================ 📸 AUTO SHARE PROMPT (product page) ============================
+   20 seconds after viewing a product → "Loved this saree? Share it!"
+   Uses navigator.share on mobile → WhatsApp/Insta share sheet opens.
+   Once per product per session. */
+function maybeProductSharePrompt(){
+  try{
+    if (document.body.dataset.page !== 'product') return;
+    const pid = currentProductId();
+    if (!pid) return;
+    if (sessionStorage.getItem('sk_pshare_' + pid)) return;
+    sessionStorage.setItem('sk_pshare_' + pid, '1');
+    const p = byId(pid);
+    if (!p) return;
+    toast('💬 ' + loc('இந்த சேலை பிடிச்சிருக்கா? நண்பர்களுக்கு share பண்ணுங்க! 💜', 'ఈ చీర నచ్చిందా? మీ స్నేహితులకు షేర్ చేయండి! 💜', 'ಈ ಸೀರೆ ಇಷ್ಟವಾಯಿತಾ? ಸ್ನೇಹಿತರಿಗೆ ಹಂಚಿ! 💜', 'Loved this saree? Share with friends! 💜'), 3500);
+  }catch(e){}
+}
+setTimeout(function(){ try{ maybeProductSharePrompt(); }catch(e){} }, 20000);
+
+/* ============================ 🚀 AUTO VIRAL SHARE ============================
+   After 40 seconds of real browsing, show a "Share & Earn" popup.
+   This turns every visitor into a promoter — her WhatsApp friends see the
+   saree photo + link → new visitors → more traffic → more orders.
+   Shows ONCE per session (never annoying). */
+function maybeViralShare(){
+  try{
+    if (sessionStorage.getItem('sk_viral_shown')) return;
+    if (document.body.dataset.page === 'reels') return;   /* reels already have share */
+    sessionStorage.setItem('sk_viral_shown', '1');
+    const mine = myResellerCode();
+    const shareUrl = (CONFIG.siteUrl || location.origin) + '/?ref=' + (mine || 'FRIEND');
+    openModal('<div class="np-card" style="text-align:center">' +
+      '<div class="np-emoji">🎁</div>' +
+      '<h3 class="np-title">' + loc('உங்களுக்கு ₹50 OFF! 😍', 'మీకు ₹50 OFF! 😍', 'ನಿಮಗೆ ₹50 OFF! 😍', 'Get ₹50 OFF! 😍') + '</h3>' +
+      '<p class="np-sub">' + loc(
+        'இந்த website-ஐ உங்க நண்பர்களுக்கு WhatsApp-ல் share பண்ணுங்க.<br>அவங்க order போட்டா <b>நீங்க ₹50 OFF</b> + அவங்களுக்கும் <b>5% OFF</b>! 🎉',
+        'ఈ websiteను మీ స్నేహితులకు WhatsApp లో షేర్ చేయండి.<br>వారు ఆర్డర్ చేస్తే <b>మీకు ₹50 OFF</b> + వారికి <b>5% OFF</b>! 🎉',
+        'ಈ websiteಅನ್ನು ನಿಮ್ಮ ಸ್ನೇಹಿತರಿಗೆ WhatsApp ನಲ್ಲಿ ಹಂಚಿ.<br>ಅವರು ಆರ್ಡರ್ ಮಾಡಿದರೆ <b>ನಿಮಗೆ ₹50 OFF</b> + ಅವರಿಗೂ <b>5% OFF</b>! 🎉',
+        'Share this website with your friends on WhatsApp.<br>When they order, you get <b>₹50 OFF</b> + they get <b>5% OFF</b>! 🎉') + '</p>' +
+      '<a class="btn btn-wa btn-xl" style="margin:10px 0" href="https://wa.me/?text=' + encodeURIComponent('🪡 அழகான சேலைகள் ₹299 முதல்! 🥻\n\n💰 உங்களுக்கு 5% OFF — Code: SHARE5\n🚚 ₹2999+ FREE Delivery\n💵 COD Available\n\n👉 ' + shareUrl + '\n\n— SK Sarees, Salem ✨') + '" target="_blank" rel="noopener">📤 Share on WhatsApp Now</a>' +
+      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
+    '</div>');
+  }catch(e){}
+}
+setTimeout(function(){ try{ maybeViralShare(); }catch(e){} }, 40000);
+
+/* ============================ 📢 WHATSAPP GROUP INVITE ============================
+   After 90 seconds (deep engagement), invite her to the WhatsApp group
+   for daily new saree updates. Group = repeat traffic + orders. */
+function maybeWhatsAppGroupInvite(){
+  try{
+    if (sessionStorage.getItem('sk_group_shown')) return;
+    if (!CONFIG.waGroup) return;
+    sessionStorage.setItem('sk_group_shown', '1');
+    toast('📢 ' + loc('புது சேலைகள் WhatsApp group-ல ஜாயின் பண்ணுங்க! 👉 Drawer-ல உள்ளே', 'కొత్త చీరల WhatsApp గ్రూప్‌లో జాయిన్ అవ్వండి!', 'ಹೊಸ ಸೀರೆಗಳು WhatsApp ಗ್ರೂಪ್‌ನಲ್ಲಿ ಸೇರಿ!', 'Join our WhatsApp group for daily new sarees!'), 4000);
+  }catch(e){}
+}
+setTimeout(function(){ try{ maybeWhatsAppGroupInvite(); }catch(e){} }, 90000);
+
 document.addEventListener('click', function(e){
   /* add to cart (from cards, product page, wishlist) */
   const add = e.target.closest('[data-add]');

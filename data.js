@@ -2835,6 +2835,10 @@ function renderFooter(){
       <span class="logo-badge">${SK_LOGOSVG}</span>
       <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
     </div>
+    <div class="f-cta-row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px">
+      <a class="btn btn-wa btn-xl" style="width:auto;min-width:220px" href="${CONFIG.waGroup}" target="_blank" rel="noopener">📢 Join WhatsApp Group — Daily New Sarees!</a>
+      <a class="btn btn-gold btn-xl" style="width:auto;min-width:200px" href="share-earn.html">💰 Share &amp; Earn 5%</a>
+    </div>
     <div class="f-grid">
       <div>
         <h4>Saree Categories</h4>
