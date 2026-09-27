@@ -796,7 +796,6 @@ function reelHTML(p, i){
   const q = reelQuoteFor(p, i);
   const liked = !!LS.get('sk_reel_liked_' + p.id, 0);
   const likes = reelCountOf(p.id);   /* 🔥 global Firestore count */
-  const cmts = realReviewCount(p.id);
   const off = offPct(p);
   const price = p.price || 0;
   const stockLeft = (p.stock != null && p.stock > 0) ? +p.stock : null;
@@ -810,13 +809,10 @@ function reelHTML(p, i){
     '<div class="rp-quote"><p>' + esc(q) + '</p></div>' +
     '<button type="button" class="rp-lang" data-rplang="1" aria-label="Language">🌐 ' + ({ ta: 'அ', te: 'అ', kn: 'ಅ', en: 'A' }[reelsLang()] || 'அ') + '</button>' +
     /* rail — ❤️ Like · 💬 WhatsApp · ↗ Share (3 actions only) */
-    /* rail — FULL Instagram buttons: ❤️ Like · 💬 Comment · ↗ Share · 📥 Save · ♪ Audio */
     '<div class="rp-actions">' +
       '<button type="button" class="rpa" data-rplike="' + esc(p.id) + '" aria-label="Like"><span class="rpa-ic' + (liked ? ' liked' : '') + '">' + (liked ? '❤️' : '🤍') + '</span><small>' + (likes || '') + '</small></button>' +
-      '<button type="button" class="rpa" data-rpcomment="' + esc(p.id) + '" aria-label="Comments"><span class="rpa-ic">💬</span><small>' + (cmts || '') + '</small></button>' +
-      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">↗</span><small>' + (reelSharesOf(p.id) > 0 ? reelSharesOf(p.id) : rloc('பகிர்', 'షేర్', 'ಶೇర್', 'Share')) + '</small></button>' +
-      '<button type="button" class="rpa" data-rpsave="' + esc(p.id) + '" aria-label="Save photo"><span class="rpa-ic">📥</span><small>' + rloc('சேமி', 'సేవ్', 'ಸೇವ್', 'Save') + '</small></button>' +
-      '<a class="rpa" href="' + esc(CONFIG.social.youtube || 'https://www.youtube.com/') + '" target="_blank" rel="noopener" aria-label="Audio"><span class="rpa-ic rp-disc"><i>♪</i></span><small>Audio</small></a>' +
+      '<a class="rpa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp"><span class="rpa-ic rpa-wa">💬</span><small>' + rloc('ஆர்டர்', 'ఆర్డర్', 'ಆర్డర్', 'Order') + '</small></a>' +
+      '<button type="button" class="rpa" data-reelshare="' + esc(p.id) + '" aria-label="Share"><span class="rpa-ic">↗</span><small>' + (reelSharesOf(p.id) > 0 ? reelSharesOf(p.id) : rloc('பகிர்', 'షేర్', 'ಶేర్', 'Share')) + '</small></button>' +
     '</div>' +
     /* 🛍️ MINIMAL shop card — one price, one button (the saree + wish sell it) */
     '<div class="rp-bottom"><div class="rp-card">' +
@@ -1253,7 +1249,21 @@ function reelEarnModal(){
 /* 📢 share a reel — photo + wish + saree link straight into WhatsApp (viral!) */
 async function shareReel(p, quote){
   if (!p) return;
-  /* 🔗 the share link (carries her reseller ref) — the ONLY thing shared */
+  /* 🔗 the share link opens THIS saree's reel (not the product page) —
+     the friend lands straight on the same beautiful reel she saw */
+  /* 🔗 reel deep link + HER reseller ref — shares now EARN commission.
+     💰 NO code yet? If her number is saved (profile / checkout) she gets a
+     code INSTANTLY — so every share from a real customer earns her 5%. */
+  try{
+    if (!myResellerCode()){
+      const pr = Store.profile || {};
+      const ph = String(pr.phone || '').replace(/\D/g, '');
+      if (ph.length === 10 && /^[6-9]/.test(ph)){
+        const r = autoRegisterReseller(pr.name || 'SK Friend', ph);
+        if (r && r.code) toast('💰 ' + rloc('உங்க code: ', 'మీ కోడ్: ', 'ನಿಮ್ಮ ಕೋಡ್: ', 'Your code: ') + r.code + rloc(' — இந்த share வழியா வருமானம்!', ' — ఈ షేర్ ద్వారా సంపాదన!', ' — ಈ ಹಂಚಿಕೆಯ ಮೂಲಕ ಆದಾಯ!', ' — this share now earns for you!'));
+      }
+    }
+  }catch(e9){}
   const url = reelShareLink(p);
   /* 🔁 count the share globally (Firestore) + update the rail count */
   try{
@@ -1261,66 +1271,30 @@ async function shareReel(p, quote){
     if (FS.enabled()) FS.reelShare(p.id).catch(() => {});
     document.querySelectorAll('[data-reelshare="' + String(p.id).replace(/"/g, '') + '"]').forEach(applyReelShareCount);
   }catch(e0){}
-  /* 🖼️ greeting-card image: saree photo + the quote (what she shares) */
-  let file = null;
-  try{
-    if (navigator.share && navigator.canShare){
-      let img = null;
-      try{
-        const blob = await fetchImageBlob(p.img || ((p.images || [])[0]), true);
-        if (blob) img = await imageFromBlob(blob);
-      }catch(e1){}
-      const W = 1080, H = 1350;
-      const cv = document.createElement('canvas');
-      cv.width = W; cv.height = H;
-      const ctx = cv.getContext ? cv.getContext('2d') : null;
-      if (ctx){
-        ctx.fillStyle = '#1d0a12';
-        ctx.fillRect(0, 0, W, H);
-        if (img){
-          const sc = Math.max(W / img.width, H / img.height);
-          const dw = img.width * sc, dh = img.height * sc;
-          ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
-        }
-        const g = ctx.createLinearGradient(0, 0, 0, H);
-        g.addColorStop(0, 'rgba(0,0,0,.45)');
-        g.addColorStop(0.30, 'rgba(0,0,0,0)');
-        g.addColorStop(0.72, 'rgba(0,0,0,.72)');
-        g.addColorStop(1, 'rgba(0,0,0,.92)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 52px Georgia, "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", sans-serif';
-        wrapText(ctx, quote || '', W / 2, 190, W - 130, 60);
-        ctx.fillStyle = '#ffd98a';
-        ctx.font = 'bold 28px Georgia, serif';
-        ctx.fillText('— SK SAREES • SALEM —', W / 2, H - 210);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 40px Georgia, serif';
-        ctx.fillText('₹' + (p.price || 0).toLocaleString('en-IN') + ' • www.sksaree.shop', W / 2, H - 140);
-        const blob2 = await new Promise(r => { try{ cv.toBlob(r, 'image/jpeg', 0.9); }catch(e2){ r(null); } });
-        if (blob2){
-          file = new File([blob2], 'sk-saree-reel.jpg', { type: 'image/jpeg' });
-          if (!navigator.canShare({ files: [file] })) file = null;
-        }
-      }
-    }
-  }catch(e3){}
-  /* 📤 share — image (if possible) + reels LINK only. NO pre-filled message. */
+  const msg = (quote ? quote + '\n\n' : '') +
+    '🌸 ' + smartTitle(p) + '\n₹' + (p.price || 0).toLocaleString('en-IN') +
+    '\n' + rloc('🚚 ₹999+ மேல இலவச டெலிவரி', '🚚 ₹999+ மீதே உசதடி டெலிவரி', '🚚 ₹999+ மேலெ உசித குதிரி', '🚚 FREE delivery above ₹999') + '\n\n👉 ' + url +
+    '\n\n— SK Sarees, Salem 🧵';
   try{
     if (navigator.share){
-      const payload = { title: 'SK Sarees', url: url };
-      if (file) payload.files = [file];
-      navigator.share(payload).then(() => {}, () => {});
-      maybeEarnHint();
+      let file = null;
+      try{
+        const imgUrl = p.img || ((p.images || [])[0]);
+        if (navigator.canShare && imgUrl){
+          /* 🖼️ the SAME reel photo — fetched via the CORS proxy so the
+             image actually attaches (googleusercontent blocks direct fetch) */
+          const blob = await fetchImageBlob(imgUrl);
+          if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
+        }
+      }catch(e2){}
+      const payload = { title: p.name, text: msg, url };
+      if (file && navigator.canShare({ files: [file] })) payload.files = [file];
+      navigator.share(payload).then(() => {}, () => { try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e3){} });
       return;
     }
-  }catch(e4){}
-  /* fallback: copy the reels link only */
-  copyText(url);
-  toast('🔗 ' + rloc('Link copy ஆனது — எங்கே வேண்டும்னாலும் paste பண்ணுங்க!', 'లింక్ కాపీ அయింది!', 'ಲಿಂಕ್ ಕಾಪಿ ஆಗಿದೆ!', 'Link copied — paste it anywhere!'));
-  maybeEarnHint();
+  }catch(e){}
+  try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+  maybeEarnHint();   /* 💰 first share without a code → invite her to earn */
 }
 
 /* ============================ FEED PAGE (public) ============================
@@ -1627,24 +1601,59 @@ function renderHome(){
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n);
   const bestSection = '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🔥 6 Best Selling Sarees</h2><a href="shop.html">View All Sarees →</a></div>' +
         '<div class="lpd-grid">' + six.map(landingCardHTML).join('') + '</div></section>';
-  /* 🛍️ categories section — now at the TOP of the page */
-  const catSection = '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">All Categories →</a></div>' +
+  app.innerHTML = personalGreetHTML() +
+    /* 🔥 5 BEST SELLERS FIRST — she sees sarees + prices instantly */
+    '<div class="wrap" style="padding-top:12px">' + bestSection + '</div>' +
+    /* 🔥 HERO — today's offer + the 2 CTAs a buyer needs */
+    '<section class="hero lpd-hero"><img class="hero-bg" src="images/hero-banner.jpg" alt="SK Sarees collection" loading="eager" decoding="async" width="1200" height="600"><div class="hero-in">' +
+      '<span class="hero-chip lpd-chip">🔥 TODAY ONLY — SAREES STARTING ₹' + starting + '</span>' +
+      '<h1>' + (lang === 'ta' ? t('heroTitle1') + ',<br><span class="gold">' + t('heroTitle2') + '</span>' : 'Beautiful Sarees,<br><span class="gold">Delivered to Your Doorstep</span>') + '</h1>' +
+      '<p class="lpd-sub">🚚 Fast Delivery • 💵 COD Available • ⭐ 2,300+ Happy Customers</p>' +
+      '<div class="hero-ctas">' +
+        '<a class="btn btn-gold btn-xl" href="shop.html">🛍️ SHOP NOW</a>' +
+        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I want to buy a saree. Please send me your latest saree photos & prices 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
+      '</div>' +
+      '<p class="lpd-ship">🚚 FREE delivery above ₹' + (CONFIG.shipFreeAbove || 2999) + ' • 💵 COD booking from ₹100 • ⏱ Fast Delivery</p>' +
+      '<form class="hero-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'heroQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);"><input id="heroQ" type="search" placeholder="🔍 Search sarees, colour, SKU…" autocomplete="off"><button type="submit" class="btn btn-gold">Search</button></form>' +
+    '</div></section>' +
+    '<div class="wrap">' +
+      /* 💬 WhatsApp strip — FB/IG visitors skip the website steps entirely */
+      '<section class="lpd-wa"><b>📱 ' + loc('Facebook / Instagram-ல இருந்து வந்துட்டீங்களா?', 'Facebook / Instagram నుండి వచ్చారా?', 'Facebook / Instagram ನಿಂದ ಬಂದಿರಾ?', 'Came from Facebook / Instagram?') + '</b>' +
+        '<p>' + loc(
+          'Website-ல பல steps போக வேண்டாம் — WhatsApp-ல "எனக்கு saree வேணும்"னு அனுப்புங்க.<br>நாங்க <b>saree photo + price</b> அனுப்புவோம், பிடிச்சத home deliver ஆகும்! 💬',
+          'చాలా steps అవసరం లేదు — WhatsApp లో "నాకు చీర కావాలి" అని పంపండి.<br>మేము <b>చీర ఫోటోలు + ధరలు</b> పంపుతాము, నచ్చినది ఇంటికి డెలివరీ! 💬',
+          'ಹಲವು steps ಬೇಡ — WhatsApp ನಲ್ಲಿ "ನನಗೆ ಸೀರೆ ಬೇಕು" ಎಂದು ಕಳುಹಿಸಿ.<br>ನಾವು <b>ಸೀರೆ ಫೋಟೊ + ಬೆಲೆ</b> ಕಳುಹಿಸುತ್ತೇವೆ, ಇಷ್ಟವಾದ್ದು ಮನೆಗೆ ಡೆಲಿವರಿ! 💬',
+          'No long browsing — just message "I want a saree" on WhatsApp.<br>We send <b>saree photos + prices</b>, and your favourite is home-delivered! 💬') + '</p>' +
+        '<a class="btn btn-xl lpd-wabtn" href="' + waLink('Hi! எனக்கு saree வேணும் — latest photos & prices அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' ' + loc('WhatsApp-ல Saree Photo அனுப்பி Order பண்ணுங்க', 'WhatsApp లో చీర ఫోటో పంపి ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಸೀರೆ ಫೋಟೊ ಕಳುಹಿಸಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Send "I want a saree" on WhatsApp') + '</a>' +
+      '</section>' +
+      /* ⭐ real customer reviews */
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ What Our Customers Say</h2>' +
+        '<a href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">Google Reviews →</a></div>' +
+        '<div class="rev-grid">' + REVIEWS.map(r =>
+          '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
+          '<div><b>' + esc(r.name) + '</b><small>' + esc(r.place) + ' • Customer review ⭐</small></div></div>' +
+          '<div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div><p>' + esc(r.text) + '</p></div>'
+        ).join('') + '</div>' +
+        '<div style="text-align:center;margin-top:16px"><a class="btn btn-outline" style="max-width:320px;margin:0 auto" href="' + esc(CONFIG.googleReview) + '" target="_blank" rel="noopener">⭐ Rate us on Google — share your experience!</a></div>' +
+      '</section>' +
+      /* 🤝 Why SK Sarees? */
+      whyUsHTML() +
+      /* 🛍️ Categories — only ones with sarees in stock */
+      '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>' + (lang === 'ta' ? t('categories') : 'Shop by Category') + '</h2><a href="shop.html">All Categories →</a></div>' +
         '<div class="cat-grid">' + liveCats.slice(0, 12).map(x => {
           const c = x.c;
           return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
             '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
             '<div class="ct-over"><span class="ct-name">' + c.name + ' <span>' + c.emoji + '</span></span>' +
             '<span class="ct-count">' + x.n + ' designs • ' + c.blurb + '</span></div></a>';
-        }).join('') + '</div></section>';
-  /* greet-strip removed (2026-09-23) — cleaner index page */
-  app.innerHTML =
-    /* 🛍️ SHOP BY CATEGORY at the very top, then 🔥 best sellers (no hero) */
-    '<div class="wrap" style="padding-top:12px">' + catSection + bestSection + '</div>' +
-    '<div class="wrap">' +
-      
-      /* 🤝 Why SK Sarees? */
-      whyUsHTML() +
-      
+        }).join('') + '</div></section>' +
+      /* 💰 Share & Earn (business model — one banner) */
+      '<div class="wrap" style="margin-top:14px"><section class="reseller-banner">' +
+        '<div class="rb-left"><span class="rb-emoji">💰</span><div><b>Share &amp; Earn — Reseller Program</b>' +
+        '<p class="small">Share sarees, earn <b>' + (CONFIG.resellerMarginPct || 5) + '%</b> margin on every sale (GPay or loyalty points). Your customers get <b>5% off</b> with coupon <b>' + esc(CONFIG.resellerCoupon) + '</b>!</p></div></div>' +
+        '<div class="rb-btns"><a class="btn btn-gold btn-sm" style="width:auto;min-width:160px" href="share-earn.html">🚀 Start Earning</a>' +
+        '<a class="btn btn-outline btn-sm" style="width:auto;min-width:160px;background:#fff" href="shop.html">🛍️ Shop &amp; Use ' + esc(CONFIG.resellerCoupon) + '</a></div>' +
+      '</section></div>' +
     '</div>';
   try{ renderStatsText(); }catch(e){}   /* hero counters (guarded, optional) */
 }
@@ -2835,7 +2844,7 @@ function renderProduct(){
       '<div>' +
         '<div class="pd-gal">' +
           '<div class="pd-heart"><button type="button" class="heart-btn' + (liked ? ' on' : '') + '" data-wish="' + p.id + '" aria-label="Save to wishlist" title="Save to wishlist">' + (liked ? '❤️' : '🤍') + '</button></div>' +
-          '<div class="main" id="pdMain" title="Tap to view this saree as a reel"><a href="reels.html?reel=' + encodeURIComponent(p.id) + '"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>' +
+          '<div class="main" id="pdMain"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></div>' +
 
           '<div class="pd-thumbs">' + thumbs + '</div>' +
         '</div>' +
@@ -2878,7 +2887,7 @@ function renderProduct(){
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<a class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
-          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
+          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp', 'Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp', 'Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp', 'Order ' + (String(smartTitle(p)).split(' | ')[0] || p.name || 'This Saree') + ' on WhatsApp') + '</a>' +
         '</div>' +
         /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
         '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
@@ -4424,66 +4433,6 @@ document.addEventListener('click', function(e){
   }
 });
 
-
-
-
-/* ============================ 📸 AUTO SHARE PROMPT (product page) ============================
-   20 seconds after viewing a product → "Loved this saree? Share it!"
-   Uses navigator.share on mobile → WhatsApp/Insta share sheet opens.
-   Once per product per session. */
-function maybeProductSharePrompt(){
-  try{
-    if (document.body.dataset.page !== 'product') return;
-    const pid = currentProductId();
-    if (!pid) return;
-    if (sessionStorage.getItem('sk_pshare_' + pid)) return;
-    sessionStorage.setItem('sk_pshare_' + pid, '1');
-    const p = byId(pid);
-    if (!p) return;
-    toast('💬 ' + loc('இந்த சேலை பிடிச்சிருக்கா? நண்பர்களுக்கு share பண்ணுங்க! 💜', 'ఈ చీర నచ్చిందా? మీ స్నేహితులకు షేర్ చేయండి! 💜', 'ಈ ಸೀರೆ ಇಷ್ಟವಾಯಿತಾ? ಸ್ನೇಹಿತರಿಗೆ ಹಂಚಿ! 💜', 'Loved this saree? Share with friends! 💜'), 3500);
-  }catch(e){}
-}
-setTimeout(function(){ try{ maybeProductSharePrompt(); }catch(e){} }, 20000);
-
-/* ============================ 🚀 AUTO VIRAL SHARE ============================
-   After 40 seconds of real browsing, show a "Share & Earn" popup.
-   This turns every visitor into a promoter — her WhatsApp friends see the
-   saree photo + link → new visitors → more traffic → more orders.
-   Shows ONCE per session (never annoying). */
-function maybeViralShare(){
-  try{
-    if (sessionStorage.getItem('sk_viral_shown')) return;
-    if (document.body.dataset.page === 'reels') return;   /* reels already have share */
-    sessionStorage.setItem('sk_viral_shown', '1');
-    const mine = myResellerCode();
-    const shareUrl = (CONFIG.siteUrl || location.origin) + '/?ref=' + (mine || 'FRIEND');
-    openModal('<div class="np-card" style="text-align:center">' +
-      '<div class="np-emoji">🎁</div>' +
-      '<h3 class="np-title">' + loc('உங்களுக்கு ₹50 OFF! 😍', 'మీకు ₹50 OFF! 😍', 'ನಿಮಗೆ ₹50 OFF! 😍', 'Get ₹50 OFF! 😍') + '</h3>' +
-      '<p class="np-sub">' + loc(
-        'இந்த website-ஐ உங்க நண்பர்களுக்கு WhatsApp-ல் share பண்ணுங்க.<br>அவங்க order போட்டா <b>நீங்க ₹50 OFF</b> + அவங்களுக்கும் <b>5% OFF</b>! 🎉',
-        'ఈ websiteను మీ స్నేహితులకు WhatsApp లో షేర్ చేయండి.<br>వారు ఆర్డర్ చేస్తే <b>మీకు ₹50 OFF</b> + వారికి <b>5% OFF</b>! 🎉',
-        'ಈ websiteಅನ್ನು ನಿಮ್ಮ ಸ್ನೇಹಿತರಿಗೆ WhatsApp ನಲ್ಲಿ ಹಂಚಿ.<br>ಅವರು ಆರ್ಡರ್ ಮಾಡಿದರೆ <b>ನಿಮಗೆ ₹50 OFF</b> + ಅವರಿಗೂ <b>5% OFF</b>! 🎉',
-        'Share this website with your friends on WhatsApp.<br>When they order, you get <b>₹50 OFF</b> + they get <b>5% OFF</b>! 🎉') + '</p>' +
-      '<a class="btn btn-wa btn-xl" style="margin:10px 0" href="https://wa.me/?text=' + encodeURIComponent('🪡 அழகான சேலைகள் ₹299 முதல்! 🥻\n\n💰 உங்களுக்கு 5% OFF — Code: SHARE5\n🚚 ₹2999+ FREE Delivery\n💵 COD Available\n\n👉 ' + shareUrl + '\n\n— SK Sarees, Salem ✨') + '" target="_blank" rel="noopener">📤 Share on WhatsApp Now</a>' +
-      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later') + '</button>' +
-    '</div>');
-  }catch(e){}
-}
-setTimeout(function(){ try{ maybeViralShare(); }catch(e){} }, 40000);
-
-/* ============================ 📢 WHATSAPP GROUP INVITE ============================
-   After 90 seconds (deep engagement), invite her to the WhatsApp group
-   for daily new saree updates. Group = repeat traffic + orders. */
-function maybeWhatsAppGroupInvite(){
-  try{
-    if (sessionStorage.getItem('sk_group_shown')) return;
-    if (!CONFIG.waGroup) return;
-    sessionStorage.setItem('sk_group_shown', '1');
-    toast('📢 ' + loc('புது சேலைகள் WhatsApp group-ல ஜாயின் பண்ணுங்க! 👉 Drawer-ல உள்ளே', 'కొత్త చీరల WhatsApp గ్రూప్‌లో జాయిన్ అవ్వండి!', 'ಹೊಸ ಸೀರೆಗಳು WhatsApp ಗ್ರೂಪ್‌ನಲ್ಲಿ ಸೇರಿ!', 'Join our WhatsApp group for daily new sarees!'), 4000);
-  }catch(e){}
-}
-setTimeout(function(){ try{ maybeWhatsAppGroupInvite(); }catch(e){} }, 90000);
 
 document.addEventListener('click', function(e){
   /* add to cart (from cards, product page, wishlist) */
