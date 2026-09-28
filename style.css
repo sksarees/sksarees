@@ -5196,3 +5196,157 @@ body[data-page="reels"] .topbar{ background:linear-gradient(180deg,rgba(10,4,8,.
 body[data-page="home"] .greet-strip{ display:none !important }
 body[data-page="home"] .lpd-wa{ display:none !important }
 body[data-page="home"] .reseller-banner{ display:none !important }
+
+/* ============================================================================
+   🔥 ORDER-GENERATING HOMEPAGE — mobile-first WhatsApp funnel (2026-09-27 v2)
+   Hero(one product+price) → Trust → Deal Spotlight → Video → Categories →
+   Best Sellers → Why → Reviews → How to Order → COD → Limited Offer → FAQ → CTA
+   ========================================================================== */
+
+/* ── HERO — one product, price, trust, WhatsApp ════════════════════════════ */
+.sh-hero{
+  display:flex; flex-direction:column;
+  background:linear-gradient(135deg,var(--maroon-deep),var(--maroon) 55%,#a63a52);
+  border-radius:0 0 22px 22px; overflow:hidden;
+  color:#fff;
+}
+.sh-hero-img{ position:relative; width:100%; aspect-ratio:4/3; overflow:hidden }
+.sh-hero-img img{ width:100%; height:100%; object-fit:cover }
+.sh-hero-off{
+  position:absolute; top:12px; left:12px;
+  background:#ff0032; color:#fff; font-size:.8rem; font-weight:900;
+  padding:6px 14px; border-radius:999px; box-shadow:0 4px 14px rgba(255,0,50,.4);
+}
+.sh-hero-in{ padding:18px 16px 22px }
+.sh-hero-in h2{
+  font-family:'Playfair Display',Georgia,serif; font-size:1.4rem; line-height:1.3;
+  margin:0 0 10px; text-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+.sh-hero-in h2 .gold{ color:#ffd98a }
+.sh-hero-price{ display:flex; align-items:baseline; gap:10px; margin:0 0 10px }
+.sh-hero-price s{ font-size:1rem; color:rgba(255,255,255,.6) }
+.sh-hero-price b{ font-size:2rem; font-weight:900; color:#ffd98a; letter-spacing:-.5px }
+.sh-hero-price small{ font-size:.76rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.8) }
+.sh-hero-trust{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px }
+.sh-hero-trust span{ font-size:.66rem; font-weight:800; background:rgba(0,0,0,.25); border-radius:999px; padding:5px 10px }
+.sh-ctas{ display:flex; flex-direction:column; gap:8px }
+.sh-main-cta{ min-height:54px !important; font-size:1rem !important; letter-spacing:.5px }
+.sh-secondary{ background:rgba(255,255,255,.1) !important; color:#fff !important; border:1.5px solid rgba(255,255,255,.3) !important; min-height:44px }
+@media(min-width:700px){
+  .sh-hero{ flex-direction:row; min-height:360px }
+  .sh-hero-img{ flex:1; aspect-ratio:auto }
+  .sh-hero-in{ flex:1; padding:28px 24px; display:flex; flex-direction:column; justify-content:center }
+  .sh-ctas{ flex-direction:row }
+  .sh-ctas .btn{ flex:1 }
+}
+
+/* ── TRUST STRIP ════════════════════════════════════════════════════════════ */
+.sh-trust-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:10px 8px }
+.sh-ts-item{ text-align:center; background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:10px 4px }
+.sh-ts-ic{ font-size:1.3rem; display:block; margin-bottom:3px }
+.sh-ts-item b{ display:block; font-size:.7rem; font-weight:800; color:var(--ink) }
+.sh-ts-item small{ display:block; font-size:.58rem; color:var(--muted); font-weight:600 }
+@media(max-width:640px){ .sh-trust-strip{ grid-template-columns:repeat(2,1fr) } }
+
+/* ── DEAL SPOTLIGHT ════════════════════════════════════════════════════════ */
+.sh-deal-spotlight{ border:2px solid var(--gold) !important }
+.sh-deal-sub{ font-size:.86rem; font-weight:800; color:var(--maroon); margin:0 0 12px }
+.sh-deal-card{ display:flex; flex-direction:column; gap:12px }
+@media(min-width:700px){ .sh-deal-card{ flex-direction:row } }
+.sh-deal-img{ flex:0 0 auto; border-radius:12px; overflow:hidden; max-width:280px }
+.sh-deal-img img{ width:100%; object-fit:cover }
+.sh-deal-info{ flex:1; min-width:0 }
+.sh-deal-info > b{ display:block; font-size:.95rem; font-weight:800; color:var(--ink); margin-bottom:6px }
+.sh-deal-price{ display:flex; align-items:baseline; gap:8px; margin:0 0 8px }
+.sh-deal-price s{ font-size:.9rem; color:#9c8b80 }
+.sh-deal-price b{ font-size:1.5rem; font-weight:900; color:var(--maroon) }
+.sh-deal-trust{ display:flex; flex-wrap:wrap; gap:5px; margin:0 0 12px }
+.sh-deal-trust span{ font-size:.64rem; font-weight:800; background:#e9f7ef; color:#1d8a4e; border-radius:999px; padding:4px 10px }
+.sh-deal-btns{ display:flex; flex-direction:column; gap:8px }
+@media(min-width:700px){ .sh-deal-btns{ flex-direction:row } .sh-deal-btns .btn{ flex:1 } }
+
+/* ── VIDEO TILES ═══════════════════════════════════════════════════════════ */
+.sh-video-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px }
+@media(max-width:640px){ .sh-video-row{ grid-template-columns:1fr } }
+.sh-video-tile{
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  background:#fff; border:1.5px solid var(--line); border-radius:14px;
+  padding:16px 10px; text-decoration:none;
+}
+.sh-vt-thumb{
+  width:60px; height:60px; border-radius:50%;
+  background:linear-gradient(135deg,var(--maroon-soft),var(--gold-soft));
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem; margin-bottom:8px;
+}
+.sh-video-tile b{ font-size:.84rem; color:var(--ink); font-weight:700 }
+.sh-video-tile small{ font-size:.64rem; color:var(--muted); font-weight:600 }
+.sh-vt-btn{
+  display:inline-block; margin-top:8px;
+  background:#25d366; color:#fff;
+  font-size:.68rem; font-weight:800;
+  border-radius:999px; padding:6px 14px;
+}
+
+/* ── WHY US (4 grid) ═══════════════════════════════════════════════════════ */
+.sh-why-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:700px){ .sh-why-grid{ grid-template-columns:repeat(4,1fr) } }
+.sh-why{ text-align:center; background:#fff; border:1.5px solid var(--line); border-radius:12px; padding:14px 8px }
+.sh-why span{ font-size:1.5rem; display:block; margin-bottom:6px }
+.sh-why b{ display:block; font-size:.82rem; font-weight:800; color:var(--ink) }
+.sh-why small{ display:block; font-size:.66rem; color:var(--muted); line-height:1.5; margin-top:4px }
+
+/* ── HOW TO ORDER ══════════════════════════════════════════════════════════ */
+.sh-steps{ display:flex; flex-direction:column; align-items:center; gap:4px }
+.sh-step{
+  display:flex; align-items:center; gap:10px;
+  background:#fff; border:1.5px solid var(--line); border-radius:10px;
+  padding:10px 16px; width:100%; max-width:340px;
+}
+.sh-step-n{
+  flex:0 0 auto; width:30px; height:30px; border-radius:50%;
+  background:var(--maroon); color:#fff; font-size:.78rem; font-weight:900;
+  display:flex; align-items:center; justify-content:center;
+}
+.sh-step b{ font-size:.82rem; color:var(--ink); font-weight:700 }
+.sh-step-arrow{ color:var(--gold); font-size:1rem; font-weight:900 }
+
+/* ── COD BANNER ════════════════════════════════════════════════════════════ */
+.sh-cod-banner{
+  background:linear-gradient(135deg,#1d8a4e,#25b862);
+  border-radius:16px; padding:22px 16px; margin:12px 0;
+  text-align:center; color:#fff;
+}
+.sh-cod-banner h3{ font-size:1.2rem; font-weight:900; margin:0 0 8px }
+.sh-cod-banner p{ font-size:.84rem; opacity:.95; margin:0 0 12px }
+.sh-cod-banner .btn{ min-width:240px; background:#fff !important; color:#1d8a4e !important }
+.sh-cod-banner small{ display:block; font-size:.64rem; opacity:.7; margin-top:10px }
+
+/* ── LIMITED OFFER ═════════════════════════════════════════════════════════ */
+.sh-limited-offer{
+  background:linear-gradient(135deg,#ff0032,#ff2d55 55%,#ff5c7a);
+  border-radius:16px; padding:22px 16px; margin:12px 0;
+  text-align:center; color:#fff;
+}
+.sh-limited-offer h3{ font-size:1.2rem; font-weight:900; margin:0 0 10px }
+.sh-lo-price{ font-size:1.3rem; font-weight:800; margin:0 0 10px }
+.sh-lo-price s{ opacity:.7; font-size:1rem }
+.sh-lo-price b{ font-size:1.8rem; color:#fff; font-weight:900 }
+.sh-limited-offer .btn{ min-width:240px; background:#fff !important; color:#ff0032 !important }
+.sh-limited-offer p{ font-size:.78rem; opacity:.9; margin:0 0 10px }
+
+/* ── FINAL CTA ═════════════════════════════════════════════════════════════ */
+.sh-final-cta{
+  background:linear-gradient(135deg,var(--maroon-d),var(--maroon) 60%,#a63a52);
+  border-radius:18px; padding:28px 18px; margin:14px 0;
+  text-align:center; color:#fff;
+}
+.sh-final-cta h2{ font-family:'Playfair Display',Georgia,serif; color:#ffd98a; font-size:1.25rem; margin:0 0 8px }
+.sh-final-cta p{ font-size:.86rem; opacity:.95; margin:0 0 14px }
+.sh-final-cta .btn{ min-width:250px }
+.sh-final-cta .btn-outline{ color:var(--ink) }
+
+/* ── hide old sections ═════════════════════════════════════════════════════ */
+body[data-page="home"] .greet-strip{ display:none !important }
+body[data-page="home"] .lpd-wa{ display:none !important }
+body[data-page="home"] .reseller-banner{ display:none !important }
