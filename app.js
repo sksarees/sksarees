@@ -1612,188 +1612,69 @@ function whyUsHTML(){
 }
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
-  const pool = PRODUCTS.filter(p => !p.hidden && (+p.price || 0) >= 100);
-  /* 🔥 ONE hero product — bestseller with biggest discount */
-  const hero = pool.filter(p => p.badge === 'Bestseller' && offPct(p) >= 10)
-    .concat(pool.filter(p => offPct(p) >= 20).sort((a,b) => offPct(b) - offPct(a)))
-    .concat(pool.filter(p => p.badge === 'Bestseller'))
-    .concat(pool)[0] || pool[0];
-  const heroOff = hero ? offPct(hero) : 0;
-  /* ⭐ best sellers 6 */
-  const best = pool.filter(p => p.badge === 'Bestseller').concat(
-    pool.filter(p => p.badge !== 'Bestseller').sort((a,b) => ((b.rating||0)*10+(b.reviews||0)) - ((a.rating||0)*10+(a.reviews||0)))
-  ).slice(0, 6);
-  /* 🔥 today's deals — biggest discounts (different from hero) */
-  const deals = pool.filter(p => offPct(p) >= 15 && (!hero || p.id !== hero.id)).sort((a, b) => offPct(b) - offPct(a)).slice(0, 4);
+  const pool = PRODUCTS.filter(p => !p.hidden);
   const liveCats = CATEGORIES
     .map(c => ({ c: c, n: PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length }))
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n);
+  /* ⭐ most popular 12 */
+  const popular = pool.sort((a, b) =>
+    ((b.badge === 'Bestseller' ? 900 : 0) + (b.rating || 0) * 10 + (b.reviews || 0)) -
+    ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10 + (a.reviews || 0))
+  ).slice(0, 12);
 
   app.innerHTML =
-  /* ═══ 2. HERO — ONE product, price, trust, WhatsApp ═══ */
-  (hero ? '<section class="sh-hero">' +
-    '<div class="sh-hero-img">' +
-      '<a href="product.html?id=' + encodeURIComponent(hero.id) + '"><img src="' + esc(hero.img) + '" alt="' + esc(hero.name) + '" loading="eager" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
-      (heroOff >= 5 ? '<span class="sh-hero-off">🔥 ' + heroOff + '% OFF</span>' : '') +
-    '</div>' +
-    '<div class="sh-hero-in">' +
-      '<h2>Beautiful Sarees.<br><span class="gold">Honest Prices.</span> ❤️</h2>' +
-      '<div class="sh-hero-price">' +
-        (hero.mrp && hero.mrp > hero.price ? '<s>₹' + hero.mrp.toLocaleString('en-IN') + '</s>' : '') +
-        '<b>₹' + (hero.price || 0).toLocaleString('en-IN') + '</b>' +
-        '<small>ONLY</small>' +
-      '</div>' +
-      '<div class="sh-hero-trust">' +
-        '<span>✨ Premium Quality</span><span>🚚 Free Delivery ₹2999+</span><span>💵 COD Available</span>' +
-      '</div>' +
-      '<div class="sh-ctas">' +
-        '<a class="btn btn-wa btn-xl sh-main-cta" href="' + waLink(waProductMsg(hero)) + '" target="_blank" rel="noopener">' + SVG_WA + ' WHATSAPP TO ORDER</a>' +
-        '<a class="btn btn-outline btn-xl sh-secondary" href="shop.html">🛍️ SHOP ALL SAREES</a>' +
-      '</div>' +
-    '</div>' +
-  '</section>' : '') +
+  /* ═══ SEARCH BAR ═══ */
+  '<div class="im-search-wrap">' +
+    '<form class="im-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'imQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);">' +
+      '<input id="imQ" type="search" placeholder="Search sarees…" autocomplete="off">' +
+      '<button type="submit" class="im-search-btn">🔍 Search</button>' +
+    '</form>' +
+  '</div>' +
 
-  /* ═══ 3. TRUST STRIP ═══ */
-  '<section class="sh-trust-strip">' +
-    '<div class="sh-ts-item"><span class="sh-ts-ic">🚚</span><b>Free Delivery</b><small>₹2999+ orders</small></div>' +
-    '<div class="sh-ts-item"><span class="sh-ts-ic">💵</span><b>COD Available</b><small>Pay at delivery</small></div>' +
-    '<div class="sh-ts-item"><span class="sh-ts-ic">🔄</span><b>7-Day Replacement</b><small>Easy returns</small></div>' +
-    '<div class="sh-ts-item"><span class="sh-ts-ic">⭐</span><b>2,300+ Customers</b><small>Real reviews</small></div>' +
-  '</section>' +
+  /* ═══ CATEGORY PILLS (horizontal scroll) ═══ */
+  '<div class="im-cats" id="imCats">' +
+    '<a href="shop.html" class="im-cat on">All</a>' +
+    liveCats.map(x => '<a href="shop.html?cat=' + x.c.slug + '" class="im-cat">' + x.c.emoji + ' ' + esc(x.c.name) + '</a>').join('') +
+  '</div>' +
 
-  /* ═══ 4. TODAY'S BEST DEAL — hero product spotlight ═══ */
-  (hero ? '<section class="sec sh-deal-spotlight">' +
-    '<div class="sec-head"><h2><span class="tick"></span>🔥 TODAY\'S BEST DEAL</h2></div>' +
-    '<p class="sh-deal-sub">இந்த offer-ஐ miss பண்ணாதீங்க!</p>' +
-    '<div class="sh-deal-card">' +
-      '<a class="sh-deal-img" href="product.html?id=' + encodeURIComponent(hero.id) + '"><img src="' + esc(hero.img) + '" alt="' + esc(hero.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
-      '<div class="sh-deal-info">' +
-        '<b>' + esc(smartTitle(hero)) + '</b>' +
-        '<div class="sh-deal-price">' +
-          (hero.mrp && hero.mrp > hero.price ? '<s>₹' + hero.mrp.toLocaleString('en-IN') + '</s>' : '') +
-          '<b>₹' + (hero.price || 0).toLocaleString('en-IN') + '</b>' +
-        '</div>' +
-        '<div class="sh-deal-trust"><span>🚚 Free Delivery</span><span>💵 COD</span><span>📦 Ready to Dispatch</span></div>' +
-        '<div class="sh-deal-btns">' +
-          '<a class="btn btn-outline" href="reels.html?reel=' + encodeURIComponent(hero.id) + '">🎥 WATCH VIDEO</a>' +
-          '<a class="btn btn-wa btn-xl" href="' + waLink(waProductMsg(hero)) + '" target="_blank" rel="noopener">' + SVG_WA + ' ORDER ON WHATSAPP</a>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-  '</section>' : '') +
+  /* ═══ PRODUCT GRID ═══ */
+  '<div class="im-grid-head">' +
+    '<b>⭐ Popular Sarees</b>' +
+    '<a href="shop.html">View All →</a>' +
+  '</div>' +
+  '<div class="im-grid">' + popular.map(p => imCardHTML(p)).join('') + '</div>' +
 
-  /* ═══ 5. VIDEO SECTION ═══ */
-  '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🎥 Saree-யை வாங்கும் முன் வீடியோவில் பாருங்க 👀</h2></div>' +
-    '<p class="small muted" style="margin:0 0 10px">Real product video பார்த்து பிடித்திருந்தால் WhatsApp-ல் order செய்யலாம்.</p>' +
-    '<div class="sh-video-row">' +
-      '<a class="sh-video-tile" href="reels.html"><div class="sh-vt-thumb">🎬</div><b>Soft Silk</b><small>Saree video</small><span class="sh-vt-btn">💬 இந்த Saree வேண்டும்</span></a>' +
-      '<a class="sh-video-tile" href="reels.html"><div class="sh-vt-thumb">🌿</div><b>Cotton</b><small>Saree video</small><span class="sh-vt-btn">💬 இந்த Saree வேண்டும்</span></a>' +
-      '<a class="sh-video-tile" href="reels.html"><div class="sh-vt-thumb">✨</div><b>Kerala Saree</b><small>Saree video</small><span class="sh-vt-btn">💬 இந்த Saree வேண்டும்</span></a>' +
-    '</div>' +
-  '</section>' +
+  /* ═══ LOAD MORE ═══ */
+  '<div style="text-align:center;padding:16px 0">' +
+    '<a class="btn btn-buy btn-xl" href="shop.html" style="min-width:240px">🛍️ View All Sarees</a>' +
+  '</div>' +
 
-  /* ═══ 6. SHOP BY CATEGORY ═══ */
-  '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🛍️ Shop by Category</h2></div>' +
-    '<div class="cat-grid">' + liveCats.slice(0, 12).map(x => {
-      const c = x.c;
-      return '<a class="cat-tile ' + c.cls + '" href="shop.html?cat=' + c.slug + '">' +
-        '<img class="ct-img" src="' + catImage(c.slug) + '" alt="' + esc(c.name) + '" loading="lazy">' +
-        '<div class="ct-over"><span class="ct-name">' + c.name + ' ' + c.emoji + '</span>' +
-        '<span class="ct-count">View Collection →</span></div></a>';
-    }).join('') + '</div></section>' +
-
-  /* ═══ 7. BEST SELLERS (6) ═══ */
-  '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ Our Best Sellers</h2><a href="shop.html">View All →</a></div>' +
-    '<p class="small muted" style="margin:0 0 10px">Customers அதிகமாக தேர்வு செய்யும் sarees</p>' +
-    '<div class="lpd-grid">' + best.map(p => salesCardHTML(p)).join('') + '</div></section>' +
-
-  /* ═══ 8. WHY SK SAREES ═══ */
-  '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>Why Customers Choose SK Sarees ❤️</h2></div>' +
-    '<div class="sh-why-grid">' +
-      '<div class="sh-why"><span>✅</span><b>Quality Products</b><small>படத்தில் காட்டுவது போலவே quality maintain</small></div>' +
-      '<div class="sh-why"><span>💰</span><b>Honest Pricing</b><small>அழகான sarees-ஐ reasonable price-ல்</small></div>' +
-      '<div class="sh-why"><span>📦</span><b>Safe Packing</b><small>ஒவ்வொரு order-ம் carefully packed</small></div>' +
-      '<div class="sh-why"><span>🤝</span><b>Customer Support</b><small>WhatsApp support — before &amp; after order</small></div>' +
-    '</div>' +
-  '</section>' +
-
-  /* ═══ 9. CUSTOMER PROOF ═══ */
-  '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>⭐ Our Happy Customers</h2></div>' +
-    '<p class="small muted" style="margin:0 0 10px">உங்கள் நம்பிக்கைக்கு நன்றி ❤️</p>' +
-    '<div class="rev-grid">' + REVIEWS.slice(0, 4).map(r =>
-      '<div class="rev"><div class="rev-top"><span class="avatar" style="background:' + r.avatar + '">' + esc(r.name[0]) + '</span>' +
-      '<div><b>' + esc(r.name) + '</b><small>' + esc(r.place) + '</small></div></div>' +
-      '<div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div><p>' + esc(r.text) + '</p></div>'
-    ).join('') + '</div>' +
-  '</section>' +
-
-  /* ═══ 10. HOW TO ORDER ═══ */
-  '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>📦 How To Order?</h2></div>' +
-    '<div class="sh-steps">' +
-      '<div class="sh-step"><span class="sh-step-n">1</span><b>Saree Choose செய்யுங்கள்</b></div>' +
-      '<div class="sh-step-arrow">↓</div>' +
-      '<div class="sh-step"><span class="sh-step-n">2</span><b>WhatsApp-ல் message செய்யுங்கள்</b></div>' +
-      '<div class="sh-step-arrow">↓</div>' +
-      '<div class="sh-step"><span class="sh-step-n">3</span><b>Address &amp; payment details கொடுங்கள்</b></div>' +
-      '<div class="sh-step-arrow">↓</div>' +
-      '<div class="sh-step"><span class="sh-step-n">4</span><b>நாங்கள் pack செய்து courier செய்கிறோம் 📦</b></div>' +
-    '</div>' +
-    '<div style="text-align:center;margin-top:14px">' +
-      '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I want to order a saree 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' WHATSAPP US NOW</a>' +
-    '</div>' +
-  '</section>' +
-
-  /* ═══ 11. COD SECTION ═══ */
-  '<section class="sh-cod-banner">' +
-    '<h3>💵 COD AVAILABLE</h3>' +
-    '<p>முதலில் saree தேர்வு செய்யுங்கள். Order details-ஐ WhatsApp-ல் அனுப்புங்கள்.</p>' +
-    '<a class="btn btn-wa btn-xl" href="' + waLink('Hi! I want to order via COD 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' ORDER VIA WHATSAPP</a>' +
-    '<small>COD availability may vary by location/product.</small>' +
-  '</section>' +
-
-  /* ═══ 13. LIMITED OFFER ═══ */
-  (hero && heroOff >= 10 ? '<section class="sh-limited-offer">' +
-    '<h3>🔥 TODAY\'S SPECIAL PRICE</h3>' +
-    '<div class="sh-lo-price"><s>₹' + (hero.mrp || hero.price).toLocaleString('en-IN') + '</s> → <b>₹' + hero.price.toLocaleString('en-IN') + '</b></div>' +
-    (hero.stock && hero.stock <= 10 ? '<p>Only ' + hero.stock + ' pieces available.</p>' : '') +
-    '<a class="btn btn-buy btn-xl" href="checkout.html?buy=' + encodeURIComponent(hero.id) + '&qty=1">🟢 GET THIS OFFER</a>' +
-  '</section>' : '') +
-
-  /* ═══ 14. FAQ ═══ */
-  '<section class="sec faq"><div class="sec-head"><h2><span class="tick"></span>❓ FAQ</h2></div>' +
-    '<details><summary>COD available?</summary><p>ஆம், available products/locations-க்கு COD available.</p></details>' +
-    '<details><summary>Delivery எவ்வளவு நாட்கள்?</summary><p>Location-ஐப் பொறுத்து 2–7 days. Order செய்யும் முன் WhatsApp-ல் confirm செய்யலாம்.</p></details>' +
-    '<details><summary>Saree-யை video-வில் பார்க்க முடியுமா?</summary><p>முடியும்! Product-ன் WhatsApp video கேட்கலாம்.</p></details>' +
-    '<details><summary>Blouse piece இருக்குமா?</summary><p>Product description-ல் குறிப்பிடப்பட்டிருக்கும். சந்தேகம் இருந்தால் WhatsApp-ல் கேட்கலாம்.</p></details>' +
-    '<details><summary>Exchange / replacement இருக்குமா?</summary><p>Applicable products-க்கு 7-day replacement policy.</p></details>' +
-  '</section>' +
-
-  /* ═══ 15. FINAL CTA ═══ */
-  '<section class="sh-final-cta">' +
-    '<h2>❤️ உங்களுக்கு பிடித்த Saree-ஐ இன்று தேர்வு செய்யுங்கள்</h2>' +
-    '<p>Beautiful collections. Affordable prices. Trusted service.</p>' +
-    '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! எனக்கு saree வேண்டும் 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' WHATSAPP SK SAREES</a>' +
-    '<p class="small" style="margin:8px 0 0;opacity:.8">WhatsApp: +91 78679 15699</p>' +
-    '<a class="btn btn-outline btn-xl" style="margin-top:8px;background:#fff" href="shop.html">🛍️ VIEW ALL SAREES</a>' +
-  '</section>';
+  /* ═══ WHATSAPP FLOATING BAR (mobile) ═══ */
+  '<div class="im-wa-bar">' +
+    '<a class="im-wa-btn" href="' + waLink('Hi! I want to buy a saree. Please send me photos & prices 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' WhatsApp Order</a>' +
+    '<a class="im-shop-btn" href="shop.html">🛍️ Shop Now</a>' +
+  '</div>';
 }
 
-/* 🔥 sales card — image + name + MRP→price + rating + FREE Delivery + VIEW + WhatsApp */
-function salesCardHTML(p){
+/* 🛒 IndiaMART-style product card — clean, minimal, direct order */
+function imCardHTML(p){
   const off = offPct(p);
-  return '<div class="lpc">' +
-    '<a class="lpc-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
+  return '<div class="im-card">' +
+    '<a class="im-card-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
       '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
-      (off >= 5 ? '<span class="lpc-off">🔥 ' + off + '% OFF</span>' : '') +
+      (off >= 5 ? '<span class="im-off">' + off + '% OFF</span>' : '') +
     '</a>' +
-    '<div class="lpc-b">' +
-      '<a class="lpc-t" href="product.html?id=' + encodeURIComponent(p.id) + '"><b>' + esc(String(smartTitle(p)).split(' | ')[0]) + '</b>' +
-        (String(smartTitle(p)).split(' | ').length > 1 ? '<small>' + esc(String(smartTitle(p)).split(' | ').slice(1).join(' • ')) + '</small>' : '') + '</a>' +
-      '<div class="lpc-price"><b>' + money(p.price) + '</b>' + (p.mrp && p.mrp > p.price ? '<s>' + money(p.mrp) + '</s>' : '') + '</div>' +
-      '<span class="lpc-trust">⭐ ' + (p.rating || 4.5) + '/5 • 🚚 Free Delivery</span>' +
-      '<div class="lpc-btns">' +
-        '<a class="btn btn-outline" href="product.html?id=' + encodeURIComponent(p.id) + '">VIEW SAREE</a>' +
-        '<a class="btn btn-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + ' WHATSAPP</a>' +
+    '<div class="im-card-body">' +
+      '<a class="im-card-title" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
+      '<div class="im-card-price">' +
+        '<b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' +
+        (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') +
+      '</div>' +
+      '<span class="im-card-meta">' +
+        (p.stock != null && p.stock > 0 && p.stock <= 5 ? '🔥 Only ' + p.stock + ' left' : '💵 COD Available') +
+      '</span>' +
+      '<div class="im-card-btns">' +
+        '<a class="im-btn-order" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + ' Order Now</a>' +
       '</div>' +
     '</div>' +
   '</div>';
