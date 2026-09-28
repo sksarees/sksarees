@@ -5734,3 +5734,63 @@ body[data-page="reels"] .topbar{ background:transparent !important; border-botto
 /* ── 4. product page polish — bigger clean price, wrapping trust chips ───── */
 .pd-price b{ font-size:1.5rem; font-weight:700 }
 .pd-trust{ flex-wrap:wrap }
+
+/* ============================================================================
+   🟠 SK SIMPLE — ORANGE THEME + <400px HEADER FIX (2026-09-28 #4)
+   Meesho-style flat orange • very very simple • WhatsApp green stays green
+   ========================================================================== */
+
+/* ── 1. MOBILE HEADER — bulletproof single row, even at 320px ────────────── */
+.topbar-in{ flex-wrap:nowrap; overflow:hidden }
+@media(max-width:640px){
+  .ic-profile{ display:none }               /* profile stays inside the ☰ drawer */
+}
+@media(max-width:400px){
+  .topbar-in{ height:50px; gap:2px }
+  .logo{ gap:6px; font-size:.9rem }
+  .logo-badge{ width:32px; height:32px; border-radius:7px }
+  .logo-badge svg{ width:24px; height:24px }
+  .burger{ width:38px; height:38px }
+  .icon-btn{ width:38px; height:38px }
+  .top-actions{ gap:0 }
+  .header-greet{ display:none }
+}
+
+/* ── 2. CHECKOUT — two simple payment buttons ────────────────────────────── */
+.co-pay2{ display:grid; gap:10px }
+.co-pay2 .btn-xl{ min-height:52px; font-size:1rem }
+
+/* ── 3. ORANGE SIMPLE THEME (flat, minimal, no gradients) ────────────────── */
+:root{
+  --maroon:#ee7600;
+  --maroon-d:#d96a00;
+  --maroon-deep:#b35a00;
+  --maroon-soft:#fff3e2;
+  --gold:#ee7600;
+  --gold-l:#ffc987;
+  --gold-soft:#fff3e2;
+  --bg:#fafafa;
+  --card:#fff;
+  --ink:#1f1f1f;
+  --muted:#6b6b6b;
+  --line:#e3e3e3;
+  --r:8px; --r-sm:6px;
+  --sh:none;
+  --sh-sm:none;
+  --green:#0e7d46;
+}
+body{ background:#fafafa !important }
+.btn{ box-shadow:none !important }
+.promo-strip{ background:#ee7600 !important; color:#fff !important; overflow:hidden; white-space:nowrap }
+.im-off{ background:#e0173a }
+.pd-price .off{ background:#e0173a; box-shadow:none }
+.lpc-off{ background:#e0173a }
+.pd-trust span{ background:#fff3e2; border:1px solid #ffd9a0; color:#b35a00 }
+.pd-ship{ background:#fff3e2; border:1px solid #ffd9a0; color:#b35a00 }
+.pd-realphoto{ background:#fff3e2; border:1px solid #ffd9a0 }
+.im-btn-order{ background:#0e7d46 }
+.im-btn-order:hover{ background:#0b6a3b }
+.btn-wa{ background:#0e7d46 !important }
+.btn-wa-o{ background:#fff !important; color:#0e7d46 !important; border:1px solid #0e7d46 !important }
+.status-placed, .status-shipped{ background:#fff3e2; color:#b35a00 }
+::selection{ background:#ee7600 }
