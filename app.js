@@ -2888,11 +2888,11 @@ function renderProduct(){
         '<h1>' + esc(smartTitle(p)) + '</h1>' +
         starsHTML(p) +
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
-        '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>🔥 ' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
         /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
-        '<div class="pd-trust"><span>🚚 Free Shipping ₹' + (CONFIG.shipFreeAbove || 2999) + '+</span><span>↩️ Easy Returns</span><span>✅ 100% Original</span><span>💵 COD Available</span></div>' +
+        '<div class="pd-trust"><span>👥 2,300+ Happy Customers</span><span>✅ 100% Original</span><span>↩️ Easy Returns</span><span>💵 COD ₹' + (CONFIG.codFee || 100) + '</span></div>' +
         /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
-        '<div class="pd-ship">💵 <b>COD Available</b> (booking ₹100–₹150 by state) • 🚚 TN <b>2–4 days</b>, other states 3–7 days • ⚡ <b>Dispatch within 24 hours</b> • 🚚 FREE above ₹' + (CONFIG.shipFreeAbove || 2999) + '</div>' +
+        '<div class="pd-ship">💵 <b>COD</b> — ₹' + (CONFIG.codFee || 100) + ' booking, courier <b>FREE</b> • 🚚 <b>Pay Online</b> — courier ₹' + (CONFIG.shipFee || 30) + ' • ⚡ <b>Dispatch within 24 hours</b> • 👥 2,300+ happy customers on WhatsApp bookings</div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
@@ -2908,7 +2908,7 @@ function renderProduct(){
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<a class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buy="' + esc(p.id) + '" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>') +
+            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>') +
           '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
         '</div>' +
         /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
@@ -2959,7 +2959,7 @@ function renderProduct(){
     /* 📌 clean sticky bar — price + BUY NOW + WhatsApp (premium, minimal) */
     '<div class="sticky-bar sb2">' +
       '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b>' + (off >= 5 ? '<small>🔥 ' + off + '% off</small>' : '<small>' + esc(p.sku || '') + '</small>') + '</div>' +
-      '<a class="btn btn-pd-buy" id="sbBuy" href="checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=1">🛒 BUY NOW — ' + money(p.price) + '</a>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
       '<a class="btn sb-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
@@ -3002,15 +3002,31 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n); sbBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
+    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
     const addB = document.querySelector('.pd-btns [data-add]');
     if (addB) addB.textContent = '🛒 Add to Cart ×' + n;
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ const _sel = document.getElementById('pdSelColour'); const _cv = (_sel && _sel.value) ? '&colour=' + encodeURIComponent(_sel.value) : ''; pdBuy.setAttribute('href', 'checkout.html?buy=' + encodeURIComponent(p.id) + '&qty=' + n + _cv); pdBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
+    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));
   qtyRefresh();
+  /* 📌 floating BUY bar (IndiaMART single-CTA): shows ONLY while the in-page
+     BUY NOW is scrolled out of view — never two buttons at once */
+  try{
+    const sb = document.querySelector('.sticky-bar.sb2');
+    const pb = document.getElementById('pdBuyBtn');
+    if (sb && pb){
+      if ('IntersectionObserver' in window){
+        const io = new IntersectionObserver(function(en){ try{ sb.classList.toggle('show', !(en && en[0] && en[0].isIntersecting)); }catch(e2){} }, { threshold: .2 });
+        io.observe(pb);
+      } else {
+        const chk = function(){ try{ const r = pb.getBoundingClientRect(); const vh = window.innerHeight || document.documentElement.clientHeight || 667; sb.classList.toggle('show', r.bottom < 0 || r.top > vh); }catch(e2){} };
+        window.addEventListener('scroll', chk, { passive: true });
+        chk();
+      }
+    }
+  }catch(e){}
   /* 👈👉 swipe the gallery to switch photos (mobile) */
   const mainBox = document.getElementById('pdMain');
   if (mainBox){
@@ -3045,6 +3061,78 @@ function renderProduct(){
   /* 📡 reviews + photos from ALL customers (Firestore — one read) */
   try{ loadRemoteReviews(p); }catch(e){}
 
+}
+
+/* ============================ 📱 BUY NOW — MOBILE NUMBER POPUP ============================
+   Buy Now click → ask the 10-digit WhatsApp number → the moment the 10th digit
+   is typed, auto-redirect to checkout (number pre-filled there). IndiaMART-
+   style lead capture: the number arrives BEFORE the order, zero extra taps. */
+function buyNowGo(pid, qty, colour){
+  const url = 'checkout.html?buy=' + encodeURIComponent(pid) + '&qty=' + Math.max(1, +qty || 1) + (colour ? '&colour=' + encodeURIComponent(colour) : '');
+  try{ if (window.__testNav){ window.__testNav(url); return; } }catch(e){}   /* test hook */
+  try{ location.href = url; }catch(e){ try{ location.replace(url); }catch(e2){} }
+}
+function buyNowPopup(p, qty, colour){
+  if (!p) return;
+  qty = Math.max(1, Math.min(10, +qty || 1));
+  /* last-used number → prefilled (she just taps Continue) */
+  let known = '';
+  try{ known = String(LS.get('sk_buyer_phone', '') || '').trim(); }catch(e){}
+  if (!validPhone(known)){ try{ const pr = Store.profile || {}; if (validPhone(pr.phone)) known = String(pr.phone).trim(); }catch(e){} }
+  try{ const oldOv = document.querySelector('.bn-ov'); if (oldOv) oldOv.remove(); }catch(e){}
+  const ov = document.createElement('div');
+  ov.className = 'bn-ov';
+  ov.innerHTML =
+    '<div class="bn-card" role="dialog" aria-label="Enter your mobile number">' +
+      '<button type="button" class="bn-x" aria-label="Close">✕</button>' +
+      '<div class="bn-ic">📱</div>' +
+      '<b class="bn-t">' + loc('இந்த சேலையை வாங்குறீங்களா?', 'ఈ చీర కొనుగోలు చేస్తున్నారా?', 'ಈ ಸೀರೆಯನ್ನು ಖರೀದಿಸುತ್ತೀರಾ?', 'Buying this saree?') + '</b>' +
+      '<p class="bn-s">' + loc('உங்க WhatsApp number கொடுங்க — 10 digits டைப் பண்ணவும் automatic-ஆ checkout ஓபன் ஆகும்!', 'మీ WhatsApp నంబర్ ఇవ్వండి — 10 అంకెలు టైప్ చేస్తే checkout ఆటోమేటిక్‌గా ఓపెన్ అవుతుంది!', 'ನಿಮ್ಮ WhatsApp ಸಂಖ್ಯೆ ನೀಡಿ — 10 ಅಂಕಿಗಳನ್ನು ಟೈಪ್ ಮಾಡಿದರೆ checkout ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರೆಯುತ್ತದೆ!', 'Enter your WhatsApp number — checkout opens automatically after 10 digits!') + '<br><small>' + esc(smartTitle(p)) + ' • ' + money(p.price * qty) + '</small></p>' +
+      '<div class="bn-in"><span>+91</span><input id="bnPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="10-digit mobile" value="' + esc(known) + '"></div>' +
+      '<p class="bn-err" id="bnErr"></p>' +
+      '<button type="button" class="bn-go" id="bnGo">Continue → Checkout</button>' +
+      '<p class="bn-note">✅ COD Available • 👥 2,300+ happy customers on WhatsApp bookings</p>' +
+    '</div>';
+  document.body.appendChild(ov);
+  const inp = ov.querySelector('#bnPhone');
+  const err = ov.querySelector('#bnErr');
+  const goBtn = ov.querySelector('#bnGo');
+  const close = function(){ try{ ov.remove(); }catch(e){} };
+  ov.querySelector('.bn-x').addEventListener('click', close);
+  ov.addEventListener('click', function(e2){ if (e2.target === ov) close(); });
+  let done = false;
+  const go = function(){
+    if (done) return;
+    const ph = String(inp.value || '').replace(/\D/g, '');
+    if (!validPhone(ph)){
+      err.textContent = '⚠️ ' + loc('சரியான 10-digit mobile number கொடுங்க', 'సరైన 10-అంకెల WhatsApp నంబర్ ఇవ్వండి', 'ಸರಿಯಾದ 10-ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನೀಡಿ', 'Enter a valid 10-digit mobile number');
+      return;
+    }
+    done = true;
+    err.textContent = '';
+    try{ LS.set('sk_buyer_phone', ph); }catch(e){}
+    /* pre-fill the checkout form with this number */
+    try{
+      let dft = {};
+      try{ dft = JSON.parse(localStorage.getItem('sk_co_draft') || '{}') || {}; }catch(e2){}
+      dft.phone = ph;
+      try{ localStorage.setItem('sk_co_draft', JSON.stringify(dft)); }catch(e3){}
+      try{ sessionStorage.setItem('sk_co_draft', JSON.stringify(dft)); }catch(e4){}
+    }catch(e){}
+    goBtn.textContent = '✅ ' + loc('Checkout ஓபன் ஆகுது…', 'Checkout ఓపెన్ అవుతోంది…', 'checkout ತೆರೆಯುತ್ತಿದೆ…', 'Opening checkout…');
+    goBtn.classList.add('ready');
+    setTimeout(function(){ try{ ov.remove(); }catch(e){} buyNowGo(p.id, qty, colour); }, 350);
+  };
+  goBtn.addEventListener('click', go);
+  inp.addEventListener('input', function(){
+    inp.value = inp.value.replace(/\D/g, '').slice(0, 10);
+    err.textContent = '';
+    const full = inp.value.length === 10;
+    goBtn.classList.toggle('ready', full);
+    if (full) setTimeout(go, 300);          /* ⚡ auto-redirect on the 10th digit */
+  });
+  goBtn.classList.toggle('ready', validPhone(String(inp.value || '').replace(/\D/g, '')));
+  try{ inp.focus(); if (known) inp.setSelectionRange(known.length, known.length); }catch(e){}
 }
 
 /* ============================ 📷 PHOTO REVIEW ============================
@@ -3267,7 +3355,7 @@ function renderCartPage(){
       likedSareesHTML(4) + recentViewHTML() + '</div>';
     return;
   }
-  const t = cartTotal(), n = cartCount(), sh = shippingFor(t, '', n), short = Math.max(0, CONFIG.shipFreeAbove - t);
+  const t = cartTotal(), n = cartCount(), sh = (CONFIG.shipFee || 30);   /* flat courier — ₹30 online (COD: FREE + ₹100 booking) */
   const disc = couponDiscount(co.data.coupon, t);
   const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
@@ -3309,16 +3397,15 @@ function renderCartPage(){
       (bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(bundle) + '</b></div>' : '') +
       (pointsBalance() > 0 ? '<label style="display:flex;gap:8px;align-items:center;font-size:.82rem;font-weight:700;padding:6px 0"><input type="checkbox" id="usePts"' + (co.data.usePoints ? ' checked' : '') + ' style="width:18px;height:18px"> ⭐ Use ' + pointsBalance() + ' points (−' + money(Math.min(pointsRedeemable(), t - disc - bundle)) + ')</label>' : '') +
       (co.data.usePoints && (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() > 0 ? '<div class="row"><span>⭐ Points discount</span><b style="color:var(--green)">−' + money((function(){ try{ return coTotals().pts; }catch(e){ return 0; } })()) + '</b></div>' : '') +
-      '<div class="row"><span>Shipping</span><b style="color:' + (sh ? 'inherit' : 'var(--green)') + '">' + (sh ? money(sh) : 'FREE') + '</b></div>' +
-      '<div class="row total"><span>Total</span><b>' + money(Math.max(0, t - disc - bundle - (co.data.usePoints ? (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() : 0)) + sh) + '</b></div>' +
-      '<div class="ship-progress">' + (short > 0 ? '🚚 Add <b>' + money(short) + '</b> more for FREE shipping!' : '🎉 You have FREE shipping!') +
-        '<div class="ship-bar"><i style="width:' + Math.min(100, Math.round(t / CONFIG.shipFreeAbove * 100)) + '%"></i></div></div>' +
-      '<div class="cod-note">💵 COD Available — pay <b>₹' + CONFIG.codFee + '</b> extra at delivery.</div>' +
+      '<div class="row"><span>🚚 Courier (Pay Online)</span><b>' + money(sh) + '</b></div>' +
+      '<div class="row total"><span>Total (Pay Online)</span><b>' + money(Math.max(0, t - disc - bundle - (co.data.usePoints ? (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() : 0)) + sh) + '</b></div>' +
+
+      '<div class="cod-note">💵 COD — <b>Pay ₹' + (CONFIG.codFee || 100) + ' &amp; Book</b> now, balance at delivery • courier <b>FREE</b>!</div>' +
 
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
         : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
-      '<p class="small muted" style="margin-top:8px">🚚 Shipping per saree: ₹30 Tamil Nadu · ₹40 Andhra/Karnataka · ₹60 others (' + n + ' saree' + (n > 1 ? 's' : '') + ' = <b>' + money(sh) + '</b>) · <b>FREE above ₹999</b>.</p>' +
+      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipFee || 30) + '</b> with online payment • 💵 COD — ₹' + (CONFIG.codFee || 100) + ' booking, courier <b>FREE</b> • 👥 2,300+ happy customers on WhatsApp bookings.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp Instead</a>' +
@@ -3352,8 +3439,7 @@ function renderCheckoutPage(){
   else co.buyOnly = null;
   if (!coItems().length && !Store.cart.length){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1><div class="empty"><div class="e-ic">🛒</div><b>Your cart is empty</b>' +
-      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div>' +
-      likedSareesHTML(4) + recentViewHTML() + '</div>';
+      '<a class="btn btn-maroon" style="max-width:240px;margin:14px auto 0" href="shop.html">🛍️ Shop Sarees</a></div></div>';
     return;
   }
   drawCo();
@@ -3374,8 +3460,10 @@ function coCartTotal(){
 }
 function coTotals(){
   const itemsTotal = coCartTotal();
-  const codFee = co.data.payment === 'cod' ? codFeeFor(co.data.pincode) : 0;   /* 💵 ₹100/₹120/₹150 by state */
-  const shipping = shippingFor(itemsTotal, co.data.pincode, coItems().reduce((s, i) => s + (i.qty || 1), 0));
+  /* 💵 FLAT CHARGES (2026-09-28): COD → ₹100 booking, courier FREE •
+     Pay Online → ₹30 courier (zone shipping & free-above removed) */
+  const codFee = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : 0;
+  const shipping = co.data.payment === 'cod' ? 0 : (CONFIG.shipFee || 30);
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = bundleDiscount();               /* buy 2+ → ₹50 off */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -3442,13 +3530,13 @@ function coSummaryHTML(){
     const zn = ZONES[zone] || ZONES.tn;
     const rows = coItems().map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
     const courier = pin
-      ? '📦 Courier: <b>' + esc(zn.name) + '</b> • Ship ' + (t.shipping ? money(t.shipping) : 'FREE') + ' • ' + t.eta
+      ? '📦 Courier: <b>' + esc(zn.name) + '</b> • ' + (co.data.payment === 'cod' ? 'COD — courier <b>FREE</b> • ₹' + (CONFIG.codFee || 100) + ' booking' : 'Courier <b>₹' + (CONFIG.shipFee || 30) + '</b>') + ' • ' + t.eta
       : '📦 Enter your <b>PIN code</b> to see courier + delivery date';
     /* 🎉 savings + 🚚 FREE-delivery nudge (grows the order value) */
     const saved = orderSavings(t);
-    const need = (CONFIG.shipFreeAbove || 999) - t.itemsTotal;
-    const nudge = (t.shipping > 0 && need > 0)
-      ? '<p class="co-nudge">🚚 ' + loc('இன்னொரு saree add பண்ணா delivery இலவசம்!', 'మరో చీర జోడిస్తే డెలివరీ ఫ్రీ!', 'ಇನ್ನೊಂದು ಸೀರೆ ಸೇರಿಸಿದರೆ ಡೆಲಿವರಿ ಉಚಿತ!', 'Add one more saree — delivery FREE!') + ' <a href="shop.html">+ ₹' + need + loc(' வாங்குங்க →', ' కొనండి →', ' ಖರೀದಿಸಿ →', ' more →') + '</a></p>'
+    const cntHere = coItems().reduce(function(s2, i2){ return s2 + (i2.qty || 1); }, 0);
+    const nudge = (cntHere < (CONFIG.bundleCount || 2))
+      ? '<p class="co-nudge">🎁 ' + loc('இன்னொரு saree add பண்ணா ₹' + (CONFIG.bundleOff || 50) + ' Bundle OFF!', 'మరో చీర జోడిస్తే ₹' + (CONFIG.bundleOff || 50) + ' తగ్గింపు!', 'ಇನ್ನೊಂದು ಸೀರೆ ಸೇರಿಸಿದರೆ ₹' + (CONFIG.bundleOff || 50) + ' ರಿಯಾಯಿತಿ!', 'Add one more saree — ₹' + (CONFIG.bundleOff || 50) + ' Bundle OFF!') + ' <a href="shop.html">' + loc('ஷாப் பண்ணுங்க →', 'షాప్ చేయండి →', 'ಶಾಪ್ ಮಾಡಿ →', 'Shop →') + '</a></p>'
       : '';
     return '<div class="form-card co-sum"><h3>🧾 Order Summary</h3>' +
       (rows || '<p class="small muted">No items yet.</p>') +
@@ -3458,13 +3546,13 @@ function coSummaryHTML(){
       (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal</span><b class="co-save">−' + money(t.bundle) + '</b></div>' : '') +
       (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount || 1) + '% off</span><b class="co-save">−' + money(t.online) + '</b></div>' : '') +
       (t.pts > 0 ? '<div class="row"><span>⭐ Loyalty points</span><b class="co-save">−' + money(t.pts) + '</b></div>' : '') +
-      '<div class="row"><span>🚚 Shipping</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-      (t.codFee > 0 ? '<div class="row"><span>💵 COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
+      '<div class="row"><span>🚚 Courier</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+      (t.codFee > 0 ? '<div class="row"><span>💵 COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>Total</span><b>' + money(t.grand) + '</b></div>' +
       (saved > 0 ? '<p class="co-saved">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + saved.toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
       nudge +
       '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:9px;background:var(--bg);margin-top:8px">' + courier + '</p>' +
-      '<p class="small muted" style="text-align:center;margin-top:8px;font-weight:700">✅ Secure Order • 💵 COD Available • ↩️ 7-Day Replacement</p></div>';
+      '<p class="small muted" style="text-align:center;margin-top:8px;font-weight:700">✅ Secure Order • 👥 2,300+ Happy Customers • ↩️ 7-Day Replacement</p></div>';
   }catch(e){ return ''; }
 }
 /* 🎟️ perks under the coupon: loyalty points to use + reseller commission on this order */
@@ -3511,10 +3599,9 @@ function drawCo(){
       '</div>' +
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
       '<div class="form-card"><h3>💳 Payment Method</h3><div class="pay-grid">' +
-        '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>UPI — Pay Online</b><small>GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
-        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Cash on Delivery</b><small>Pay at delivery (+₹' + CONFIG.codFee + ')</small></span><span class="radio"></span></div>' +
+        '<div class="pay-opt ' + (d.payment === 'upi' ? 'on' : '') + '" data-pay="upi"><span class="po-ic" style="background:#e3f2fd">📲</span><span><b>Pay Online (UPI)</b><small>Courier ₹' + (CONFIG.shipFee || 30) + ' only • GPay • PhonePe • Paytm</small></span><span class="radio"></span></div>' +
+        '<div class="pay-opt ' + (d.payment === 'cod' ? 'on' : '') + '" data-pay="cod"><span class="po-ic" style="background:var(--gold-soft)">💵</span><span><b>Pay ₹' + (CONFIG.codFee || 100) + ' &amp; Book — COD</b><small>Courier FREE • ₹' + (CONFIG.codFee || 100) + ' booking now, balance at delivery</small></span><span class="radio"></span></div>' +
       '</div></div>' +
-      '<div class="delivery-card" style="margin-bottom:14px"><b>⏱ Fast Delivery</b>' + t.eta + '.<br>' + CONFIG.latePromise + '</div>' +
       (d.payment === 'cod'
         ? '<button type="button" class="btn btn-wa btn-xl" data-confirm-wa><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Confirm Order on WhatsApp</button>'
         : '<button type="button" class="btn btn-pay btn-xl" data-cont>⚡ Continue to Payment →</button>') +
@@ -3524,20 +3611,20 @@ function drawCo(){
     /* reserve an order id now so the UPI payment note can carry it */
     if (!co.pendingId) co.pendingId = genOrderId();
     const note = 'Order ' + co.pendingId + ' SK Sarees';
-    const booking = CONFIG.codFee;                      /* COD: ₹70 booking paid now */
+    const booking = CONFIG.codFee || 100;               /* COD: ₹100 booking paid now */
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
       '<div class="form-card rvw-card"><h3>🧾 Review Your Order</h3>' + itemLines +
         '<div class="row"><span>🧺 Items total</span><b>' + money(t.itemsTotal) + '</b></div>' +
         (t.discount > 0 ? '<div class="row"><span>🎫 Coupon discount (' + esc(co.data.coupon) + ')</span><b class="rvw-save">−' + money(t.discount) + '</b></div>' : '') +
         (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b class="rvw-save">−' + money(t.bundle) + '</b></div>' : '') +
         (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount||1) + '% off</span><b class="rvw-save">−' + money(t.online) + '</b></div>' : '') +
-        '<div class="row"><span>🚚 Shipping</span><b class="' + (t.shipping ? '' : 'rvw-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-        (t.codFee ? '<div class="row"><span>💵 COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
+        '<div class="row"><span>🚚 Courier</span><b class="' + (t.shipping ? '' : 'rvw-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
+        (t.codFee ? '<div class="row"><span>💵 COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
         '<div class="rvw-meta">' +
           '<span>👤 ' + esc(d.name) + ' • ' + esc(d.phone) + '</span>' +
           '<span>📍 ' + esc(d.address) + ' — ' + esc(d.pincode) + '</span>' +
           '<span>⏱ ' + t.eta + '</span>' +
-          '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 Cash on Delivery (+₹' + CONFIG.codFee + ' booking paid)') + '</span>' +
+          '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 COD — ₹' + (CONFIG.codFee || 100) + ' booking paid') + '</span>' +
         '</div>' +
         (orderSavings(t) > 0 ? '<p class="co-saved" style="margin:0">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + orderSavings(t).toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
         '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
@@ -3558,7 +3645,7 @@ function drawCo(){
           '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Waiting for Confirmation</button></div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> booking fee — pay now (UPI)</span></div>' +
-          '<div class="cod-note">💵 COD Available — <b>₹' + booking + ' courier booking</b> paid now.<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
+          '<div class="cod-note">💵 COD Available — pay <b>₹' + booking + ' booking</b> now (courier <b>FREE</b>).<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
           '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
           '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 Pay ₹' + booking + ' Booking (UPI)</a>' +
           '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
@@ -3567,14 +3654,8 @@ function drawCo(){
     '</div>';
     if (upiPay) setTimeout(drawUpiQR, 150); /* wait for DOM + qrcode lib */
   }
-  /* ❤️ "{Name}'s Liked Sarees" + viewed strip at the bottom of checkout step 1
-     (kept OFF step 2 — payment step stays distraction-free) */
-  try{
-    if (co.step === 1){
-      const w = document.querySelector('#app .wrap.page');
-      if (w) w.insertAdjacentHTML('beforeend', likedSareesHTML(4) + recentViewHTML());
-    }
-  }catch(e){}
+  /* (2026-09-28) liked/viewed saree strips REMOVED from checkout — clean,
+     distraction-free payment page */
 }
 function drawUpiQR(){
   const box = document.getElementById('upiQR'); if (!box) return;
@@ -3692,7 +3773,7 @@ function doPlaceOrder(payment){
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
       margin: 0,
       /* UPI: customer tapped "I've Paid" → paidConfirmed=true, awaiting admin
-         confirmation; COD: ₹70 booking paid now */
+         confirmation; COD: ₹100 booking paid now */
       status: payment === 'upi' ? 'pending' : 'placed',
       paidConfirmed: payment === 'upi',          /* ✅ customer says they paid */
       bookingPaid: payment === 'cod' ? CONFIG.codFee : (payment === 'upi' ? t.grand : 0),
@@ -3734,7 +3815,7 @@ function doWaOrder(){
       items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
       payment: 'cod', totals: t, status: 'placed',
-      bookingPaid: CONFIG.codFee,                 /* ₹70 courier booking paid now */
+      bookingPaid: CONFIG.codFee || 100,          /* ₹100 booking paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
       margin: 0,
       device: deviceId(),
@@ -3794,7 +3875,7 @@ function renderOrderComplete(o, viaWa){
       (t.bundle > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>🎁 Bundle deal</span><b style="color:var(--green)">−' + money(t.bundle) + '</b></div>' : '') +
       (t.online > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>💳 Online payment off</span><b style="color:var(--green)">−' + money(t.online) + '</b></div>' : '') +
       '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-      (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
+      (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>Total (' + (o.payment || 'upi').toUpperCase() + ')</span><b>' + money(t.grand) + '</b></div>' +
       '<div class="small muted" style="text-align:center;margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '</div></div>' +
     '<div style="display:grid;gap:10px;margin-top:16px;grid-template-columns:1fr 1fr">' +
@@ -4084,7 +4165,7 @@ function showDetail(o){
     '<div style="margin-top:6px">' +
       '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">Items total</span><b>' + money(t.itemsTotal) + '</b></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-      (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">COD charges</span><b>+' + money(t.codFee) + '</b></div>' : '') +
+      (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div style="display:flex;justify-content:space-between;font-weight:800;font-size:.95rem;padding:6px 0;border-top:2px dashed var(--line);margin-top:4px"><span>Total</span><b style="color:var(--maroon)">' + money(t.grand) + '</b></div>' +
     '</div>' +
     '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
@@ -4547,15 +4628,16 @@ document.addEventListener('click', function(e){
     if (hid) hid.value = pchip.dataset.colour;
     return;
   }
-  /* ⚡ Buy Now — carry the selected colour into checkout */
-  const pb = e.target.closest('#pdBuyBtn');
+  /* 📱 Buy Now (in-page + floating bar) — mobile-number popup → auto checkout */
+  const pb = e.target.closest('#pdBuyBtn, [data-buynow]');
   if (pb){
     e.preventDefault();
+    const pBn = byId(pb.dataset.buynow || '');
+    if (!pBn){ try{ location.href = 'checkout.html'; }catch(err){} return; }
     const c = document.getElementById('pdSelColour');
     const q = document.getElementById('qtyVal');
-    const qty = q ? Math.max(1, Math.min(10, +q.textContent || 1)) : 1;
-    pb.href = 'checkout.html?buy=' + encodeURIComponent(pb.dataset.buy || '') + '&qty=' + qty + (c && c.value ? '&colour=' + encodeURIComponent(c.value) : '');
-    location.href = pb.href;
+    const qty = q ? Math.max(1, Math.min(10, +q.textContent || 1)) : Math.max(1, +pb.dataset.qty || 1);
+    buyNowPopup(pBn, qty, (c && c.value) || '');
     return;
   }
   /* cart qty (line key = id::colour so colour variants change independently) */
@@ -4817,7 +4899,7 @@ document.addEventListener('click', function(e){
     const delBy = eUpi.to ? eUpi.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '';
     if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>' +
       '📦 <b>Delivery by ' + esc(delBy) + '</b> (UPI) • ' + esc(eCod.to ? eCod.to.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '') + ' (COD)<br>' +
-      '🚚 Shipping: <b>₹' + zone.ship + '</b> per saree (free above ₹999)<br>' +
+      '🚚 Courier: <b>₹' + (CONFIG.shipFee || 30) + '</b> with online payment • COD <b>₹' + (CONFIG.codFee || 100) + '</b> booking — courier <b>FREE</b><br>' +
       '✅ Fulfilled by <b>SK SAREES COLLECTION</b>';
     return;
   }

@@ -1164,8 +1164,8 @@ function waProductMsg(p){
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
   Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
-  const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
-  m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
+  const t = cartTotal();
+  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} with online payment • 💵 COD — ₹${CONFIG.codFee || 100} booking, courier FREE\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
   return m;
 }
 /* 💬 WhatsApp templates — fully defensive: any order (even with missing
@@ -1201,8 +1201,8 @@ function upiAppLink(app, amount, note){
 }
 function calcTotals(payment, pincode){
   const itemsTotal = cartTotal();
-  const codFee = payment === 'cod' ? codFeeFor(pincode) : 0;
-  const shipping = shippingFor(itemsTotal, pincode, cartCount());
+  const codFee = payment === 'cod' ? (CONFIG.codFee || 100) : 0;
+  const shipping = payment === 'cod' ? 0 : (CONFIG.shipFee || 30);
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
 }
 
@@ -3105,7 +3105,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹${CONFIG.shipFreeAbove} &nbsp;•&nbsp; 💵 COD Available &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 Courier ₹${CONFIG.shipFee || 30} (Online) &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Courier FREE &nbsp;•&nbsp; 👥 2,300+ Happy Customers on WhatsApp Bookings &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   try{
     const so = document.querySelector('[data-authonly]');
