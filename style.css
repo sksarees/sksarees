@@ -3868,3 +3868,125 @@ body[data-page="product"] .bn-in{ border-color:var(--orkut) }
 body[data-page="product"] .bn-ic{ background:var(--orkut-head) }
 body[data-page="product"] .bn-go{ background:var(--orkut) }
 body[data-page="product"] .bn-t{ color:#1C4E80 }
+
+/* ============================================================================
+   💗 SK TRENDY PINK 2026 — ONE theme for the WHOLE site (2026-09-29 #8)
+   Myntra/Nykaa-style magenta — the trending, most-liked color for Indian
+   fashion shoppers. Simple rules: PINK = order/brand • GREEN = WhatsApp
+   only • white bg + black text so the sarees pop. BUY NOW softly pulses so
+   the eye lands on it → instant orders.
+   ========================================================================== */
+:root{
+  --maroon:#FF3F6C; --maroon-d:#E0245B; --maroon-deep:#C2185B;
+  --maroon-soft:#FFF0F5;
+  --gold:#FF3F6C; --gold-l:#FF8FAC; --gold-soft:#FFF0F5;
+  --bg:#ffffff; --card:#ffffff; --ink:#212121; --muted:#6b6b6b; --line:#ececec;
+  --r:8px; --r-sm:6px; --sh:none; --sh-sm:none;
+  --green:#0E9F4F; --red:#E0245B;
+  /* the product-page module boxes keep their shape — colors unify to pink */
+  --orkut:#FF3F6C; --orkut-d:#E0245B; --orkut-line:#F5C6D8; --orkut-head:#FFE4EE;
+  --orkut-link:#E0245B; --orkut-ink:#B0194E;
+}
+body{ background:#fff !important; color:#212121 }
+h1,h2,h3,h4,b,strong{ color:#212121 }
+a{ color:#E0245B }
+.small,.muted{ color:#6b6b6b }
+
+/* ── ALL order buttons = PINK (the one brand color) ── */
+.btn{ box-shadow:none !important; border-radius:10px !important; font-weight:700 }
+.btn-maroon,.btn-gold,.btn-pay,.btn-buy,.btn-buygreen{
+  background:#FF3F6C !important; color:#fff !important; border:0 !important; box-shadow:none !important;
+}
+.btn-outline{ background:#fff !important; color:#FF3F6C !important; border:1.5px solid #FF3F6C !important; box-shadow:none !important }
+.btn-ghost{ background:transparent !important; color:#212121 !important; border:1.5px solid #ddd !important }
+.rpc-buy{ background:#FF3F6C !important; color:#fff !important }
+.prp-btn{ background:#FF3F6C !important; color:#fff !important; border:0 !important; border-radius:10px !important }
+
+/* 🔴→💗 BUY NOW = PINK + soft pulse ring (eye lands here → order) */
+.btn-pd-buy{
+  background:#FF3F6C !important; color:#fff !important; border:0 !important;
+  border-radius:10px !important; box-shadow:none !important; font-weight:800 !important;
+  position:relative;
+}
+body[data-page="product"] .btn-pd-buy{ background:var(--orkut) !important }
+.btn-pd-buy::after,.pd-topcta .ptc-buy::after{
+  content:''; position:absolute; inset:-3px; border-radius:13px;
+  border:2px solid #FF3F6C; opacity:0; pointer-events:none;
+  animation:skRing 2.2s ease-out infinite;
+}
+.btn-pd-buy,.pd-topcta .ptc-buy{ position:relative }
+@keyframes skRing{
+  0%{ transform:scale(.97); opacity:.65 }
+  70%{ transform:scale(1.06); opacity:0 }
+  100%{ transform:scale(1.06); opacity:0 }
+}
+@media (prefers-reduced-motion: reduce){
+  .btn-pd-buy::after,.pd-topcta .ptc-buy::after{ animation:none; opacity:0 }
+}
+
+/* ── WhatsApp = GREEN (the only green on the site) ── */
+.btn-wa{ background:#0E9F4F !important; color:#fff !important; border:0 !important; box-shadow:none !important }
+.btn-wa svg{ fill:#fff }
+.btn-wa-o{ background:#fff !important; color:#0E9F4F !important; border:1.5px solid #0E9F4F !important; box-shadow:none !important }
+.btn-wa-o svg{ fill:#0E9F4F }
+.im-btn-order{ background:#0E9F4F; color:#fff }
+.im-btn-order:hover{ background:#0B8A43 }
+.im-btn-order svg{ fill:#fff }
+.im-wa-btn{ background:#0E9F4F; color:#fff }
+.im-wa-btn svg{ fill:#fff }
+.im-shop-btn{ background:#FF3F6C; color:#fff }
+.sticky-bar.sb2 .sb-wa{ background:#0E9F4F !important; border:0 !important; border-radius:10px !important }
+.sticky-bar.sb2 .sb-wa svg{ fill:#fff }
+body[data-page="product"] .btn-wa-o{ background:#fff !important; color:#0E9F4F !important; border:1.5px solid #0E9F4F !important }
+body[data-page="product"] .btn-wa-o svg{ fill:#0E9F4F }
+body[data-page="product"] .sticky-bar.sb2 .sb-wa{ background:#0E9F4F !important; border:0 !important }
+body[data-page="product"] .sticky-bar.sb2 .sb-wa svg{ fill:#fff }
+.wa-float{ background:#0E9F4F }
+
+/* badges & accents */
+.im-off,.pd-price .off,.lpc-off{ background:#FF3F6C; color:#fff; box-shadow:none }
+.cart-badge{ background:#FF3F6C; color:#fff; border:2px solid #fff }
+.form-card .row.total b{ color:#FF3F6C }
+.co-nudge a{ color:#E0245B }
+.sec-head h2 .tick{ background:#FF3F6C }
+::selection{ background:#FF3F6C; color:#fff }
+.toast{ background:#212121 }
+
+/* header + strips + footer */
+.logo{ color:#FF3F6C !important }
+.logo-badge{ background:linear-gradient(135deg,#FF3F6C,#E0245B) }
+.icon-btn{ color:#212121 }
+.promo-strip{ background:#FF3F6C !important; color:#fff !important }
+.drawer-head{ background:#FF3F6C }
+.sk-footer{ background:#FFF6F9 !important; border-top:1px solid #F5C6D8 }
+.sk-footer h4{ color:#C2185B !important }
+.f-grid a{ color:#6b6b6b !important }
+.f-social a{ color:#C2185B }
+.f-bottom{ color:#8a8a8a !important }
+
+/* pills / chips / steps */
+.im-cat{ background:#fff; border:1px solid #F5C6D8; color:#212121 }
+.im-cat.on{ background:#FF3F6C; border-color:#FF3F6C; color:#fff }
+.cat-chips .chip{ background:#fff; border:1px solid #F5C6D8; color:#212121 }
+.cat-chips .chip.on{ background:#FF3F6C; border-color:#FF3F6C; color:#fff }
+.qty button{ background:#fff; border:1px solid #F5C6D8; color:#C2185B }
+.steps-ui .step-dot.on .dot,.steps-ui .step-dot.done .dot{ background:#FF3F6C !important; color:#fff }
+.rvw-total{ background:#FF3F6C }
+
+/* product-page module retint (fixes the old blue literals) */
+body[data-page="product"] h1{ color:#C2185B }
+body[data-page="product"] .pd-trust span,
+body[data-page="product"] .pd-ship{ background:#FFF0F5; border-color:#F5C6D8; color:#B0194E }
+body[data-page="product"] .pd-price .off{ background:#FF3F6C }
+body[data-page="product"] .pd-realphoto{ background:#FFF0F5; border-color:#F5C6D8 }
+body[data-page="product"] .pd-topcta{ border-color:#F5C6D8 }
+body[data-page="product"] .pd-topcta .ptc-title{ color:#C2185B }
+body[data-page="product"] .pd-topcta .ptc-price .off{ background:#FF3F6C }
+body[data-page="product"] .pd-topcta .ptc-buy{ background:#FF3F6C; border-radius:10px }
+body[data-page="product"] .pd-topcta .ptc-wa{ background:#0E9F4F; border-radius:10px }
+body[data-page="product"] .pd-topcta .ptc-wa svg{ fill:#fff }
+body[data-page="product"] .sticky-bar.sb2 .sb-price b{ color:#C2185B }
+body[data-page="product"] .rev-form{ background:#FFF6F9 !important; border-color:#F5C6D8 !important }
+body[data-page="product"] .pin-check b{ color:#B0194E }
+body[data-page="product"] .bn-go{ background:#FF3F6C }
+body[data-page="product"] .bn-ic{ background:#FFE4EE }
