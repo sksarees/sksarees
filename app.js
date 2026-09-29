@@ -2862,12 +2862,16 @@ function renderProduct(){
     ? '<div class="pd-video"><h3>🎬 Product Video</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>'
     : '';
   app.innerHTML =
-    /* 🔴 MOBILE TOP CTA — customer lands → price + BUY NOW right there */
-    '<div class="pd-topcta">' +
-      '<div class="ptc-info"><b class="ptc-title">' + esc(smartTitle(p)) + '</b>' +
-      '<div class="ptc-price"><b>' + money(p.price) + '</b>' + (p.mrp && p.mrp > p.price ? '<s>' + money(p.mrp) + '</s>' : '') + (off >= 5 ? '<span class="off">' + off + '% OFF</span>' : '') + '</div></div>' +
-      '<button type="button" class="ptc-buy" data-buynow="' + esc(p.id) + '" data-qty="1">🔴 BUY NOW</button>' +
-      '<a class="ptc-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
+    /* 🔍 IndiaMART-style top: ONLY a search bar (the SK header + promo strip
+       are hidden on the product page via CSS — zero clutter, product first) */
+    '<div class="pd-searchbar">' +
+      '<a class="pd-back" href="shop.html" onclick="if(history.length>1){history.back();return false;}" aria-label="Back">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>' +
+      '</a>' +
+      '<form class="im-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'pdSearch\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);">' +
+        '<input id="pdSearch" type="search" placeholder="Search sarees… 🔍" autocomplete="off">' +
+        '<button type="submit" class="im-search-btn">🔍 Search</button>' +
+      '</form>' +
     '</div>' +
     '<div class="wrap pd-wrap" style="margin-top:12px">' +
       '<div>' +

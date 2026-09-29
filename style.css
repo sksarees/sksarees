@@ -3990,3 +3990,28 @@ body[data-page="product"] .rev-form{ background:#FFF6F9 !important; border-color
 body[data-page="product"] .pin-check b{ color:#B0194E }
 body[data-page="product"] .bn-go{ background:#FF3F6C }
 body[data-page="product"] .bn-ic{ background:#FFE4EE }
+
+/* ============================================================================
+   🔍 PRODUCT PAGE — IndiaMART clean top + DARK RED BUY NOW (2026-09-29 #9)
+   No SK header, no promo strip — just a search bar. Product first.
+   ========================================================================== */
+body[data-page="product"] .promo-strip{ display:none !important }
+body[data-page="product"] .topbar{ display:none !important }
+body[data-page="product"] .wa-float,
+body[data-page="product"] .ai-float{ display:none !important }
+
+/* search-bar top (back arrow + IndiaMART search) */
+.pd-searchbar{ display:flex; gap:8px; align-items:center; padding:10px 12px 0 }
+.pd-searchbar .im-search{ flex:1; min-width:0; margin:0 }
+.pd-searchbar .im-search input{ padding:11px 14px }
+.pd-back{
+  flex:0 0 auto; width:42px; height:42px; display:flex; align-items:center; justify-content:center;
+  background:#fff; border:1px solid #F5C6D8; border-radius:10px; color:#212121;
+}
+.pd-back:active{ background:#FFF0F5 }
+
+/* 🔴 BUY NOW = DARK RED */
+.btn-pd-buy{ background:#B71C1C !important; color:#fff !important }
+body[data-page="product"] .btn-pd-buy{ background:#B71C1C !important; color:#fff !important }
+.btn-pd-buy::after{ border-color:#B71C1C }
+.rpc-buy{ background:#B71C1C !important; color:#fff !important }
