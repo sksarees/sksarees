@@ -2862,17 +2862,6 @@ function renderProduct(){
     ? '<div class="pd-video"><h3>🎬 Product Video</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>'
     : '';
   app.innerHTML =
-    /* 🔍 IndiaMART-style top: ONLY a search bar (the SK header + promo strip
-       are hidden on the product page via CSS — zero clutter, product first) */
-    '<div class="pd-searchbar">' +
-      '<a class="pd-back" href="shop.html" onclick="if(history.length>1){history.back();return false;}" aria-label="Back">' +
-        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>' +
-      '</a>' +
-      '<form class="im-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'pdSearch\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);">' +
-        '<input id="pdSearch" type="search" placeholder="Search sarees… 🔍" autocomplete="off">' +
-        '<button type="submit" class="im-search-btn">🔍 Search</button>' +
-      '</form>' +
-    '</div>' +
     '<div class="wrap pd-wrap" style="margin-top:12px">' +
       '<div>' +
         '<div class="pd-gal">' +
@@ -2887,11 +2876,14 @@ function renderProduct(){
         '<h1>' + esc(smartTitle(p)) + '</h1>' +
         starsHTML(p) +
         /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
-        '<div class="pd-price">' + (p.mrp ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        '<div class="pd-price">' + (p.mrp && p.mrp > p.price ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+        ((p.mrp && p.mrp > p.price && !out)
+          ? '<div class="pd-offer">🔥 <b>TODAY OFFER PRICE</b> — You Save <b>' + money(p.mrp - p.price) + '</b><br><small>⏳ Offer price may change after today</small></div>'
+          : '') +
         /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
-        '<div class="pd-trust"><span>👥 2,300+ Happy Customers</span><span>✅ 100% Original</span><span>↩️ Easy Returns</span><span>💵 COD ₹' + (CONFIG.codFee || 100) + '</span></div>' +
+        '<div class="pd-trust"><span>💵 COD Available</span><span>🚚 Low-Cost Shipping</span><span>✅ 100% Original</span><span>↩️ 7-Day Replacement</span></div>' +
         /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
-        '<div class="pd-ship">💵 <b>COD</b> — ₹' + (CONFIG.codFee || 100) + ' booking + courier • 🚚 <b>Online</b> — courier ₹' + (CONFIG.shipFee || 30) + ' • 🎉 <b>FREE shipping above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</b> • ⚡ <b>Dispatch within 24 hours</b> • 👥 2,300+ happy customers on WhatsApp bookings</div>' +
+        '<div class="pd-ship">💵 <b>COD AVAILABLE</b> — ₹' + (CONFIG.codFee || 100) + ' booking + courier • 🚚 TN <b>2–4 days</b>, other states 3–7 days • ⚡ <b>Dispatch within 24 hrs</b> • 🎉 <b>FREE shipping above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</b></div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
@@ -2903,21 +2895,33 @@ function renderProduct(){
             p.colors.map((c, i) => '<button type="button" class="pd-colour' + (i === 0 ? ' on' : '') + '" data-colour="' + esc(c) + '">' + esc(c) + '</button>').join('') +
           '</div></div>'
           : '') +
-        /* 🟢 BUY NOW — the hero CTA (price ON the button), WhatsApp right under */
+        /* 🔴 BUY NOW (red) + sub-line + 📱 REAL VIDEO CTA + WhatsApp order */
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>') +
+          (out ? '' : '<p class="pd-buy-sub">✅ COD Available • Secure Order</p>') +
+          /* 📱 REAL VIDEO — Facebook/Instagram traffic goes straight to WhatsApp */
+          '<div class="pd-realvideo"><div class="prp-txt"><b>📱 ' + loc('இந்த சேலையின் REAL VIDEO வேண்டுமா?', 'ఈ చీర REAL VIDEO కావాలా?', 'ಈ ಸೀರೆಯ REAL VIDEO ಬೇಕಾ?', 'Want the REAL VIDEO of this saree?') + '</b><small>WhatsApp-ல் <b>"' + esc(p.sku || p.id) + '"</b> ' + loc('என்று அனுப்புங்கள் — உடனே real video + photos அனுப்புகிறோம்!', 'అని పంపండి — వెంటనే video + photos పంపుతాము!', 'ಎಂದು ಕಳುಹಿಸಿ — ತಕ್ಷಣ video + photos ಕಳುಹಿಸುತ್ತೇವೆ!', 'on WhatsApp — we send the real video + photos right away!') + '</small></div>' +
+            '<a class="btn prp-btn" href="' + waLink('📱 Hi! இந்த saree-ன் REAL VIDEO வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p) + '\n\nVideo அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO →</a>' +
+          '</div>' +
           '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('Order on WhatsApp', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp') + '</a>' +
         '</div>' +
-        /* 📸 real photo / video — kills the #1 saree hesitation (colour) */
-        '<div class="pd-realphoto"><div class="prp-txt"><b>📸 ' + loc('இந்த சேலையின் Real Photo / Video வேண்டுமா?', 'ఈ చీర నిజమైన ఫోటో / వీడియో కావాలా?', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ಫೋಟೋ / ವೀಡಿಯೋ ಬೇಕಾ?', 'Want Real Photos / Video of this saree?') + '</b><small>' + loc('WhatsApp-ல் கேளுங்கள் — உடனே அனுப்புகிறோம்!', 'WhatsApp లో అడగండి — వెంటనే పంపుతాము!', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ — ತಕ್ಷಣ ಕಳುಹಿಸುತ್ತೇವೆ!', 'Ask on WhatsApp — we send it right away!') + '</small></div>' +
-          '<a class="btn prp-btn" href="' + waLink('📸 Hi! இந்த saree-ன் real photo/video வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ SKU: ' + esc(p.sku || p.id) + '\n💰 ' + money(p.price) + '\n👉 ' + shareUrl(p) + '\n\nஅனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('GET REAL PHOTOS', 'రియల్ ఫోటో పొందండి', 'ರಿಯಲ್ ಫೋಟೋ ಪಡೆಯಿರಿ', 'GET REAL PHOTOS') + ' →</a></div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:var(--maroon);font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
         '<div class="pin-check"><b>📍 Check Delivery</b>' +
           '<div style="display:flex;gap:8px;margin-top:6px;align-items:stretch"><input id="pinCheck" placeholder="Enter PIN code (e.g. 636001)" inputmode="numeric" maxlength="6" style="flex:1;min-width:0;width:auto;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;background:#fff;outline:none;min-height:50px;box-sizing:border-box"><button type="button" class="btn btn-maroon btn-sm" id="pinCheckBtn" style="flex:0 0 auto;width:auto;min-width:120px;min-height:50px;padding:0 16px;font-size:.95rem;white-space:nowrap">Check</button></div>' +
           '<p class="small muted" id="pinResult" style="margin-top:6px"></p></div>' +
+        /* ✨ Why You'll Love This Saree — short, honest, convertible */
+        '<div class="pd-love"><b>✨ ' + loc("Why You'll Love This Saree", "Why You'll Love This Saree", "Why You'll Love This Saree", "Why You'll Love This Saree") + '</b>' +
+          '<ul>' +
+            '<li>✓ ' + loc('மென்மையான, வசதியான ' + (p.fabric || 'துணி'), 'మృదువైన ' + (p.fabric || 'ఫ్యాబ్రిక్'), 'ಮೃದುವಾದ ' + (p.fabric || 'ಫ್ಯಾಬ್ರಿಕ್'), 'Soft &amp; comfortable ' + (p.fabric || 'fabric')) + '</li>' +
+            '<li>✓ ' + loc('அழகான பார்டர் &amp; பல்லு', 'అందమైన బోర్డర్ &amp; పల్లు', 'ಅಂದವಾದ ಬಾರ್ಡರ್ &amp; ಪಲ್ಲು', 'Beautiful border &amp; pallu') + '</li>' +
+            '<li>✓ ' + loc('பவுஸ் பீஸ் உட்பட', 'బ్లౌస్ పీస్ ఉంది', 'ಬ್ಲೌಸ್ ಪೀಸ್ ಸೇರಿದೆ', 'Blouse piece included') + '</li>' +
+            '<li>✓ ' + loc('தினசரி / ஆபீஸ் / விழாக்களுக்கு ஏற்றது', 'రోజువారీ / ఆఫీస్ / వేడుకలకు సరిపోతుంది', 'ದೈನಂದಿನ / ಆಫೀಸ್ / ಸಮಾರಂಭಗಳಿಗೆ ಸೂಕ್ತ', 'Suitable for daily / office / function wear') + '</li>' +
+            '<li>✓ ' + loc('அனுப்பும் முன் தரச் சோதனை', 'పంపే ముందు క్వాలిటీ చెక్', 'ಕಳುಹಿಸುವ ಮೊದಲು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ', 'Quality checked before dispatch') + '</li>' +
+            '<li>✓ ' + loc('கொரியருக்கு பாதுகாப்பாக பேக்', 'కొరియర్ కోసం జాగ్రత్తగా ప్యాక్', 'ಕೊರಿಯರ್‌ಗೆ ಎಚ್ಚರಿಕೆಯಿಂದ ಪ್ಯಾಕ್', 'Carefully packed for courier') + '</li>' +
+          '</ul></div>' +
         '<div class="pd-block" style="margin-top:14px"><h3>💬 Testimonials</h3>' + revs +
           '<div class="rev-form" style="background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:13px;margin-top:12px;display:grid;gap:9px">' +
             '<b>✍️ Write a testimonial</b>' +
@@ -2933,6 +2937,12 @@ function renderProduct(){
         
       '</div>' +
     '</div>' +
+    /* ❤️ bottom CTA — one more BUY after reading everything */
+    (out ? '' : '<div class="wrap"><div class="pd-bottomcta"><b>❤️ ' + loc('பிடித்திருக்கா?', 'నచ్చిందా?', 'ಇಷ್ಟವಾಯಿತಾ?', 'Loved this saree?') + '</b>' +
+      '<div class="pbc-btns">' +
+        '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBottom" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
+        '<a class="btn btn-wa-o" href="' + waLink('📱 Hi! இந்த saree-ன் REAL VIDEO வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Real Video</a>' +
+      '</div></div></div>') +
     '<div class="wrap" id="recSection"></div>' +
     /* 📌 clean sticky bar — price + BUY NOW + WhatsApp (premium, minimal) */
     '<div class="sticky-bar sb2">' +
@@ -2985,6 +2995,8 @@ function renderProduct(){
     if (addB) addB.textContent = '🛒 Add to Cart ×' + n;
     const pdBuy = document.getElementById('pdBuyBtn');
     if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
+    const pdBot = document.getElementById('pdBuyBottom');
+    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 BUY NOW — ' + money(p.price * n); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   document.querySelectorAll('[data-qm]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.max(1, +v.textContent - 1); qtyRefresh(); }));

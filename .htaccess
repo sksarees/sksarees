@@ -1,0 +1,8 @@
+# SK Sarees — faster mobile loading (gzip compression)
+# Works on Apache hosting (InfinityFree, Hostinger, cPanel…). Harmless if ignored.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>

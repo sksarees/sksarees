@@ -184,7 +184,7 @@ h1,h2,h3{line-height:1.2;font-family:var(--font-display)}
 .price-row .off{color:var(--green);font-size:.72rem;font-weight:800}
 .pcard .p-actions{display:flex;gap:7px;margin-top:9px}
 .pcard .p-actions .btn{min-height:44px;padding:8px 4px;font-size:.8rem;border-radius:10px;flex:1 1 0;white-space:nowrap}
-.p-actions .btn-wa{flex:0 0 auto;width:44px;padding:0;justify-content:center;font-size:1.15rem}@media @media(max-width:380px){.pcard .p-actions{gap:5px}.pcard .p-actions .btn{font-size:.74rem;padding:8px 1px}}
+.p-actions .btn-wa{flex:0 0 auto;width:44px;padding:0;justify-content:center;font-size:1.15rem}@media @media(max-width:480px){.pcard .p-actions{gap:5px}.pcard .p-actions .btn{font-size:.74rem;padding:8px 1px}}
 
 /* ---------- Loader (infinite scroll) ---------- */
 .grid-loader{text-align:center;padding:18px 0 6px;color:var(--muted);font-size:.82rem;font-weight:700}
@@ -887,7 +887,7 @@ body.cartbar-on .ai-float{bottom:calc(138px + env(safe-area-inset-bottom))}@medi
     font-size:1.05rem;
     line-height:1;
   }
-}@media @media(max-width:380px){
+}@media @media(max-width:480px){
   .p-actions .btn.btn-outline[data-add]::before{ font-size:.95rem }
   .ca-quick{ min-width:52px }
   .ca-quick .ca-qp{ font-size:.46rem }
@@ -3563,7 +3563,7 @@ body[data-page="reels"] .topbar{ background:transparent !important; border-botto
 /* ── 3. 📱 BUY NOW — mobile number popup ─────────────────────────────────── */
 .bn-ov{ position:fixed; inset:0; z-index:130; background:rgba(32,33,36,.58); display:flex; align-items:center; justify-content:center; padding:18px; animation:bnFade .16s ease }
 @keyframes bnFade{ from{ opacity:0 } to{ opacity:1 } }
-.bn-card{ background:#fff; border-radius:14px; width:100%; max-width:380px; padding:22px 18px 16px; position:relative; text-align:center; box-shadow:0 14px 44px rgba(0,0,0,.28); animation:bnIn .18s ease }
+.bn-card{ background:#fff; border-radius:14px; width:100%; max-width:480px; padding:22px 18px 16px; position:relative; text-align:center; box-shadow:0 14px 44px rgba(0,0,0,.28); animation:bnIn .18s ease }
 @keyframes bnIn{ from{ transform:translateY(16px); opacity:0 } to{ transform:none; opacity:1 } }
 .bn-x{ position:absolute; top:8px; right:8px; width:34px; height:34px; border-radius:9px; background:none; border:0; font-size:.95rem; color:var(--muted); cursor:pointer }
 .bn-x:active{ background:var(--bg) }
@@ -3995,23 +3995,134 @@ body[data-page="product"] .bn-ic{ background:#FFE4EE }
    🔍 PRODUCT PAGE — IndiaMART clean top + DARK RED BUY NOW (2026-09-29 #9)
    No SK header, no promo strip — just a search bar. Product first.
    ========================================================================== */
-body[data-page="product"] .promo-strip{ display:none !important }
-body[data-page="product"] .topbar{ display:none !important }
-body[data-page="product"] .wa-float,
-body[data-page="product"] .ai-float{ display:none !important }
 
-/* search-bar top (back arrow + IndiaMART search) */
-.pd-searchbar{ display:flex; gap:8px; align-items:center; padding:10px 12px 0 }
-.pd-searchbar .im-search{ flex:1; min-width:0; margin:0 }
-.pd-searchbar .im-search input{ padding:11px 14px }
-.pd-back{
-  flex:0 0 auto; width:42px; height:42px; display:flex; align-items:center; justify-content:center;
-  background:#fff; border:1px solid #F5C6D8; border-radius:10px; color:#212121;
-}
-.pd-back:active{ background:#FFF0F5 }
 
 /* 🔴 BUY NOW = DARK RED */
 .btn-pd-buy{ background:#B71C1C !important; color:#fff !important }
 body[data-page="product"] .btn-pd-buy{ background:#B71C1C !important; color:#fff !important }
 .btn-pd-buy::after{ border-color:#B71C1C }
 .rpc-buy{ background:#B71C1C !important; color:#fff !important }
+
+/* ============================================================================
+   ⬛⬜ SK SIMPLE B&W 2026 v10 — BUY-focused product page
+   Text BLACK • links CLASSIC WEB BLUE (#1155CC) • WhatsApp GREEN •
+   BUY NOW RED • everything else simple black & white.
+   ========================================================================== */
+:root{
+  --maroon:#111111; --maroon-d:#000000; --maroon-deep:#000000; --maroon-soft:#f2f2f2;
+  --gold:#111111; --gold-l:#666666; --gold-soft:#f7f7f7;
+  --bg:#ffffff; --card:#ffffff; --ink:#111111; --muted:#555555; --line:#e5e5e5;
+  --r:8px; --r-sm:6px; --sh:none; --sh-sm:none;
+  --green:#0E9F4F; --red:#B71C1C;
+  --orkut:#B71C1C; --orkut-d:#8E1414; --orkut-line:#e5e5e5; --orkut-head:#f2f2f2;
+  --orkut-link:#1155CC; --orkut-ink:#333333;
+}
+body{ background:#fff !important; color:#111 }
+h1,h2,h3,h4,b,strong{ color:#111 }
+a{ color:#1155CC }
+.small,.muted{ color:#555 }
+
+/* buttons: simple BLACK & WHITE */
+.btn-maroon,.btn-gold,.btn-pay,.btn-buy,.btn-buygreen{
+  background:#111 !important; color:#fff !important; border:0 !important; box-shadow:none !important;
+}
+.btn-outline{ background:#fff !important; color:#111 !important; border:1.5px solid #111 !important; box-shadow:none !important }
+.btn-ghost{ background:transparent !important; color:#111 !important; border:1.5px solid #ccc !important }
+
+/* 💚 WhatsApp = GREEN (order + real video) */
+.btn-wa{ background:#0E9F4F !important; color:#fff !important; border:0 !important; box-shadow:none !important }
+.btn-wa svg{ fill:#fff }
+.btn-wa-o{ background:#fff !important; color:#0E9F4F !important; border:1.5px solid #0E9F4F !important; box-shadow:none !important }
+.btn-wa-o svg{ fill:#0E9F4F }
+.im-btn-order{ background:#0E9F4F; color:#fff }
+.im-btn-order:hover{ background:#0B8A43 }
+.im-btn-order svg{ fill:#fff }
+.im-wa-btn{ background:#0E9F4F; color:#fff }
+.im-wa-btn svg{ fill:#fff }
+.im-shop-btn{ background:#111; color:#fff }
+.wa-float{ background:#0E9F4F }
+.sticky-bar.sb2 .sb-wa{ background:#0E9F4F !important; border:0 !important; border-radius:10px !important }
+.sticky-bar.sb2 .sb-wa svg{ fill:#fff }
+.prp-btn{ background:#0E9F4F !important; color:#fff !important; border:0 !important; border-radius:10px !important }
+
+/* 🔴 BUY NOW = RED (the only red) */
+.btn-pd-buy{ background:#B71C1C !important; color:#fff !important; border:0 !important; box-shadow:none !important; font-weight:800 !important }
+body[data-page="product"] .btn-pd-buy{ background:#B71C1C !important; color:#fff !important }
+.btn-pd-buy::after{ border-color:#B71C1C }
+.rpc-buy{ background:#B71C1C !important; color:#fff !important }
+.im-off,.pd-price .off,.lpc-off{ background:#B71C1C; color:#fff; box-shadow:none }
+.cart-badge{ background:#B71C1C; color:#fff; border:2px solid #fff }
+
+/* B&W chrome */
+.promo-strip{ background:#111 !important; color:#fff !important }
+.logo{ color:#111 !important }
+.logo-badge{ background:#111 }
+.drawer-head{ background:#111 }
+.im-cat{ background:#fff; border:1px solid #111; color:#111 }
+.im-cat.on{ background:#111; border-color:#111; color:#fff }
+.cat-chips .chip{ background:#fff; border:1px solid #ccc; color:#111 }
+.cat-chips .chip.on{ background:#111; border-color:#111; color:#fff }
+.qty button{ background:#fff; border:1px solid #e5e5e5; color:#111 }
+.steps-ui .step-dot.on .dot,.steps-ui .step-dot.done .dot{ background:#111 !important; color:#fff }
+.rvw-total{ background:#111 }
+.form-card .row.total b{ color:#B71C1C }
+.co-nudge a{ color:#1155CC }
+.sec-head h2 .tick{ background:#111 }
+::selection{ background:#111; color:#fff }
+.sk-footer{ background:#fff !important; border-top:1px solid #e5e5e5 }
+.sk-footer h4{ color:#111 !important }
+.f-grid a{ color:#555 !important }
+.f-social a{ color:#111 }
+.f-bottom{ color:#777 !important }
+
+/* product page: neutral B&W modules (pink/blue leftovers gone) */
+body[data-page="product"] h1{ color:#111 }
+body[data-page="product"] .pd-trust span{ background:#f7f7f7; border:1px solid #e5e5e5; color:#333 }
+body[data-page="product"] .pd-ship{ background:#f7f7f7; border:1px solid #e5e5e5; color:#333 }
+body[data-page="product"] .pd-realphoto,
+body[data-page="product"] .pd-realvideo{ background:#f7f7f7; border:1px solid #e5e5e5 }
+body[data-page="product"] .rev-form{ background:#fafafa !important; border-color:#e5e5e5 !important }
+body[data-page="product"] .sticky-bar.sb2 .sb-price b{ color:#111 }
+body[data-page="product"] .sticky-bar.sb2 .sb-price small{ color:#333 }
+body[data-page="product"] .pin-check b{ color:#333 }
+body[data-page="product"] .pd-colour.on{ background:#111; border-color:#111; color:#fff }
+body[data-page="product"] .qty button{ border-color:#e5e5e5; color:#111 }
+
+/* 🔴 floating BUY bar — MOBILE ONLY, never on desktop */
+@media(min-width:900px){ .sticky-bar.sb2{ display:none !important } }
+
+/* 📱 first screen = BUY focused: photo capped so name+price+BUY are visible */
+@media(max-width:899px){
+  .pd-gal .main{ background:#fff }
+  .pd-gal .main img{ max-height:52vh; width:100%; object-fit:contain }
+}
+
+/* ── new product blocks ── */
+.pd-offer{
+  background:#FFF5F5; border:1px solid #F2B8B5; color:#B71C1C;
+  border-radius:8px; padding:8px 12px; margin:8px 0 10px;
+  font-weight:800; font-size:.85rem;
+}
+.pd-offer small{ color:#777; font-weight:600 }
+.pd-buy-sub{ text-align:center; font-size:.74rem; color:#555; font-weight:700; margin:-2px 0 10px }
+.pd-realvideo{
+  background:#F2FBF5; border:1px solid #BFE8CC; border-radius:10px;
+  padding:12px; display:grid; gap:9px; margin:0 0 10px;
+}
+.pd-realvideo .prp-txt b{ color:#0B6B36; font-size:.9rem }
+.pd-realvideo .prp-txt small{ color:#3D6B4F; display:block; margin-top:3px; line-height:1.5 }
+.pd-love{ background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:12px 14px; margin:14px 0 0 }
+.pd-love b{ font-size:.95rem }
+.pd-love ul{ margin:8px 0 0; padding-left:2px; list-style:none; display:grid; gap:5px }
+.pd-love li{ color:#333; font-size:.85rem; font-weight:600 }
+.pd-bottomcta{ border:1px solid #e5e5e5; border-radius:10px; padding:14px; margin-top:16px; text-align:center; background:#fafafa }
+.pd-bottomcta > b{ display:block; font-size:1.02rem; margin-bottom:10px; color:#111 }
+.pd-bottomcta .pbc-btns{ display:grid; gap:10px }
+
+/* 🖥 desktop clarity: tidy single CTA column, roomy grid */
+@media(min-width:900px){
+  .pd-wrap{ gap:28px }
+  .pd-btns{ grid-template-columns:1fr !important; max-width:460px }
+  .pd-love,.pin-check,.pd-bottomcta{ max-width:560px }
+  .pd-bottomcta{ margin-left:auto; margin-right:auto }
+}
