@@ -2859,7 +2859,9 @@ function renderProduct(){
   const low = !out && p.stock <= 5;
   const thumbs = gallery.map((u, i) => '<button type="button" class="pd-thumb' + (i === 0 ? ' on' : '') + '" data-thumb="' + i + '" aria-label="Photo ' + (i + 1) + '"><img src="' + esc(u) + '" alt="" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></button>').join('');
   const vidBlock = p.video
-    ? '<div class="pd-video"><h3>🎬 Product Video</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>'
+    ? '<div class="pd-video"><h3>🎬 SEE THE SAREE IN REAL VIDEO</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
+      '<p class="pdv-more">Want more real photos/videos?</p>' +
+      '<a class="btn prp-btn" style="width:100%;box-sizing:border-box" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO ON WHATSAPP</a></div>'
     : '';
   /* 📄 Product + 🧭 Breadcrumb JSON-LD schema (SEO) */
   try{
@@ -2903,22 +2905,23 @@ function renderProduct(){
       '</div>' +
       '<div class="pd-info">' +
         '<span class="pd-cat">' + (cat ? cat.emoji + ' ' + esc(cat.name) : '') + '</span>' +
-        '<h1>' + esc(smartTitle(p)) + '</h1>' +
         starsHTML(p) +
-        /* 💰 CLEAN PRICE — struck MRP → big price → % off (that's all) */
-        '<div class="pd-price">' + (p.mrp && p.mrp > p.price ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
-        ((p.mrp && p.mrp > p.price && !out)
-          ? '<div class="pd-offer">🔥 <b>TODAY OFFER PRICE</b> — You Save <b>' + money(p.mrp - p.price) + '</b><br><small>⏳ Offer price may change after today</small></div>'
-          : '') +
+        '<h1>' + esc(smartTitle(p)) + '</h1>' +
+        /* 🧵 one-line honest benefit (from real product data only) */
+        '<p class="pd-benefit">' + esc([p.fabric, cat ? cat.name : '', (p.blouse || '')].filter(Boolean).join(' • ')) + '</p>' +
+        /* 💰 PRICE — current price dominant; old price smaller; honest savings */
+        '<div class="pd-priceblock">' +
+          (p.mrp && p.mrp > p.price && !out ? '<span class="pdlbl">TODAY\'S SPECIAL PRICE</span>' : '<span class="pdlbl">PRICE</span>') +
+          '<div class="pd-price">' + (p.mrp && p.mrp > p.price ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
+          (p.mrp && p.mrp > p.price && !out ? '<p class="pd-save">You Save ' + money(p.mrp - p.price) + '</p>' : '') +
+        '</div>' +
         /* 🛡️ trust chips — right under the price (kills hesitation instantly) */
-        '<ul class="pd-checks"><li>✓ Quality Checked</li><li>✓ Fast Delivery</li><li>✓ COD Available</li><li>✓ 7-Day Return</li><li>✓ Secure Packaging</li></ul>' +
-        /* 💵 ONE clear line — no math for the customer (COD charge + delivery time) */
-        '<div class="pd-ship">💵 <b>COD AVAILABLE</b> — ₹' + (CONFIG.codFee || 100) + ' booking + courier • 🚚 TN <b>2–4 days</b>, other states 3–7 days • ⚡ <b>Dispatch within 24 hrs</b> • 🎉 <b>FREE shipping above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</b></div>' +
         (out
           ? '<div class="lowchip out" style="margin:6px 0">😮 <b>Out of stock</b> — ask us on WhatsApp, next batch arriving soon!</div>'
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '<div class="instock" style="margin:6px 0">✅ <b>In stock</b> — order today, dispatched within 24 hrs</div>') +
+        '<ul class="pd-checks"><li>✓ COD Available</li><li>✓ 7-Day Replacement</li><li>✓ Quality Checked</li><li>✓ Fast Dispatch</li></ul>' +
         /* 🎨 COLOUR SELECTION — pick her favourite, rides into checkout */
         ((p.colors || []).length
           ? '<div class="pd-colours" id="pdColours"><small class="muted" style="font-weight:800">🎨 ' + loc('நிறம் தேர்ந்தெடுங்கள்:', 'రంగు ఎంచుకోండి:', 'ಬಣ್ಣ ಆರಿಸಿ:', 'Choose colour:') + '</small><div class="pd-chips">' +
@@ -2933,24 +2936,36 @@ function renderProduct(){
             : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>') +
           (out ? '' : '<p class="pd-buy-sub">✅ COD Available • Secure Order</p>') +
           /* 📱 REAL VIDEO — Facebook/Instagram traffic goes straight to WhatsApp */
-          '<div class="pd-realvideo"><div class="prp-txt"><b>✅ ' + loc('இந்த சேலை இப்போது AVAILABLE-ஆ இருக்கா?', 'ఈ చీర ఇప్పుడు అందుబాటులో ఉందా?', 'ಈ ಸೀರೆ ಈಗ ಲಭ್ಯವಿದೆಯಾ?', 'Is this saree available now?') + '</b><small>WhatsApp-ல் <b>"' + esc(p.sku || p.id) + '"</b> ' + loc('என்று அனுப்புங்கள் — உடனே availability + real video/photos அனுப்புகிறோம்!', 'అని పంపండి — వెంటనే availability + video/photos పంపుతాము!', 'ಎಂದು ಕಳುಹಿಸಿ — ತಕ್ಷಣ availability + video/photos ಕಳುಹಿಸುತ್ತೇವೆ!', 'on WhatsApp — we confirm availability + send real video/photos right away!') + '</small></div>' +
-            '<a class="btn prp-btn" href="' + waLink('Hi SK Sarees, இந்த saree இப்போது available-ஆ? Real video/photos-ஆ அனுப்புங்க:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p)) + '" target="_blank" rel="noopener">✅ CHECK AVAILABILITY ON WHATSAPP</a>' +
+          '<div class="pd-realvideo"><div class="prp-txt"><b>📹 ' + loc('இந்த சேலையின் REAL VIDEO/PHOTOS வேண்டுமா?', 'ఈ చీర real video/photos కావాలా?', 'ಈ ಸೀರೆಯ real video/photos ಬೇಕಾ?', 'Want real video/photos of this saree?') + '</b><small>' + loc('Order பண்ணும் முன் உண்மையான வீடியோ பாருங்க!', 'ఆర్డర్ ముందు real video చూడండి!', 'ಆರ್ಡರ್ ಮೊದಲು real video ನೋಡಿ!', 'See the real saree before you order.') + '</small></div>' +
+            '<a class="btn prp-btn" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO ON WHATSAPP</a>' +
           '</div>' +
           '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
-        '<div class="pd-delivery"><b>🚚 Check Delivery &amp; Order</b>' +
-          '<div class="pdl-grid">' +
-            '<input id="pdlName" placeholder="Your name" maxlength="40" autocomplete="name" value="' + esc(draftD.name || '') + '">' +
-            '<input id="pdlPhone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="Mobile number (10 digits)" value="' + esc(draftD.phone || '') + '">' +
-          '</div>' +
-          '<textarea id="pdlAddr" rows="2" autocomplete="street-address" placeholder="Full address (house no, street, area, city, state)">' + esc(draftD.address || '') + '</textarea>' +
-          '<div class="pdl-grid">' +
-            '<input id="pdlPin" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="Pincode (6 digits)" value="' + esc(draftD.pincode || '') + '">' +
-            '<button type="button" id="pdlBtn">Check Delivery →</button>' +
+        '<div class="pd-delivery"><b>🚚 DELIVERY INFORMATION</b>' +
+          '<div class="pdl-rows"><span>Tamil Nadu</span><b>2–3 Days</b></div>' +
+          '<div class="pdl-rows"><span>Andhra / Karnataka</span><b>3–4 Days</b></div>' +
+          '<div class="pdl-rows"><span>Other States</span><b>5–7 Days</b></div>' +
+          '<div class="pdl-rows"><span>Dispatch</span><b>Within 24 Hours</b></div>' +
+          '<div class="pdl-pinrow">' +
+            '<input id="pdlPin" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="Enter PIN Code" value="' + esc(draftD.pincode || '') + '" aria-label="PIN code">' +
+            '<button type="button" id="pdlBtn">CHECK</button>' +
           '</div>' +
           '<p class="small" id="pdlResult" style="margin:0;color:#333"></p>' +
         '</div>' +
+        /* 📦 WHAT YOU RECEIVE — honest, from product data */
+        '<div class="pd-receive"><b>📦 WHAT YOU RECEIVE</b><ul><li>1 Saree' + (p.blouse ? ' — ' + esc(p.blouse) : '') + '</li></ul></div>' +
+        /* ❓ compact FAQ — real policies only */
+        '<div class="pd-faq"><b>❓ QUICK QUESTIONS</b>' +
+          '<details><summary>Is COD available?</summary><div>Yes — Cash on Delivery is available (₹' + (CONFIG.codFee || 100) + ' booking + courier). Balance at delivery.</div></details>' +
+          '<details><summary>How many days will delivery take?</summary><div>Tamil Nadu 2–3 days • Andhra/Karnataka 3–4 days • Other states 5–7 days.</div></details>' +
+          '<details><summary>When will my order be dispatched?</summary><div>Within 24 hours of order confirmation.</div></details>' +
+          '<details><summary>Can I see a real video before ordering?</summary><div>Yes! Send us the SKU on WhatsApp — we share the real video/photos right away.</div></details>' +
+          '<details><summary>What is the replacement policy?</summary><div>7-day easy replacement — damaged, wrong or defective sarees are replaced. Contact us on WhatsApp.</div></details>' +
+          '<details><summary>How can I contact SK Sarees?</summary><div>WhatsApp / Call: <a href="tel:+91' + CONFIG.waNumber.slice(2) + '">+91 ' + CONFIG.waDisplay + '</a> • 9 AM – 9 PM, all days.</div></details>' +
+        '</div>' +
+        /* ↩️ replacement trust card */
+        '<div class="pd-replace"><b>↩️ 7-DAY EASY REPLACEMENT</b><small>Arrived damaged, wrong or defective? Contact SK Sarees on WhatsApp within 7 days — we will replace it. <a href="return-policy.html">Full policy →</a></small></div>' +
         /* ✨ Why You'll Love This Saree — short, honest, convertible */
         '<div class="pd-love"><b>✨ ' + loc("Why You'll Love This Saree", "Why You'll Love This Saree", "Why You'll Love This Saree", "Why You'll Love This Saree") + '</b>' +
           '<ul>' +
@@ -2973,21 +2988,15 @@ function renderProduct(){
             '<input id="rvPhoto" type="file" accept="image/*" style="display:none" onchange="attachReviewPhoto(this)">' +
             '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ Post Testimonial</button>' +
           '</div></div>' +
+        '<div id="wearingGallery"></div>' +
         
       '</div>' +
     '</div>' +
-    /* ❤️ bottom CTA — one more BUY after reading everything */
-    (out ? '' : '<div class="wrap"><div class="pd-bottomcta"><b>❤️ ' + loc('பிடித்திருக்கா?', 'నచ్చిందా?', 'ಇಷ್ಟವಾಯಿತಾ?', 'Loved this saree?') + '</b>' +
-      '<div class="pbc-btns">' +
-        '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBottom" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
-        '<a class="btn btn-wa-o" href="' + waLink('Hi SK Sarees, இந்த saree இப்போது available-ஆ? Real video/photos-ஆ அனுப்புங்க:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'Check Availability</a>' +
-      '</div></div></div>') +
     '<div class="wrap" id="recSection"></div>' +
-    /* 📌 sticky bottom CTA — BUY NOW + WHATSAPP ORDER (mobile, spec) */
+    /* 📌 sticky mobile purchase bar — [WhatsApp] [BUY NOW — ₹X] */
     '<div class="sticky-bar sb2">' +
-      '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b>' + (off >= 5 ? '<small>🔥 ' + off + '% off</small>' : '<small>' + esc(p.sku || '') + '</small>') + '</div>' +
-      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW</button>' +
       '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -3004,6 +3013,7 @@ function renderProduct(){
   }catch(e){}
   /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
+  try{ const rh = document.querySelector('#recSection h2'); if (rh) rh.innerHTML = '🧵 You May Also Like'; }catch(e2){}
   /* 💰 Share & Earn box under the product */
   try{
     const earnWa = document.getElementById('earnWa');
@@ -3118,6 +3128,7 @@ function renderProduct(){
   }));
   /* 📡 reviews + photos from ALL customers (Firestore — one read) */
   try{ loadRemoteReviews(p); }catch(e){}
+  try{ buildWearingGallery(p); }catch(e){}
 
 }
 
@@ -3237,8 +3248,24 @@ function loadRemoteReviews(p){
         const seen = new Set(local.map(r => (r.name || '') + '|' + (r.text || '')));   /* don't repeat her own */
         const fresh = list.filter(r => r && r.text && !seen.has((r.name || '') + '|' + (r.text || ''))).slice(0, 8);
         if (fresh.length) box.innerHTML = fresh.map(revCardHTML).join('');
+        try{ buildWearingGallery(p); }catch(e3){}
       }catch(e){}
     }).catch(() => {});
+  }catch(e){}
+}
+/* 📸 CUSTOMERS WEARING SK SAREES — real review photos only (never fake) */
+function buildWearingGallery(p){
+  try{
+    const box = document.getElementById('wearingGallery');
+    if (!box) return;
+    let photos = [];
+    try{ (LS.get('sk_reviews_' + p.id, []) || []).forEach(r => { if (r && r.photo) photos.push(r.photo); }); }catch(e2){}
+    document.querySelectorAll('#remoteRevs .rev-photo img').forEach(im => { const s = im.getAttribute('src'); if (s) photos.push(s); });
+    photos = photos.filter((u, i) => photos.indexOf(u) === i).slice(0, 10);
+    if (photos.length < 1){ box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="pd-wear"><b>📸 CUSTOMERS WEARING SK SAREES</b><div class="pd-wear-strip">' +
+      photos.map(u => '<img src="' + esc(u) + '" alt="Customer wearing this saree" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">').join('') +
+      '</div></div>';
   }catch(e){}
 }
 let __revPhoto = '';

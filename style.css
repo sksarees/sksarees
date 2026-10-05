@@ -4237,3 +4237,92 @@ body[data-page="product"] .btn-pd-buy{ background:#B71C1C !important; color:#fff
 .status-shipped{ background:#E3F2FD; color:#1155CC; border:1px solid #BBDEFB }
 .status-delivered{ background:#E8F5E9; color:#0B6B36; border:1px solid #BFE8CC }
 .status-cancelled{ background:#FFEBEE; color:#B00020; border:1px solid #FFCDD2 }
+
+/* ============================================================================
+   🎯 v13 — CONVERSION PRODUCT PAGE (2026-10-05) — spec build
+   One brand accent (red) • white surface • subtle borders • 12px radius
+   ========================================================================== */
+:root{
+  --brand:#B71C1C; --text:#1A1A1A; --muted:#666666; --border:#E8E8E8;
+  --surface:#FFFFFF; --success:#0E9F4F; --danger:#B71C1C;
+  --radius:12px; --shadow:0 2px 10px rgba(0,0,0,.06);
+}
+/* hero — rating above name, one-line benefit */
+.pd-benefit{ font-size:.8rem; color:#666; margin:2px 0 10px; line-height:1.5 }
+.pd-priceblock{ margin:2px 0 10px }
+.pdlbl{ font-size:.6rem; font-weight:800; letter-spacing:.8px; color:var(--brand); text-transform:uppercase; display:block; margin-bottom:2px }
+.pd-price b{ font-size:clamp(1.55rem,6vw,1.9rem) !important; color:#111 }
+.old-price{ font-size:.85rem !important; color:#999 !important; font-weight:600 }
+.pd-save{ color:var(--brand); font-weight:800; font-size:.85rem; margin:3px 0 0 }
+
+/* trust strip — 2x2 mobile grid */
+.pd-checks{ display:grid !important; grid-template-columns:1fr 1fr; gap:6px; margin:10px 0 !important; padding:0 !important; list-style:none }
+.pd-checks li{
+  background:#FAFAFA; border:1px solid var(--border); color:#333;
+  border-radius:8px; padding:8px 9px; font-size:.72rem; font-weight:700;
+  display:flex; align-items:center; gap:5px;
+}
+
+/* delivery card + PIN checker */
+.pd-delivery{ border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin:14px 0 0; background:var(--surface); display:grid; gap:0 }
+.pd-delivery > b{ font-size:.74rem; letter-spacing:.6px; display:block; margin-bottom:6px; color:#111; text-transform:uppercase }
+.pdl-rows{ display:flex; justify-content:space-between; font-size:.78rem; padding:6px 0; border-bottom:1px dashed #F0F0F0; color:#555 }
+.pdl-rows b{ color:#111 }
+.pdl-pinrow{ display:grid; grid-template-columns:1fr 110px; gap:8px; margin-top:10px }
+.pdl-pinrow input{ border:1.5px solid var(--border); border-radius:8px; padding:11px 12px; font-size:16px; outline:none; min-height:48px; width:100%; box-sizing:border-box }
+.pdl-pinrow input:focus{ border-color:var(--brand) }
+#pdlBtn{ background:#111; color:#fff; border:0; border-radius:8px; font-weight:800; min-height:48px; cursor:pointer; font-size:.85rem }
+#pdlBtn:active{ background:#000; transform:scale(.98) }
+
+/* WHAT YOU RECEIVE */
+.pd-receive{ border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-top:12px; background:var(--surface) }
+.pd-receive > b{ font-size:.74rem; letter-spacing:.6px; display:block; margin-bottom:6px; color:#111; text-transform:uppercase }
+.pd-receive ul{ list-style:none; margin:0; padding:0 }
+.pd-receive li{ font-size:.85rem; color:#333; font-weight:600; padding:3px 0 }
+
+/* FAQ accordion */
+.pd-faq{ border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-top:12px; background:var(--surface) }
+.pd-faq > b{ font-size:.74rem; letter-spacing:.6px; display:block; margin-bottom:4px; color:#111; text-transform:uppercase }
+.pd-faq details{ border-bottom:1px solid #F0F0F0 }
+.pd-faq details:last-child{ border-bottom:0 }
+.pd-faq summary{
+  cursor:pointer; font-size:.82rem; font-weight:700; color:#222; padding:10px 0;
+  list-style:none; display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.pd-faq summary::-webkit-details-marker{ display:none }
+.pd-faq summary::after{ content:'+'; font-weight:900; color:var(--brand); font-size:1.05rem; flex:0 0 auto }
+.pd-faq details[open] summary::after{ content:'−' }
+.pd-faq summary:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; border-radius:4px }
+.pd-faq details > div{ font-size:.78rem; color:#555; padding:0 0 10px; line-height:1.65 }
+
+/* 7-day replacement trust card */
+.pd-replace{ border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-top:12px; background:var(--surface) }
+.pd-replace > b{ font-size:.74rem; letter-spacing:.6px; display:block; margin-bottom:4px; color:#111; text-transform:uppercase }
+.pd-replace small{ color:#555; font-size:.76rem; line-height:1.65; display:block }
+.pd-replace a{ color:#1155CC; font-weight:700 }
+
+/* CUSTOMERS WEARING gallery */
+.pd-wear{ border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-top:12px; background:var(--surface) }
+.pd-wear > b{ font-size:.74rem; letter-spacing:.6px; display:block; margin-bottom:8px; color:#111; text-transform:uppercase }
+.pd-wear-strip{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; -webkit-overflow-scrolling:touch }
+.pd-wear-strip::-webkit-scrollbar{ display:none }
+.pd-wear-strip img{ width:110px; height:132px; object-fit:cover; border-radius:10px; flex:0 0 auto; border:1px solid #EEE }
+
+/* video section */
+.pd-video h3{ font-size:.9rem; letter-spacing:.4px }
+.pdv-more{ font-size:.8rem; color:#555; margin:10px 0 8px; font-weight:600 }
+
+/* first viewport: gallery capped so BUY NOW is visible without scrolling */
+@media(max-width:899px){
+  .pd-gal .main img{ max-height:50vh; width:100%; object-fit:contain }
+}
+
+/* sticky purchase bar — [WhatsApp][BUY NOW — ₹X] */
+.sticky-bar.sb2{ gap:8px }
+.sticky-bar.sb2 .btn-pd-buy{ flex:1; font-size:.9rem; min-height:52px }
+.sb-wa-lbl{ flex:0 0 auto; width:52px; min-height:52px }
+
+/* accessibility + micro-interactions */
+.btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible{ outline:2px solid var(--brand); outline-offset:2px }
+.btn-pd-buy:active, .prp-btn:active{ transform:scale(.98) }
+.pd-thumb.on{ border-color:var(--brand) }
