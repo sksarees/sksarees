@@ -13,7 +13,7 @@ const CONFIG = {
   upiId     : 'sk7867915699-1@oksbi',
   upiName   : 'SK SAREES',
   codFee    : 100,
-  shipFreeAbove : 2999,
+  shipFreeAbove : 1999,                /* 🎉 FREE courier above ₹1,999 */
   /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
      1 saree TN ₹30 · 2 sarees ₹60 · 3 sarees ₹90 (per unit × qty). */
   shipFee       : 30,
@@ -1159,13 +1159,13 @@ function waProductMsg(p){
      if the sharer is a reseller the link carries ?ref=CODE (any page) */
   const url = shareUrl(p);
   const off = offPct(p);
-  return `🪡 Hi! I want to order this saree from SK Sarees 🛍️\n\n✨ ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n👉 ${url}\n\nPlease send more saree photos & confirm availability 😊`;
+  return `Hi SK Sarees, I am interested in this saree. Please send me the order details.\n\n🪡 ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n👉 ${url}`;
 }
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
   Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal();
-  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} with online payment • 💵 COD — ₹${CONFIG.codFee || 100} booking, courier FREE\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
+  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} (online) / ₹${CONFIG.codFee || 100} (COD) — FREE above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')}\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
   return m;
 }
 /* 💬 WhatsApp templates — fully defensive: any order (even with missing
@@ -1201,8 +1201,8 @@ function upiAppLink(app, amount, note){
 }
 function calcTotals(payment, pincode){
   const itemsTotal = cartTotal();
-  const codFee = payment === 'cod' ? (CONFIG.codFee || 100) : 0;
-  const shipping = payment === 'cod' ? 0 : (CONFIG.shipFee || 30);
+  const codFee = 0;
+  const shipping = itemsTotal >= (CONFIG.shipFreeAbove || 1999) ? 0 : (payment === 'cod' ? (CONFIG.codFee || 100) : (CONFIG.shipFee || 30));
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
 }
 
@@ -1253,6 +1253,7 @@ document.addEventListener('click', function(e){
    Usage is tracked in sk_coupon_used (a map code → count). */
 function defaultCoupons(){
   return [
+    { code:'WELCOME50', type:'flat',   value:50, min:999, active:true, label:'First order — ₹50 off', maxUses:0, expiry:'' },
     { code:'AP5',    type:'percent', value:5,  min:0,   active:true, label:'Aadi Festival — 5% off', maxUses:0, expiry:'' },
     { code:'CARTOFFER', type:'percent', value:1, min:0, active:true, label:'Cart reminder — 1% off', maxUses:0, expiry:'' },
     { code:'LATE50', type:'percent', value:5, min:0, active:true, label:'Late delivery — 5% off', maxUses:0, expiry:'' },
@@ -3105,7 +3106,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 Courier ₹${CONFIG.shipFee || 30} (Online) &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Courier FREE &nbsp;•&nbsp; 👥 2,300+ Happy Customers on WhatsApp Bookings &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 🚚 FREE Shipping above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')} &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking + Courier &nbsp;•&nbsp; 👥 2,300+ Happy Customers on WhatsApp Bookings &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   try{
     const so = document.querySelector('[data-authonly]');

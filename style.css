@@ -4126,3 +4126,75 @@ body[data-page="product"] .qty button{ border-color:#e5e5e5; color:#111 }
   .pd-love,.pin-check,.pd-bottomcta{ max-width:560px }
   .pd-bottomcta{ margin-left:auto; margin-right:auto }
 }
+
+/* ============================================================================
+   👑 SK PREMIUM — WHITE + GOLD/BLACK (v11) — product page per spec
+   Clean premium look: white bg, black text, elegant gold accents.
+   BUY NOW = bold BLACK • WhatsApp = GREEN • links = web blue.
+   ========================================================================== */
+:root{
+  --gold:#B8860B; --gold-l:#D4AF37; --gold-soft:#FBF6E9;
+  --maroon:#111111; --maroon-d:#000000; --maroon-deep:#000000; --maroon-soft:#f2f2f2;
+  --bg:#ffffff; --card:#ffffff; --ink:#111111; --muted:#555555; --line:#e5e5e5;
+  --green:#0E9F4F; --red:#B71C1C;
+  --orkut:#111111; --orkut-d:#000000; --orkut-line:#EAD9A8; --orkut-head:#FBF6E9;
+  --orkut-link:#1155CC; --orkut-ink:#5D4A12;
+}
+
+/* 🧭 breadcrumb */
+.pd-breadcrumb{ font-size:.72rem; color:#777; padding:10px 0 0; }
+.pd-breadcrumb a{ color:#1155CC; text-decoration:none; font-weight:700 }
+.pd-breadcrumb span{ color:#B8860B; font-weight:900 }
+
+/* ✓ trust list (gold chips) */
+.pd-checks{ list-style:none; display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; padding:0 }
+.pd-checks li{
+  background:#FBF6E9; border:1px solid #EAD9A8; color:#5D4A12;
+  border-radius:6px; padding:4px 9px; font-size:.7rem; font-weight:800;
+}
+
+/* stock availability */
+.instock{ background:#F2FBF5; border:1px solid #BFE8CC; color:#0B6B36; border-radius:8px; padding:8px 12px; font-size:.8rem; font-weight:700 }
+
+/* 🔴 BUY NOW = bold BLACK + gold pulse ring */
+.btn-pd-buy{ background:#111 !important; color:#fff !important; border:0 !important; box-shadow:none !important; font-weight:800 !important; border-radius:10px !important }
+body[data-page="product"] .btn-pd-buy{ background:#111 !important; color:#fff !important }
+.btn-pd-buy::after{ border-color:#B8860B }
+.rpc-buy{ background:#111 !important; color:#fff !important }
+
+/* gold accents */
+.im-off,.pd-price .off,.lpc-off{ background:#B8860B; color:#fff; box-shadow:none }
+.pd-offer{ background:#FBF6E9; border:1px solid #EAD9A8; color:#7A5C0E }
+.pd-gal{ border:1px solid #EAD9A8; border-radius:10px }
+body[data-page="product"] h1{ color:#111 }
+.qty-row b{ color:#111 }
+
+/* 🚚 delivery form */
+.pd-delivery{ background:#fff; border:1px solid #EAD9A8; border-radius:10px; padding:12px; margin:14px 0 0; display:grid; gap:8px }
+.pd-delivery > b{ font-size:.9rem; color:#111 }
+.pd-delivery input,.pd-delivery textarea{
+  border:1.5px solid #e5e5e5; border-radius:8px; padding:11px 12px; font-size:16px;
+  width:100%; box-sizing:border-box; background:#fff; outline:none; color:#111;
+}
+.pd-delivery input:focus,.pd-delivery textarea:focus{ border-color:#B8860B }
+.pd-delivery .pdl-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+.pd-delivery #pdlBtn{
+  background:#B8860B; color:#fff; border:0; border-radius:8px;
+  min-height:48px; font-weight:800; font-size:.9rem; cursor:pointer;
+}
+.pd-delivery #pdlBtn:active{ background:#96700A }
+
+/* 📌 sticky bottom CTA — BUY NOW (black) + WHATSAPP ORDER (green) */
+.sb-wa-lbl{
+  background:#0E9F4F !important; color:#fff !important; border:0 !important;
+  border-radius:10px !important; display:flex; align-items:center; justify-content:center;
+  gap:6px; flex:1; min-height:50px; font-weight:800 !important; font-size:.8rem;
+  text-decoration:none; white-space:nowrap;
+}
+.sb-wa-lbl svg{ fill:#fff; margin:0 }
+.sticky-bar.sb2 .btn-pd-buy{ flex:1; font-size:.88rem; min-height:50px }
+.sticky-bar.sb2 .sb-price{ min-width:64px }
+body[data-page="product"] .pd-btns .btn-wa-o{
+  background:#fff !important; color:#0E9F4F !important; border:1.5px solid #0E9F4F !important;
+}
+body[data-page="product"] .pd-btns .btn-wa-o svg{ fill:#0E9F4F }
