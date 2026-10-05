@@ -4198,3 +4198,42 @@ body[data-page="product"] .pd-btns .btn-wa-o{
   background:#fff !important; color:#0E9F4F !important; border:1.5px solid #0E9F4F !important;
 }
 body[data-page="product"] .pd-btns .btn-wa-o svg{ fill:#0E9F4F }
+
+/* ============================================================================
+   🔴 v12 — BUY NOW red • sticky WA icon • CHECK AVAILABILITY • modern Orders
+   ========================================================================== */
+/* BUY NOW = RED */
+.btn-pd-buy{ background:#B71C1C !important; color:#fff !important; border:0 !important; box-shadow:none !important; font-weight:800 !important }
+body[data-page="product"] .btn-pd-buy{ background:#B71C1C !important; color:#fff !important }
+.btn-pd-buy::after{ border-color:#B71C1C }
+.rpc-buy{ background:#B71C1C !important; color:#fff !important }
+
+/* sticky bar — WhatsApp icon only (no text) */
+.sb-wa-lbl{
+  flex:0 0 auto !important; width:52px; min-height:50px; padding:0 !important;
+  display:flex; align-items:center; justify-content:center;
+  background:#0E9F4F !important; border-radius:10px !important; font-size:1.15rem;
+}
+.sb-wa-lbl svg{ fill:#fff; margin:0 }
+.sticky-bar.sb2 .btn-pd-buy{ flex:1 }
+
+/* availability box (green) */
+.pd-realvideo{ background:#F2FBF5; border:1px solid #BFE8CC; border-radius:10px }
+
+/* 🧾 My Orders — modern clean cards */
+.order-card{
+  border-radius:14px !important; border:1px solid #ececec !important;
+  box-shadow:0 2px 12px rgba(0,0,0,.06) !important; background:#fff !important;
+  padding:14px !important; margin:10px 0 !important;
+}
+.order-card .oc-top{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding-bottom:8px; border-bottom:1px solid #f0f0f0 }
+.order-card .oc-top b{ font-size:1.02rem; color:#111; letter-spacing:.4px }
+.order-card .oc-items{ color:#666; font-size:.78rem; line-height:1.65; background:#fafafa; border-radius:10px; padding:8px 10px; margin:10px 0 }
+.status-pill{ padding:5px 12px !important; border-radius:999px !important; font-size:.64rem !important; font-weight:800; text-transform:uppercase; letter-spacing:.5px; box-shadow:none }
+.status-placed{ background:#FBF6E9; color:#8A6D1A; border:1px solid #EAD9A8 }
+.status-pending{ background:#FFF3E0; color:#B06000; border:1px solid #FFD9A8 }
+.status-confirmed{ background:#E8F5E9; color:#0B6B36; border:1px solid #BFE8CC }
+.status-packed{ background:#EDE7F6; color:#5E35B1; border:1px solid #D1C4E9 }
+.status-shipped{ background:#E3F2FD; color:#1155CC; border:1px solid #BBDEFB }
+.status-delivered{ background:#E8F5E9; color:#0B6B36; border:1px solid #BFE8CC }
+.status-cancelled{ background:#FFEBEE; color:#B00020; border:1px solid #FFCDD2 }

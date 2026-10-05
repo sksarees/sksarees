@@ -2811,7 +2811,7 @@ function renderHeader(){
       <a href="cart.html">🛒 ${t('cart')}</a>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="profile.html">👤 ${t('profile')}</a>
-      <a href="#" data-login="1">🔑 Login</a>
+      <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
       <a href="#" data-logout="1" data-authonly="1">🔓 Sign Out</a>
       <div class="sub">${t('shopByCategory')}</div>
       ${CATEGORIES.slice(0, 8).map(c => `<a href="${catUrl(c.slug)}">${c.emoji} ${c.name}</a>`).join('')}
@@ -2826,6 +2826,12 @@ function renderHeader(){
   document.getElementById('btnMenu').addEventListener('click', openDrawer);
   document.getElementById('overlay').addEventListener('click', closeDrawer);
   document.getElementById('drawerNav').addEventListener('click', e => { const a = e.target.closest('a'); if (a){ if (a.dataset.faq){ e.preventDefault(); closeDrawer(); if (typeof window.scrollToFaq === 'function') window.scrollToFaq(); } else closeDrawer(); } });
+  /* 🔑 logged in? → hide Login links, show Sign Out only */
+  try{
+    const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
+    h.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
+    h.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
+  }catch(e){}
   renderCartBadge();
 }
 function renderFooter(){
@@ -2873,7 +2879,7 @@ function renderFooter(){
         <a href="tel:+917867915699">📞 +91 78679 15699</a>
         <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 WhatsApp Group</a>
         <a href="${CONFIG.googleReview}" target="_blank" rel="noopener">⭐ Google Reviews</a>
-        <a href="#" data-login="1">🔑 Login</a>
+        <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
       </div>
       <div>
         <h4>Store</h4>
@@ -2892,6 +2898,11 @@ function renderFooter(){
     </div>
     <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu<br>Made with ❤️ for saree lovers</div>
   </footer>`;
+  try{
+    const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
+    f.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
+    f.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
+  }catch(e){}
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }

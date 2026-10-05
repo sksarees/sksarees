@@ -2933,8 +2933,8 @@ function renderProduct(){
             : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>') +
           (out ? '' : '<p class="pd-buy-sub">✅ COD Available • Secure Order</p>') +
           /* 📱 REAL VIDEO — Facebook/Instagram traffic goes straight to WhatsApp */
-          '<div class="pd-realvideo"><div class="prp-txt"><b>📱 ' + loc('இந்த சேலையின் REAL VIDEO வேண்டுமா?', 'ఈ చీర REAL VIDEO కావాలా?', 'ಈ ಸೀರೆಯ REAL VIDEO ಬೇಕಾ?', 'Want the REAL VIDEO of this saree?') + '</b><small>WhatsApp-ல் <b>"' + esc(p.sku || p.id) + '"</b> ' + loc('என்று அனுப்புங்கள் — உடனே real video + photos அனுப்புகிறோம்!', 'అని పంపండి — వెంటనే video + photos పంపుతాము!', 'ಎಂದು ಕಳುಹಿಸಿ — ತಕ್ಷಣ video + photos ಕಳುಹಿಸುತ್ತೇವೆ!', 'on WhatsApp — we send the real video + photos right away!') + '</small></div>' +
-            '<a class="btn prp-btn" href="' + waLink('📱 Hi! இந்த saree-ன் REAL VIDEO வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p) + '\n\nVideo அனுப்புங்க 🙏') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO →</a>' +
+          '<div class="pd-realvideo"><div class="prp-txt"><b>✅ ' + loc('இந்த சேலை இப்போது AVAILABLE-ஆ இருக்கா?', 'ఈ చీర ఇప్పుడు అందుబాటులో ఉందా?', 'ಈ ಸೀರೆ ಈಗ ಲಭ್ಯವಿದೆಯಾ?', 'Is this saree available now?') + '</b><small>WhatsApp-ல் <b>"' + esc(p.sku || p.id) + '"</b> ' + loc('என்று அனுப்புங்கள் — உடனே availability + real video/photos அனுப்புகிறோம்!', 'అని పంపండి — వెంటనే availability + video/photos పంపుతాము!', 'ಎಂದು ಕಳುಹಿಸಿ — ತಕ್ಷಣ availability + video/photos ಕಳುಹಿಸುತ್ತೇವೆ!', 'on WhatsApp — we confirm availability + send real video/photos right away!') + '</small></div>' +
+            '<a class="btn prp-btn" href="' + waLink('Hi SK Sarees, இந்த saree இப்போது available-ஆ? Real video/photos-ஆ அனுப்புங்க:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p)) + '" target="_blank" rel="noopener">✅ CHECK AVAILABILITY ON WHATSAPP</a>' +
           '</div>' +
           '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
         '</div>' +
@@ -2980,14 +2980,14 @@ function renderProduct(){
     (out ? '' : '<div class="wrap"><div class="pd-bottomcta"><b>❤️ ' + loc('பிடித்திருக்கா?', 'నచ్చిందా?', 'ಇಷ್ಟವಾಯಿತಾ?', 'Loved this saree?') + '</b>' +
       '<div class="pbc-btns">' +
         '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBottom" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
-        '<a class="btn btn-wa-o" href="' + waLink('📱 Hi! இந்த saree-ன் REAL VIDEO வேணும்:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Real Video</a>' +
+        '<a class="btn btn-wa-o" href="' + waLink('Hi SK Sarees, இந்த saree இப்போது available-ஆ? Real video/photos-ஆ அனுப்புங்க:\n\n🪡 ' + smartTitle(p) + '\n🏷️ Code: ' + esc(p.sku || p.id) + '\n👉 ' + shareUrl(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'Check Availability</a>' +
       '</div></div></div>') +
     '<div class="wrap" id="recSection"></div>' +
     /* 📌 sticky bottom CTA — BUY NOW + WHATSAPP ORDER (mobile, spec) */
     '<div class="sticky-bar sb2">' +
       '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b>' + (off >= 5 ? '<small>🔥 ' + off + '% off</small>' : '<small>' + esc(p.sku || '') + '</small>') + '</div>' +
       '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW</button>' +
-      '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WHATSAPP ORDER</a>' +
+      '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -3137,6 +3137,20 @@ function buyNowPopup(p, qty, colour){
   let known = '';
   try{ known = String(LS.get('sk_buyer_phone', '') || '').trim(); }catch(e){}
   if (!validPhone(known)){ try{ const pr = Store.profile || {}; if (validPhone(pr.phone)) known = String(pr.phone).trim(); }catch(e){} }
+  if (!validPhone(known)){ try{ const dft = loadCoDraft() || {}; if (validPhone(dft.phone)) known = String(dft.phone).trim(); }catch(e){} }
+  if (!validPhone(known)){ try{ const au = (typeof Auth !== 'undefined') ? Auth.current() : null; if (au && validPhone(au.phone)) known = String(au.phone).trim(); }catch(e){} }
+  /* ✅ number already saved → NO popup, straight to checkout (ask only the 1st time) */
+  if (validPhone(known)){
+    try{
+      let dft2 = {};
+      try{ dft2 = JSON.parse(localStorage.getItem('sk_co_draft') || '{}') || {}; }catch(e2){}
+      dft2.phone = known;
+      try{ localStorage.setItem('sk_co_draft', JSON.stringify(dft2)); }catch(e3){}
+      try{ sessionStorage.setItem('sk_co_draft', JSON.stringify(dft2)); }catch(e4){}
+    }catch(e2){}
+    buyNowGo(p.id, qty, colour);
+    return;
+  }
   try{ const oldOv = document.querySelector('.bn-ov'); if (oldOv) oldOv.remove(); }catch(e){}
   const ov = document.createElement('div');
   ov.className = 'bn-ov';
@@ -3523,7 +3537,7 @@ function coTotals(){
   const codFee = 0;
   const shipping = itemsTotal >= (CONFIG.shipFreeAbove || 1999) ? 0 : (co.data.payment === 'cod' ? (CONFIG.codFee || 100) : (CONFIG.shipFee || 30));
   const discount = couponDiscount(co.data.coupon, itemsTotal);
-  const bundle = bundleDiscount();               /* buy 2+ → ₹50 off */
+  const bundle = co.buyOnly ? 0 : bundleDiscount();   /* single-product order → NO bundle offer */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
   const online = 0;                              /* 1% online discount removed (2026-09-05) */
   const totalDisc = discount + bundle + pts;
@@ -3597,7 +3611,7 @@ function coSummaryHTML(){
     let nudge = '';
     if (t.shipping > 0 && needFree > 0 && needFree <= 700)
       nudge = '<p class="co-nudge">🚚 ' + loc('இன்னும் ₹' + needFree + ' வாங்குனா courier இலவசம்!', 'మరో ₹' + needFree + ' కొంటే courier ఫ్రీ!', 'ಇನ್ನು ₹' + needFree + ' ಖರೀದಿಸಿದರೆ courier ಉಚಿತ!', 'Add ₹' + needFree + ' more — courier FREE!') + ' <a href="shop.html">' + loc('ஷாப் பண்ணுங்க →', 'షాప్ చేయండి →', 'ಶಾಪ್ ಮಾಡಿ →', 'Shop →') + '</a></p>';
-    else if (cntHere < (CONFIG.bundleCount || 2))
+    else if (!co.buyOnly && cntHere < (CONFIG.bundleCount || 2))
       nudge = '<p class="co-nudge">🎁 ' + loc('இன்னொரு saree add பண்ணா ₹' + (CONFIG.bundleOff || 50) + ' Bundle OFF!', 'మరో చీర జోడిస్తే ₹' + (CONFIG.bundleOff || 50) + ' తగ్గింపు!', 'ಇನ್ನೊಂದು ಸೀರೆ ಸೇರಿಸಿದರೆ ₹' + (CONFIG.bundleOff || 50) + ' ರಿಯಾಯಿತಿ!', 'Add one more saree — ₹' + (CONFIG.bundleOff || 50) + ' Bundle OFF!') + ' <a href="shop.html">' + loc('ஷாப் பண்ணுங்க →', 'షాప్ చేయండి →', 'ಶಾಪ್ ಮಾಡಿ →', 'Shop →') + '</a></p>';
     return '<div class="form-card co-sum"><h3>🧾 Order Summary</h3>' +
       (rows || '<p class="small muted">No items yet.</p>') +
