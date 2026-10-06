@@ -462,7 +462,8 @@ function normalizeProduct(raw){
   return {
     id: pid,
     sku: String(raw.sku || pid).trim(),
-    name: String(raw.name || 'Untitled Saree').trim(),
+    /* 🌐 multilingual product data: admin can set name_ta/name_te/name_kn/name_ml (English fallback) */
+    name: String((typeof lang !== 'undefined' && lang !== 'en' && raw['name_' + lang]) || raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     hidden: !!(raw.hidden === true || raw.hidden === 1 || raw.hidden === 'true' || raw.hidden === '1'),
     rating: Math.min(5, Math.max(1, +raw.rating || +raw.rat || 4.5)),
@@ -2276,7 +2277,7 @@ try{
   const __lp = new URLSearchParams(location.search).get('lang');
   if (__lp && ['en','ta','te','kn','ml'].indexOf(String(__lp).toLowerCase()) !== -1) LS.set('sk_lang', String(__lp).toLowerCase());
 }catch(e){}
-let lang = LS.get('sk_lang', '') || 'en';
+let lang = LS.get('sk_lang', '') || 'ta';   /* 🌸 Tamil-first (SK Sarees = Tamil Nadu store) */
 if (!LANGS[lang]) lang = 'en';
 /* 🙏 greeting word in the visitor's own language (ta/te/kn/en) */
 function greetWord(){
@@ -2840,7 +2841,7 @@ function renderHeader(){
       <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
       <a href="#" data-logout="1" data-authonly="1">🔓 Sign Out</a>
       <div class="sub">${t('shopByCategory')}</div>
-      ${CATEGORIES.slice(0, 8).map(c => `<a href="${catUrl(c.slug)}">${c.emoji} ${c.name}</a>`).join('')}
+      ${CATEGORIES.slice(0, 8).map(c => `<a href="${catUrl(c.slug)}">${c.emoji} ${catName(c)}</a>`).join('')}
       <div class="sub">Help</div>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="share-earn.html">💰 Share &amp; Earn</a>
@@ -2922,13 +2923,22 @@ function renderFooter(){
       <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
       <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us">⭐</a>
     </div>
-    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu<br>Made with ❤️ for saree lovers</div>
+    <div class="f-langs">
+      <button type="button" data-setlang="en">English</button><span>|</span><button type="button" data-setlang="ta">தமிழ்</button><span>|</span><button type="button" data-setlang="te">తెలుగు</button><span>|</span><button type="button" data-setlang="kn">ಕನ್ನಡ</button><span>|</span><button type="button" data-setlang="ml">മലയാളം</button>
+    </div>
+    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu • 🚚 Shipping Across India<br>Made with ❤️ for saree lovers</div>
   </footer>`;
   try{
     const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
     f.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
     f.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
   }catch(e){}
+  /* 💬 floating WhatsApp button (desktop, all pages) */
+  try{
+    if (!document.querySelector('.wa-float')){
+      f.insertAdjacentHTML('beforeend', '<a class="wa-float" href="' + waLink('Hi SK Sarees! சேலை பற்றி கேட்க விரும்புகிறேன். / I have a question about sarees.') + '" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">' + SVG_WA + '</a>');
+    }
+  }catch(e2){}
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
@@ -3158,7 +3168,7 @@ function injectChrome(){
   document.body.insertAdjacentHTML('beforeend', `
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);
-  try{ abandonedCartBanner(); }catch(e){}
+  /* abandoned-cart popup removed (user request) */
 
   document.addEventListener('click', e => { const c = e.target.closest('[data-close]'); if (c) closeModal(); });
 }

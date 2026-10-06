@@ -4410,3 +4410,171 @@ body[data-page="reels"] .lang-bar .lb-btn.on{ color:#fff; border-bottom-color:#f
 /* checkout — city + state */
 .co-citystate{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
 @media(max-width:480px){ .co-citystate{ grid-template-columns:1fr } }
+
+/* ============================================================================
+   🌏 v15 — spec completion: region cards, language shop, footer langs, shop cards
+   ========================================================================== */
+.sk-region-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:600px){ .sk-region-grid{ grid-template-columns:repeat(5,1fr) } }
+.sk-region{
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 10px;
+  display:flex; flex-direction:column; align-items:center; gap:3px; text-decoration:none; text-align:center;
+}
+.sk-region b{ font-size:.78rem; color:#111 }
+.sk-region small{ font-size:.62rem; color:#666; font-weight:700 }
+.sk-region span{ font-size:.66rem; color:#B71C1C; font-weight:800; margin-top:4px }
+.sk-langshop{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:600px){ .sk-langshop{ grid-template-columns:repeat(5,1fr) } }
+.sk-langcard{
+  background:#fff; border:1.5px solid var(--line); border-radius:12px; padding:14px 10px;
+  display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
+}
+.sk-langcard b{ font-size:.95rem; color:#111 }
+.sk-langcard small{ font-size:.66rem; color:#666; font-weight:700 }
+.sk-langcard:hover{ border-color:#B71C1C }
+.sk-langcard:active{ transform:scale(.97) }
+.f-langs{ display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px }
+.f-langs button{ background:none; border:0; color:#1155CC; font-weight:700; font-size:.78rem; cursor:pointer; padding:4px }
+.f-langs button:hover{ text-decoration:underline }
+.f-langs span{ color:#999 }
+/* shop page cards: CTA buttons (reuses hc-btns) */
+.pcard-body{ padding-bottom:10px }
+.pcard .hc-btns{ margin-top:6px }
+.pcard .hc-meta{ font-size:.6rem; color:#666; font-weight:700 }
+
+/* ============================================================================
+   🌸 v16 — TAMIL-FIRST ETHNIC PREMIUM — deep maroon + gold + cream (2026-10-06)
+   WhatsApp = PRIMARY green • BUY NOW maroon • one festival banner • no popups
+   ========================================================================== */
+:root{
+  --maroon:#8E1D3A; --maroon-d:#6E1430; --maroon-deep:#5A1028; --maroon-soft:#F9E8EC;
+  --gold:#C9A227; --gold-l:#E3C566; --gold-soft:#FFF6E3;
+  --bg:#FFFBF6; --card:#FFFFFF; --ink:#2B1B20; --muted:#7A6670; --line:#EFE3DC;
+  --r:12px; --r-sm:8px; --sh:0 2px 10px rgba(94,16,40,.07); --sh-sm:0 1px 4px rgba(94,16,40,.05);
+  --green:#0E9F4F; --red:#C62828;
+  --orkut:#8E1D3A; --orkut-d:#6E1430; --orkut-line:#EFE3DC; --orkut-head:#FFF6E3;
+  --orkut-link:#8E1D3A; --orkut-ink:#5A1028;
+}
+body{ background:#FFFBF6 !important; color:#2B1B20; font-family:'Noto Sans Tamil',Verdana,Arial,Roboto,sans-serif }
+h1,h2,h3,h4,b,strong{ color:#5A1028 }
+a{ color:#8E1D3A }
+.small,.muted{ color:#7A6670 }
+
+/* 🤝 sticky trust bar (maroon + gold) */
+.sk-trustbar{
+  background:linear-gradient(90deg,#5A1028,#8E1D3A); color:#FFF6E3;
+  font-size:.68rem; font-weight:700; padding:7px 0; text-align:center;
+  position:sticky; top:85px; z-index:35; letter-spacing:.2px;
+}
+@media(min-width:900px){ .sk-trustbar{ top:89px; font-size:.76rem } }
+
+/* hero — cream + maroon */
+.sk-hero{ background:linear-gradient(180deg,#FFF6E3 0%,#F9E8EC 55%,#FFFBF6 100%); border-bottom:1px solid #EFE3DC; padding:24px 0 18px; text-align:center }
+.sk-hero h1{ font-size:clamp(1.05rem,4.6vw,1.6rem); font-weight:800; color:#5A1028; margin:0 0 4px; line-height:1.45 }
+.sk-hero-sub{ font-size:.8rem; color:#8E1D3A; font-weight:800; margin:0 0 12px }
+.sk-hero > .wrap > p{ font-size:.78rem; color:#7A6670; margin:0 0 14px }
+.sk-hero-trust span{ color:#5A1028 }
+
+/* ONE festival banner */
+.sk-festival{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:linear-gradient(92deg,#C9A227,#E3C566); color:#5A1028;
+  border-radius:12px; padding:14px 16px; margin:14px 0 4px;
+  font-weight:800; font-size:.92rem; text-decoration:none; box-shadow:0 3px 12px rgba(201,162,39,.3);
+}
+.sk-festival span{ font-size:.78rem; background:#5A1028; color:#FFF6E3; padding:7px 14px; border-radius:999px; white-space:nowrap }
+
+/* category tiles with images */
+.sk-cats{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:600px){ .sk-cats{ grid-template-columns:repeat(3,1fr) } }
+@media(min-width:900px){ .sk-cats{ grid-template-columns:repeat(5,1fr) } }
+.sk-cattile{ position:relative; border-radius:12px; overflow:hidden; aspect-ratio:4/3; background:#fff; border:1px solid #EFE3DC }
+.sk-cattile img{ width:100%; height:100%; object-fit:cover; transition:transform .3s }
+.sk-cattile:hover img{ transform:scale(1.05) }
+.sk-catn{
+  position:absolute; left:0; right:0; bottom:0; padding:22px 8px 7px;
+  background:linear-gradient(180deg,transparent,rgba(90,16,40,.85)); color:#fff;
+  font-size:.74rem; font-weight:800;
+}
+.sk-catc{ position:absolute; top:7px; right:7px; background:#FFF6E3; color:#5A1028; font-size:.58rem; font-weight:800; padding:3px 8px; border-radius:999px }
+
+/* buttons: WhatsApp green primary, BUY NOW maroon */
+.btn-pd-buy{ background:#8E1D3A !important; color:#fff !important; border:0 !important; box-shadow:none !important; font-weight:800 !important }
+body[data-page="product"] .btn-pd-buy{ background:#8E1D3A !important; color:#fff !important }
+.btn-pd-buy::after{ border-color:#C9A227 }
+.pd-wa-primary{ min-height:56px !important; font-size:1.02rem !important; box-shadow:0 4px 14px rgba(14,159,79,.3) !important }
+.pd-sec-row{ display:grid; grid-template-columns:1.4fr 1fr; gap:8px }
+.pd-addcart{ background:#fff !important; color:#8E1D3A !important; border:1.5px solid #8E1D3A !important; font-weight:700 }
+.btn-maroon,.btn-gold,.btn-pay,.btn-buy,.btn-buygreen{ background:#8E1D3A !important; color:#fff !important; border:0 !important }
+.btn-wa{ background:#0E9F4F !important; color:#fff !important; border:0 !important }
+.btn-wa-o{ background:#fff !important; color:#0E9F4F !important; border:1.5px solid #0E9F4F !important }
+.im-btn-order{ background:#0E9F4F }
+.hc-buy{ background:#8E1D3A }
+.hc-wa{ background:#fff; border:1.5px solid #0E9F4F; color:#0E9F4F }
+.hc-wa svg{ fill:#0E9F4F }
+.prp-btn{ background:#0E9F4F !important }
+
+/* badges + accents */
+.im-off,.pd-price .off,.lpc-off,.hc-off{ background:#8E1D3A }
+.cart-badge{ background:#C62828 }
+.pd-offer{ background:#FFF6E3; border:1px solid #E3C566; color:#6E5A10 }
+.pd-checks li{ background:#FFF6E3; border:1px solid #E3C566; color:#5A4A10 }
+.pdlbl{ color:#8E1D3A }
+.pd-save{ color:#8E1D3A }
+.promo-strip{ background:linear-gradient(90deg,#5A1028,#8E1D3A) !important; color:#FFF6E3 !important }
+.logo{ color:#8E1D3A !important }
+.logo-badge{ background:#8E1D3A }
+.drawer-head{ background:#8E1D3A }
+.lang-bar .lb-btn.on{ color:#8E1D3A; border-bottom-color:#C9A227 }
+.im-cat.on{ background:#8E1D3A; border-color:#8E1D3A }
+.cat-chips .chip.on{ background:#8E1D3A; border-color:#8E1D3A }
+.sk-chip{ background:#fff; border:1px solid #EFE3DC }
+.sk-chip:hover{ border-color:#8E1D3A; color:#8E1D3A }
+.sk-region{ border:1px solid #EFE3DC }
+.sk-region span{ color:#8E1D3A }
+.sk-langcard:hover{ border-color:#8E1D3A }
+.sk-sec > h2{ color:#5A1028 }
+.sk-sec > h2 a{ color:#8E1D3A }
+.rvw-total{ background:#8E1D3A }
+.steps-ui .step-dot.on .dot,.steps-ui .step-dot.done .dot{ background:#8E1D3A !important }
+.form-card .row.total b{ color:#8E1D3A }
+#pdlBtn{ background:#8E1D3A }
+.pd-faq summary::after{ color:#8E1D3A }
+::selection{ background:#8E1D3A; color:#fff }
+.sk-wa-band{ background:#0E9F4F }
+
+/* specs + size chart */
+.pd-specs{ border:1px solid #EFE3DC; border-radius:12px; padding:12px; margin-top:12px; background:#fff }
+.pd-specs > b{ font-size:.78rem; display:block; margin-bottom:6px; color:#5A1028; text-transform:uppercase; letter-spacing:.4px }
+.pd-specs ul{ list-style:none; margin:0; padding:0 }
+.pd-specs li{ display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px dashed #F3E9E4; font-size:.78rem }
+.pd-specs li:last-child{ border-bottom:0 }
+.pd-specs li span{ color:#7A6670; font-weight:600 }
+.pd-specs li b{ color:#2B1B20 }
+.pd-sizechart{ margin-top:12px }
+.pd-sizetbl{ width:100%; border-collapse:collapse; font-size:.76rem }
+.pd-sizetbl th,.pd-sizetbl td{ border:1px solid #EFE3DC; padding:6px 8px; text-align:center }
+.pd-sizetbl th{ background:#FFF6E3; color:#5A1028 }
+
+/* sticky mobile bar: Price + WhatsApp Order */
+.sb-wa-lbl{
+  flex:1 !important; min-height:52px; font-size:.88rem !important; font-weight:800;
+  background:#0E9F4F !important; border-radius:10px !important;
+  display:flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap;
+}
+.sb-wa-lbl svg{ fill:#fff; margin:0 }
+
+/* floating WhatsApp — desktop all pages, mobile hidden (bottom bars exist) */
+.wa-float{
+  position:fixed; right:16px; bottom:20px; z-index:50;
+  width:56px; height:56px; border-radius:50%; background:#0E9F4F;
+  display:none; align-items:center; justify-content:center;
+  box-shadow:0 6px 18px rgba(14,159,79,.4); text-decoration:none;
+}
+.wa-float svg{ fill:#fff }
+@media(min-width:900px){ .wa-float{ display:flex } }
+
+/* footer — cream */
+.sk-footer{ background:#FFF6E3 !important; border-top:1px solid #EFE3DC }
+.sk-footer h4{ color:#8E1D3A !important }
+.f-grid a{ color:#7A6670 !important }
