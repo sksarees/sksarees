@@ -3771,8 +3771,6 @@ function itemsTotal_ish(){ try{ return coCartTotal(); }catch(e){ return 0; } }
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
   const d = co.data;
-  /* 🗺️ state defaults to the visitor's language region (ta/en → TN, kn → KA, te → AP, ml → KL) */
-  if (!d.state) d.state = LANG_STATE[lang] || 'Tamil Nadu';
   const t = coTotals();
   const steps = '<div class="steps-ui">' +
     '<div class="step-dot ' + (co.step > 1 ? 'done' : 'on') + '"><span class="dot">' + (co.step > 1 ? '✓' : '1') + '</span><span class="lbl">Details</span></div>' +
@@ -3787,10 +3785,6 @@ function drawCo(){
         '<div class="field"><label>WhatsApp / Mobile <span class="req">*</span></label><input id="coPhone" value="' + esc(d.phone) + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
         
         '<div class="field"><label>Address <span class="req">*</span></label><input id="coAddr" value="' + esc(d.address) + '" placeholder="House no, street, area"></div>' +
-        '<div class="co-citystate">' +
-          '<div class="field"><label>City <span class="req">*</span></label><input id="coCity" value="' + esc(d.city || '') + '" placeholder="Your city"></div>' +
-          '<div class="field"><label>State <span class="req">*</span></label><select id="coState"><option value="">Select state</option>' + IN_STATES.map(s => '<option' + (d.state === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div>' +
-        '</div>' +
         '<div class="field"><label>PIN Code <span class="req">*</span></label><input id="coPin" value="' + esc(d.pincode) + '" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"></div>' +
         '<div class="field"><label>🎟️ Coupon Code (optional)</label><input id="coCoupon" value="' + esc(d.coupon || '') + '" placeholder="WELCOME50" style="text-transform:uppercase"></div>' +
         '<p class="small" style="margin:-4px 0 10px">🆕 First order? Use <b>WELCOME50</b> — ₹50 OFF (min ₹999 order)</p>' +
@@ -3798,13 +3792,25 @@ function drawCo(){
       '</div>' +
       /* 🧾 ORDER SUMMARY FIRST (customer sees the full picture, then pays) */
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
-      /* 💳 PAYMENT — AFTER the summary: two big, easy-view buttons */
-      '<div class="form-card co-paycard"><h3>💳 ' + loc('Payment', 'చెల్లింపు', 'ಪಾವತಿ', 'Payment', 'പേയ്മെന്റ്') + '</h3>' +
-        '<button type="button" class="co-pay-upi" data-payonline><span class="cpu-t">📲 ' + loc('PAY ONLINE', 'ఆన్‌లైన్ చెల్లించండి', 'ಆನ್‌ಲೈನ್ ಪಾವತಿ', 'PAY ONLINE', 'ഓൺലൈൻ പേയ്മെന്റ്') + '</span>' +
-          '<span class="cpu-chips"><i class="chip-gpay">G<span class="g-b">P</span><span class="g-r">a</span><span class="g-y">y</span></i><i class="chip-phonepe">PhonePe</i><i class="chip-paytm">Paytm</i><i class="chip-upi">UPI</i></span>' +
-          '<small>Courier ₹' + (CONFIG.shipFee || 30) + (itemsTotal_ish() >= (CONFIG.shipFreeAbove || 1999) ? ' — FREE' : '') + '</small></button>' +
-        '<button type="button" class="co-pay-cod" data-codwa>💵 ' + loc('CASH ON DELIVERY', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲివರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '<small>' + loc('Pay ₹' + (CONFIG.codFee || 100) + ' link now → saree amount cash at delivery', '₹' + (CONFIG.codFee || 100) + ' లింక్ ఇప్పుడే → మిగిలిన మొత్తం డెలివరీ వద్ద క్యాష్', '₹' + (CONFIG.codFee || 100) + ' ಲಿಂಕ್ ಈಗ → ಉಳಿದ ಮೊತ್ತ ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ಕ್ಯಾಶ್', 'Pay ₹' + (CONFIG.codFee || 100) + ' link now → saree amount cash at delivery', '₹' + (CONFIG.codFee || 100) + ' ലിങ്ക് ഇപ്പോൾ → ബാക്കി ഡെലിവറി സമയത്ത് ക്യാഷ്') + '</small></button>' +
-        '<p class="co-paynote">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' • 💵 COD Available • ↩️ 7-Day Replacement • 🎉 FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</p>' +
+      /* 💳 PAYMENT METHOD — premium cards: UPI primary (maroon) + COD secondary (green) */
+      '<div class="pm-wrap">' +
+      '<h3 class="pm-head">💳 ' + loc('PAYMENT METHOD', 'చెల్లింపు విధానం', 'ಪಾವತಿ ವಿಧಾನ', 'PAYMENT METHOD', 'പേയ്മെന്റ് രീതി') + '</h3>' +
+        '<div class="pm-card pm-upi">' +
+          '<div class="pm-title">🔒 ' + loc('UPI PAYMENT — FAST &amp; SECURE', 'UPI చెల్లింపు — వేగంగా &amp; సురక్షితం', 'UPI ಪಾವತಿ — ವೇಗದ &amp; ಸುರಕ್ಷಿತ', 'UPI PAYMENT — FAST &amp; SECURE', 'UPI പേയ്മെന്റ് — വേഗതയുള്ള &amp; സുരക്ഷിതം') + '</div>' +
+          '<div class="pm-amt">' + money(t.grand) + '</div>' +
+          '<div class="pm-sub">' + loc('Pay securely using UPI', 'UPI తో సురక్షితంగా చెల్లించండి', 'UPI ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪಾವತಿಸಿ', 'Pay securely using UPI', 'UPI വഴി സുരക്ഷിതമായി പേയ്') + '</div>' +
+          '<div class="pm-logos"><i class="pl-gpay">Google Pay</i><i class="pl-phonepe">PhonePe</i><i class="pl-paytm">Paytm</i><i class="pl-upi">UPI</i></div>' +
+          '<button type="button" class="pm-cta-upi" data-payonline>🔒 ' + loc('PAY', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('SECURELY', 'సురక్షితంగా', 'ಸುರಕ್ಷಿತವಾಗಿ', 'SECURELY', 'സുരക്ഷിതമായി') + '</button>' +
+          '<small class="pm-note">' + loc('Instant payment • Secure UPI • Order confirmation after payment', 'వెంటనే చెల్లింపు • సురక్షిత UPI • చెల్లింపు తర్వాత ఆర్డర్ నిర్ధారణ', 'ತಕ್ಷಣ ಪಾವತಿ • ಸುರಕ್ಷಿತ UPI • ಪಾವತಿ ನಂತರ ಆರ್ಡರ್ ದೃಢೀಕರಣ', 'Instant payment • Secure UPI • Order confirmation after payment', 'ഉടനടി പേയ്മെന്റ് • സുരക്ഷിത UPI • പേയ്മെന്റിന് ശേഷം ഓർഡർ സ്ഥിരീകരണം') + '</small>' +
+        '</div>' +
+        '<div class="pm-card pm-cod">' +
+          '<div class="pm-title">📦 ' + loc('CASH ON DELIVERY', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '</div>' +
+          '<div class="pm-codrows"><span>' + loc('Pay', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'Pay', 'പേയ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> ' + loc('booking amount now', 'బుకింగ్ మొత్తం ఇప్పుడే', 'ಬುಕಿಂಗ್ ಮೊತ್ತ ಈಗ', 'booking amount now', 'ബുക്കിംഗ് തുക ഇപ്പോൾ') + '</span>' +
+            '<span>' + loc('Remaining', 'మిగిలిన', 'ಉಳಿದ', 'Remaining', 'ബാക്കി') + ' <b>' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + '</b> ' + loc('CASH at delivery', 'డెలివరీ వద్ద క్యాష్', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ಕ್ಯಾಶ್', 'CASH at delivery', 'ഡെലിവറി സമയത്ത് ക്യാഷ്') + '</span></div>' +
+          '<button type="button" class="pm-cta-cod" data-codwa>📦 ' + loc('ORDER WITH COD', 'COD తో ఆర్డర్', 'COD ಜೊತೆ ಆರ್ಡರ್', 'ORDER WITH COD', 'COD-ഉപയോഗിച്ച് ഓർഡർ') + '</button>' +
+          '<small class="pm-note">₹' + (CONFIG.codFee || 100) + ' ' + loc('advance confirms your order • Balance payable when parcel is delivered', 'అడ్వాన్స్ మీ ఆర్డర్ నిర్ధారిస్తుంది • పార్సల్ అందినప్పుడు బ్యాలెన్స్ చెల్లించాలి', 'ಅಡ್ವಾನ್ಸ್ ನಿಮ್ಮ ಆರ್ಡರ್ ದೃಢೀಕರಿಸುತ್ತದೆ • ಪಾರ್ಸಲ್ ಬಂದಾಗ ಬ್ಯಾಲೆನ್ಸ್ ಪಾವತಿಸಿ', 'advance confirms your order • Balance payable when parcel is delivered', 'അഡ്വാൻസ് ഓർഡർ സ്ഥിരീകരിക്കുന്നു • പാർസൽ ലഭിക്കുമ്പോൾ ബാക്കി നൽകണം') + '</small>' +
+        '</div>' +
+        '<div class="pm-trust">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('Fast Dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;⭐ 2,300+ ' + loc('Happy Customers', 'సంతోషకరమైన కస్టమర్లు', 'ಸಂತೋಷದ ಗ್ರಾಹಕರು', 'Happy Customers', 'സന്തോഷകരായ ഉപഭോക്താക്കൾ') + '</div>' +
       '</div>' +
     '</div>';
   } else {
@@ -3831,19 +3837,37 @@ function drawCo(){
         '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
       '</div>' +
       (upiPay
-        ? '<div class="form-card"><h3>📲 Pay by UPI</h3>' +
-          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(t.grand) + '</b><span class="muted small"> payable</span>' +
-          '<p class="small" style="margin-top:4px">🧾 Payment note: <b>Order ' + esc(co.pendingId) + '</b></p></div>' +
-          '<div class="qr-box"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
-          '<a class="btn btn-gold btn-xl" href="' + upiLink(t.grand, note) + '">📲 Pay Now — Open UPI App</a>' +
-          '<div style="display:grid;gap:8px;margin-top:10px">' +
-            '<a class="btn btn-xl" style="background:#1a73e8;color:#fff" href="' + upiAppLink('gpay', t.grand, note) + '">🟢 Google Pay — Pay ' + money(t.grand) + '</a>' +
-            '<a class="btn btn-xl" style="background:#5f259f;color:#fff" href="' + upiAppLink('phonepe', t.grand, note) + '">🟣 PhonePe — Pay ' + money(t.grand) + '</a>' +
-            '<a class="btn btn-xl" style="background:#002e6e;color:#fff" href="' + upiAppLink('paytm', t.grand, note) + '">🔷 Paytm — Pay ' + money(t.grand) + '</a>' +
+        /* 💳 premium UPI payment experience (Razorpay-inspired, original SK design) */
+        ?
+        '<div class="pg-wrap">' +
+          '<div class="pg-head">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + '<small>' + loc('Your payment is protected by secure UPI', 'మీ చెల్లింపు సురక్షిత UPI ద్వారా రక్షించబడింది', 'ನಿಮ್ಮ ಪಾವತಿ ಸುರಕ್ಷಿತ UPI ಮೂಲಕ ರಕ್ಷಿಸಲ್ಪಟ್ಟಿದೆ', 'Your payment is protected by secure UPI', 'നിങ്ങളുടെ പേയ്മെന്റ് സുരക്ഷിത UPI വഴി സംരക്ഷിച്ചിരിക്കുന്നു') + '</small></div>' +
+          '<div class="pg-amtbox"><b>' + money(t.grand) + '</b><span>' + loc('Amount Payable', 'చెల్లించవలసిన మొత్తం', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount Payable', 'അടയ്ക്കേണ്ട തുക') + '</span><small>Order #' + esc(co.pendingId || '') + '</small></div>' +
+          '<div class="pg-card">' +
+            '<div class="pg-paytitle">' + loc('Pay securely using UPI', 'UPI తో సురక్షితంగా చెల్లించండి', 'UPI ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪಾವತಿಸಿ', 'Pay securely using UPI', 'UPI വഴി സുരക്ഷിതമായി പേയ്') + '</div>' +
+            '<div class="pg-qrbox"><div id="upiQR"></div></div>' +
+            '<div class="pg-scan">' + loc('Scan with any UPI app', 'ఏ UPI యాప్‌తోనైనా స్కాన్ చేయండి', 'ಯಾವುದೇ UPI ಆ್ಯಪ್‌ನಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ', 'Scan with any UPI app', 'ഏത് UPI ആപ്പും ഉപയോഗിച്ച് സ്കാൻ ചെയ്യൂ') + '</div>' +
+            '<div class="pg-apps">GPay • PhonePe • Paytm • BHIM • ' + loc('Any UPI App', 'ఏదైనా UPI యాప్', 'ಯಾವುದೇ UPI ಆ್ಯಪ್', 'Any UPI App', 'ഏത് UPI ആപ്പും') + '</div>' +
+            '<div class="pg-upirow"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b><button type="button" class="pg-copy" data-u="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
+            '<a class="pg-cta" href="' + upiLink(t.grand, note) + '">🔒 ' + loc('PAY', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('WITH UPI', 'UPI తో', 'UPI ಜೊತೆ', 'WITH UPI', 'UPI-ഉപയോഗിച്ച്') + '</a>' +
+            '<div class="pg-chips">' +
+              '<a class="pg-chip" href="' + upiAppLink('gpay', t.grand, note) + '">Google Pay</a>' +
+              '<a class="pg-chip" href="' + upiAppLink('phonepe', t.grand, note) + '">PhonePe</a>' +
+              '<a class="pg-chip" href="' + upiAppLink('paytm', t.grand, note) + '">Paytm</a>' +
+              '<a class="pg-chip" href="' + upiLink(t.grand, note) + '">UPI</a>' +
+            '</div>' +
           '</div>' +
-          '<p class="small muted" style="text-align:center;margin:8px 0 0">📲 App install pannirundha direct-ah open aagum — illaina QR scan pannunga.</p>' +
-          '<div class="verify-note">💳 After paying, tap below. <b>Your payment is pending — we will confirm once the payment is received.</b></div>' +
-          '<button type="button" class="btn btn-maroon btn-xl" data-place="upi">✅ I\'ve Paid — Waiting for Confirmation</button></div>'
+          '<div class="pg-trust">🔒 ' + loc('Secure UPI Payment', 'సురక్షిత UPI చెల్లింపు', 'ಸುರಕ್ಷಿತ UPI ಪಾವತಿ', 'Secure UPI Payment', 'സുരക്ഷിത UPI പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('Fast Dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പಾച്ച്') + ' &nbsp;✓ ' + loc('Order confirmation after payment', 'చెల్లింపు తర్వాత ఆర్డర్ నిర్ధారణ', 'ಪಾವತಿ ನಂತರ ಆರ್ಡರ್ ದೃಢೀಕರಣ', 'Order confirmation after payment', 'പേയ്മെന്റിന് ശേഷം ഓർഡർ സ്ഥിരീകരണം') + '</div>' +
+          '<details class="pg-help"><summary>' + loc('How to pay?', 'ఎలా చెల్లించాలి?', 'ಹೇಗೆ ಪಾವತಿಸಬೇಕೆ?', 'How to pay?', 'എങ്ങനെ പേയ്ക്കാം?') + '</summary><div>' +
+            '<ol><li>' + loc('Tap \"Pay with UPI\"', '\"Pay with UPI\" నొక్కండి', '\"Pay with UPI\" ಒತ್ತಿ', 'Tap \"Pay with UPI\"', '\"Pay with UPI\" അമർത്തൂ') + '</li>' +
+              '<li>' + loc('Select your UPI app', 'మీ UPI యాప్ ఎంచుకోండి', 'ನಿಮ್ಮ UPI ಆ್ಯಪ್ ಆರಿಸಿ', 'Select your UPI app', 'നിങ്ങളുടെ UPI ആപ്പ് തിരഞ്ഞെടുക്കൂ') + '</li>' +
+              '<li>' + loc('Complete the payment', 'చెల్లింపు పూర్తి చేయండి', 'ಪಾವತಿ ಪೂರ್ಣಗೊಳಿಸಿ', 'Complete the payment', 'പേയ്മെന്റ് പൂർത്തിയാക്കൂ') + '</li>' +
+              '<li>' + loc('Return to this page', 'ఈ పేజీకి తిరిగి రండి', 'ಈ ಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ', 'Return to this page', 'ഈ പേജിലേക്ക് മടങ്ങൂ') + '</li>' +
+              '<li>' + loc('Your order will be confirmed', 'మీ ఆర్డర్ నిర్ధారించబడుతుంది', 'ನಿಮ್ಮ ಆರ್ಡರ್ ದೃಢೀಕರಿಸಲ್ಪಡುತ್ತದೆ', 'Your order will be confirmed', 'നിങ്ങളുടെ ഓർഡർ സ്ഥിരീകരിക്കപ്പെടും') + '</li></ol>' +
+            '<p>' + loc('Having trouble? Use the QR code or copy the UPI ID and pay manually.', 'ఇబ్బంది ఉందా? QR కోడ్ ఉపయోగించండి లేదా UPI ID కాపీ చేసి చెల్లించండి.', 'ತೊಂದರೆಯಾಗುತ್ತಿದೆಯಾ? QR ಕೋಡ್ ಬಳಸಿ ಅಥವಾ UPI ID ಕಾಪಿ ಮಾಡಿ ಪಾವತಿಸಿ.', 'Having trouble? Use the QR code or copy the UPI ID and pay manually.', 'ബുദ്ധിമുട്ടാ? QR കോഡ് ഉപയോഗിക്കൂ അല്ലെങ്കിൽ UPI ID കോപ്പി ചെയ്ത് പേയ്ക്കൂ.') + '</p>' +
+          '</div></details>' +
+          '<div class="pg-verify">💳 ' + loc('Payment verification pending — we will confirm once the payment is received.', 'చెల్లింపు ధృవీకరణ పెండింగ్ — చెల్లింపు అందిన తర్వాత నిర్ధారిస్తాము.', 'ಪಾವತಿ ದೃಢೀಕರಣ ಬಾಕಿ — ಪಾವತಿ ಸ್ವೀಕರಿಸಿದ ನಂತರ ದೃಢೀಕರಿಸುತ್ತೇವೆ.', 'Payment verification pending — we will confirm once the payment is received.', 'പേയ്മെന്റ് സ്ഥിരീകരണം ബാക്കി — പേയ്മെന്റ് ലഭിച്ചുകഴിഞ്ഞാൽ സ്ഥിരീകരിക്കും.') + '</div>' +
+          '<button type="button" class="pg-paid" data-place="upi">✅ ' + loc("I've Paid — Confirm Order", "నేను చెల్లించాను — ఆర్డర్ నిర్ధారించండి", "ನಾನು ಪಾವತಿಸಿದೆನೆ — ಆರ್ಡರ್ ದೃಢೀಕರಿಸಿ", "I've Paid — Confirm Order", 'ഞാൻ പേയ്ച്ചു — ഓർഡർ സ്ഥിരീകരിക്കൂ') + '</button>' +
+        '</div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> booking fee — pay now (UPI)</span></div>' +
           '<div class="cod-note">💵 COD — pay <b>₹' + booking + ' booking</b> now (covers booking + courier).<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
@@ -3883,7 +3907,7 @@ function drawUpiQR(){
 }
 function coValid(){
   const d = co.data;
-  const ok = d.name.trim().length >= 2 && validPhone(d.phone) && d.address.trim().length >= 10 && /^\d{6}$/.test(d.pincode || '') && (d.city || '').trim().length >= 2 && !!(d.state || '').trim();
+  const ok = d.name.trim().length >= 2 && validPhone(d.phone) && d.address.trim().length >= 10 && /^\d{6}$/.test(d.pincode || '');
   if (!ok) toast('⚠️ Please fill all details correctly');
   return ok;
 }
@@ -3968,7 +3992,7 @@ function doPlaceOrder(payment){
     const order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
-      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim() + (d.city ? ', ' + String(d.city).trim() : '') + (d.state ? ', ' + String(d.state).trim() : ''), pincode: d.pincode.trim(), city: (d.city || '').trim(), state: (d.state || '').trim() },
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim(), city: '', state: '' },
       payment,
       totals: t,
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
@@ -4014,7 +4038,7 @@ function doWaOrder(){
     const order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
-      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim() + (d.city ? ', ' + String(d.city).trim() : '') + (d.state ? ', ' + String(d.state).trim() : ''), pincode: d.pincode.trim(), city: (d.city || '').trim(), state: (d.state || '').trim() },
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim(), city: '', state: '' },
       payment: 'cod', totals: t, status: 'placed',
       bookingPaid: CONFIG.codFee || 100,          /* ₹100 booking paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
@@ -5187,8 +5211,6 @@ document.addEventListener('input', function(e){
   if (e.target.id === 'coName') co.data.name = e.target.value;
   else if (e.target.id === 'coPhone') co.data.phone = e.target.value;
   else if (e.target.id === 'coAddr') co.data.address = e.target.value;
-  else if (e.target.id === 'coCity') co.data.city = e.target.value;
-  else if (e.target.id === 'coState') co.data.state = e.target.value;
   else if (e.target.id === 'coPin') co.data.pincode = e.target.value;
   else if (e.target.id === 'coCoupon') co.data.coupon = e.target.value.toUpperCase().trim();
   else return;

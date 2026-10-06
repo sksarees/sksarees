@@ -4636,3 +4636,65 @@ body[data-page="product"] .btn-pd-buy{ background:#7A1731 !important; color:#fff
 .co-pay-upi small{ font-size:.72rem; font-weight:700; opacity:.95 }
 .co-pay-cod{ display:grid; gap:4px; padding:12px 10px }
 .co-pay-cod small{ font-size:.76rem; font-weight:700; line-height:1.45 }
+
+/* ============================================================================
+   💳 v20 — PREMIUM PAYMENT EXPERIENCE (2026-10-06)
+   Step 1: PAYMENT METHOD cards (UPI maroon primary + COD green secondary)
+   Step 2: secure payment page — big amount, QR card, one CTA, app chips.
+   Maroon #7A1731 primary • green only for COD • 16-20px radius • soft shadow.
+   ========================================================================== */
+.pm-wrap{ display:grid; gap:12px; margin-top:14px }
+.pm-head{ font-size:.8rem; font-weight:800; letter-spacing:.6px; color:#4E0D1F; text-transform:uppercase; margin:0 }
+.pm-card{ background:#fff; border:1px solid #EFE8E0; border-radius:18px; padding:16px 14px; display:grid; gap:8px; box-shadow:0 3px 14px rgba(78,13,31,.06); text-align:center }
+.pm-upi{ border:2px solid #7A1731 }
+.pm-cod{ border:1px solid #BFE8CC }
+.pm-title{ font-size:.8rem; font-weight:800; color:#4E0D1F; letter-spacing:.3px }
+.pm-cod .pm-title{ color:#0B6B36 }
+.pm-amt{ font-size:1.9rem; font-weight:800; color:#7A1731; line-height:1.1 }
+.pm-sub{ font-size:.78rem; color:#666; font-weight:600 }
+.pm-logos{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap }
+.pm-logos i{ font-style:normal; font-size:.66rem; font-weight:800; padding:4px 10px; border-radius:999px; border:1px solid #EFE8E0; background:#FFFDF9 }
+.pl-gpay{ color:#4285F4 } .pl-phonepe{ color:#5F259F } .pl-paytm{ color:#00BAF2 } .pl-upi{ color:#7A1731 }
+.pm-cta-upi{ min-height:56px; border:0; border-radius:16px; cursor:pointer; margin-top:4px; background:linear-gradient(135deg,#7A1731,#4E0D1F); color:#fff; font-size:1.05rem; font-weight:800; letter-spacing:.3px; box-shadow:0 5px 16px rgba(122,23,49,.32) }
+.pm-cta-upi:active{ transform:scale(.98) }
+.pm-cta-cod{ min-height:52px; border:0; border-radius:16px; cursor:pointer; margin-top:4px; background:#25D366; color:#fff; font-size:.98rem; font-weight:800; letter-spacing:.3px; box-shadow:0 4px 12px rgba(37,211,102,.3) }
+.pm-cta-cod:active{ transform:scale(.98); background:#1FB957 }
+.pm-note{ font-size:.7rem; color:#666; font-weight:600; line-height:1.5 }
+.pm-codrows{ display:grid; gap:4px; font-size:.82rem; color:#222; font-weight:600 }
+.pm-codrows b{ color:#0B6B36 }
+.pm-trust{ text-align:center; font-size:.68rem; font-weight:700; color:#666; padding:10px 6px; background:#F8F3EE; border-radius:14px; line-height:1.8 }
+
+.pg-wrap{ display:grid; gap:14px; max-width:520px; margin:0 auto }
+.pg-head{ text-align:center; font-size:1.05rem; font-weight:800; color:#4E0D1F }
+.pg-head small{ display:block; font-size:.74rem; color:#666; font-weight:600; margin-top:3px }
+.pg-amtbox{ text-align:center; background:#fff; border:1px solid #EFE8E0; border-radius:18px; padding:16px; box-shadow:0 3px 14px rgba(78,13,31,.06); display:grid; gap:3px }
+.pg-amtbox b{ font-size:2.3rem; font-weight:800; color:#7A1731; line-height:1.1 }
+.pg-amtbox span{ font-size:.78rem; color:#666; font-weight:700 }
+.pg-amtbox small{ font-size:.7rem; color:#999; font-weight:600; letter-spacing:.4px }
+.pg-card{ background:#fff; border:1px solid #EFE8E0; border-radius:18px; padding:18px 14px; display:grid; gap:10px; box-shadow:0 3px 14px rgba(78,13,31,.06); text-align:center }
+.pg-paytitle{ font-size:.84rem; font-weight:700; color:#222 }
+.pg-qrbox{ display:flex; justify-content:center; padding:12px; background:#fff; border-radius:14px; border:1px dashed #EFE8E0 }
+.pg-qrbox #upiQR svg{ width:100%; height:auto; max-width:270px }
+.pg-scan{ font-size:.8rem; font-weight:800; color:#4E0D1F }
+.pg-apps{ font-size:.68rem; color:#666; font-weight:700; letter-spacing:.3px }
+.pg-upirow{ display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap; background:#F8F3EE; border-radius:12px; padding:10px 12px; font-size:.76rem }
+.pg-upirow span{ color:#666; font-weight:700 }
+.pg-upirow b{ color:#222; font-weight:700; word-break:break-all }
+.pg-copy{ border:0; background:#7A1731; color:#fff; font-size:.68rem; font-weight:800; border-radius:8px; padding:7px 14px; cursor:pointer; letter-spacing:.5px }
+.pg-copy:active{ transform:scale(.96) }
+.pg-cta{ display:flex; align-items:center; justify-content:center; min-height:56px; background:linear-gradient(135deg,#7A1731,#4E0D1F); color:#fff; text-decoration:none; border-radius:14px; font-size:1.05rem; font-weight:800; letter-spacing:.3px; box-shadow:0 5px 16px rgba(122,23,49,.32); margin-top:2px }
+.pg-cta:active{ transform:scale(.98) }
+.pg-chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap }
+.pg-chip{ font-size:.72rem; font-weight:800; color:#7A1731; text-decoration:none; border:1.5px solid #7A1731; border-radius:999px; padding:8px 16px; background:#fff }
+.pg-chip:active{ background:#F8E9EE }
+.pg-trust{ text-align:center; font-size:.68rem; font-weight:700; color:#666; padding:10px 6px; background:#F8F3EE; border-radius:14px; line-height:1.8 }
+.pg-help{ background:#fff; border:1px solid #EFE8E0; border-radius:14px; padding:12px 14px }
+.pg-help summary{ cursor:pointer; font-size:.82rem; font-weight:800; color:#4E0D1F; list-style:none }
+.pg-help summary::-webkit-details-marker{ display:none }
+.pg-help summary::after{ content:'+'; float:right; color:#7A1731; font-weight:900 }
+.pg-help[open] summary::after{ content:'−' }
+.pg-help ol{ margin:8px 0 0; padding-left:20px; font-size:.78rem; color:#444; line-height:1.9 }
+.pg-help p{ margin:8px 0 0; font-size:.74rem; color:#666 }
+.pg-verify{ text-align:center; font-size:.78rem; font-weight:700; color:#222; background:#FFF6E3; border:1px solid #E8D9A8; border-radius:12px; padding:12px }
+.pg-paid{ min-height:54px; border:0; border-radius:14px; cursor:pointer; background:#25D366; color:#fff; font-size:.98rem; font-weight:800; box-shadow:0 4px 12px rgba(37,211,102,.3) }
+.pg-paid:active{ transform:scale(.98); background:#1FB957 }
