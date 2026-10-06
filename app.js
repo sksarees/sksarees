@@ -1672,11 +1672,8 @@ function renderHome(){
 
   app.innerHTML =
     /* ═══ 4. HERO — South India ═══ */
-    /* 🤝 sticky trust bar — always visible while scrolling */
-    '<div class="sk-trustbar"><div class="wrap">⭐ 2,300+ ' + loc('வாடிக்கையாளர்கள்', 'కస్టమర్లు', 'ಗ್ರಾಹಕರು', 'Customers', 'ഉപഭോക്താക്കൾ') + ' &nbsp;•&nbsp; 🚚 ' + loc('இலவச டெலிவரி ₹', 'ఫ్రీ డెలివరీ ₹', 'ಉಚಿತ ಡೆಲಿವರಿ ₹', 'Free Shipping ₹', 'ഫ്രീ ഷിപ്പിംഗ് ₹') + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '+ &nbsp;•&nbsp; ⚡ 12–24hr ' + loc('டிஸ்பாட்ச்', 'డిస్పాచ్', 'ಡಿಸ್ప್ಯಾಚ್', 'Dispatch', 'ഡിസ്പാച്ച്') + ' &nbsp;•&nbsp; 🔄 7-Day ' + loc('மாற்று', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേಸ്മെന്റ്') + ' &nbsp;•&nbsp; 💵 COD ' + loc('கிடைக்கும்', 'అందుబాటులో', 'ಲಭ್ಯವಿದೆ', 'Available', 'ലഭ്യം') + '</div></div>' +
     '<section class="sk-hero"><div class="wrap">' +
-      '<h1>' + loc('சேலம்ல இருந்து நேரடி Kanchipuram சில்க் &amp; சாஃப்ட் காட்டன் சேலைகள்', 'సేలం నుండి నేరుగా Kanchipuram సిల్క్ &amp; సాఫ్ట్ కాటన్ చీరలు', 'ಸೇಲಂನಿಂದ ನೇರವಾಗಿ Kanchipuram ಸಿಲ್ಕ್ &amp; ಸಾಫ್ಟ್ ಕಾಟನ್ ಸೀರೆಗಳು', 'Direct from Salem — Kanchipuram Silk & Soft Cotton Sarees', 'സേലത്തുനിന്ന് നേരിട്ട് Kanchipuram സിൽക്ക് &amp; സോഫ്റ്റ് കോട്ടൺ സാരികൾ') + '</h1>' +
-      '<p class="sk-hero-sub">COD + ' + loc('இலவச டெலிவரி ₹', 'ఫ్రీ డెలివరీ ₹', 'ಉಚಿತ ಡೆಲಿವರಿ ₹', 'Free Shipping ₹', 'ഫ്രീ ഷിപ്പിംഗ് ₹') + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '+ • ⚡ 12–24hr ' + loc('டிஸ்பாட்ச்', 'డిస్పాచ్', 'ಡಿಸ್ಪ್ಯಾಚ್', 'Dispatch', 'ഡിസ്പാച്ച്') + '</p>' +
+      '<h1>' + loc('தென்னிந்தியா முழுவதும் அழகான சேலைகள், உங்க கதவு வரை!', 'దక్షిణ భారతదేశం అంతటా అందమైన చీరలు!', 'ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ ಸುಂದರ ಸೀರೆಗಳು!', 'Beautiful Sarees, Delivered Across South India', 'ദക്ഷിണേന്ത്യയിലേക്ക് സുന്ദരമായ സാരികൾ!') + '</h1>' +
       '<p>' + loc('சேலம், தமிழ்நாட்டிலிருந்து உண்மையான சேலைகள். எளிதான ஆர்டர் • COD • UPI • வேகமான டெலிவரி', 'సేలం, తమిళనాడు నుండి నిజమైన చీరలు. సులభమైన ఆర్డర్ • COD • UPI • వేగవంతమైన డెలివరీ', 'ಸೇಲಂ, ತಮಿಳುನಾಡಿನಿಂದ ನಿಜವಾದ ಸೀರೆಗಳು. ಸುಲಭ ಆರ್ಡರ್ • COD • UPI • ವೇಗದ ಡೆಲಿವರಿ', 'Authentic sarees from Salem, Tamil Nadu. Easy ordering • COD available • UPI • Fast India delivery', 'സേലം, തമിഴ്നാട്ടിലെ യഥാർത്ഥ സാരികൾ. എളുപ്പമുള്ള ഓർഡർ • COD • UPI • വേഗമേറിയ ഡെലിവറി') + '</p>' +
       '<div class="sk-hero-btns">' +
         '<a class="btn btn-pd-buy btn-xl" href="shop.html">' + loc('சிறந்த விற்பனை சேலைகள்', 'బెస్ట్ సెల్లర్స్', 'ಅತ್ಯುತ್ತಮ ಮಾರಾಟ', 'SHOP BEST SELLERS', 'ബെസ്റ്റ് സെല്ലേഴ്സ്') + '</a>' +
@@ -1691,15 +1688,10 @@ function renderHome(){
       '<div class="sk-chips" style="padding:8px 0 0">' + ['Red Saree', 'Blue Saree', 'Silk Saree', 'Cotton Saree', 'Wedding Saree', 'Daily Wear Saree'].map(s => '<a class="sk-chip" href="shop.html?q=' + encodeURIComponent(s) + '">' + s + '</a>').join('') + '<a class="sk-chip" href="shop.html?min=0&max=500">₹500 Sarees</a><a class="sk-chip" href="shop.html?min=0&max=1000">₹1000 Sarees</a></div></div>' +
     /* ═══ 6. BEST SELLERS ═══ */
     secHead('⭐ ' + t('bestSellers'), 'shop.html') + '<div class="hc-grid">' + best.map(homeCardHTML).join('') + '</div></div>' +
-    /* ═══ 7. ONE festival banner (single strong offer — no competing sales) ═══ */
-    '<div class="wrap"><a class="sk-festival" href="shop.html">🎉 ' + loc(festivalName(currentFestival()) + ' ஸ்பெஷல் — பெரிய சேமிப்பு!', festivalName(currentFestival()) + ' స్పెషల్ — పెద్ద సేవింగ్స్!', festivalName(currentFestival()) + ' ಸ್ಪೆಷಲ್ — ದೊಡ್ಡ ಉಳಿತಾಯ!', festivalName(currentFestival()) + ' Special — Big Savings!', festivalName(currentFestival()) + ' സ്പെഷൽ — വലിയ സേവിംഗ്സ്!') + ' <span>→ ' + loc('இப்போதே ஷாப் பண்ணுங்க', 'ఇప్పుడే షాప్ చేయండి', 'ಈಗಲೇ ಶಾಪ್ ಮಾಡಿ', 'Shop Now', 'ഇപ്പോൾ തന്നെ ഷോപ്പ്') + '</span></a></div>' +
+    /* ═══ 7. TODAY'S DEALS ═══ */
+    (deals.length ? secHead('🔥 ' + t('todaysDeals'), 'shop.html') + '<div class="hc-grid">' + deals.map(homeCardHTML).join('') + '</div></div>' : '') +
     /* ═══ 8. SHOP BY CATEGORY ═══ */
-    secHead('🧵 ' + t('shopByCategory'), 'shop.html') + '<div class="sk-cats">' + liveCats.slice(0, 10).map(x =>
-      '<a class="sk-cattile" href="shop.html?cat=' + x.c.slug + '">' +
-        '<img src="' + esc(catImage(x.c.slug)) + '" alt="' + esc(x.c.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
-        '<span class="sk-catn">' + x.c.emoji + ' ' + esc(catName(x.c)) + '</span>' +
-        '<span class="sk-catc">' + x.n + ' ' + loc('சேலைகள்', 'చీరలు', 'ಸೀರೆಗಳು', 'Sarees', 'സാരികൾ') + '</span>' +
-      '</a>').join('') + '</div></div>' +
+    secHead('🧵 ' + t('shopByCategory'), 'shop.html') + '<div class="sk-chips">' + liveCats.slice(0, 14).map(x => '<a class="sk-chip" href="shop.html?cat=' + x.c.slug + '">' + x.c.emoji + ' ' + esc(catName(x.c)) + '</a>').join('') + '</div></div>' +
     /* ═══ 9. SHOP BY PRICE (ranges) ═══ */
     secHead('💰 ' + loc('விலைப்படி வாங்குங்கள்', 'ధర ప్రకారం కొనండి', 'ಬೆಲೆ ಪ್ರಕಾರ ಖರೀದಿ', 'Shop by Price', 'വിലയ്ക്കനുസരിച്ച്')) + '<div class="sk-chips">' + PRICE_CHIPS.map(x => '<a class="sk-chip" href="shop.html?min=' + x[0] + '&max=' + x[1] + '">' + x[2] + '</a>').join('') + '</div></div>' +
     /* ═══ 10. SHOP BY COLOUR ═══ */
@@ -3025,7 +3017,7 @@ function renderProduct(){
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '<div class="instock" style="margin:6px 0">✅ <b>In stock</b> — order today, dispatched within 24 hrs</div>') +
-        '<ul class="pd-checks"><li>✓ COD Available</li><li>✓ Free Shipping ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '+</li><li>✓ 7-Day Replacement</li><li>✓ GST Invoice</li></ul>' +
+        '<ul class="pd-checks"><li>✓ COD Available</li><li>✓ 7-Day Replacement</li><li>✓ Quality Checked</li><li>✓ Fast Dispatch</li></ul>' +
         /* 🎨 COLOUR SELECTION — pick her favourite, rides into checkout */
         ((p.colors || []).length
           ? '<div class="pd-colours" id="pdColours"><small class="muted" style="font-weight:800">🎨 ' + loc('நிறம் தேர்ந்தெடுங்கள்:', 'రంగు ఎంచుకోండి:', 'ಬಣ್ಣ ಆರಿಸಿ:', 'Choose colour:') + '</small><div class="pd-chips">' +
@@ -3035,16 +3027,10 @@ function renderProduct(){
         '<div class="qty-row"><b>Quantity</b><div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:#B8860B;font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
         /* 🔴 BUY NOW + sub-line + 📱 REAL VIDEO CTA + WhatsApp order */
         '<div class="pd-btns">' +
-          /* 🟢 PRIMARY CTA — WhatsApp (Tamil-first, pre-filled SKU + name) */
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<a class="btn btn-wa btn-xl pd-wa-primary" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WhatsApp-ல Order பண்ணுங்க', 'WhatsApp లో ఆర్డర్ చేయండి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp', 'WhatsApp-ൽ ഓർഡർ ചെയ്യൂ') + '</a>') +
-          /* secondary: BUY NOW + Add to Cart */
-          (out ? '' : '<div class="pd-sec-row">' +
-            '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
-            '<button type="button" class="btn pd-addcart" data-add="' + p.id + '">🛒 ' + loc('கார்ட்டில் சேர்', 'కార్ట్‌లో చేరు', 'ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ', 'Add to Cart', 'കാർട്ടിൽ ചേർക്കുക') + '</button>' +
-          '</div>') +
-          (out ? '' : '<p class="pd-buy-sub">✅ COD Available • Secure Order • GST Invoice</p>') +
+            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>') +
+          (out ? '' : '<p class="pd-buy-sub">✅ COD Available • Secure Order</p>') +
           /* 📱 REAL VIDEO — Facebook/Instagram traffic goes straight to WhatsApp */
           '<div class="pd-realvideo"><div class="prp-txt"><b>📹 ' + loc('இந்த சேலையின் REAL VIDEO/PHOTOS வேண்டுமா?', 'ఈ చీర real video/photos కావాలా?', 'ಈ ಸೀರೆಯ real video/photos ಬೇಕಾ?', 'Want real video/photos of this saree?') + '</b><small>' + loc('Order பண்ணும் முன் உண்மையான வீடியோ பாருங்க!', 'ఆర్డర్ ముందు real video చూడండి!', 'ಆರ್ಡರ್ ಮೊದಲು real video ನೋಡಿ!', 'See the real saree before you order.') + '</small></div>' +
             '<a class="btn prp-btn" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO ON WHATSAPP</a>' +
@@ -3064,23 +3050,6 @@ function renderProduct(){
           '<p class="small" id="pdlResult" style="margin:0;color:#333"></p>' +
         '</div>' +
         /* 📦 WHAT YOU RECEIVE — honest, from product data */
-        /* 📋 key specs — bullet points, Tamil + English labels */
-        '<div class="pd-specs"><b>📋 ' + loc('விவரங்கள்', 'వివరాలు', 'ವಿವರಗಳು', 'Specifications', 'വിവരണങ്ങൾ') + '</b><ul>' +
-          '<li><span>' + loc('துணி / Fabric', 'ఫ్యాబ్రిక్ / Fabric', 'ಫ್ಯಾಬ್ರಿಕ್ / Fabric', 'Fabric', 'ഫാബ്രിക് / Fabric') + '</span><b>' + esc(p.fabric || '—') + '</b></li>' +
-          '<li><span>' + loc('நீளம் / Length', 'పొడవు / Length', 'ಉದ್ದ / Length', 'Length', 'നീളം / Length') + '</span><b>' + esc(p.length || '—') + '</b></li>' +
-          '<li><span>' + loc('ரவிக்கை / Blouse', 'బ్లౌస్ / Blouse', 'ಬ್ಲೌಸ್ / Blouse', 'Blouse', 'ബ്ലൗസ് / Blouse') + '</span><b>' + esc(p.blouse || '—') + '</b></li>' +
-          '<li><span>' + loc('விளிம்பு / Border', 'బోర్డర్ / Border', 'ಬಾರ್ಡರ್ / Border', 'Border & Pallu', 'ബോർഡർ / Border') + '</span><b>' + esc(p.border || '—') + '</b></li>' +
-          '<li><span>' + loc('சந்தர்ப்பம் / Occasion', 'సందర్భం / Occasion', 'ಸಂದರ್ಭ / Occasion', 'Occasion', 'സന്ദർഭം / Occasion') + '</span><b>' + esc(cat ? cat.name : '—') + '</b></li>' +
-          '<li><span>' + loc('பராமரிப்பு / Care', 'సంరక్షణ / Care', 'ಆರೈಕೆ / Care', 'Care', 'പരിചരണം / Care') + '</span><b>' + esc(p.wash || '—') + '</b></li>' +
-        '</ul></div>' +
-        /* 📏 blouse measurement chart */
-        '<div class="pd-faq pd-sizechart"><b>📏 ' + loc('ரவிக்கை அளவு வகைப்பட்டியல் / Blouse Size Chart', 'బ్లౌస్ సైజ్ చార్ట్', 'ಬ್ಲೌಸ್ ಸೈಜ್ ಚಾರ್ಟ್', 'Blouse Size Chart', 'ബ്ലൗസ് സൈസ് ചാർട്ട്') + '</b>' +
-          '<details><summary>' + loc('Standard blouse sizes (inches) — கிளிக் பண்ணுங்க', 'Standard blouse sizes (inches)', 'Standard blouse sizes (inches)', 'Standard blouse sizes (inches)', 'Standard blouse sizes (inches)') + '</summary><div>' +
-            '<table class="pd-sizetbl"><tr><th>Size</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th></tr>' +
-            '<tr><td>' + loc('மார்பு (in)', 'చెస్ట్ (in)', 'ಚೆಸ್ಟ್ (in)', 'Chest (in)', 'ചെസ്റ്റ് (in)') + '</td><td>32</td><td>34</td><td>36</td><td>38</td><td>40</td></tr>' +
-            '<tr><td>' + loc('ரவிக்கை நீளம் (in)', 'బ్లౌస్ పొడవు (in)', 'ಬ್ಲೌಸ್ ಉದ್ದ (in)', 'Blouse length (in)', 'ബ്ലൗസ് നീളം (in)') + '</td><td>14</td><td>14.5</td><td>15</td><td>15.5</td><td>16</td></tr></table>' +
-            '<p class="small" style="margin:8px 0 0">✂️ ' + loc('தனிப்பயன் தையல் வேண்டுமா? WhatsApp-ல கேளுங்கள்.', 'కస్టమ్ స్టిచ్ కావాలా? WhatsApp లో అడగండి.', 'ಕಸ್ಟಮ್ ಸ್ಟಿಚ್ ಬೇಕಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ.', 'Want custom stitching? Ask on WhatsApp.', 'കസ്റ്റം സ്റ്റിച്ചിംഗ് വേണോ? WhatsApp-ൽ ചോദിക്കൂ.') + '</p>' +
-          '</div></details></div>' +
         /* 🌐 need help? — WhatsApp in HER language */
         '<div class="pd-help"><b>' + loc('இந்த சேலையை தேர்ந்தெடுக்க உதவி வேண்டுமா?', 'ఈ చీరను ఎంచుకోవడానికి సహాయం కావాలా?', 'ಈ ಸೀರೆಯನ್ನು ಆರಿಸಲು ಸಹಾಯ ಬೇಕೆ?', 'Need help choosing this saree?', 'ഈ സാരി തിരഞ്ഞെടുക്കാൻ സഹായം വേണോ?') + '</b>' +
           '<div class="pdh-langs">' + [
@@ -3130,10 +3099,10 @@ function renderProduct(){
       '</div>' +
     '</div>' +
     '<div class="wrap" id="recSection"></div>' +
-    /* 📌 sticky mobile bar — Price + WhatsApp Order (spec) */
+    /* 📌 sticky mobile purchase bar — [WhatsApp] [BUY NOW — ₹X] */
     '<div class="sticky-bar sb2">' +
-      '<div class="sb-price" id="sbPrice"><b>' + money(p.price) + '</b>' + (off >= 5 ? '<small>🔥 ' + off + '% off</small>' : '<small>' + esc(p.sku || '') + '</small>') + '</div>' +
-      '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Order</a>' +
+      '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener" aria-label="Order on WhatsApp">' + SVG_WA + '</a>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -4803,7 +4772,7 @@ function maybeProductSharePrompt(){
     toast('💬 ' + loc('இந்த சேலை பிடிச்சிருக்கா? நண்பர்களுக்கு share பண்ணுங்க! 💜', 'ఈ చీర నచ్చిందా? మీ స్నేహితులకు షేర్ చేయండి! 💜', 'ಈ ಸೀರೆ ಇಷ್ಟವಾಯಿತಾ? ಸ್ನೇಹಿತರಿಗೆ ಹಂಚಿ! 💜', 'Loved this saree? Share with friends! 💜'), 3500);
   }catch(e){}
 }
-/* popup offers removed (user request) */
+setTimeout(function(){ try{ maybeProductSharePrompt(); }catch(e){} }, 20000);
 
 /* ============================ 🚀 AUTO VIRAL SHARE ============================
    After 40 seconds of real browsing, show a "Share & Earn" popup.
@@ -4831,7 +4800,7 @@ function maybeViralShare(){
     '</div>');
   }catch(e){}
 }
-/* popup offers removed (user request) */
+setTimeout(function(){ try{ maybeViralShare(); }catch(e){} }, 40000);
 
 /* ============================ 📢 WHATSAPP GROUP INVITE ============================
    After 90 seconds (deep engagement), invite her to the WhatsApp group
@@ -4844,7 +4813,7 @@ function maybeWhatsAppGroupInvite(){
     toast('📢 ' + loc('புது சேலைகள் WhatsApp group-ல ஜாயின் பண்ணுங்க! 👉 Drawer-ல உள்ளே', 'కొత్త చీరల WhatsApp గ్రూప్‌లో జాయిన్ అవ్వండి!', 'ಹೊಸ ಸೀರೆಗಳು WhatsApp ಗ್ರೂಪ್‌ನಲ್ಲಿ ಸೇರಿ!', 'Join our WhatsApp group for daily new sarees!'), 4000);
   }catch(e){}
 }
-/* popup offers removed (user request) */
+setTimeout(function(){ try{ maybeWhatsAppGroupInvite(); }catch(e){} }, 90000);
 
 document.addEventListener('click', function(e){
   /* add to cart (from cards, product page, wishlist) */

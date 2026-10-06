@@ -2277,7 +2277,7 @@ try{
   const __lp = new URLSearchParams(location.search).get('lang');
   if (__lp && ['en','ta','te','kn','ml'].indexOf(String(__lp).toLowerCase()) !== -1) LS.set('sk_lang', String(__lp).toLowerCase());
 }catch(e){}
-let lang = LS.get('sk_lang', '') || 'ta';   /* 🌸 Tamil-first (SK Sarees = Tamil Nadu store) */
+let lang = LS.get('sk_lang', '') || 'en';
 if (!LANGS[lang]) lang = 'en';
 /* 🙏 greeting word in the visitor's own language (ta/te/kn/en) */
 function greetWord(){
@@ -2933,12 +2933,6 @@ function renderFooter(){
     f.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
     f.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
   }catch(e){}
-  /* 💬 floating WhatsApp button (desktop, all pages) */
-  try{
-    if (!document.querySelector('.wa-float')){
-      f.insertAdjacentHTML('beforeend', '<a class="wa-float" href="' + waLink('Hi SK Sarees! சேலை பற்றி கேட்க விரும்புகிறேன். / I have a question about sarees.') + '" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">' + SVG_WA + '</a>');
-    }
-  }catch(e2){}
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
@@ -3168,7 +3162,7 @@ function injectChrome(){
   document.body.insertAdjacentHTML('beforeend', `
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);
-  /* abandoned-cart popup removed (user request) */
+  try{ abandonedCartBanner(); }catch(e){}
 
   document.addEventListener('click', e => { const c = e.target.closest('[data-close]'); if (c) closeModal(); });
 }
