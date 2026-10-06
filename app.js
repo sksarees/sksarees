@@ -3782,11 +3782,11 @@ function drawCo(){
   const itemLines = coItems().map(i => { const p = byId(i.id); return p ? '<div class="rvw-item"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span>' + esc(p.name) + (i.colour ? ' <small class="muted">(' + esc(i.colour) + ')</small>' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
   if (co.step === 1){
     app.innerHTML = '<div class="wrap page"><h1>🔒 Secure Checkout</h1>' + steps +
-      '<div class="form-card"><h3>📋 Your Details <span class="muted small" style="font-weight:500">(no login needed)</span></h3>' +
+      '<div class="form-card"><h3>📋 Your Details</h3>' +
         '<div class="field"><label>Full Name <span class="req">*</span></label><input id="coName" value="' + esc(d.name) + '" placeholder="e.g. Lakshmi S"></div>' +
         '<div class="field"><label>WhatsApp / Mobile <span class="req">*</span></label><input id="coPhone" value="' + esc(d.phone) + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
         
-        '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area…">' + esc(d.address) + '</textarea></div>' +
+        '<div class="field"><label>Address <span class="req">*</span></label><input id="coAddr" value="' + esc(d.address) + '" placeholder="House no, street, area"></div>' +
         '<div class="co-citystate">' +
           '<div class="field"><label>City <span class="req">*</span></label><input id="coCity" value="' + esc(d.city || '') + '" placeholder="Your city"></div>' +
           '<div class="field"><label>State <span class="req">*</span></label><select id="coState"><option value="">Select state</option>' + IN_STATES.map(s => '<option' + (d.state === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div>' +
@@ -3800,8 +3800,10 @@ function drawCo(){
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
       /* 💳 PAYMENT — AFTER the summary: two big, easy-view buttons */
       '<div class="form-card co-paycard"><h3>💳 ' + loc('Payment', 'చెల్లింపు', 'ಪಾವತಿ', 'Payment', 'പേയ്മെന്റ്') + '</h3>' +
-        '<button type="button" class="co-pay-upi" data-payonline>📲 ' + loc('PAY ONLINE', 'ఆన్‌లైన్ చెల్లించండి', 'ಆನ್‌ಲೈನ್ ಪಾವತಿ', 'PAY ONLINE', 'ഓൺലൈൻ പേയ്മെന്റ്') + '<small>UPI • GPay • PhonePe • Paytm • Courier ₹' + (CONFIG.shipFee || 30) + (itemsTotal_ish() >= (CONFIG.shipFreeAbove || 1999) ? ' (FREE)' : '') + '</small></button>' +
-        '<button type="button" class="co-pay-cod" data-codwa>💵 ' + loc('CASH ON DELIVERY', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '<small>₹' + (CONFIG.codFee || 100) + ' booking now → balance at delivery</small></button>' +
+        '<button type="button" class="co-pay-upi" data-payonline><span class="cpu-t">📲 ' + loc('PAY ONLINE', 'ఆన్‌లైన్ చెల్లించండి', 'ಆನ್‌ಲೈನ್ ಪಾವತಿ', 'PAY ONLINE', 'ഓൺലൈൻ പേയ്മെന്റ്') + '</span>' +
+          '<span class="cpu-chips"><i class="chip-gpay">G<span class="g-b">P</span><span class="g-r">a</span><span class="g-y">y</span></i><i class="chip-phonepe">PhonePe</i><i class="chip-paytm">Paytm</i><i class="chip-upi">UPI</i></span>' +
+          '<small>Courier ₹' + (CONFIG.shipFee || 30) + (itemsTotal_ish() >= (CONFIG.shipFreeAbove || 1999) ? ' — FREE' : '') + '</small></button>' +
+        '<button type="button" class="co-pay-cod" data-codwa>💵 ' + loc('CASH ON DELIVERY', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲివರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '<small>' + loc('Pay ₹' + (CONFIG.codFee || 100) + ' link now → saree amount cash at delivery', '₹' + (CONFIG.codFee || 100) + ' లింక్ ఇప్పుడే → మిగిలిన మొత్తం డెలివరీ వద్ద క్యాష్', '₹' + (CONFIG.codFee || 100) + ' ಲಿಂಕ್ ಈಗ → ಉಳಿದ ಮೊತ್ತ ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ಕ್ಯಾಶ್', 'Pay ₹' + (CONFIG.codFee || 100) + ' link now → saree amount cash at delivery', '₹' + (CONFIG.codFee || 100) + ' ലിങ്ക് ഇപ്പോൾ → ബാക്കി ഡെലിവറി സമയത്ത് ക്യാഷ്') + '</small></button>' +
         '<p class="co-paynote">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' • 💵 COD Available • ↩️ 7-Day Replacement • 🎉 FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</p>' +
       '</div>' +
     '</div>';

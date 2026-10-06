@@ -2744,7 +2744,7 @@ function seedFirestoreCollections(){
     db.collection('counters').doc('site').set({ visitors: 1, orders: 0, updatedAt: now }, { merge: true }).catch(() => {});
     /* admins: seed admin */
     db.collection('admins').doc('owner').set({
-      name: 'Store Owner', phone: CONFIG.waDisplay, role: 'owner', updatedAt: now,
+      name: 'Shanmugam', phone: '7867915699', role: 'owner', updatedAt: now,
     }, { merge: true }).catch(() => {});
     /* categories: seed all categories */
     CATEGORIES.forEach(c => {
@@ -2818,7 +2818,6 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
-        ${(userName() ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">' + greetWord() + ', <b>' + esc(userName()) + '</b></span></a>' : '')}
         <a class="icon-btn" href="shop.html" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg></a>
         <a class="icon-btn ic-profile" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
@@ -2861,14 +2860,82 @@ function renderHeader(){
   }catch(e){}
   renderCartBadge();
 }
-/* 🦶 FOOTER REMOVED (user request 2026-10-06) — kept as a no-op so all
-   existing calls keep working. Mobile WhatsApp bar + drawer menu remain. */
+/* 🦶 footer — ONLY on the index page (user request 2026-10-06) */
 function renderFooter(){
   const f = document.getElementById('siteFooter'); if (!f) return;
-  f.innerHTML = '';
-  f.style.display = 'none';
+  /* 🦶 footer shows ONLY on the index page (user request) */
+  if ((document.body.dataset.page || '') !== 'home'){ f.innerHTML = ''; f.style.display = 'none'; return; }
+  f.innerHTML = `
+  <footer class="sk-footer">
+    <div class="f-brand">
+      <span class="logo-badge">${SK_LOGOSVG}</span>
+      <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
+    </div>
+    <div class="f-cta-row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px">
+      <a class="btn btn-wa btn-xl" style="width:auto;min-width:220px" href="${CONFIG.waGroup}" target="_blank" rel="noopener">📢 Join WhatsApp Group — Daily New Sarees!</a>
+      <a class="btn btn-gold btn-xl" style="width:auto;min-width:200px" href="share-earn.html">💰 Share &amp; Earn 5%</a>
+    </div>
+    <div class="f-grid">
+      <div>
+        <h4>Saree Categories</h4>
+        <a href="/kanchipuram/">👑 Kanchipuram Sarees</a>
+        <a href="/soft-silk/">✨ Soft Silk Sarees</a>
+        <a href="/cotton/">🌿 Cotton Sarees</a>
+        <a href="/wedding/">💍 Wedding Sarees</a>
+        <a href="/party-wear/">🎉 Party Wear Sarees</a>
+        <a href="/daily-wear/">🌤️ Daily Wear Sarees</a>
+        <a href="/bridal/">👰 Bridal Sarees</a>
+        <a href="/combo.html">🧵 Dhoti + Shirt Combos</a>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <a href="index.html">🏠 ${t('home')}</a>
+        <a href="shop.html">🛍️ ${t('shopAll')}</a>
+        <a href="reels.html">🎬 Saree Reels</a>
+        <a href="cart.html">🛒 ${t('cart')}</a>
+        <a href="orders.html">📦 ${t('myOrders')}</a>
+        <a href="profile.html">👤 ${t('profile')}</a>
+      </div>
+      <div>
+        <h4>Offers</h4>
+        <a href="share-earn.html">💰 Share &amp; Earn</a>
+        <a href="#" data-i18n-faq>❓ FAQ</a>
+        <a href="return-policy.html">↩️ Return Policy</a>
+        <a href="blog.html">📖 Blog</a>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <a href="tel:+917867915699">📞 +91 78679 15699</a>
+        <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 WhatsApp Group</a>
+        <a href="${CONFIG.googleReview}" target="_blank" rel="noopener">⭐ Google Reviews</a>
+        <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
+      </div>
+      <div>
+        <h4>Store</h4>
+        <a href="https://maps.google.com/?q=SK+Sarees+Edanganasalai+Salem" target="_blank" rel="noopener">📍 Edanganasalai, Salem 637502</a>
+        <a href="#">⏰ 9 AM – 9 PM, all days</a>
+        <a href="#">🚀 Shipping all over India</a>
+        <a href="#">📱 COD • UPI • GPay • PhonePe</a>
+      </div>
+    </div>
+    <div class="f-social">
+      <a href="${CONFIG.social.instagram}" target="_blank" rel="noopener" aria-label="Instagram">📸</a>
+      <a href="${CONFIG.social.facebook}" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
+      <a href="${CONFIG.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
+      <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+      <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us">⭐</a>
+    </div>
+    <div class="f-langs">
+      <button type="button" data-setlang="en">English</button><span>|</span><button type="button" data-setlang="ta">தமிழ்</button><span>|</span><button type="button" data-setlang="te">తెలుగు</button><span>|</span><button type="button" data-setlang="kn">ಕನ್ನಡ</button><span>|</span><button type="button" data-setlang="ml">മലയാളം</button>
+    </div>
+    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu • 🚚 Shipping Across India<br>Made with ❤️ for saree lovers</div>
+  </footer>`;
+  try{
+    const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
+    f.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
+    f.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
+  }catch(e){}
 }
-
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
 /* ============================ MICROSOFT CLARITY ============================
