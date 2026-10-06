@@ -1159,7 +1159,15 @@ function waProductMsg(p){
      if the sharer is a reseller the link carries ?ref=CODE (any page) */
   const url = shareUrl(p);
   const off = offPct(p);
-  return `Hi SK Sarees, I am interested in this saree. Please send me the order details.\n\n🪡 ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n👉 ${url}`;
+  const head = loc(
+    'வணக்கம் SK Sarees! இந்த சேலையை ஆர்டர் செய்ய விரும்புகிறேன். Order details அனுப்புங்கள்.',
+    'నమస్కారం SK Sarees! ఈ చీరను ఆర్డర్ చేయాలనుకుంటున్నాను. Order details పంపండి.',
+    'ನಮಸ್ಕಾರ SK Sarees! ಈ ಸೀರೆಯನ್ನು ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ. Order details ಕಳುಹಿಸಿ.',
+    'Hi SK Sarees, I want to order this saree. Please send me the order details.',
+    'നമസ്കാരം SK Sarees! ഈ സാരി ഓർഡർ ചെയ്യണം. Order details അയക്കൂ.');
+  const lblProduct = loc('சேலை', 'చీర', 'ಸೀರೆ', 'Product', 'സാരി');
+  const lblPrice = loc('விலை', 'ధర', 'ಬೆಲೆ', 'Price', 'വില');
+  return `${head}\n\n🪡 ${lblProduct}: ${p.name}\n🏷️ SKU: ${p.sku || p.id}\n💰 ${lblPrice}: ₹${p.price}${off ? ' (' + off + '% OFF)' : ''}\n\n👉 ${url}`;
 }
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
@@ -2250,10 +2258,24 @@ const LANGS = {
     contactUs:'ಸಂಪರ್ಕಿಸಿ', freeShip:'ಉಚಿತ ಡೆಲಿವರಿ', placeOrder:'ಆರ್ಡರ್ ಮಾಡಿ',
     search:'ಸೀರೆಗಳು, ಫ್ಯಾಬ್ರಿಕ್, ಬಣ್ಣ ಹುಡುಕಿ…', all:'ಎಲ್ಲಾ', inStock:'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ', outStock:'ಸ್ಟಾಕ್ ಇಲ್ಲ',
   },
+  ml: {
+    home:'ഹോം', shop:'ഷോപ്പ്', cart:'നിങ്ങളുടെ കാർട്ട്', checkout:'ചെക്ക്ഔട്ട്', myOrders:'എന്റെ ഓർഡറുകൾ', profile:'പ്രൊഫൈൽ',
+    shopAll:'എല്ലാ സാരികളും', addToCart:'കാർട്ടിൽ ചേർക്കുക', buyNow:'ഇപ്പോൾ വാങ്ങുക', orderOnWA:'വാട്ട്‌സ്ആപ്പിൽ ഓർഡർ',
+    viewAll:'എല്ലാം →', bestSellers:'ബെസ്റ്റ് സെല്ലർമാർ', newArrivals:'പുതിയ വരവുകൾ', todaysDeals:'ഇന്നത്തെ ഓഫറുകൾ',
+    categories:'വിഭാഗം അനുസരിച്ച് വാങ്ങുക', aboutUs:'ഞങ്ങളെക്കുറിച്ച്', quickLinks:'ദ്രുത ലിങ്കുകൾ',
+    contactUs:'ബന്ധപ്പെടുക', freeShip:'ഫ്രീ ഡെലിവറി', placeOrder:'ഓർഡർ ചെയ്യുക', language:'ഭാഷ',
+    search:'സാരികൾ, തുണി, നിറം തിരയുക…', all:'എല്ലാം', inStock:'സ്റ്റോക്കിലുണ്ട്', outStock:'സ്റ്റോക്ക് ഇല്ല',
+    shopByCategory:'വിഭാഗം അനുസരിച്ച്',
+  },
 };
 /* 🌐 LANGUAGE: English first — the site opens in English; the language changes
    ONLY when she picks one herself (Profile → Language). Her saved choice is
    always respected. */
+/* 🔗 campaign links can force a language: ?lang=ta/te/kn/ml/en */
+try{
+  const __lp = new URLSearchParams(location.search).get('lang');
+  if (__lp && ['en','ta','te','kn','ml'].indexOf(String(__lp).toLowerCase()) !== -1) LS.set('sk_lang', String(__lp).toLowerCase());
+}catch(e){}
 let lang = LS.get('sk_lang', '') || 'en';
 if (!LANGS[lang]) lang = 'en';
 /* 🙏 greeting word in the visitor's own language (ta/te/kn/en) */
@@ -2261,6 +2283,7 @@ function greetWord(){
   if (lang === 'ta') return 'வணக்கம்';
   if (lang === 'te') return 'నమస్కారం';
   if (lang === 'kn') return 'ನಮಸ್ಕಾರ';
+  if (lang === 'ml') return 'നമസ്കാരം';
   return 'Vanakkam';
 }
 const t = k => (LANGS[lang] && LANGS[lang][k]) || LANGS.en[k] || k;
@@ -2801,6 +2824,9 @@ function renderHeader(){
       </div>
     </div>
   </div>
+  <div class="lang-bar" id="langBar" aria-label="Language / மொழி / భాష / ಭಾಷೆ / ഭാഷ">
+    ${[['en','English'],['ta','தமிழ்'],['te','తెలుగు'],['kn','ಕನ್ನಡ'],['ml','മലയാളം']].map(x => '<button type="button" class="lb-btn' + (lang === x[0] ? ' on' : '') + '" data-setlang="' + x[0] + '">' + x[1] + '</button>').join('')}
+  </div>
   <div class="overlay" id="overlay"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head"><span class="logo-badge">${SK_LOGOSVG}</span><div><b>${CONFIG.storeName}</b><br><small style="opacity:.85;font-size:.72rem">2/130, Thoothanoor, Edanganasalai, Salem 637502</small></div></div>
@@ -3119,6 +3145,11 @@ function injectChrome(){
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
   document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 🚚 FREE Shipping above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')} &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking + Courier &nbsp;•&nbsp; 👥 2,300+ Happy Customers on WhatsApp Bookings &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
+  /* 🌐 any [data-setlang] button switches the whole site language */
+  document.addEventListener('click', function(e){
+    const b = e.target.closest('[data-setlang]');
+    if (b){ try{ setLang(b.dataset.setlang); }catch(err){} }
+  });
   try{
     const so = document.querySelector('[data-authonly]');
     if (so){ const a = (typeof Auth !== 'undefined') ? Auth.current() : null; so.style.display = a ? 'flex' : 'none'; }

@@ -4326,3 +4326,87 @@ body[data-page="product"] .btn-pd-buy{ background:#B71C1C !important; color:#fff
 .btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible{ outline:2px solid var(--brand); outline-offset:2px }
 .btn-pd-buy:active, .prp-btn:active{ transform:scale(.98) }
 .pd-thumb.on{ border-color:var(--brand) }
+
+/* ============================================================================
+   🌏 v14 — SOUTH INDIA MULTILINGUAL STORE — lang bar, home, cards, checkout
+   ========================================================================== */
+/* 🌐 language bar (under the topbar, every page) */
+.lang-bar{ display:flex; background:#fff; border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch }
+.lang-bar::-webkit-scrollbar{ display:none }
+.lang-bar .lb-btn{
+  flex:1 0 auto; background:none; border:0; border-bottom:2px solid transparent;
+  padding:8px 14px; font-size:.76rem; font-weight:700; color:#555; cursor:pointer; white-space:nowrap;
+}
+.lang-bar .lb-btn.on{ color:#B71C1C; border-bottom-color:#B71C1C }
+body[data-page="reels"] .lang-bar{ background:#111 }
+body[data-page="reels"] .lang-bar .lb-btn{ color:#bbb }
+body[data-page="reels"] .lang-bar .lb-btn.on{ color:#fff; border-bottom-color:#fff }
+
+/* hero */
+.sk-hero{ background:linear-gradient(180deg,#FFF7F7,#fff); border-bottom:1px solid var(--line); padding:22px 0 16px; text-align:center }
+.sk-hero h1{ font-size:clamp(1.12rem,4.6vw,1.65rem); font-weight:800; color:#111; margin:0 0 6px }
+.sk-hero p{ font-size:.8rem; color:#555; margin:0 0 14px; line-height:1.55 }
+.sk-hero-btns{ display:grid; gap:10px; max-width:440px; margin:0 auto }
+@media(min-width:600px){ .sk-hero-btns{ grid-template-columns:1fr 1fr } }
+.sk-hero-trust{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 14px; margin-top:14px; font-size:.68rem; font-weight:700; color:#444 }
+
+/* home sections */
+.sk-sec{ padding:16px 12px 4px; max-width:1200px; margin:0 auto }
+.sk-sec > h2{ font-size:.95rem; font-weight:800; color:#111; margin:0 0 10px; display:flex; justify-content:space-between; align-items:center; gap:10px }
+.sk-sec > h2 a{ font-size:.72rem; color:#1155CC; font-weight:700; text-decoration:none; white-space:nowrap }
+.sk-chips{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch }
+.sk-chips::-webkit-scrollbar{ display:none }
+.sk-chip{ flex:0 0 auto; background:#fff; border:1px solid var(--line); border-radius:999px; padding:9px 16px; font-size:.76rem; font-weight:700; color:#111; text-decoration:none; white-space:nowrap }
+.sk-chip:hover{ border-color:#B71C1C; color:#B71C1C }
+
+/* homepage product cards */
+.hc-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:600px){ .hc-grid{ grid-template-columns:repeat(3,1fr) } }
+@media(min-width:900px){ .hc-grid{ grid-template-columns:repeat(4,1fr) } }
+.hc{ background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column }
+.hc-img{ position:relative; aspect-ratio:3/4; background:#fff; display:block }
+.hc-img img{ width:100%; height:100%; object-fit:contain; padding:6px }
+.hc-off{ position:absolute; top:6px; left:6px; background:#B71C1C; color:#fff; font-size:.58rem; font-weight:800; padding:3px 8px; border-radius:5px }
+.hc-b{ padding:8px 9px 10px; display:flex; flex-direction:column; gap:4px; flex:1 }
+.hc-t{ font-size:.76rem; font-weight:700; color:#111; text-decoration:none; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+.hc-rate{ font-size:.64rem; color:#666; font-weight:700 }
+.hc-price{ display:flex; align-items:baseline; gap:6px }
+.hc-price b{ font-size:.98rem; color:#111 }
+.hc-price s{ font-size:.68rem; color:#999 }
+.hc-meta{ font-size:.6rem; color:#666; font-weight:700 }
+.hc-btns{ margin-top:auto; padding-top:6px; display:grid; gap:6px }
+.hc-buy{ min-height:44px; background:#B71C1C; color:#fff; border:0; border-radius:8px; font-weight:800; font-size:.78rem; cursor:pointer }
+.hc-buy:active{ transform:scale(.98) }
+.hc-wa{ min-height:40px; display:flex; align-items:center; justify-content:center; gap:6px; background:#fff; border:1.5px solid #0E9F4F; color:#0E9F4F; border-radius:8px; font-weight:700; font-size:.72rem; text-decoration:none }
+.hc-wa svg{ fill:#0E9F4F }
+
+/* south india + video + why + reviews */
+.sk-south{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 14px; margin:14px 12px; text-align:center; max-width:1200px }
+@media(min-width:900px){ .sk-south{ margin:14px auto } }
+.sk-south h3{ font-size:.95rem; margin:0 0 8px; color:#111 }
+.sk-south p{ font-size:.76rem; color:#555; margin:10px 0 0; line-height:1.6 }
+.sk-states{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px }
+.sk-state{ background:#FAFAFA; border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:.72rem; font-weight:700; color:#333 }
+.sk-rev{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px }
+.sk-rev b{ font-size:.8rem; color:#111 }
+.sk-rev small{ color:#777 }
+.sk-rev .stars{ color:#E8A000; font-size:.85rem; margin:4px 0 }
+.sk-rev p{ font-size:.76rem; color:#333; margin:6px 0 0; line-height:1.55 }
+.sk-why{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; grid-template-columns:1fr 1fr; gap:9px 12px }
+.sk-why span{ font-size:.74rem; font-weight:700; color:#222 }
+.sk-wa-band{ margin:14px 12px; padding:18px 14px; background:#0E9F4F; border-radius:12px; color:#fff; text-align:center; max-width:1200px }
+@media(min-width:900px){ .sk-wa-band{ margin:14px auto } }
+.sk-wa-band b{ font-size:1rem }
+.sk-wa-band a{ display:inline-flex; align-items:center; gap:8px; margin-top:12px; background:#fff; color:#0E9F4F; font-weight:800; border-radius:8px; padding:12px 22px; text-decoration:none }
+.sk-wa-band a:active{ transform:scale(.98) }
+
+/* product page — help-in-your-language */
+.pd-help{ border:1px solid #E8E8E8; border-radius:12px; padding:12px; margin-top:12px; background:#fff }
+.pd-help > b{ font-size:.8rem; display:block; margin-bottom:8px; color:#111 }
+.pdh-langs{ display:flex; flex-wrap:wrap; gap:8px }
+.pdh-langs a{ flex:1 0 auto; text-align:center; background:#fff; border:1.5px solid #0E9F4F; color:#0E9F4F; border-radius:8px; padding:10px 12px; font-weight:700; font-size:.78rem; text-decoration:none; min-width:86px }
+.pdh-langs a:active{ transform:scale(.97) }
+
+/* checkout — city + state */
+.co-citystate{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+@media(max-width:480px){ .co-citystate{ grid-template-columns:1fr } }

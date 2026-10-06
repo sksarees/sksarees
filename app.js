@@ -1610,74 +1610,122 @@ function whyUsHTML(){
   return '<section class="sec"><div class="sec-head"><h2><span class="tick"></span>🤝 Why SK Sarees?</h2></div>' +
     '<div class="why-grid">' + items.map(i => '<div class="why-tile"><span>' + i[0] + '</span><b>' + i[1] + '</b><small>' + i[2] + '</small></div>').join('') + '</div></section>';
 }
+/* ============================ HOME — South India multilingual store ============================ */
+/* 🛍️ homepage product card — image, rating, prices, discount, COD/Fast,
+   BUY NOW (primary) + WhatsApp Order (secondary). Large tap targets. */
+function homeCardHTML(p){
+  const off = offPct(p);
+  const revs = (p.reviews || 0) + realReviewCount(p.id);
+  return '<div class="hc">' +
+    '<a class="hc-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
+      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+      (off >= 5 ? '<span class="hc-off">' + off + '% OFF</span>' : '') +
+    '</a>' +
+    '<div class="hc-b">' +
+      '<a class="hc-t" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
+      '<span class="hc-rate">⭐ ' + (p.rating || 4.5) + (revs > 0 ? ' (' + revs + ')' : '') + '</span>' +
+      '<div class="hc-price"><b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' + (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</div>' +
+      '<span class="hc-meta">💵 COD • 🚚 Fast Delivery</span>' +
+      '<div class="hc-btns">' +
+        '<button type="button" class="hc-buy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW</button>' +
+        '<a class="hc-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WhatsApp Order</a>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
   const pool = PRODUCTS.filter(p => !p.hidden);
   const liveCats = CATEGORIES
     .map(c => ({ c: c, n: PRODUCTS.filter(p => !p.hidden && p.cat === c.slug).length }))
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n);
-  /* ⭐ most popular 12 */
-  const popular = pool.sort((a, b) =>
+  const best = pool.slice().sort((a, b) =>
     ((b.badge === 'Bestseller' ? 900 : 0) + (b.rating || 0) * 10 + (b.reviews || 0)) -
-    ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10 + (a.reviews || 0))
-  ).slice(0, 12);
+    ((a.badge === 'Bestseller' ? 900 : 0) + (a.rating || 0) * 10 + (a.reviews || 0))).slice(0, 6);
+  const deals = pool.filter(p => p.mrp && p.mrp > p.price).sort((a, b) => offPct(b) - offPct(a)).slice(0, 6);
+  const fresh = pool.slice(0, 6);
+  const PRICE_CHIPS = [[500, 'Under ₹500'], [1000, 'Under ₹1,000'], [1500, 'Under ₹1,500'], [2500, 'Under ₹2,500'], [3000, 'All Sarees']];
+  const COLOUR_CHIPS = ['Red', 'Blue', 'Green', 'Pink', 'Maroon', 'Black', 'Yellow', 'Orange', 'Purple', 'White', 'Cream', 'Multi'];
+  const STATES = ['Tamil Nadu', 'Karnataka', 'Andhra Pradesh', 'Telangana', 'Kerala', 'Puducherry'];
+  const secHead = (title, href) => '<div class="sk-sec"><h2>' + title + (href ? ' <a href="' + href + '">' + t('viewAll') + '</a>' : '') + '</h2>';
+
+  /* 📄 FAQ schema (SEO) */
+  try{
+    const fq = document.getElementById('homeFaqLd') || document.createElement('script');
+    fq.id = 'homeFaqLd'; fq.type = 'application/ld+json';
+    const faqData = [
+      ['How can I order a saree?', 'Tap BUY NOW on any saree, enter your mobile number and complete checkout — or simply order on WhatsApp.'],
+      ['Is COD (Cash on Delivery) available?', 'Yes — COD is available across India with a ₹100 booking + courier amount; the balance is paid at delivery.'],
+      ['How long does delivery take?', 'Tamil Nadu 2-3 days, Andhra/Karnataka 3-4 days, other states 5-7 days. Dispatch within 24 hours.'],
+      ['Do you deliver across South India?', 'Yes — we deliver to Tamil Nadu, Karnataka, Andhra Pradesh, Telangana, Kerala, Puducherry and all of India.'],
+      ['Can I order through WhatsApp?', 'Yes! Every saree has a WhatsApp Order button — we confirm availability instantly.'],
+      ['What is the replacement policy?', '7-day easy replacement for damaged, wrong or defective sarees.'],
+    ];
+    fq.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqData.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
+    document.head.appendChild(fq);
+  }catch(e){}
 
   app.innerHTML =
-  /* ═══ SEARCH BAR ═══ */
-  '<div class="im-search-wrap">' +
-    '<form class="im-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'imQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);">' +
-      '<input id="imQ" type="search" placeholder="Search sarees…" autocomplete="off">' +
-      '<button type="submit" class="im-search-btn">🔍 Search</button>' +
-    '</form>' +
-  '</div>' +
-
-  /* ═══ CATEGORY PILLS (horizontal scroll) ═══ */
-  '<div class="im-cats" id="imCats">' +
-    '<a href="shop.html" class="im-cat on">All</a>' +
-    liveCats.map(x => '<a href="shop.html?cat=' + x.c.slug + '" class="im-cat">' + x.c.emoji + ' ' + esc(x.c.name) + '</a>').join('') +
-  '</div>' +
-
-  /* ═══ PRODUCT GRID ═══ */
-  '<div class="im-grid-head">' +
-    '<b>⭐ Popular Sarees</b>' +
-    '<a href="shop.html">View All →</a>' +
-  '</div>' +
-  '<div class="im-grid">' + popular.map(p => imCardHTML(p)).join('') + '</div>' +
-
-  /* ═══ LOAD MORE ═══ */
-  '<div style="text-align:center;padding:16px 0">' +
-    '<a class="btn btn-buy btn-xl" href="shop.html" style="min-width:240px">🛍️ View All Sarees</a>' +
-  '</div>' +
-
-  /* ═══ WHATSAPP FLOATING BAR (mobile) ═══ */
-  '<div class="im-wa-bar">' +
-    '<a class="im-wa-btn" href="' + waLink('Hi! I want to buy a saree. Please send me photos & prices 🙏') + '" target="_blank" rel="noopener">' + SVG_WA + ' WhatsApp Order</a>' +
-    '<a class="im-shop-btn" href="shop.html">🛍️ Shop Now</a>' +
-  '</div>';
-}
-
-/* 🛒 IndiaMART-style product card — clean, minimal, direct order */
-function imCardHTML(p){
-  const off = offPct(p);
-  return '<div class="im-card">' +
-    '<a class="im-card-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
-      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
-      (off >= 5 ? '<span class="im-off">' + off + '% OFF</span>' : '') +
-    '</a>' +
-    '<div class="im-card-body">' +
-      '<a class="im-card-title" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
-      '<div class="im-card-price">' +
-        '<b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' +
-        (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') +
+    /* ═══ 4. HERO — South India ═══ */
+    '<section class="sk-hero"><div class="wrap">' +
+      '<h1>' + loc('தென்னிந்தியா முழுவதும் அழகான சேலைகள், உங்க கதவு வரை!', 'దక్షిణ భారతదేశం అంతటా అందమైన చీరలు!', 'ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ ಸುಂದರ ಸೀರೆಗಳು!', 'Beautiful Sarees, Delivered Across South India', 'ദക്ഷിണേന്ത്യയിലേക്ക് സുന്ദരമായ സാരികൾ!') + '</h1>' +
+      '<p>' + loc('சேலம், தமிழ்நாட்டிலிருந்து உண்மையான சேலைகள். எளிதான ஆர்டர் • COD • UPI • வேகமான டெலிவரி', 'సేలం, తమిళనాడు నుండి నిజమైన చీరలు. సులభమైన ఆర్డర్ • COD • UPI • వేగవంతమైన డెలివరీ', 'ಸೇಲಂ, ತಮಿಳುನಾಡಿನಿಂದ ನಿಜವಾದ ಸೀರೆಗಳು. ಸುಲಭ ಆರ್ಡರ್ • COD • UPI • ವೇಗದ ಡೆಲಿವರಿ', 'Authentic sarees from Salem, Tamil Nadu. Easy ordering • COD available • UPI • Fast India delivery', 'സേലം, തമിഴ്നാട്ടിലെ യഥാർത്ഥ സാരികൾ. എളുപ്പമുള്ള ഓർഡർ • COD • UPI • വേഗമേറിയ ഡെലിവറി') + '</p>' +
+      '<div class="sk-hero-btns">' +
+        '<a class="btn btn-pd-buy btn-xl" href="shop.html">' + loc('சிறந்த விற்பனை சேலைகள்', 'బెస్ట్ సెల్లర్స్', 'ಅತ್ಯುತ್ತಮ ಮಾರಾಟ', 'SHOP BEST SELLERS', 'ബെസ്റ്റ് സെല്ലേഴ്സ്') + '</a>' +
+        '<a class="btn btn-wa btn-xl" href="' + waLink(loc('வணக்கம்! சேலை ஆர்டர் செய்ய விரும்புகிறேன்.', 'నమస్కారం! చీర ఆర్డర్ చేయాలనుకుంటున్నాను.', 'ನಮಸ್ಕಾರ! ಸೀರೆ ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ.', 'Hi! I want to order a saree.', 'നമസ്കാരം! ഒരു സാരി ഓർഡർ ചെയ്യണം.')) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WHATSAPP-ல் ஆர்டர்', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>' +
       '</div>' +
-      '<span class="im-card-meta">' +
-        (p.stock != null && p.stock > 0 && p.stock <= 5 ? '🔥 Only ' + p.stock + ' left' : '💵 COD Available') +
-      '</span>' +
-      '<div class="im-card-btns">' +
-        '<a class="im-btn-order" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + ' Order Now</a>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
+      '<div class="sk-hero-trust"><span>⭐ 2,300+ Happy Customers</span><span>🚚 Fast Delivery</span><span>💵 COD Available</span><span>🔄 7-Day Replacement</span></div>' +
+    '</div></section>' +
+    /* 🔍 search */
+    '<div class="wrap" style="padding-top:12px"><form class="im-search" onsubmit="event.preventDefault(); const q=document.getElementById(\'imQ\').value.trim(); if(q) location.href=\'shop.html?q=\'+encodeURIComponent(q);">' +
+      '<input id="imQ" type="search" placeholder="' + loc('சேலை, நிறம், SKU தேடுங்கள்…', 'చీర, రంగు, SKU వెతకండి…', 'ಸೀರೆ, ಬಣ್ಣ, SKU ಹುಡುಕಿ…', 'Search sarees, silk sarees, cotton sarees…', 'സാരി, നിറം, SKU തിരയുക…') + '" autocomplete="off">' +
+      '<button type="submit" class="im-search-btn">🔍 Search</button></form></div>' +
+    /* ═══ 6. BEST SELLERS ═══ */
+    secHead('⭐ ' + t('bestSellers'), 'shop.html') + '<div class="hc-grid">' + best.map(homeCardHTML).join('') + '</div></div>' +
+    /* ═══ 7. TODAY'S DEALS ═══ */
+    (deals.length ? secHead('🔥 ' + t('todaysDeals'), 'shop.html') + '<div class="hc-grid">' + deals.map(homeCardHTML).join('') + '</div></div>' : '') +
+    /* ═══ 8. SHOP BY CATEGORY ═══ */
+    secHead('🧵 ' + t('shopByCategory'), 'shop.html') + '<div class="sk-chips">' + liveCats.slice(0, 14).map(x => '<a class="sk-chip" href="shop.html?cat=' + x.c.slug + '">' + x.c.emoji + ' ' + esc(x.c.name) + '</a>').join('') + '</div></div>' +
+    /* ═══ 9. SHOP BY PRICE ═══ */
+    secHead('💰 ' + loc('விலைப்படி வாங்குங்கள்', 'ధర ప్రకారం కొనండి', 'ಬೆಲೆ ಪ್ರಕಾರ ಖರೀದಿ', 'Shop by Price', 'വിലയ്ക്കനുസരിച്ച്')) + '<div class="sk-chips">' + PRICE_CHIPS.map(x => '<a class="sk-chip" href="shop.html?max=' + x[0] + '">' + x[1] + '</a>').join('') + '</div></div>' +
+    /* ═══ 10. SHOP BY COLOUR ═══ */
+    secHead('🎨 ' + loc('நிறம்படி வாங்குங்கள்', 'రంగు ప్రకారం', 'ಬಣ್ಣದ ಪ್ರಕಾರ', 'Shop by Colour', 'നിറത്തിനനുസരിച്ച്')) + '<div class="sk-chips">' + COLOUR_CHIPS.map(c => '<a class="sk-chip" href="shop.html?q=' + encodeURIComponent(c) + '">' + c + '</a>').join('') + '</div></div>' +
+    /* ═══ 11. SOUTH INDIA DELIVERY ═══ */
+    '<div class="sk-south"><h3>🇮🇳 ' + loc('தென்னிந்தியா முழுவதும் டெலிவரி', 'దక్షిణ భారతదేశం అంతటా డెలివరీ', 'ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ ಡೆಲಿವರಿ', 'WE DELIVER ACROSS SOUTH INDIA', 'ദക്ഷിണേന്ത്യയിലേക്ക് ഡെലിവറി') + '</h3>' +
+      '<div class="sk-states">' + STATES.map(s => '<span class="sk-state">' + s + '</span>').join('') + '</div>' +
+      '<p>' + loc('உங்களுக்கு பிடித்த சேலையை தென்னிந்தியாவில் எங்கிருந்தும் ஆர்டர் செய்யுங்கள். ஒவ்வொரு ஆர்டரும் சேலம், தமிழ்நாட்டிலிருந்து பாதுகாப்பாக பேக் செய்து அனுப்பப்படுகிறது. 🚚 TN 2–3 நாட்கள் • AP/KA 3–4 நாட்கள் • மற்ற மாநிலங்கள் 5–7 நாட்கள்', 'మీకు నచ్చిన చీరను దక్షిణ భారతదేశంలో ఎక్కడ నుండైనా ఆర్డర్ చేయండి. ప్రతి ఆర్డర్ సేలం, తమిళనాడు నుండి జాగ్రత్తగా ప్యాక్ చేయబడుతుంది. 🚚 TN 2–3 రోజులు • AP/KA 3–4 రోజులు • ఇతర రాష్ట్రాలు 5–7 రోజులు', 'ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆಯನ್ನು ದಕ್ಷಿಣ ಭಾರತದಲ್ಲಿ ಎಲ್ಲಿಂದಲಾದರೂ ಆರ್ಡರ್ ಮಾಡಿ. ಪ್ರತಿ ಆರ್ಡರ್ ಸೇಲಂ, ತಮಿಳುನಾಡಿನಿಂದ ಎಚ್ಚರಿಕೆಯಿಂದ ಪ್ಯಾಕ್ ಆಗುತ್ತದೆ. 🚚 TN 2–3 ದಿನ • AP/KA 3–4 ದಿನ • ಇತರ ರಾಜ್ಯಗಳು 5–7 ದಿನ', 'Order your favourite saree from anywhere in South India. Every order is carefully packed and dispatched from Salem, Tamil Nadu. 🚚 TN 2–3 days • AP/KA 3–4 days • Other states 5–7 days', 'നിങ്ങളുടെ പ്രിയപ്പെട്ട സാരി ദക്ഷിണേന്ത്യയിലെ എവിടെ നിന്നും ഓർഡർ ചെയ്യൂ. ഓരോ ഓർഡറും സേലം, തമിഴ്നാട്ടിൽ നിന്ന് ശ്രദ്ധയോടെ പാക്ക് ചെയ്യുന്നു. 🚚 TN 2–3 ദിവസം • AP/KA 3–4 ദിവസം • മറ്റ് സംസ്ഥാനങ്ങൾ 5–7 ദിവസം') + '</p></div>' +
+    /* ═══ 12. NEW ARRIVALS ═══ */
+    secHead('✨ ' + t('newArrivals'), 'shop.html') + '<div class="hc-grid">' + fresh.map(homeCardHTML).join('') + '</div></div>' +
+    /* ═══ 13. VIDEOS / REELS ═══ */
+    '<div class="sk-south"><h3>🎬 ' + loc('வாங்கும் முன் பாருங்கள்', 'కొనే ముందు చూడండి', 'ಖರೀದಿಸುವ ಮೊದಲು ನೋಡಿ', 'WATCH BEFORE YOU BUY', 'വാങ്ങും മുമ്പ് കാണൂ') + '</h3>' +
+      '<p>' + loc('ஒவ்வொரு சேலையும் உண்மையான video-ல பாருங்க — பின் ஆர்டர் பண்ணுங்க.', 'ప్రతి చీరను real video లో చూడండి — ఆపై ఆర్డర్ చేయండి.', 'ಪ್ರತಿ ಸೀರೆಯನ್ನು real video ನಲ್ಲಿ ನೋಡಿ — ನಂತರ ಆರ್ಡರ್ ಮಾಡಿ.', 'See every saree in real video reels — then order with confidence.', 'ഓരോ സാരിയും real video യിൽ കാണൂ — പിന്നെ ഓർഡർ ചെയ്യൂ.') + '</p>' +
+      '<a class="btn btn-pd-buy" style="display:inline-flex;margin-top:8px" href="reels.html">▶ ' + loc('சேலை VIDEOS பாருங்கள்', 'చీర VIDEOS చూడండి', 'ಸೀರೆ VIDEOS ನೋಡಿ', 'Watch Saree Videos', 'സാരി VIDEOS കാണൂ') + '</a></div>' +
+    /* ═══ 14. CUSTOMER REVIEWS (real, with city) ═══ */
+    secHead('💬 ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು', 'Customer Reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ')) +
+      '<div class="hc-grid" style="grid-template-columns:repeat(2,1fr)">' + REVIEWS.slice(0, 4).map(r =>
+        '<div class="sk-rev"><b>' + esc(r.name) + '</b> <small>📍 ' + esc(r.place) + '</small><div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div><p>' + esc(r.text) + '</p></div>').join('') + '</div></div>' +
+    /* ═══ 15. WHY SK SAREES ═══ */
+    secHead('🤝 ' + loc('ஏன் SK Sarees-ல வாங்கணும்?', 'SK Sarees లో ఎందుకు కొనాలి?', 'SK Sarees ನಲ್ಲಿ ಏಕೆ ಖರೀದಿಸಬೇಕೆ?', 'Why Shop From SK Sarees?', 'എന്തുകൊണ്ട് SK Sarees?')) + '<div class="sk-why">' +
+      ['⭐ 2,300+ Customers', '✓ Quality Checked Sarees', '💵 COD Available', '📲 UPI / GPay / PhonePe', '🔄 7-Day Replacement', '⚡ Fast Dispatch', '🚚 Shipping Across India', '💬 Personal WhatsApp Support'].map(x => '<span>' + x + '</span>').join('') +
+      '</div></div>' +
+    /* ═══ 16. FAQ (accordion + schema) ═══ */
+    secHead('❓ ' + loc('அடிக்கடி கேட்கும் கேள்விகள்', 'సాధారణ ప్రశ్నలు', 'ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳು', 'Frequently Asked Questions', 'സാധാരണ ചോദ്യങ്ങൾ')) + '<div class="pd-faq" style="border:0;padding:0">' +
+      [
+        [loc('எப்படி ஆர்டர் செய்வது?', 'ఆర్డర్ ఎలా చేయాలి?', 'ಆರ್ಡರ್ ಹೇಗೆ ಮಾಡಬೇಕೆ?', 'How can I order?', 'എങ്ങനെ ഓർഡർ ചെയ്യാം?'), loc('BUY NOW அழுத்தி mobile number கொடுங்கள் — checkout தானாக திறக்கும். அல்லது WhatsApp-ல ஆர்டர் பண்ணுங்கள்.', 'BUY NOW నొక్కి mobile number ఇవ్వండి — checkout ఓపెన్ అవుతుంది. లేదా WhatsApp లో ఆర్డర్ చేయండి.', 'BUY NOW ಒತ್ತಿ mobile number ಕೊಡಿ — checkout ತೆರೆಯುತ್ತದೆ. ಅಥವಾ WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ.', 'Tap BUY NOW, enter your mobile number — checkout opens. Or order on WhatsApp.', 'BUY NOW അമർത്തി mobile number നൽകൂ — checkout തുറക്കും. അല്ലെങ്കിൽ WhatsApp-ൽ ഓർഡർ ചെയ്യൂ.')],
+        [loc('COD இருக்கா?', 'COD ఉందా?', 'COD ಇದೆಯೇ?', 'Is COD available?', 'COD ഉണ്ടോ?'), loc('ஆமாம்! ₹100 booking + courier — மீதி டெலிவரியின் போது கொடுக்கலாம்.', 'అవును! ₹100 booking + courier — మిగిలినది డెలివరీ సమయంలో చెల్లించండి.', 'ಹೌದು! ₹100 booking + courier — ಉಳಿದದ್ದನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನೀಡಿ.', 'Yes — ₹100 booking + courier; the balance is paid at delivery.', 'ഉവ്വ്! ₹100 booking + courier — ബാക്കി ഡെലിവറി സമയത്ത് നൽകാം.')],
+        [loc('எத்தன நாள் டெலிவரி?', 'ఎన్ని రోజుల డెలివరీ?', 'ಎಷ್ಟು ದಿನ ಡೆಲಿವರಿ?', 'How long does delivery take?', 'എത്ര ദിവസം ഡെലിവറി?'), loc('TN 2–3 நாட்கள் • AP/Karnataka 3–4 நாட்கள் • மற்ற மாநிலங்கள் 5–7 நாட்கள். 24 மணி நேரத்தில் dispatch.', 'TN 2–3 రోజులు • AP/Karnataka 3–4 రోజులు • ఇతర రాష్ట్రాలు 5–7 రోజులు. 24 గంటల్లో dispatch.', 'TN 2–3 ದಿನ • AP/Karnataka 3–4 ದಿನ • ಇತರ ರಾಜ್ಯಗಳು 5–7 ದಿನ. 24 ಗಂಟೆಗಳಲ್ಲಿ dispatch.', 'Tamil Nadu 2–3 days, Andhra/Karnataka 3–4 days, other states 5–7 days. Dispatch within 24 hours.', 'TN 2–3 ദിവസം • AP/Karnataka 3–4 ദിവസം • മറ്റ് സംസ്ഥാനങ്ങൾ 5–7 ദിവസം. 24 മണിക്കൂറിനുള്ളിൽ dispatch.')],
+        [loc('Karnataka / Kerala / AP / Telangana-க்கு டெலிவரி இருக்கா?', 'Karnataka / Kerala / AP / Telangana కి డెలివరీ ఉందా?', 'Karnataka / Kerala / AP / Telangana ಗೆ ಡೆಲಿವರಿ ಇದೆಯೇ?', 'Do you deliver to Karnataka / Kerala / AP / Telangana?', 'Karnataka / Kerala / AP / Telangana-ക്ക് ഡെലിവറി ഉണ്ടോ?'), loc('ஆமாம்! தென்னிந்தியா முழுவதும் — இந்தியா முழுவதும் டெலிவரி.', 'అవును! దక్షిణ భారతదేశం అంతటా — ఇండియా అంతటా డెలివరీ.', 'ಹೌದು! ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ — ಇಡೀ ಇಂಡಿಯಾಕ್ಕೆ ಡೆಲಿವರಿ.', 'Yes — all of South India and across India.', 'ഉവ്വ്! ദക്ഷിണേന്ത്യയിലും ഇന്ത്യയിലും എല്ലായിടത്തും ഡെലിവറി.')],
+        [loc('சேலையை மாற்ற முடியுமா?', 'చీరను మార్చవచ్చా?', 'ಸೀರೆಯನ್ನು ಬದಲಾಯಿಸಬಹುದೇ?', 'Can I replace the saree?', 'സാരി മാറ്റാമോ?'), loc('பாதிப்பு / தவறான தயாரிப்பு-க்கு 7 நாட்கள் எளிதான மாற்று.', 'ప్రమాదం / తప్పు ఉత్పత్తికి 7 రోజుల సులభ రీప్లేస్‌మెంట్.', 'ಹಾನಿ / ತಪ್ಪು ಉತ್ಪನ್ನಕ್ಕೆ 7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ.', '7-day easy replacement for damaged or wrong items.', 'കേടായ / തെറ്റായ ഉൽപ്പന്നങ്ങൾക്ക് 7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ്.')],
+      ].map(f => '<details><summary>' + f[0] + '</summary><div>' + f[1] + '</div></details>').join('') +
+    '</div></div>' +
+    /* ═══ 17. WHATSAPP SUPPORT ═══ */
+    '<div class="sk-wa-band"><b>' + loc('ஏதாவது கேள்வி? WhatsApp-ல கேளுங்கள்!', 'ఏదైనా ప్రశ్న? WhatsApp లో అడగండి!', 'ಯಾವುದೇ ಪ್ರಶ್ನೆ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ!', 'Any question? Ask us on WhatsApp!', 'എന്തെങ്കിലും ചോദ്യം? WhatsApp-ൽ ചോദിക്കൂ!') + '</b><br>' +
+      '<a href="' + waLink(loc('வணக்கம் SK Sarees! சேலை பற்றி கேட்க விரும்புகிறேன்.', 'నమస్కారం SK Sarees! చీర గురించి అడగాలి.', 'ನಮಸ್ಕಾರ SK Sarees! ಸೀರೆ ಬಗ್ಗೆ ಕೇಳಬೇಕು.', 'Hi SK Sarees! I have a question about sarees.', 'നമസ്കാരം SK Sarees! സാരിയെക്കുറിച്ച് ചോദിക്കണം.')) + '" target="_blank" rel="noopener">' + SVG_WA + ' WhatsApp Us — +91 78679 15699</a></div>' +
+    /* 📱 mobile WhatsApp bar (kept) */
+    '<div class="im-wa-bar">' +
+      '<a class="im-wa-btn" href="' + waLink(loc('வணக்கம்! சேலை ஆர்டர் செய்ய விரும்புகிறேன்.', 'నమస్కారం! చీర ఆర్డర్ చేయాలనుకుంటున్నాను.', 'ನಮಸ್ಕಾರ! ಸೀರೆ ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ.', 'Hi! I want to order a saree.', 'നമസ്കാരം! ഒരു സാരി ഓർഡർ ചെയ്യണം.')) + '" target="_blank" rel="noopener">' + SVG_WA + ' WhatsApp Order</a>' +
+      '<a class="im-shop-btn" href="shop.html">🛍️ Shop Now</a>' +
+    '</div>';
 }
 
 
@@ -1788,6 +1836,8 @@ function renderShop(){
   else if (window.__CAT_PRESET && CATEGORIES.some(c => c.slug === window.__CAT_PRESET)) shopState.cat = window.__CAT_PRESET;
   const sq = params.get('q');
   if (sq) shopState.q = sq;                     /* search by name/SKU/colour from index */
+  const smx = params.get('max');
+  if (smx && +smx > 0) shopState.max = +smx;    /* price filter chips from the homepage */
   /* 🎨 unique colours across the live catalog (drives the Colour filter) */
   const allColours = [];
   try{
@@ -2131,7 +2181,7 @@ function blouseGuideHTML(){
 /* ============================ 🌐 LOC (ta/te/kn/en micro-strings) ============================
    Small UI phrases localized for Tamil / Telugu / Kannada / English users —
    the greeting and personal sections speak HER language. */
-function loc(ta, te, kn, en){ return lang === 'ta' ? ta : lang === 'te' ? te : lang === 'kn' ? kn : en; }
+function loc(ta, te, kn, en, ml){ return lang === 'ta' ? ta : lang === 'te' ? te : lang === 'kn' ? kn : lang === 'ml' ? (ml || en) : en; }
 
 /* ============================ 🧠 TASTE ENGINE (engagement algorithm) ============================
    Builds a taste profile from what she VIEWS 👀 / LIKES ❤️ / CARTS 🛒 (local
@@ -2954,6 +3004,16 @@ function renderProduct(){
           '<p class="small" id="pdlResult" style="margin:0;color:#333"></p>' +
         '</div>' +
         /* 📦 WHAT YOU RECEIVE — honest, from product data */
+        /* 🌐 need help? — WhatsApp in HER language */
+        '<div class="pd-help"><b>' + loc('இந்த சேலையை தேர்ந்தெடுக்க உதவி வேண்டுமா?', 'ఈ చీరను ఎంచుకోవడానికి సహాయం కావాలా?', 'ಈ ಸೀರೆಯನ್ನು ಆರಿಸಲು ಸಹಾಯ ಬೇಕೆ?', 'Need help choosing this saree?', 'ഈ സാരി തിരഞ്ഞെടുക്കാൻ സഹായം വേണോ?') + '</b>' +
+          '<div class="pdh-langs">' + [
+            ['ta', 'தமிழ்', 'வணக்கம் SK Sarees! இந்த சேலையைப் பற்றி கேட்க விரும்புகிறேன்: '],
+            ['te', 'తెలుగు', 'నమస్కారం SK Sarees! ఈ చీర గురించి అడగాలి: '],
+            ['kn', 'ಕನ್ನಡ', 'ನಮಸ್ಕಾರ SK Sarees! ಈ ಸೀರೆ ಬಗ್ಗೆ ಕೇಳಬೇಕು: '],
+            ['ml', 'മലയാളം', 'നമസ്കാരം SK Sarees! ഈ സാരിയെക്കുറിച്ച് ചോദിക്കണം: '],
+            ['en', 'English', 'Hi SK Sarees! I have a question about this saree: ']
+          ].map(x => '<a href="' + waLink(x[2] + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + ')') + '" target="_blank" rel="noopener">' + x[1] + '</a>').join('') +
+          '</div></div>' +
         '<div class="pd-receive"><b>📦 WHAT YOU RECEIVE</b><ul><li>1 Saree' + (p.blouse ? ' — ' + esc(p.blouse) : '') + '</li></ul></div>' +
         /* ❓ compact FAQ — real policies only */
         '<div class="pd-faq"><b>❓ QUICK QUESTIONS</b>' +
@@ -3514,6 +3574,8 @@ function renderCartPage(){
 
 /* ============================ CHECKOUT ============================ */
 let co = { step: 1, buyOnly: null, data: { name:'', phone:'', address:'', pincode:'', payment:'upi', coupon:'' } };
+/* 🇮🇳 Indian states — South India first */
+const IN_STATES = ['Tamil Nadu','Puducherry','Karnataka','Andhra Pradesh','Telangana','Kerala','Maharashtra','Odisha','Goa','Gujarat','Madhya Pradesh','Chhattisgarh','West Bengal','Uttar Pradesh','Bihar','Jharkhand','Rajasthan','Punjab','Haryana','Delhi','Uttarakhand','Himachal Pradesh','Jammu & Kashmir','Assam','Other'];
 function renderCheckoutPage(){
   const app = document.getElementById('app'); if (!app) return;
   /* prefill order: what you last typed (draft) → saved profile → empty */
@@ -3525,6 +3587,8 @@ function renderCheckoutPage(){
     phone: co.data.phone || draft.phone || profile.phone || '',
     address: co.data.address || draft.address || profile.address || '',
     pincode: co.data.pincode || draft.pincode || profile.pincode || '',
+    city: co.data.city || draft.city || '',
+    state: co.data.state || draft.state || '',
     payment: 'upi',   /* payment is chosen by BUTTON (Pay Online / COD WhatsApp) */
   });
   saveCoDraft();
@@ -3694,7 +3758,11 @@ function drawCo(){
         '<div class="field"><label>Full Name <span class="req">*</span></label><input id="coName" value="' + esc(d.name) + '" placeholder="e.g. Lakshmi S"></div>' +
         '<div class="field"><label>WhatsApp / Mobile <span class="req">*</span></label><input id="coPhone" value="' + esc(d.phone) + '" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></div>' +
         
-        '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area, city…">' + esc(d.address) + '</textarea></div>' +
+        '<div class="field"><label>Address <span class="req">*</span></label><textarea id="coAddr" rows="3" placeholder="House no, street, area…">' + esc(d.address) + '</textarea></div>' +
+        '<div class="co-citystate">' +
+          '<div class="field"><label>City <span class="req">*</span></label><input id="coCity" value="' + esc(d.city || '') + '" placeholder="Your city"></div>' +
+          '<div class="field"><label>State <span class="req">*</span></label><select id="coState"><option value="">Select state</option>' + IN_STATES.map(s => '<option' + (d.state === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div>' +
+        '</div>' +
         '<div class="field"><label>PIN Code <span class="req">*</span></label><input id="coPin" value="' + esc(d.pincode) + '" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"></div>' +
         '<div class="field"><label>🎟️ Coupon Code (optional)</label><input id="coCoupon" value="' + esc(d.coupon || '') + '" placeholder="WELCOME50" style="text-transform:uppercase"></div>' +
         '<p class="small" style="margin:-4px 0 10px">🆕 First order? Use <b>WELCOME50</b> — ₹50 OFF (min ₹999 order)</p>' +
@@ -3785,7 +3853,7 @@ function drawUpiQR(){
 }
 function coValid(){
   const d = co.data;
-  const ok = d.name.trim().length >= 2 && validPhone(d.phone) && d.address.trim().length >= 10 && /^\d{6}$/.test(d.pincode || '');
+  const ok = d.name.trim().length >= 2 && validPhone(d.phone) && d.address.trim().length >= 10 && /^\d{6}$/.test(d.pincode || '') && (d.city || '').trim().length >= 2 && !!(d.state || '').trim();
   if (!ok) toast('⚠️ Please fill all details correctly');
   return ok;
 }
@@ -3870,7 +3938,7 @@ function doPlaceOrder(payment){
     const order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
-      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim() + (d.city ? ', ' + String(d.city).trim() : '') + (d.state ? ', ' + String(d.state).trim() : ''), pincode: d.pincode.trim(), city: (d.city || '').trim(), state: (d.state || '').trim() },
       payment,
       totals: t,
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
@@ -3896,7 +3964,7 @@ function doPlaceOrder(payment){
     consumeStock(order.items);                 /* 1 psc model: stock goes down for next customer */
     if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
     co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
-    co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
+    co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, city: order.customer.city || '', state: order.customer.state || '', payment:'upi' } };
     saveCoDraft();
     if (couponUsed) useCoupon(couponUsed);     /* count coupon usage (before co reset) */
     try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
@@ -3916,7 +3984,7 @@ function doWaOrder(){
     const order = {
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
-      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim() },
+      customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim() + (d.city ? ', ' + String(d.city).trim() : '') + (d.state ? ', ' + String(d.state).trim() : ''), pincode: d.pincode.trim(), city: (d.city || '').trim(), state: (d.state || '').trim() },
       payment: 'cod', totals: t, status: 'placed',
       bookingPaid: CONFIG.codFee || 100,          /* ₹100 booking paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
@@ -3937,7 +4005,7 @@ function doWaOrder(){
     consumeStock(order.items);
     if (!co.buyOnly){ Store.cart = []; Store.saveCart(); syncCartReservation(); }
     co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
-    co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, payment:'upi' } };
+    co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, city: order.customer.city || '', state: order.customer.state || '', payment:'upi' } };
     saveCoDraft();
     const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
       '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
@@ -5088,6 +5156,8 @@ document.addEventListener('input', function(e){
   if (e.target.id === 'coName') co.data.name = e.target.value;
   else if (e.target.id === 'coPhone') co.data.phone = e.target.value;
   else if (e.target.id === 'coAddr') co.data.address = e.target.value;
+  else if (e.target.id === 'coCity') co.data.city = e.target.value;
+  else if (e.target.id === 'coState') co.data.state = e.target.value;
   else if (e.target.id === 'coPin') co.data.pincode = e.target.value;
   else if (e.target.id === 'coCoupon') co.data.coupon = e.target.value.toUpperCase().trim();
   else return;
