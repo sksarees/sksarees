@@ -2861,79 +2861,14 @@ function renderHeader(){
   }catch(e){}
   renderCartBadge();
 }
+/* 🦶 FOOTER REMOVED (user request 2026-10-06) — kept as a no-op so all
+   existing calls keep working. Mobile WhatsApp bar + drawer menu remain. */
 function renderFooter(){
   const f = document.getElementById('siteFooter'); if (!f) return;
-  f.innerHTML = `
-  <footer class="sk-footer">
-    <div class="f-brand">
-      <span class="logo-badge">${SK_LOGOSVG}</span>
-      <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
-    </div>
-    <div class="f-cta-row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px">
-      <a class="btn btn-wa btn-xl" style="width:auto;min-width:220px" href="${CONFIG.waGroup}" target="_blank" rel="noopener">📢 Join WhatsApp Group — Daily New Sarees!</a>
-      <a class="btn btn-gold btn-xl" style="width:auto;min-width:200px" href="share-earn.html">💰 Share &amp; Earn 5%</a>
-    </div>
-    <div class="f-grid">
-      <div>
-        <h4>Saree Categories</h4>
-        <a href="/kanchipuram/">👑 Kanchipuram Sarees</a>
-        <a href="/soft-silk/">✨ Soft Silk Sarees</a>
-        <a href="/cotton/">🌿 Cotton Sarees</a>
-        <a href="/wedding/">💍 Wedding Sarees</a>
-        <a href="/party-wear/">🎉 Party Wear Sarees</a>
-        <a href="/daily-wear/">🌤️ Daily Wear Sarees</a>
-        <a href="/bridal/">👰 Bridal Sarees</a>
-        <a href="/combo.html">🧵 Dhoti + Shirt Combos</a>
-      </div>
-      <div>
-        <h4>Shop</h4>
-        <a href="index.html">🏠 ${t('home')}</a>
-        <a href="shop.html">🛍️ ${t('shopAll')}</a>
-        <a href="reels.html">🎬 Saree Reels</a>
-        <a href="cart.html">🛒 ${t('cart')}</a>
-        <a href="orders.html">📦 ${t('myOrders')}</a>
-        <a href="profile.html">👤 ${t('profile')}</a>
-      </div>
-      <div>
-        <h4>Offers</h4>
-        <a href="share-earn.html">💰 Share &amp; Earn</a>
-        <a href="#" data-i18n-faq>❓ FAQ</a>
-        <a href="return-policy.html">↩️ Return Policy</a>
-        <a href="blog.html">📖 Blog</a>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <a href="tel:+917867915699">📞 +91 78679 15699</a>
-        <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 WhatsApp Group</a>
-        <a href="${CONFIG.googleReview}" target="_blank" rel="noopener">⭐ Google Reviews</a>
-        <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
-      </div>
-      <div>
-        <h4>Store</h4>
-        <a href="https://maps.google.com/?q=SK+Sarees+Edanganasalai+Salem" target="_blank" rel="noopener">📍 Edanganasalai, Salem 637502</a>
-        <a href="#">⏰ 9 AM – 9 PM, all days</a>
-        <a href="#">🚀 Shipping all over India</a>
-        <a href="#">📱 COD • UPI • GPay • PhonePe</a>
-      </div>
-    </div>
-    <div class="f-social">
-      <a href="${CONFIG.social.instagram}" target="_blank" rel="noopener" aria-label="Instagram">📸</a>
-      <a href="${CONFIG.social.facebook}" target="_blank" rel="noopener" aria-label="Facebook">👍</a>
-      <a href="${CONFIG.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
-      <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
-      <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us">⭐</a>
-    </div>
-    <div class="f-langs">
-      <button type="button" data-setlang="en">English</button><span>|</span><button type="button" data-setlang="ta">தமிழ்</button><span>|</span><button type="button" data-setlang="te">తెలుగు</button><span>|</span><button type="button" data-setlang="kn">ಕನ್ನಡ</button><span>|</span><button type="button" data-setlang="ml">മലയാളം</button>
-    </div>
-    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu • 🚚 Shipping Across India<br>Made with ❤️ for saree lovers</div>
-  </footer>`;
-  try{
-    const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
-    f.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
-    f.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
-  }catch(e){}
+  f.innerHTML = '';
+  f.style.display = 'none';
 }
+
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
 /* ============================ MICROSOFT CLARITY ============================

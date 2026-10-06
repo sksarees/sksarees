@@ -3597,6 +3597,9 @@ function renderCartPage(){
 let co = { step: 1, buyOnly: null, data: { name:'', phone:'', address:'', pincode:'', payment:'upi', coupon:'' } };
 /* 🇮🇳 Indian states — South India first */
 const IN_STATES = ['Tamil Nadu','Puducherry','Karnataka','Andhra Pradesh','Telangana','Kerala','Maharashtra','Odisha','Goa','Gujarat','Madhya Pradesh','Chhattisgarh','West Bengal','Uttar Pradesh','Bihar','Jharkhand','Rajasthan','Punjab','Haryana','Delhi','Uttarakhand','Himachal Pradesh','Jammu & Kashmir','Assam','Other'];
+/* 🗺️ state defaults to the visitor's language region (user request):
+   Tamil/English → Tamil Nadu • Kannada → Karnataka • Telugu → Andhra • Malayalam → Kerala */
+const LANG_STATE = { ta: 'Tamil Nadu', en: 'Tamil Nadu', kn: 'Karnataka', te: 'Andhra Pradesh', ml: 'Kerala' };
 function renderCheckoutPage(){
   const app = document.getElementById('app'); if (!app) return;
   /* prefill order: what you last typed (draft) → saved profile → empty */
@@ -3712,7 +3715,7 @@ function coSummaryHTML(){
     const pin = co.data.pincode || '';
     const zone = deliveryZone(pin);
     const zn = ZONES[zone] || ZONES.tn;
-    const rows = coItems().map(i => { const p = byId(i.id); return p ? '<div class="row"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
+    const rows = coItems().map(i => { const p = byId(i.id); return p ? '<div class="row cos-item"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty + '</span><b>' + money(p.price * i.qty) + '</b></div>' : ''; }).join('');
     const courier = pin
       ? '📦 Courier: <b>' + esc(zn.name) + '</b> • ' + (co.data.payment === 'cod' ? 'COD — ₹' + (CONFIG.codFee || 100) + ' booking + courier' : (t.shipping ? 'Courier <b>₹' + (CONFIG.shipFee || 30) + '</b>' : 'Courier <b>FREE</b> 🎉')) + ' • ' + t.eta
       : '📦 Enter your <b>PIN code</b> to see courier + delivery date';
@@ -3763,9 +3766,13 @@ function checkoutPerksHTML(){
     return html;
   }catch(e){ return ''; }
 }
+/* small helper: current items total for the payment button label */
+function itemsTotal_ish(){ try{ return coCartTotal(); }catch(e){ return 0; } }
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
   const d = co.data;
+  /* 🗺️ state defaults to the visitor's language region (ta/en → TN, kn → KA, te → AP, ml → KL) */
+  if (!d.state) d.state = LANG_STATE[lang] || 'Tamil Nadu';
   const t = coTotals();
   const steps = '<div class="steps-ui">' +
     '<div class="step-dot ' + (co.step > 1 ? 'done' : 'on') + '"><span class="dot">' + (co.step > 1 ? '✓' : '1') + '</span><span class="lbl">Details</span></div>' +
@@ -3789,14 +3796,14 @@ function drawCo(){
         '<p class="small" style="margin:-4px 0 10px">🆕 First order? Use <b>WELCOME50</b> — ₹50 OFF (min ₹999 order)</p>' +
         checkoutPerksHTML() +
       '</div>' +
-      /* PAYMENT — two simple buttons: Pay Online OR COD on WhatsApp */
-      '<div class="form-card"><h3>💳 Payment</h3><div class="co-pay2">' +
-        '<button type="button" class="btn btn-pay btn-xl" data-payonline>📲 Pay Online — UPI • GPay • PhonePe</button>' +
-        '<button type="button" class="btn btn-wa btn-xl" data-codwa>' + SVG_WA + 'COD — Order on WhatsApp</button>' +
-        '<p class="small muted" style="text-align:center;margin:10px 0 0;line-height:1.7">📲 <b>Online</b> — courier ₹' + (CONFIG.shipFee || 30) + ' • 🎉 FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '<br>💵 <b>COD</b> — pay ₹' + (CONFIG.codFee || 100) + ' booking + courier now → <b>remaining at delivery</b> (pay cash when the saree arrives)</p>' +
-      '</div></div>' +
-      /* ORDER SUMMARY — shown AFTER the payment buttons */
+      /* 🧾 ORDER SUMMARY FIRST (customer sees the full picture, then pays) */
       '<div id="coSummaryBox">' + coSummaryHTML() + '</div>' +
+      /* 💳 PAYMENT — AFTER the summary: two big, easy-view buttons */
+      '<div class="form-card co-paycard"><h3>💳 ' + loc('Payment', 'చెల్లింపు', 'ಪಾವತಿ', 'Payment', 'പേയ്മെന്റ്') + '</h3>' +
+        '<button type="button" class="co-pay-upi" data-payonline>📲 ' + loc('PAY ONLINE', 'ఆన్‌లైన్ చెల్లించండి', 'ಆನ್‌ಲೈನ್ ಪಾವತಿ', 'PAY ONLINE', 'ഓൺലൈൻ പേയ്മെന്റ്') + '<small>UPI • GPay • PhonePe • Paytm • Courier ₹' + (CONFIG.shipFee || 30) + (itemsTotal_ish() >= (CONFIG.shipFreeAbove || 1999) ? ' (FREE)' : '') + '</small></button>' +
+        '<button type="button" class="co-pay-cod" data-codwa>💵 ' + loc('CASH ON DELIVERY', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '<small>₹' + (CONFIG.codFee || 100) + ' booking now → balance at delivery</small></button>' +
+        '<p class="co-paynote">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' • 💵 COD Available • ↩️ 7-Day Replacement • 🎉 FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</p>' +
+      '</div>' +
     '</div>';
   } else {
     const upiPay = d.payment === 'upi';
