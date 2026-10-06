@@ -1622,8 +1622,8 @@ function renderHome(){
     fq.id = 'homeFaqLd'; fq.type = 'application/ld+json';
     const faqData = [
       ['How can I order a saree?', 'Tap BUY NOW on any saree, enter your mobile number and complete checkout — or simply order on WhatsApp.'],
-      ['Is COD (Cash on Delivery) available?', 'Yes — COD is available across India with a ₹100 booking + courier amount; the balance is paid at delivery.'],
-      ['How long does delivery take?', 'Tamil Nadu 2-3 days, Andhra/Karnataka 3-4 days, other states 5-7 days. Dispatch within 24 hours.'],
+      ['Is COD (Cash on Delivery) available?', 'Yes — COD is available across India with a ₹' + (CONFIG.codFee || 100) + ' booking + courier amount; the balance is paid at delivery.'],
+      ['How long does delivery take?', 'Tamil Nadu ' + (ZONES.tn.days[0]) + '-' + (ZONES.tn.days[1]) + ' days, Andhra/Karnataka ' + (ZONES.apka ? ZONES.apka.days[0] : 3) + '-' + (ZONES.apka ? ZONES.apka.days[1] : 4) + ' days, other states ' + (ZONES.other.days[0]) + '-' + (ZONES.other.days[1]) + ' days. Dispatch within ' + (CONFIG.dispatchHours || 12) + '-' + ((CONFIG.dispatchHours || 12) * 2) + ' hours.'],
       ['Do you deliver across South India?', 'Yes — we deliver to Tamil Nadu, Karnataka, Andhra Pradesh, Telangana, Kerala, Puducherry and all of India.'],
       ['Can I order through WhatsApp?', 'Yes! Every saree has a WhatsApp Order button — we confirm availability instantly.'],
       ['What is the replacement policy?', '7-day easy replacement for damaged, wrong or defective sarees.'],
@@ -1638,7 +1638,7 @@ function renderHome(){
       '<span class="sk-hero-brand">✨ SK SAREES ✨</span>' +
       '<h1>' + loc('Beautiful Sarees at Honest Prices', 'నిజాయితీ ధరలతో అందమైన చీరలు', 'ನಾಣ್ಯತೆಯ ಬೆಲೆಗಳಲ್ಲಿ ಸುಂದರ ಸೀರೆಗಳು', 'Beautiful Sarees at Honest Prices', 'സത്യസന്ധമായ വിലയിൽ സുന്ദരമായ സാരികൾ') + '</h1>' +
       '<p class="sk-hero-fab">Silk • Soft Silk • Cotton • Linen • Wedding Sarees</p>' +
-      '<p class="sk-hero-trustln">' + loc('COD Available', 'COD అందుబాటులో', 'COD ಲಭ್ಯವಿದೆ', 'COD Available', 'COD ലഭ്യം') + ' &nbsp;|&nbsp; ' + loc('Fast Delivery', 'వేగవంతమైన డెలివరీ', 'ವೇಗದ ಡೆಲಿವರಿ', 'Fast Delivery', 'വേഗമേറിയ ഡെലിവറി') + ' &nbsp;|&nbsp; ' + loc('7-Day Replacement', '7 రోజుల రీప్లేస్‌మెంట్', '7 ದಿನಗಳ ಬದಲಿ', '7-Day Replacement', '7 ദിവസത്തെ റീപ്ലേസ്മെന്റ്') + '</p>' +
+      '<p class="sk-hero-trustln">' + loc('COD Available', 'COD అందుబాటులో', 'COD ಲಭ್ಯವಿದೆ', 'COD Available', 'COD ലഭ്യം') + ' &nbsp;|&nbsp; ' + loc('Fast Delivery', 'వేగవంతమైన డెలివరీ', 'ವೇಗದ ಡೆಲಿವರಿ', 'Fast Delivery', 'വേಗമേಱിയ ഡെലിവറി') + ' &nbsp;|&nbsp; ' + loc('7-Day Replacement', '7 రోజుల రీప్లేస్‌మెంట్', '7 ದಿನಗಳ ಬದಲಿ', '7-Day Replacement', '7 ദിവസത്തെ റീപ്ലേസ്മെന്റ്') + (under.length ? ' &nbsp;|&nbsp; <b>' + loc('Starting From ₹', 'నుండి ₹', 'ನಿಂದ ₹', 'Starting From ₹', 'തുടങ്ങുന്നത് ₹') + underMin + '</b>' : '') + '</p>' +
       '<div class="sk-hero-btns">' +
         '<a class="btn btn-pd-buy btn-xl" href="shop.html">🛍️ SHOP BEST SELLERS</a>' +
         '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! I want to order a saree. Please send me the details.') + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>' +
@@ -1672,6 +1672,21 @@ function renderHome(){
     '</div></div>' +
     /* ═══ 6. TODAY'S SPECIAL ═══ */
     (deals.length ? secHead('🔥 ' + loc("TODAY'S SPECIAL", 'ఈ రోజు స్పెషల్', 'ಇಂದಿನ ಸ್ಪೆಷಲ್', "TODAY'S SPECIAL", 'ഇന്നത്തെ സ്പെഷൽ'), 'shop.html') + '<div class="hc-grid">' + deals.map(homeCardHTML).join('') + '</div></div>' : '') +
+    /* ═══ 6b. SHOP BY BUDGET (real products only) ═══ */
+    secHead('💰 ' + loc('Shop by Budget', 'బడ్జెట్ ప్రకారం', 'ಬಜೆಟ್ ಪ್ರಕಾರ', 'Shop by Budget', 'ബജറ്റിനനുസരിച്ച്')) + '<div class="sk-chips">' +
+      [599, 799, 999, 1000].map(mx => {
+        const n = mx === 1000 ? pool.filter(p => p.price >= 1000 && (p.stock == null || p.stock > 0)).length : pool.filter(p => p.price <= mx && (p.stock == null || p.stock > 0)).length;
+        return n > 0 ? '<a class="sk-chip" href="shop.html?' + (mx === 1000 ? 'min=1000&max=99999' : 'min=0&max=' + mx) + '">' + (mx === 1000 ? '₹1000+' : loc('Under ₹', '₹ కంటే తక్కువ', '₹ ಗಿಂತ ಕಡಿಮೆ', 'Under ₹', '₹-ൽ താഴെ') + mx) + ' <small>(' + n + ')</small></a>' : '';
+      }).join('') +
+    '</div></div>' +
+    /* ═══ 6c. SHOP BY OCCASION (real categories only) ═══ */
+    secHead('🎉 ' + loc('Shop by Occasion', 'సందర్భం ప్రకారం', 'ಸಂದರ್ಭದ ಪ್ರಕಾರ', 'Shop by Occasion', 'സന്ദർഭമനുസരിച്ച്')) + '<div class="sk-chips">' +
+      ['daily-wear', 'office-wear', 'wedding', 'bridal', 'party-wear'].map(slug => {
+        const c = CATEGORIES.find(x => x.slug === slug);
+        const n = c ? pool.filter(p => p.cat === slug).length : 0;
+        return (c && n > 0) ? '<a class="sk-chip" href="shop.html?cat=' + slug + '">' + c.emoji + ' ' + esc(catName(c)) + ' <small>(' + n + ')</small></a>' : '';
+      }).join('') +
+    '</div></div>' +
     /* ═══ 7. ⭐ BEST SELLERS ═══ */
     secHead('⭐ ' + t('bestSellers'), 'shop.html') + '<div class="hc-grid">' + best.map(homeCardHTML).join('') + '</div></div>' +
     /* ═══ 8. SAREES UNDER ₹699 (FB/IG traffic converter) ═══ */
@@ -1694,7 +1709,7 @@ function renderHome(){
     secHead('❓ ' + loc('Frequently Asked Questions', 'సాధారణ ప్రశ్నలు', 'ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳು', 'Frequently Asked Questions', 'സാധാരണ ചോദ്യങ്ങൾ')) + '<div class="pd-faq" style="border:0;padding:0">' +
       [
         [loc('How can I order?', 'ఆర్డర్ ఎలా చేయాలి?', 'ಆರ್ಡರ್ ಹೇಗೆ ಮಾಡಬೇಕೆ?', 'How can I order?', 'എങ്ങനെ ഓർഡർ ചെയ്യാം?'), loc('Tap BUY NOW, enter your mobile number — checkout opens. Or order on WhatsApp.', 'BUY NOW నొక్కి mobile number ఇవ్వండి — checkout ఓపెన్ అవుతుంది. లేదా WhatsApp లో ఆర్డర్ చేయండి.', 'BUY NOW ಒತ್ತಿ mobile number ಕೊಡಿ — checkout ತೆರೆಯುತ್ತದೆ. ಅಥವಾ WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ.', 'Tap BUY NOW, enter your mobile number — checkout opens. Or order on WhatsApp.', 'BUY NOW അമർത്തി mobile number നൽകൂ — checkout തുറക്കും.')],
-        [loc('Is COD available?', 'COD ఉందా?', 'COD ಇದೆಯೇ?', 'Is COD available?', 'COD ഉണ്ടോ?'), loc('Yes — ₹100 booking + courier; the balance is paid at delivery.', 'అవును! ₹100 booking + courier — మిగిలినది డెలివరీ సమయంలో చెల్లించండి.', 'ಹೌದು! ₹100 booking + courier — ಉಳಿದದ್ದನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನೀಡಿ.', 'Yes — ₹100 booking + courier; the balance is paid at delivery.', 'ഉവ്വ്! ₹100 booking + courier — ബാക്കി ഡെലിവറി സമയത്ത് നൽകാം.')],
+        [loc('Is COD available?', 'COD ఉందా?', 'COD ಇದೆಯೇ?', 'Is COD available?', 'COD ഉണ്ടോ?'), loc('Yes — ₹' + (CONFIG.codFee || 100) + ' booking + courier; the balance is paid at delivery.', 'అవును! ₹100 booking + courier — మిగిలినది డెలివరీ సమయంలో చెల్లించండి.', 'ಹೌದು! ₹100 booking + courier — ಉಳಿದದ್ದನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನೀಡಿ.', 'Yes — ₹100 booking + courier; the balance is paid at delivery.', 'ഉവ്വ്! ₹100 booking + courier — ബാക്കി ഡെലിവറി സമയത്ത് നൽകാം.')],
         [loc('How long does delivery take?', 'డెలివరీ ఎన్ని రోజులు?', 'ಡೆಲಿವರಿ ಎಷ್ಟು ದಿನ?', 'How long does delivery take?', 'എത്ര ദിവസം ഡെലിവറി?'), loc('Tamil Nadu 2–3 days, Andhra/Karnataka 3–4 days, other states 5–7 days.', 'TN 2–3 రోజులు • AP/Karnataka 3–4 రోజులు • ఇతర రాష్ట్రాలు 5–7 రోజులు.', 'TN 2–3 ದಿನ • AP/Karnataka 3–4 ದಿನ • ಇತರ ರಾಜ್ಯಗಳು 5–7 ದಿನ.', 'Tamil Nadu 2–3 days, Andhra/Karnataka 3–4 days, other states 5–7 days.', 'TN 2–3 ദിവസം • AP/Karnataka 3–4 ദിവസം • മറ്റ് സംസ്ഥാനങ്ങൾ 5–7 ദിവസം.')],
         [loc('Do you deliver across South India?', 'దక్షిణ భారతదేశం అంతా డెలివరీ ఉందా?', 'ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ ಡೆಲಿವರಿ ಇದೆಯೇ?', 'Do you deliver across South India?', 'ദക്ഷിണേന്ത്യയിലേക്ക് ഡെലിവറി ഉണ്ടോ?'), loc('Yes — all of South India and across India.', 'అవును — దక్షిణ భారతదేశం అంతటా — ఇండియా అంతటా డెలివరీ.', 'ಹೌದು! ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ — ಇಡೀ ಇಂಡಿಯಾಕ್ಕೆ ಡೆಲಿವರಿ.', 'Yes — all of South India and across India.', 'ഉവ്വ്! ദക്ഷിണേന്ത്യയിലും ഇന്ത്യയിലും എല്ലായിടത്തും ഡെലിവറി.')],
         [loc('Can I replace the saree?', 'చీరను మార్చవచ్చా?', 'ಸೀರೆಯನ್ನು ಬದಲಾಯಿಸಬಹುದೇ?', 'Can I replace the saree?', 'സാരി മാറ്റാമോ?'), loc('7-day easy replacement for damaged or wrong items.', 'ప్రమాదం / తప్పు ఉత్పత్తికి 7 రోజుల సులభ రీప్లేస్‌మెంట్.', 'ಹಾನಿ / ತಪ್ಪು ಉತ್ಪನ್ನಕ್ಕೆ 7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ.', '7-day easy replacement for damaged or wrong items.', 'കേടായ / തെറ്റായ ഉൽപ്പന്നങ്ങൾക്ക് 7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ്.')],
@@ -1870,7 +1885,7 @@ function renderShop(){
         '<option value="newest">Newest</option><option value="bestselling">Best Selling</option><option value="popular">Popularity</option>' +
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
       '</div></div>')) +
-      '<p class="small muted" id="countLbl" style="margin:12px 0 6px"></p>' +
+      '<p class="small muted" id="countLbl" style="margin:12px 0 6px">⏳ Loading sarees…</p>' +
       '<div class="reel-grid" id="grid"></div>' +
       '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="loadMore" style="width:auto;min-width:200px">Load More ↓</button></div>' +
       '<div id="shopSentinel" style="height:1px"></div>' +
@@ -3004,9 +3019,9 @@ function renderProduct(){
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="pd-delivery"><b>🚚 DELIVERY INFORMATION</b>' +
-          '<div class="pdl-rows"><span>Tamil Nadu</span><b>2–3 Days</b></div>' +
-          '<div class="pdl-rows"><span>Andhra / Karnataka</span><b>3–4 Days</b></div>' +
-          '<div class="pdl-rows"><span>Other States</span><b>5–7 Days</b></div>' +
+          '<div class="pdl-rows"><span>Tamil Nadu</span><b>' + (ZONES.tn.days[0]) + '–' + (ZONES.tn.days[1]) + ' Days</b></div>' +
+          '<div class="pdl-rows"><span>Andhra / Karnataka</span><b>' + (ZONES.apka ? ZONES.apka.days[0] : 3) + '–' + (ZONES.apka ? ZONES.apka.days[1] : 4) + ' Days</b></div>' +
+          '<div class="pdl-rows"><span>Other States</span><b>' + (ZONES.other.days[0]) + '–' + (ZONES.other.days[1]) + ' Days</b></div>' +
           '<div class="pdl-rows"><span>Dispatch</span><b>Within 24 Hours</b></div>' +
           '<div class="pdl-pinrow">' +
             '<input id="pdlPin" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="Enter PIN Code" value="' + esc(draftD.pincode || '') + '" aria-label="PIN code">' +

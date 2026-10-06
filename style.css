@@ -4698,3 +4698,9 @@ body[data-page="product"] .btn-pd-buy{ background:#7A1731 !important; color:#fff
 .pg-verify{ text-align:center; font-size:.78rem; font-weight:700; color:#222; background:#FFF6E3; border:1px solid #E8D9A8; border-radius:12px; padding:12px }
 .pg-paid{ min-height:54px; border:0; border-radius:14px; cursor:pointer; background:#25D366; color:#fff; font-size:.98rem; font-weight:800; box-shadow:0 4px 12px rgba(37,211,102,.3) }
 .pg-paid:active{ transform:scale(.98); background:#1FB957 }
+
+/* ============================================================================
+   🎯 v21 — budget + occasion chips, loading state (2026-10-06)
+   ========================================================================== */
+.sk-chip small{ color:#7A1731; font-weight:800; font-size:.62rem }
+#countLbl{ min-height:20px }

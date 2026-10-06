@@ -25,7 +25,7 @@ const CONFIG = {
   /* 💰 Reseller / Share & Earn program: 5% margin per order (GPay OR loyalty
      points) + ₹50-off promo coupon for customers */
   resellerMargin : 5,                // 5% customer share coupon
-  resellerMarginPct : 5,             // 🔥 reseller earns 5% of every confirmed order
+  resellerMarginPct : 5,             // 🔥 reseller earns 5% of every confirmed order (COD AND UPI both)
   resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
   resellerCoupon : 'SHARE5',         // 5% off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
@@ -903,7 +903,7 @@ const REVIEWS = [
 ];
 const FAQ = [
   { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (booking ₹100–₹150 by state). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within 12–24 hours (COD orders: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹2999 — else ₹30–₹100 by state & quantity (TN ₹30/₹60/₹80, AP & Karnataka ₹40/₹80/₹100, other states ₹100).' },
+  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹' + (CONFIG.shipFreeAbove || 1999) + ' — else ₹' + (CONFIG.shipFee || 30) + ' courier (online) or ₹' + (CONFIG.codFee || 100) + ' (COD booking + courier).' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -2872,8 +2872,8 @@ function renderFooter(){
       <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
     </div>
     <div class="f-cta-row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px">
-      <a class="btn btn-wa btn-xl" style="width:auto;min-width:220px" href="${CONFIG.waGroup}" target="_blank" rel="noopener">📢 Join WhatsApp Group — Daily New Sarees!</a>
-      <a class="btn btn-gold btn-xl" style="width:auto;min-width:200px" href="share-earn.html">💰 Share &amp; Earn 5%</a>
+      <a class="btn btn-wa btn-xl" style="width:auto;min-width:220px" href="${CONFIG.waGroup}" target="_blank" rel="noopener">📢 Join WhatsApp Group</a>
+      <a class="btn btn-gold btn-xl" style="width:auto;min-width:200px" href="share-earn.html">💰 Share &amp; Earn 5% — Every Order!</a>
     </div>
     <div class="f-grid">
       <div>
