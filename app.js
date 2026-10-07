@@ -829,11 +829,35 @@ function reelHTML(p, i){
   '</section>';
 }
 
+/* 🛒 reel-grid product card — image + name + price + MRP + OFF + rating + COD + VIEW SAREE + WhatsApp */
+function rlCardHTML(p){
+  const off = offPct(p);
+  const revs = (p.reviews || 0) + realReviewCount(p.id);
+  const save = (p.mrp && p.mrp > p.price) ? p.mrp - p.price : 0;
+  return '<div class="rlc">' +
+    '<a class="rlc-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
+      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+      (off >= 5 ? '<span class="rlc-off">' + off + '% OFF</span>' : '') +
+      '<span class="rlc-play">▶</span>' +
+    '</a>' +
+    '<div class="rlc-b">' +
+      '<a class="rlc-t" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
+      (revs > 0 ? '<span class="rlc-rate">⭐ ' + (p.rating || 4.5) + ' (' + revs + ')</span>' : '') +
+      '<div class="rlc-price"><b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' +
+        (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</div>' +
+      (save > 0 ? '<span class="rlc-save">Save ₹' + save.toLocaleString('en-IN') + '</span>' : '') +
+      '<span class="rlc-meta">💵 COD • 🚚 ' + rloc('Fast Delivery', 'వేగవంతమైన డెలివరీ', 'ವೇಗದ ಡೆಲಿವರಿ', 'Fast Delivery', 'വേഗമേറിയ ഡെലിവറി') + '</span>' +
+      '<div class="rlc-btns">' +
+        '<a class="rlc-view" href="product.html?id=' + encodeURIComponent(p.id) + '">👁️ ' + rloc('VIEW SAREE', 'చీర చూడండి', 'ಸೀರೆ ನೋಡಿ', 'VIEW SAREE', 'സാരി കാണൂ') + '</a>' +
+        '<a class="rlc-wa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + '</a>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
 function renderReelsPage(){
   const app = document.getElementById('app'); if (!app) return;
   __reelsState = { order: reelsProductOrder(), next: 0, qi: 0 };
-  /* 🔗 deep link (?reel=ID) — THAT saree's reel comes FIRST, always
-     (even if she has seen it before — the link must open its image) */
+  /* 🔗 deep link (?reel=ID) — THAT saree's reel comes FIRST, always */
   try{
     const want = new URLSearchParams(location.search).get('reel');
     if (want){
@@ -841,9 +865,80 @@ function renderReelsPage(){
       if (idx > 0){ __reelsState.order.splice(0, 0, __reelsState.order.splice(idx, 1)[0]); }
     }
   }catch(e){}
-  app.innerHTML = '<div class="rp-wrap" id="rpWrap"></div>' +
+
+  /* 🛒 CONVERSION FUNNEL — hero → trust → filters → reels → shop → CTA */
+  const pool = PRODUCTS.filter(p => !p.hidden);
+  const best = pool.slice().sort((a2, b2) =>
+    ((b2.badge === 'Bestseller' ? 900 : 0) + (b2.rating || 0) * 10 + (b2.reviews || 0)) -
+    ((a2.badge === 'Bestseller' ? 900 : 0) + (a2.rating || 0) * 10 + (a2.reviews || 0))).slice(0, 6);
+  const liveCats = CATEGORIES.map(c => ({ c, n: pool.filter(p => p.cat === c.slug).length })).filter(x => x.n > 0).sort((a2, b2) => b2.n - a2.n);
+
+  app.innerHTML =
+    /* ═══ HERO ═══ */
+    '<section class="rl-hero"><div class="wrap">' +
+      '<h1>' + rloc('Watch It. Love It. Shop It.', 'చూడండి. నచ్చిందా. కొనండి.', 'ನೋಡಿ. ಇಷ್ಟವಾಯಿತಾ. ಖರೀದಿಸಿ.', 'Watch It. Love It. Shop It.', 'കാണൂ. ഇഷ്ടപ്പെടൂ. വാങ്ങൂ.') + '</h1>' +
+      '<p>' + rloc('Latest saree designs, trending styles and special offers from SK Sarees.', 'తాజా చీర డిజైన్లు, ట్రెండింగ్ స్టైల్స్ SK Sarees నుండి.', 'ತಾಜಾ ಸೀರೆ ವಿನ್ಯಾಸಗಳು, ಟ್ರೆಂಡಿಂಗ್ ಶೈಲಿಗಳು SK Sarees ನಿಂದ.', 'Latest saree designs, trending styles and special offers from SK Sarees.', 'പുതിയ സാരി ഡിസൈനുകൾ, ട്രെൻഡിംഗ് സ്റ്റൈലുകൾ SK Sarees.') + '</p>' +
+      '<div class="rl-hero-btns">' +
+        '<a class="btn btn-pd-buy btn-xl" href="shop.html">🛍️ ' + rloc('SHOP SAREES', 'చీరలు కొనండి', 'ಸೀರೆಗಳು ಖರೀದಿಸಿ', 'SHOP SAREES', 'സാരികൾ വാങ്ങൂ') + '</a>' +
+        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! I want to order a saree.') + '" target="_blank" rel="noopener">' + SVG_WA + rloc('ORDER ON WHATSAPP', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>' +
+      '</div>' +
+    '</div></section>' +
+    /* ═══ TRUST STRIP ═══ */
+    '<div class="rl-trust"><div class="wrap">' +
+      '<span>🚚 ' + rloc('Fast Delivery', 'వేగవంతమైన డెలివరీ', 'ವೇಗದ ಡೆಲಿವರಿ', 'Fast Delivery', 'വേഗമേറിയ ഡെലിവറി') + '</span>' +
+      '<span>💵 COD</span>' +
+      '<span>🔒 ' + rloc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + '</span>' +
+      '<span>✅ ' + rloc('Quality Checked', 'క్వాలిటీ చెక్', 'ಕ್ವಾಲಿಟಿ ಚೆಕ್', 'Quality Checked', 'ക്വാലിറ്റി ചെക്ക്') + '</span>' +
+      '<span>🔄 7-Day ' + rloc('Replacement', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്മെന്റ്') + '</span>' +
+    '</div></div>' +
+    /* ═══ REEL GRID — product-linked with price/CTA ═══ */
+    '<div class="rl-sec"><h2>🎬 ' + rloc('Latest Saree Reels', 'తాజా చీర రీల్స్', 'ತಾಜಾ ಸೀರೆ ರೀಲ್ಸ್', 'Latest Saree Reels', 'പുതിയ സാരി റീലുകൾ') + '</h2>' +
+      '<p class="rl-sub">' + rloc('See the saree before you buy.', 'కొనే ముందు చీర చూడండి.', 'ಖರೀದಿಸುವ ಮೊದಲು ಸೀರೆ ನೋಡಿ.', 'See the saree before you buy.', 'വാങ്ങും മുമ്പ് സാരി കാണൂ.') + '</p>' +
+      '<div class="rl-grid" id="rlGrid"></div>' +
+      '<div style="text-align:center;padding:12px 0"><a class="btn btn-pd-buy" href="shop.html">🛍️ ' + rloc('View All Sarees', 'అన్ని చీరలు', 'ಎಲ್ಲಾ ಸೀರೆಗಳು', 'View All Sarees', 'എല്ലാ സാരികളും') + '</a></div>' +
+    '</div>' +
+    /* ═══ SHOP BY CATEGORY ═══ */
+    '<div class="rl-sec"><h2>🧵 ' + rloc('Shop by Category', 'వర్గాల ప్రకారం', 'ವರ್ಗಗಳ ಪ್ರಕಾರ', 'Shop by Category', 'വിഭാഗമനുസരിച്ച്') + '</h2>' +
+      '<div class="rl-cats">' + liveCats.slice(0, 8).map(x =>
+        '<a class="rl-cat" href="shop.html?cat=' + x.c.slug + '"><img src="' + esc(catImage(x.c.slug)) + '" alt="' + esc(x.c.name) + '" loading="lazy" onerror="imgSafe(this)"><span>' + x.c.emoji + ' ' + esc(catName(x.c)) + '</span><small>' + x.n + '</small></a>').join('') +
+      '</div></div>' +
+    /* ═══ BEST SELLERS ═══ */
+    '<div class="rl-sec"><h2>⭐ ' + rloc('Popular Sarees', 'జనప్రియ చీరలు', 'ಜನಪ್ರಿಯ ಸೀರೆಗಳು', 'Popular Sarees', 'ജനപ്രിയ സാരികൾ') + '</h2>' +
+      '<div class="rl-grid">' + best.map(rlCardHTML).join('') + '</div></div>' +
+    /* ═══ WHY SK ═══ */
+    '<div class="rl-sec"><h2>🤝 ' + rloc('Why Shop With SK Sarees?', 'SK Sarees లో ఎందుకు?', 'SK Sarees ನಲ್ಲಿ ಏಕೆ?', 'Why Shop With SK Sarees?', 'എന്തുകൊണ്ട് SK Sarees?') + '</h2>' +
+      '<div class="rl-why">' +
+        ['✓ ' + rloc('Quality checked products', 'క్వాలిటీ చెక్ ఉత్పత్తులు', 'ಕ್ವಾಲಿಟಿ ಚೆಕ್ ಉತ್ಪನ್ನಗಳು', 'Quality checked products', 'ക്വാലിറ്റി ചെക്ക്'),
+         '✓ COD Available',
+         '✓ ' + rloc('Fast dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്'),
+         '✓ ' + rloc('Secure payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure payment', 'സുരക്ഷിത പേയ്മെന്റ്'),
+         '✓ 7-Day ' + rloc('Replacement', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്മെന്റ്'),
+         '✓ WhatsApp ' + rloc('Support', 'సపోర్ట్', 'ಬೆಂಬಲ', 'Support', 'സപ്പോർട്ട്')].map(x => '<span>' + x + '</span>').join('') +
+      '</div></div>' +
+    /* ═══ FINAL CTA ═══ */
+    '<div class="rl-final"><b>' + rloc('Found a Saree You Love?', 'మీకు నచ్చిన చీర కనుగొనడానికి సిద్ధమా?', 'ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆ ಸಿಗಿತ್ತಾ?', 'Found a Saree You Love?', 'നിങ്ങളുടെ സാരി കണ്ടെത്തിയോ?') + '</b>' +
+      '<span>' + rloc('Shop the latest SK Sarees collections today.', 'ఈరోజే SK Sarees లో షాప్ చేయండి.', 'ಇಂದೆ SK Sarees ನಲ್ಲಿ ಶಾಪ್ ಮಾಡಿ.', 'Shop the latest SK Sarees collections today.', 'ഇന്നുതന്നെ SK Sarees-ൽ ഷോപ്പ്.') + '</span>' +
+      '<div class="rl-hero-btns" style="margin-top:14px">' +
+        '<a class="btn btn-pd-buy btn-xl" href="shop.html">🛍️ ' + rloc('SHOP ALL SAREES', 'అన్ని చీరలు', 'ಎಲ್ಲಾ ಸೀರೆಗಳು', 'SHOP ALL SAREES', 'എല്ലാ സാരികൾ') + '</a>' +
+        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! I want to order a saree.') + '" target="_blank" rel="noopener">' + SVG_WA + rloc('CHAT ON WHATSAPP', 'WHATSAPP లో మాట్లాడండి', 'WHATSAPP ನಲ್ಲಿ ಮಾತನಾಡಿ', 'CHAT ON WHATSAPP', 'WHATSAPP-ൽ സംസാരിക്കൂ') + '</a>' +
+      '</div></div>';
+
+  /* populate the reel grid with product-linked cards */
+  try{
+    const grid = document.getElementById('rlGrid');
+    if (grid){
+      const reelProds = __reelsState.order.slice(0, 12);
+      grid.innerHTML = reelProds.map(rlCardHTML).join('');
+    }
+  }catch(e){}
+
+  /* keep the original scroll-reel system BELOW the conversion sections */
+  const scrollWrap = document.createElement('div');
+  scrollWrap.innerHTML = '<div class="rl-sec"><h2>🎥 ' + rloc('Watch More Reels', 'మరిన్ని రీల్స్', 'ಇನ್ನಷ್ಟು ರೀಲ್ಸ್', 'Watch More Reels', 'കൂടുതൽ റീലുകൾ') + '</h2></div>' +
+    '<div class="rp-wrap" id="rpWrap"></div>' +
     '<button type="button" class="rp-arrow up" data-rpnav="-1" aria-label="Previous reel">⌃</button>' +
     '<button type="button" class="rp-arrow down" data-rpnav="1" aria-label="Next reel">⌄</button>';
+  app.appendChild(scrollWrap);
   appendReels(10);
   /* 🔥 load GLOBAL like counts (Firestore — one cached read) */
   try{ loadReelCounts().then(() => applyReelCountsToDom()).catch(() => {}); }catch(e){}
@@ -2974,7 +3069,7 @@ function renderProduct(){
         '<div class="pd-gal">' +
           '<div class="main" id="pdMain" title="Tap to view this saree as a reel"><a href="reels.html?reel=' + encodeURIComponent(p.id) + '"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>' +
 
-          '<div class="pd-thumbs">' + thumbs + '</div>' +
+          (gallery.length > 1 ? '<div class="pd-thumbs">' + thumbs + '</div>' : '') +
         '</div>' +
         vidBlock +
       '</div>' +

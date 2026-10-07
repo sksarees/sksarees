@@ -4877,3 +4877,97 @@ body[data-page="orders"] .cat-chips .chip:hover{ border-color:var(--ord-maroon) 
 /* order detail — refined */
 body[data-page="orders"] .form-card{ border:1px solid #EDE4D8; border-radius:16px; box-shadow:0 2px 10px rgba(74,20,32,.04) }
 body[data-page="orders"] h1{ font-family:'Playfair Display',Georgia,serif; font-size:1.3rem; color:var(--ord-maroon) }
+
+/* ============================================================================
+   🎬 v23 — REELS CONVERSION PAGE (2026-10-07)
+   hero → trust → reel grid (product-linked) → categories → best sellers →
+   why → final CTA → scroll reels. Existing reel system preserved below.
+   ========================================================================== */
+body[data-page="reels"]{ background:#FFFDF9 !important; color:#222 }
+
+/* hero */
+.rl-hero{ background:linear-gradient(180deg,#F8F3EE,#FFFDF9); border-bottom:1px solid #EFE8E0; padding:22px 0 18px; text-align:center }
+.rl-hero h1{ font-size:clamp(1.1rem,4.8vw,1.6rem); font-weight:800; color:#4E0D1F; margin:0 0 4px }
+.rl-hero p{ font-size:.8rem; color:#666; margin:0 0 14px; line-height:1.5 }
+.rl-hero-btns{ display:grid; gap:10px; max-width:420px; margin:0 auto }
+@media(min-width:600px){ .rl-hero-btns{ grid-template-columns:1fr 1fr } }
+
+/* trust strip */
+.rl-trust{ background:#F8F3EE; border-bottom:1px solid #EFE8E0; padding:9px 0 }
+.rl-trust .wrap{ display:flex; gap:14px; overflow-x:auto; justify-content:flex-start; scrollbar-width:none; -webkit-overflow-scrolling:touch; font-size:.66rem; font-weight:800; color:#4E0D1F; white-space:nowrap; padding:0 12px }
+.rl-trust .wrap::-webkit-scrollbar{ display:none }
+@media(min-width:600px){ .rl-trust .wrap{ justify-content:center } }
+
+/* sections */
+.rl-sec{ padding:16px 12px 6px; max-width:1200px; margin:0 auto }
+.rl-sec > h2{ font-size:.95rem; font-weight:800; color:#4E0D1F; margin:0 0 4px }
+.rl-sub{ font-size:.76rem; color:#666; margin:0 0 12px }
+
+/* reel grid — 2-col mobile / 3 tablet / 4 desktop */
+.rl-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:600px){ .rl-grid{ grid-template-columns:repeat(3,1fr) } }
+@media(min-width:900px){ .rl-grid{ grid-template-columns:repeat(4,1fr) } }
+
+/* reel card */
+.rlc{ background:#fff; border:1px solid #EFE8E0; border-radius:14px; overflow:hidden; display:flex; flex-direction:column }
+.rlc-img{ position:relative; aspect-ratio:3/4; background:#fff; display:block; overflow:hidden }
+.rlc-img img{ width:100%; height:100%; object-fit:contain; padding:4px }
+.rlc-off{ position:absolute; top:6px; left:6px; background:#C62828; color:#fff; font-size:.58rem; font-weight:800; padding:3px 8px; border-radius:5px }
+.rlc-play{
+  position:absolute; bottom:8px; right:8px; width:32px; height:32px; border-radius:50%;
+  background:rgba(0,0,0,.55); color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:.7rem; pointer-events:none;
+}
+.rlc-b{ padding:8px 9px 10px; display:flex; flex-direction:column; gap:3px; flex:1 }
+.rlc-t{ font-size:.76rem; font-weight:700; color:#222; text-decoration:none; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+.rlc-rate{ font-size:.64rem; color:#666; font-weight:700 }
+.rlc-price{ display:flex; align-items:baseline; gap:6px }
+.rlc-price b{ font-size:.98rem; color:#4E0D1F }
+.rlc-price s{ font-size:.68rem; color:#999 }
+.rlc-save{ font-size:.62rem; color:#7A1731; font-weight:800 }
+.rlc-meta{ font-size:.6rem; color:#666; font-weight:700 }
+.rlc-btns{ margin-top:auto; padding-top:6px; display:grid; grid-template-columns:1fr 44px; gap:6px }
+.rlc-view{
+  display:flex; align-items:center; justify-content:center; min-height:42px;
+  background:#7A1731; color:#fff; border-radius:9px;
+  font-size:.74rem; font-weight:800; text-decoration:none;
+}
+.rlc-view:active{ transform:scale(.97) }
+.rlc-wa{
+  display:flex; align-items:center; justify-content:center; min-height:42px;
+  background:#fff; border:1.5px solid #25D366; border-radius:9px;
+  color:#25D366; text-decoration:none; font-size:1rem;
+}
+.rlc-wa svg{ fill:#25D366 }
+
+/* category tiles */
+.rl-cats{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+@media(min-width:600px){ .rl-cats{ grid-template-columns:repeat(4,1fr) } }
+.rl-cat{ position:relative; border-radius:12px; overflow:hidden; aspect-ratio:4/3; background:#fff; border:1px solid #EFE8E0 }
+.rl-cat img{ width:100%; height:100%; object-fit:cover }
+.rl-cat span{ position:absolute; left:0; right:0; bottom:0; padding:20px 8px 6px; background:linear-gradient(180deg,transparent,rgba(78,13,31,.85)); color:#fff; font-size:.72rem; font-weight:800 }
+.rl-cat small{ position:absolute; top:6px; right:6px; background:#F8F3EE; color:#4E0D1F; font-size:.56rem; font-weight:800; padding:3px 8px; border-radius:999px }
+
+/* why */
+.rl-why{ display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; padding:14px; background:#fff; border:1px solid #EFE8E0; border-radius:14px }
+@media(min-width:600px){ .rl-why{ grid-template-columns:repeat(3,1fr) } }
+.rl-why span{ font-size:.74rem; font-weight:700; color:#333 }
+
+/* final CTA */
+.rl-final{ margin:16px 12px; padding:22px 14px; text-align:center; background:linear-gradient(135deg,#4E0D1F,#7A1731); border-radius:16px; color:#F8F3EE; max-width:1200px }
+@media(min-width:900px){ .rl-final{ margin:16px auto } }
+.rl-final b{ display:block; font-size:1.1rem; color:#fff }
+.rl-final span{ display:block; font-size:.8rem; color:#E3C566; font-weight:700; margin-top:4px }
+
+/* hide old fullscreen scroll on reels — only show below grid */
+.rp-wrap{ height:60vh; min-height:400px; max-height:600px }
+body[data-page="reels"] .rp-wrap{ border-top:1px solid #EFE8E0 }
+body[data-page="reels"] .rp-arrow{ display:none }  /* arrows hidden — scroll natural */
+.rp-wrap .rp-reel{ height:100% }
+
+/* product image full size */
+.pd-gal .main img{ max-height:none !important; width:100%; height:auto; object-fit:contain !important }
+.pd-gal .main{ background:#fff; border-radius:0 }
+
+/* desktop floating button removed */
+@media(min-width:900px){ .wa-float{ display:none !important } }
