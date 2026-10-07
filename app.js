@@ -3963,7 +3963,15 @@ function confirmPendingPayment(){
 function pendingPaymentHTML(o){
   if (o.payment !== 'upi' || o.paidConfirmed) return '';
   const amount = ((o.totals||{}).grand||0), note = 'Order ' + o.id + ' SK Sarees';
-  return '<div class="form-card" style="margin-top:12px;border:1.5px dashed var(--gold)"><h3>📲 Complete UPI Payment</h3><p class="small muted">Payment is not marked yet. Scan QR or open your UPI app, then tap I&apos;ve Paid.</p><div class="qr-box"><div class="pendingQR" data-pendingqr="' + esc(o.id) + '"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div><a class="btn btn-gold" href="' + upiLink(amount,note) + '">📲 Pay ' + money(amount) + ' — Open UPI App</a><button type="button" class="btn btn-maroon" style="margin-top:8px" data-confirm-pending="' + esc(o.id) + '">✅ I&apos;ve Paid — Waiting for Confirmation</button></div>';
+  return '<div class="pm-pay-block">' +
+    '<div class="pm-pay-head"><b>📲 ' + loc('Complete UPI Payment', 'UPI చెల్లింపు పూర్తి చేయండి', 'UPI ಪಾವತಿ ಪೂರ್ಣಗೊಳಿಸಿ', 'Complete UPI Payment', 'UPI പേയ്മെന്റ് പൂർത്തിയാക്കൂ') + '</b>' +
+      '<span class="pm-pay-amt">' + money(amount) + '</span></div>' +
+    '<p class="pm-pay-sub">' + loc('Scan the QR or tap the button below to pay from your UPI app', 'QR స్కాన్ చేయండి లేదా కింద బటన్ నొక్కండి', 'QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಅಥವಾ ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ', 'Scan the QR or tap the button below to pay from your UPI app', 'QR സ്കാൻ ചെയ്യൂ അല്ലെങ്കിൽ താഴെ ബട്ടൺ അമർത്തൂ') + '</p>' +
+    '<div class="pm-qr"><div class="pendingQR" data-pendingqr="' + esc(o.id) + '"></div></div>' +
+    '<div class="pm-upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="pm-copy" data-copy="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
+    '<a class="pm-pay-cta" href="' + upiLink(amount, note) + '">📲 ' + loc('Pay', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'Pay', 'പേയ്') + ' ' + money(amount) + ' — ' + loc('Open UPI App', 'UPI యాప్ తెరవండి', 'UPI ಆ್ಯಪ್ ತೆರೆಯಿರಿ', 'Open UPI App', 'UPI ആപ്പ് തുറക്കൂ') + '</a>' +
+    '<button type="button" class="pm-paid-btn" data-confirm-pending="' + esc(o.id) + '">✅ ' + loc("I've Paid — Waiting for Confirmation", "నేను చెల్లించాను — ధృవీకరణ కోసం వేచి ఉన్నాను", "ನಾನು ಪಾವತಿಸಿದೆನೆ — ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದ್ದೇನೆ", "I've Paid — Waiting for Confirmation", 'ഞാൻ പേയ്ച്ചു — സ്ഥിരീകരണത്തിനായി കാത്തിരിക്കുന്നു') + '</button>' +
+  '</div>';
 }
 /* 🔌 QR library lazy-loader — orders/profile pages don't include qrcode.min.js
    in their HTML, so load it on demand (same-origin file at the site root).
@@ -4349,9 +4357,23 @@ function renderOrdersPage(){
 }
 function statusTrack(o){
   const st = o.status || 'placed';
-  const steps = [['placed','🆕 Placed'], ['pending','⏳ Payment Pending'], ['confirmed','✅ Confirmed'], ['shipped','🚚 Dispatched'], ['delivered','✔ Delivered']];
+  const steps = [
+    ['placed',   '📝', 'Placed'],
+    ['pending',  '⏳', 'Payment'],
+    ['confirmed','✅', 'Confirmed'],
+    ['shipped',  '📦', 'Dispatched'],
+    ['delivered','🏆', 'Delivered']
+  ];
   const idx = steps.findIndex(s => s[0] === st);
-  return '<div class="status-track">' + steps.map((s, i) => '<span class="' + (i < idx ? 'done' : i === idx ? 'now' : '') + '">' + s[1] + '</span>').join('') + '</div>';
+  /* elegant connected progress: icon circle + label + connecting line */
+  return '<div class="strack">' + steps.map((s, i) => {
+    const cls = i < idx ? ' done' : i === idx ? ' now' : '';
+    return '<div class="st-step' + cls + '">' +
+      '<span class="st-ic">' + s[1] + '</span>' +
+      '<span class="st-lb">' + s[2] + '</span>' +
+      (i < steps.length - 1 ? '<span class="st-ln' + (i < idx ? ' fill' : '') + '"></span>' : '') +
+    '</div>';
+  }).join('') + '</div>';
 }
 function orderCard(o){
   const st = o.status || 'placed';
@@ -4364,14 +4386,23 @@ function orderCard(o){
     : (o.payment === 'upi' && o.paidConfirmed && st === 'pending'
         ? '<span class="status-pill status-pending">⏳ Waiting Confirmation</span>'
         : '<span class="status-pill status-' + st + '">' + esc(st.replace('_', ' ')) + '</span>');
-  return '<div class="order-card">' +
-    '<div class="oc-top"><b>#' + o.id + '</b>' + pill + '</div>' +
-    '<div class="oc-items">' + fmtDT(o.date) + ' • ' + money((o.totals || {}).grand || 0) + ' (' + (o.payment || '').toUpperCase() + ')<br>ETA: ' + esc((o.totals || {}).eta || 'Dispatch 12–24h') + '</div>' +
+  const t = o.totals || {};
+  return '<div class="order-card oc-premium">' +
+    '<div class="oc-head">' +
+      '<div class="oc-id"><span class="oc-lb">Order</span><b>#' + o.id + '</b></div>' +
+      pill +
+    '</div>' +
+    '<div class="oc-meta">' +
+      '<div class="oc-m"><small>' + loc('Date', 'తేదీ', 'ದಿನಾಂಕ', 'Date', 'തീയതി') + '</small><b>' + fmtDT(o.date) + '</b></div>' +
+      '<div class="oc-m"><small>' + loc('Amount', 'మొత్తం', 'ಮೊತ್ತ', 'Amount', 'തുക') + '</small><b class="oc-amt">' + money(t.grand || 0) + '</b></div>' +
+      '<div class="oc-m"><small>' + loc('Payment', 'చెల్లింపు', 'ಪಾವತಿ', 'Payment', 'പേയ്മെന്റ്') + '</small><b>' + (o.payment || '').toUpperCase() + '</b></div>' +
+      '<div class="oc-m"><small>ETA</small><b>' + esc(t.eta || 'Dispatch 12–24h') + '</b></div>' +
+    '</div>' +
     statusTrack(o) +
-    '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-    '<button type="button" class="btn btn-outline btn-sm" style="flex:1;min-width:130px" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close Details' : 'View Order Details') + '</button>' +
-    (payWaiting ? '<button type="button" class="btn btn-pay btn-sm" style="flex:1;min-width:130px" data-contpay="' + esc(o.id) + '">💳 Continue Payment</button>' : '') +
-    '<button type="button" class="btn btn-maroon btn-sm" style="flex:1;min-width:130px" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
+    '<div class="oc-actions">' +
+    '<button type="button" class="btn btn-outline btn-sm" data-odetail="' + esc(o.id) + '">👁️ ' + (openDetailId === o.id ? 'Close' : 'View Details') + '</button>' +
+    (payWaiting ? '<button type="button" class="btn btn-pay btn-sm" data-contpay="' + esc(o.id) + '">💳 ' + loc('Continue Payment', 'చెల్లింపు కొనసాగించండి', 'ಪಾವತಿ ಮುಂದುವರಿಸಿ', 'Continue Payment', 'പേയ്മെന്റ് തുടരുക') + '</button>' : '') +
+    '<button type="button" class="btn btn-maroon btn-sm" data-reorder="' + esc(o.id) + '">🔁 ' + loc('Order Again', 'మళ్ళీ ఆర్డర్', 'ಮತ್ತೆ ಆರ್ಡರ್', 'Order Again', 'വീണ്ടും ഓർഡർ') + '</button>' +
     '</div>' +
     (payWaiting ? '<div class="oc-paywrap">' + pendingPaymentHTML(o) + '</div>' : '') +
     '</div>';

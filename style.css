@@ -4704,3 +4704,176 @@ body[data-page="product"] .btn-pd-buy{ background:#7A1731 !important; color:#fff
    ========================================================================== */
 .sk-chip small{ color:#7A1731; font-weight:800; font-size:.62rem }
 #countLbl{ min-height:20px }
+
+/* ============================================================================
+   👑 v22 — MY ORDERS PREMIUM REDESIGN (2026-10-07)
+   Deep maroon #6B1E2E + cream #FFFBF5 + gold #C9A227 • soft shadows • elegant
+   status tracker • premium UPI payment block • Fabindia/Jaypore feel.
+   ========================================================================== */
+:root{
+  --ord-maroon:#6B1E2E; --ord-maroon-d:#4A1420; --ord-cream:#FFFBF5;
+  --ord-gold:#C9A227; --ord-gold-l:#E3C566; --ord-gold-soft:#FFF6E3;
+}
+
+/* page background */
+body[data-page="orders"]{ background:var(--ord-cream) !important }
+body[data-page="orders"] .wrap.page{ max-width:680px }
+
+/* filter tabs — premium pill style */
+body[data-page="orders"] .cat-chips{
+  display:flex; gap:8px; overflow-x:auto; padding:14px 0 10px; scrollbar-width:none;
+}
+body[data-page="orders"] .cat-chips::-webkit-scrollbar{ display:none }
+body[data-page="orders"] .cat-chips .chip{
+  background:#fff; border:1.5px solid #E8DDD0; color:#5A4A3A;
+  border-radius:999px; padding:9px 18px; font-size:.78rem; font-weight:700;
+  cursor:pointer; white-space:nowrap; transition:all .18s ease;
+}
+body[data-page="orders"] .cat-chips .chip.on{
+  background:var(--ord-maroon); border-color:var(--ord-maroon); color:#fff;
+  box-shadow:0 3px 10px rgba(107,30,46,.25);
+}
+body[data-page="orders"] .cat-chips .chip:hover{ border-color:var(--ord-maroon) }
+
+/* order card — premium spacious */
+.oc-premium{
+  background:#fff; border:1px solid #EDE4D8; border-radius:18px;
+  padding:18px 16px 16px; margin:12px 0;
+  box-shadow:0 2px 12px rgba(74,20,32,.05);
+  transition:box-shadow .22s ease, transform .22s ease;
+}
+.oc-premium:hover{
+  box-shadow:0 6px 24px rgba(74,20,32,.1);
+  transform:translateY(-1px);
+}
+.oc-head{
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:12px; border-bottom:1px solid #F3EBE0;
+}
+.oc-id{ display:flex; align-items:baseline; gap:8px }
+.oc-id .oc-lb{ font-size:.64rem; font-weight:700; color:#9A8A7A; text-transform:uppercase; letter-spacing:.8px }
+.oc-id b{ font-size:1.05rem; font-weight:800; color:var(--ord-maroon); letter-spacing:.3px }
+.oc-meta{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+  padding:12px 0; border-bottom:1px solid #F3EBE0;
+}
+@media(max-width:480px){ .oc-meta{ grid-template-columns:repeat(2,1fr); gap:6px 10px } }
+.oc-m small{ display:block; font-size:.6rem; font-weight:700; color:#9A8A7A; text-transform:uppercase; letter-spacing:.5px; margin-bottom:2px }
+.oc-m b{ font-size:.8rem; font-weight:700; color:#3A2A1A }
+.oc-amt{ color:var(--ord-maroon) !important; font-size:.9rem !important }
+
+/* status pills — premium */
+.status-pill{
+  padding:5px 12px !important; border-radius:999px !important;
+  font-size:.62rem !important; font-weight:800; text-transform:uppercase;
+  letter-spacing:.5px; box-shadow:none !important;
+}
+.status-placed{ background:var(--ord-gold-soft) !important; color:#8A6D1A !important; border:1px solid #E8D9A8 !important }
+.status-paywait{ background:#FFF0F3 !important; color:#C4355A !important; border:1px solid #F2C7D2 !important }
+.status-pending{ background:#FFF3E0 !important; color:#B06000 !important; border:1px solid #FFD9A8 !important }
+.status-confirmed{ background:#E8F5E9 !important; color:#0B6B36 !important; border:1px solid #BFE8CC !important }
+.status-shipped{ background:#E3F2FD !important; color:#1155CC !important; border:1px solid #BBDEFB !important }
+.status-delivered{ background:#E8F5E9 !important; color:#0B6B36 !important; border:1px solid #BFE8CC !important }
+.status-cancelled{ background:#FFEBEE !important; color:#B00020 !important; border:1px solid #FFCDD2 !important }
+.status-packed{ background:#F3E5F5 !important; color:#6A1B9A !important; border:1px solid #E1BEE7 !important }
+
+/* status tracker — elegant connected progress */
+.strack{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:16px 4px 8px; position:relative;
+}
+.st-step{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  flex:1; position:relative; min-width:0;
+}
+.st-ic{
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; background:#F5EDE3; border:2px solid #E8DDD0;
+  transition:all .25s ease; z-index:1;
+}
+.st-lb{
+  font-size:.58rem; font-weight:700; color:#9A8A7A; text-transform:uppercase;
+  letter-spacing:.4px; text-align:center; line-height:1.3;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.st-ln{
+  position:absolute; top:18px; left:50%; right:-50%; height:2px;
+  background:#E8DDD0; z-index:0;
+}
+.st-ln.fill{ background:var(--ord-gold) }
+.st-step.done .st-ic{
+  background:var(--ord-gold-soft); border-color:var(--ord-gold); color:#6B5210;
+  box-shadow:0 2px 6px rgba(201,162,39,.2);
+}
+.st-step.done .st-lb{ color:#6B5210 }
+.st-step.now .st-ic{
+  background:var(--ord-maroon); border-color:var(--ord-maroon);
+  box-shadow:0 0 0 4px rgba(107,30,46,.12), 0 3px 10px rgba(107,30,46,.3);
+  transform:scale(1.08);
+}
+.st-step.now .st-lb{ color:var(--ord-maroon); font-weight:800 }
+
+/* action buttons — refined */
+.oc-actions{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap }
+.oc-actions .btn{
+  flex:1; min-width:110px; min-height:42px; font-size:.76rem;
+  border-radius:10px; font-weight:700;
+}
+.oc-actions .btn-outline{ background:#fff; border:1.5px solid #E8DDD0; color:#5A4A3A }
+.oc-actions .btn-outline:hover{ border-color:var(--ord-maroon); color:var(--ord-maroon) }
+.oc-actions .btn-pay{ background:var(--ord-maroon); border:0 }
+.oc-actions .btn-maroon{ background:var(--ord-maroon) }
+
+/* premium UPI payment block */
+.pm-pay-block{
+  margin-top:14px; background:var(--ord-cream);
+  border:1.5px solid #E8D9A8; border-radius:16px; padding:16px 14px;
+  display:grid; gap:12px; text-align:center;
+}
+.pm-pay-head{
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:10px; border-bottom:1px dashed #E8D9A8;
+}
+.pm-pay-head b{ font-size:.86rem; font-weight:800; color:var(--ord-maroon) }
+.pm-pay-amt{
+  font-size:1.35rem; font-weight:800; color:var(--ord-maroon);
+  font-variant-numeric:tabular-nums;
+}
+.pm-pay-sub{ font-size:.72rem; color:#7A6A5A; font-weight:600; margin:0; line-height:1.5 }
+.pm-qr{
+  display:flex; justify-content:center; padding:14px;
+  background:#fff; border-radius:14px; border:1px solid #EDE4D8;
+}
+.pm-qr svg{ width:100%; height:auto; max-width:230px }
+.pm-upi-id{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:#fff; border-radius:10px; padding:10px 14px;
+  font-size:.76rem; color:#3A2A1A; font-weight:700; word-break:break-all;
+  border:1px solid #EDE4D8;
+}
+.pm-copy{
+  border:0; background:var(--ord-maroon); color:#fff;
+  font-size:.64rem; font-weight:800; border-radius:6px;
+  padding:6px 12px; cursor:pointer; letter-spacing:.5px;
+}
+.pm-copy:active{ transform:scale(.95) }
+.pm-pay-cta{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  min-height:54px; border-radius:14px;
+  background:linear-gradient(135deg,var(--ord-maroon),var(--ord-maroon-d));
+  color:#fff; text-decoration:none;
+  font-size:1rem; font-weight:800; letter-spacing:.3px;
+  box-shadow:0 5px 16px rgba(107,30,46,.3);
+}
+.pm-pay-cta:active{ transform:scale(.98) }
+.pm-paid-btn{
+  min-height:46px; border:1.5px solid #C9A227; border-radius:14px;
+  background:var(--ord-gold-soft); color:#6B5210;
+  font-size:.82rem; font-weight:700; cursor:pointer;
+}
+.pm-paid-btn:active{ transform:scale(.98); background:#FFF0C8 }
+
+/* order detail — refined */
+body[data-page="orders"] .form-card{ border:1px solid #EDE4D8; border-radius:16px; box-shadow:0 2px 10px rgba(74,20,32,.04) }
+body[data-page="orders"] h1{ font-family:'Playfair Display',Georgia,serif; font-size:1.3rem; color:var(--ord-maroon) }
