@@ -466,7 +466,7 @@ function normalizeProduct(raw){
     name: String((typeof lang !== 'undefined' && lang !== 'en' && raw['name_' + lang]) || raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     hidden: !!(raw.hidden === true || raw.hidden === 1 || raw.hidden === 'true' || raw.hidden === '1'),
-    rating: Math.min(5, Math.max(1, +raw.rating || +raw.rat || 4.5)),
+    rating: Math.min(5, Math.max(0, +raw.rating || +raw.rat || 0)),   /* ✅ V25: 0 = no rating (never invent 4.5) */
     reviews: Math.max(0, +raw.reviews || +raw.rev || 0),
     badge,
     img: imgUrl,
@@ -3064,7 +3064,7 @@ function seoInject(){
       if (p){
         ld.push({ '@context':'https://schema.org','@type':'Product', name:p.name, image:p.img, sku:p.sku || p.id, brand:{ '@type':'Brand', name:CONFIG.storeName },
           offers:{ '@type':'Offer', priceCurrency:'INR', price:p.price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: location.href, itemCondition:'https://schema.org/NewCondition' },
-          aggregateRating: p.reviews ? { '@type':'AggregateRating', ratingValue:p.rating || 4.5, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
+          aggregateRating: (p.reviews && p.rating > 0) ? { '@type':'AggregateRating', ratingValue:p.rating, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
         /* Breadcrumb */
         const cat = catOf(p.cat);
         ld.push({ '@context':'https://schema.org','@type':'BreadcrumbList', itemListElement:[

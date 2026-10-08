@@ -842,7 +842,7 @@ function rlCardHTML(p){
     '</a>' +
     '<div class="rlc-b">' +
       '<a class="rlc-t" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
-      (revs > 0 ? '<span class="rlc-rate">⭐ ' + (p.rating || 4.5) + ' (' + revs + ')</span>' : '') +
+      (revs > 0 && p.rating > 0 ? '<span class="rlc-rate">⭐ ' + p.rating + ' (' + revs + ')</span>' : '') +
       '<div class="rlc-price"><b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' +
         (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</div>' +
       (save > 0 ? '<span class="rlc-save">Save ₹' + save.toLocaleString('en-IN') + '</span>' : '') +
@@ -1468,10 +1468,15 @@ function renderFeedPage(){
 
 /* ============================ SHARED UI ============================ */
 function starsHTML(p){
-  const r = Math.round(p.rating || 0);
+  /* ✅ V25 honest rating: stars + count are shown ONLY when the product has
+     real rating & review data. No data → clean "New Arrival" chip — never a
+     fake zero-star row, never an invented rating (no-fake-marketing rule). */
+  const rc = ((p.reviews || 0) + realReviewCount(p.id));
+  if (!(p.rating > 0) || rc <= 0) return '<span class="pd-newchip">✨ New Arrival</span>';
+  const r = Math.min(5, Math.max(1, Math.round(p.rating)));
   return '<div class="stars">' + '★'.repeat(r) + '☆'.repeat(5 - r) +
-    ' <span>' + (p.rating || 0) + '</span>' +
-    (((p.reviews || 0) + realReviewCount(p.id)) > 0 ? '<span class="cnt">(' + ((p.reviews || 0) + realReviewCount(p.id)) + ' reviews)</span>' : '<span class="cnt">✨ New</span>') + '</div>';
+    ' <span>' + p.rating + '</span>' +
+    '<span class="cnt">(' + rc + ' reviews)</span></div>';
 }
 function cardHTML(p){
   const off = offPct(p);
@@ -1683,7 +1688,7 @@ function homeCardHTML(p){
     '</a>' +
     '<div class="hc-b">' +
       '<a class="hc-t" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
-      '<span class="hc-rate">⭐ ' + (p.rating || 4.5) + (revs > 0 ? ' (' + revs + ')' : '') + '</span>' +
+      '<span class="hc-rate">' + (p.rating > 0 ? '⭐ ' + p.rating + (revs > 0 ? ' (' + revs + ')' : '') : '✨ New') + '</span>' +
       '<div class="hc-price"><b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' + (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</div>' +
       (save > 0 ? '<span class="hc-save">Save ₹' + save.toLocaleString('en-IN') + '</span>' : '') +
       '<span class="hc-meta">💵 COD Available</span>' +
@@ -2094,7 +2099,7 @@ function cardReelHTML(p){
     '</div>' +
     '<div class="reel-info">' +
       '<h3>' + esc(smartTitle(p)) + '</h3>' +
-      '<div class="reel-meta"><span class="reel-rate">⭐ ' + (p.rating || 4.5) + (rCount ? ' <em>(' + rCount + ')</em>' : '') + '</span><b class="reel-price">' + money(p.price) + '</b></div>' +
+      '<div class="reel-meta"><span class="reel-rate">' + (p.rating > 0 ? '⭐ ' + p.rating + (rCount ? ' <em>(' + rCount + ')</em>' : '') : '✨ New') + '</span><b class="reel-price">' + money(p.price) + '</b></div>' +
     '</div>' +
   '</article>';
 }
@@ -2250,17 +2255,13 @@ function swatchBg(css){
 }
 
 /* ============================ TRUST + ENGAGEMENT HELPERS ============================ */
-/* 🔥 social proof — small honest-looking count: stable random 1-5 per product
-   per day ("N customers have already ordered"). Deterministic seed = product id
-   + today's date → same number all day for everyone, fresh tomorrow. */
+/* 🔖 social proof — REAL data only (COD availability + the product's real
+   rating when it has one). The old version printed a made-up "N customers
+   have already ordered" count — removed permanently (no fake order counts). */
 function socialProofHTML(p){
   try{
-    let h = 0;
-    const seed = String(p.id || '') + '|' + new Date().toDateString();
-    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-    const n = 1 + (h % 5);
-    const txt = loc('வாடிக்கையாளர்கள் ஏற்கனவே ஆர்டர் செய்துள்ளனர்', 'కస్టమర్‌లు ఇప్పటికే ఆర్డర్ చేశారు', 'ಗ್ರಾಹಕರು ಈಗಾಗಲೇ ಆರ್ಡರ್ ಮಾಡಿದ್ದಾರೆ', 'customer' + (n > 1 ? 's have' : ' has') + ' already ordered');
-    return '<span class="sp-ico">🔥</span> <b>' + n + ' ' + txt + '</b> &nbsp;•&nbsp; <span class="sp-ico">⭐</span> ' + (p.rating || 4.5) + '/5 rated';
+    return '<span class="sp-ico">💵</span> <b>' + loc('COD Available', 'COD అందుబాటులో', 'COD ಲಭ್ಯವಿದೆ', 'COD Available', 'COD ലഭ്യം') + '</b>' +
+      ((p && p.rating > 0) ? ' &nbsp;•&nbsp; <span class="sp-ico">⭐</span> ' + p.rating + '/5 rated' : '');
   }catch(e){ return ''; }
 }
 /* 📏 blouse size guide (saree-specific — reduces returns) */
@@ -3000,6 +3001,7 @@ function renderProduct(){
   try{ if (window.REC) REC.trackView(p.id); }catch(e){}
   const related = PRODUCTS.filter(x => !x.hidden && x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
+  const revTotal = (p.reviews || 0) + realReviewCount(p.id);   /* ✅ V25 real review count — drives the honest review summary */
   /* ✅ "Verified customer" badge shows ONLY for reviews posted by users who
      saved their address & phone (real, reachable customers — honest trust) */
   const revs = (userRevs.length
@@ -3010,8 +3012,8 @@ function renderProduct(){
        their rating; brand-new ones show an honest order-risk-free trust line */
     (userRevs.length ? '' :
       (p.reviews > 0
-        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (p.rating || 4.5) + '/5 — ' + p.reviews + ' customers loved this saree 💜</p>'
-        : '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">✅ COD Available • 7-day replacement • 2,300+ happy customers — order risk-free!</p>'));
+        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (p.rating > 0 ? p.rating + '/5 — ' : '') + p.reviews + ' customers loved this saree 💜</p>'
+        : '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">🌱 No written reviews yet — you could be the first!</p>'));
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
   const gal = [];
   try{
@@ -3054,7 +3056,7 @@ function renderProduct(){
       brand: { '@type':'Brand', name:'SK Sarees' },
       offers: { '@type':'Offer', url: shareUrl(p), priceCurrency:'INR', price: p.price,
         availability: out ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock' },
-      ...(revCount > 0 ? { aggregateRating: { '@type':'AggregateRating', ratingValue: (p.rating || 4.5), reviewCount: revCount } } : {})
+      ...(revCount > 0 && p.rating > 0 ? { aggregateRating: { '@type':'AggregateRating', ratingValue: p.rating, reviewCount: revCount } } : {})
     });
     document.head.appendChild(pl);
   }catch(e){}
@@ -3077,11 +3079,12 @@ function renderProduct(){
         '<span class="pd-cat">' + (cat ? cat.emoji + ' ' + esc(cat.name) : '') + '</span>' +
         '<h1>' + esc(smartTitle(p)) + '</h1>' +
         starsHTML(p) +
+        '<p class="pd-skuline">SKU: ' + esc(p.sku || p.id) + '</p>' +
         /* 🧵 one-line honest benefit (from real product data only) */
         '<p class="pd-benefit">' + esc([p.fabric, cat ? cat.name : '', (p.blouse || '')].filter(Boolean).join(' • ')) + '</p>' +
         /* 💰 PRICE — current price dominant; old price smaller; honest savings */
         '<div class="pd-priceblock">' +
-          (p.mrp && p.mrp > p.price && !out ? '<span class="pdlbl">TODAY\'S SPECIAL PRICE</span>' : '<span class="pdlbl">PRICE</span>') +
+          (p.mrp && p.mrp > p.price && !out ? '<span class="pdlbl">OFFER PRICE</span>' : '<span class="pdlbl">PRICE</span>') +
           '<div class="pd-price">' + (p.mrp && p.mrp > p.price ? '<s class="old-price">' + money(p.mrp) + '</s>' : '') + '<b>' + money(p.price) + '</b>' + (off && !out ? '<span class="off">' + off + '% OFF</span>' : '') + '</div>' +
           (p.mrp && p.mrp > p.price && !out ? '<p class="pd-save">You Save ' + money(p.mrp - p.price) + '</p>' : '') +
         '</div>' +
@@ -3092,6 +3095,8 @@ function renderProduct(){
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>Only ' + p.stock + ' left</b> — order soon, stock is limited!</div>'
             : '<div class="instock" style="margin:6px 0">✅ <b>In stock</b> — order today, dispatched within 24 hrs</div>') +
         '<ul class="pd-checks"><li>✓ COD Available</li><li>✓ 7-Day Replacement</li><li>✓ Quality Checked</li><li>✓ Fast Dispatch</li></ul>' +
+        /* 🚚 V25 one-line shipping answer near the price — dynamic from ZONES */
+        '<div class="pd-shipstrip">🚚 Delivery in ' + ZONES.tn.days[0] + '–' + ZONES.other.days[1] + ' days across India • ⚡ Dispatch within 24 hrs</div>' +
         /* 🎨 COLOUR SELECTION — pick her favourite, rides into checkout */
         ((p.colors || []).length
           ? '<div class="pd-colours" id="pdColours"><small class="muted" style="font-weight:800">🎨 ' + loc('நிறம் தேர்ந்தெடுங்கள்:', 'రంగు ఎంచుకోండి:', 'ಬಣ್ಣ ಆರಿಸಿ:', 'Choose colour:') + '</small><div class="pd-chips">' +
@@ -3105,13 +3110,7 @@ function renderProduct(){
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
               '<a class="btn btn-wa btn-xl pd-wa-big" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>') +
-          (out ? '' : '<p class="pd-buy-sub">✅ COD • 🔒 Secure Payment • ↩️ 7-Day Replacement</p>' +
-            '<a class="pd-ask" href="' + waLink('Hi SK Sarees! I have a question about this saree: ' + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + ').') + '" target="_blank" rel="noopener">💬 ' + loc('Not sure? Ask us on WhatsApp before ordering', 'అనుమానం ఉందా? WhatsApp లో అడగండి', 'ಅನುಮಾನ ಇದೆಯಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ', 'Not sure? Ask us on WhatsApp before ordering', 'സംശയമുണ്ടോ? WhatsApp-ൽ ചോദിക്കൂ') + ' →</a>') +
-          /* 📱 REAL VIDEO — Facebook/Instagram traffic goes straight to WhatsApp */
-          '<div class="pd-realvideo"><div class="prp-txt"><b>📹 ' + loc('இந்த சேலையின் REAL VIDEO/PHOTOS வேண்டுமா?', 'ఈ చీర real video/photos కావాలా?', 'ಈ ಸೀರೆಯ real video/photos ಬೇಕಾ?', 'Want real video/photos of this saree?') + '</b><small>' + loc('Order பண்ணும் முன் உண்மையான வீடியோ பாருங்க!', 'ఆర్డర్ ముందు real video చూడండి!', 'ಆರ್ಡರ್ ಮೊದಲು real video ನೋಡಿ!', 'See the real saree before you order.') + '</small></div>' +
-            '<a class="btn prp-btn" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO ON WHATSAPP</a>' +
-          '</div>' +
-          '<a class="btn btn-wa-o btn-xl" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WhatsApp లో ఆర్డర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'ORDER ON WHATSAPP') + '</a>' +
+          (out ? '' : '<p class="pd-buy-sub">✅ COD • 🔒 Secure Payment • ↩️ 7-Day Replacement</p>') +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         '<div class="pd-delivery"><b>🚚 DELIVERY INFORMATION</b>' +
@@ -3135,39 +3134,22 @@ function renderProduct(){
           '<li><span>🫧 Wash Care</span><b>' + esc(p.wash || '—') + '</b></li>' +
           '<li><span>🎨 Colour</span><b>' + esc(p.color || ((p.colors || [])[0] || '—')) + '</b></li>' +
           '<li><span>🏷️ SKU</span><b>' + esc(p.sku || p.id) + '</b></li>' +
+          '<li><span>📦 You Receive</span><b>1 Saree' + (p.blouse ? ' — ' + esc(p.blouse) : '') + '</b></li>' +
         '</ul></div>' +
-        /* 🌐 need help? — WhatsApp in HER language */
-        '<div class="pd-help"><b>' + loc('இந்த சேலையை தேர்ந்தெடுக்க உதவி வேண்டுமா?', 'ఈ చీరను ఎంచుకోవడానికి సహాయం కావాలా?', 'ಈ ಸೀರೆಯನ್ನು ಆರಿಸಲು ಸಹಾಯ ಬೇಕೆ?', 'Need help choosing this saree?', 'ഈ സാരി തിരഞ്ഞെടുക്കാൻ സഹായം വേണോ?') + '</b>' +
-          '<div class="pdh-langs">' + [
-            ['ta', 'தமிழ்', 'வணக்கம் SK Sarees! இந்த சேலையைப் பற்றி கேட்க விரும்புகிறேன்: '],
-            ['te', 'తెలుగు', 'నమస్కారం SK Sarees! ఈ చీర గురించి అడగాలి: '],
-            ['kn', 'ಕನ್ನಡ', 'ನಮಸ್ಕಾರ SK Sarees! ಈ ಸೀರೆ ಬಗ್ಗೆ ಕೇಳಬೇಕು: '],
-            ['ml', 'മലയാളം', 'നമസ്കാരം SK Sarees! ഈ സാരിയെക്കുറിച്ച് ചോദിക്കണം: '],
-            ['en', 'English', 'Hi SK Sarees! I have a question about this saree: ']
-          ].map(x => '<a href="' + waLink(x[2] + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + ')') + '" target="_blank" rel="noopener">' + x[1] + '</a>').join('') +
-          '</div></div>' +
-        '<div class="pd-receive"><b>📦 WHAT YOU RECEIVE</b><ul><li>1 Saree' + (p.blouse ? ' — ' + esc(p.blouse) : '') + '</li></ul></div>' +
+        /* 💳 V25 payment options — only what checkout actually supports */
+        '<div class="pd-pay"><b>💳 PAYMENT OPTIONS</b>' +
+          '<div class="pdl-rows"><span>💳 UPI</span><b>GPay • PhonePe • Paytm</b></div>' +
+          '<div class="pdl-rows"><span>💵 Cash on Delivery</span><b>₹' + (CONFIG.codFee || 100) + ' booking + courier</b></div>' +
+          '<small class="pd-pay-note">🔒 100% secure payment • COD balance is paid at delivery</small>' +
+        '</div>' +
         /* ❓ compact FAQ — real policies only */
         '<div class="pd-faq"><b>❓ QUICK QUESTIONS</b>' +
           '<details><summary>Is COD available?</summary><div>Yes — Cash on Delivery is available (₹' + (CONFIG.codFee || 100) + ' booking + courier). Balance at delivery.</div></details>' +
           '<details><summary>How many days will delivery take?</summary><div>Tamil Nadu 2–3 days • Andhra/Karnataka 3–4 days • Other states 5–7 days.</div></details>' +
-          '<details><summary>When will my order be dispatched?</summary><div>Within 24 hours of order confirmation.</div></details>' +
           '<details><summary>Can I see a real video before ordering?</summary><div>Yes! Send us the SKU on WhatsApp — we share the real video/photos right away.</div></details>' +
-          '<details><summary>What is the replacement policy?</summary><div>7-day easy replacement — damaged, wrong or defective sarees are replaced. Contact us on WhatsApp.</div></details>' +
+          '<details><summary>What is the replacement policy?</summary><div>7-day easy replacement — damaged, wrong or defective sarees are replaced free. Contact us on WhatsApp within 7 days. <a href="return-policy.html">Full policy →</a></div></details>' +
           '<details><summary>How can I contact SK Sarees?</summary><div>WhatsApp / Call: <a href="tel:+91' + CONFIG.waNumber.slice(2) + '">+91 ' + CONFIG.waDisplay + '</a> • 9 AM – 9 PM, all days.</div></details>' +
         '</div>' +
-        /* ↩️ replacement trust card */
-        '<div class="pd-replace"><b>↩️ 7-DAY EASY REPLACEMENT</b><small>Arrived damaged, wrong or defective? Contact SK Sarees on WhatsApp within 7 days — we will replace it. <a href="return-policy.html">Full policy →</a></small></div>' +
-        /* ✨ Why You'll Love This Saree — short, honest, convertible */
-        '<div class="pd-love"><b>✨ ' + loc("Why You'll Love This Saree", "Why You'll Love This Saree", "Why You'll Love This Saree", "Why You'll Love This Saree") + '</b>' +
-          '<ul>' +
-            '<li>✓ ' + loc('மென்மையான, வசதியான ' + (p.fabric || 'துணி'), 'మృదువైన ' + (p.fabric || 'ఫ్యాబ్రిక్'), 'ಮೃದುವಾದ ' + (p.fabric || 'ಫ್ಯಾಬ್ರಿಕ್'), 'Soft &amp; comfortable ' + (p.fabric || 'fabric')) + '</li>' +
-            '<li>✓ ' + loc('அழகான பார்டர் &amp; பல்லு', 'అందమైన బోర్డర్ &amp; పల్లు', 'ಅಂದವಾದ ಬಾರ್ಡರ್ &amp; ಪಲ್ಲು', 'Beautiful border &amp; pallu') + '</li>' +
-            '<li>✓ ' + loc('பவுஸ் பீஸ் உட்பட', 'బ్లౌస్ పీస్ ఉంది', 'ಬ್ಲೌಸ್ ಪೀಸ್ ಸೇರಿದೆ', 'Blouse piece included') + '</li>' +
-            '<li>✓ ' + loc('தினசரி / ஆபீஸ் / விழாக்களுக்கு ஏற்றது', 'రోజువారీ / ఆఫీస్ / వేడుకలకు సరిపోతుంది', 'ದೈನಂದಿನ / ಆಫೀಸ್ / ಸಮಾರಂಭಗಳಿಗೆ ಸೂಕ್ತ', 'Suitable for daily / office / function wear') + '</li>' +
-            '<li>✓ ' + loc('அனுப்பும் முன் தரச் சோதனை', 'పంపే ముందు క్వాలిటీ చెక్', 'ಕಳುಹಿಸುವ ಮೊದಲು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ', 'Quality checked before dispatch') + '</li>' +
-            '<li>✓ ' + loc('கொரியருக்கு பாதுகாப்பாக பேக்', 'కొరియర్ కోసం జాగ్రత్తగా ప్యాక్', 'ಕೊರಿಯರ್‌ಗೆ ಎಚ್ಚರಿಕೆಯಿಂದ ಪ್ಯಾಕ್', 'Carefully packed for courier') + '</li>' +
-          '</ul></div>' +
         /* 💬 NEED HELP BEFORE ORDERING — premium customer care card */
         '<div class="pd-care">' +
           '<b class="pc-title">💬 ' + loc('NEED HELP BEFORE ORDERING?', 'ఆర్డర్ ముందు సహాయం కావాలా?', 'ಆರ್ಡರ್ ಮೊದಲು ಸಹಾಯ ಬೇಕೆ?', 'NEED HELP BEFORE ORDERING?', 'ഓർഡർ ചെയ്യും മുമ്പ് സഹായം വേണോ?') + '</b>' +
@@ -3176,20 +3158,28 @@ function renderProduct(){
             '<a class="pc-wa" href="' + waLink('Hi SK Sarees! I have a question about this saree: ' + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + '). Please share more details.') + '" target="_blank" rel="noopener">' + SVG_WA + loc('CHAT ON WHATSAPP', 'WHATSAPP లో మాట్లాడండి', 'WHATSAPP ನಲ್ಲಿ ಮಾತನಾಡಿ', 'CHAT ON WHATSAPP', 'WHATSAPP-ൽ സംസാരിക്കൂ') + '</a>' +
             '<a class="pc-call" href="tel:+91' + CONFIG.waNumber.slice(2) + '">📞 ' + loc('CALL NOW', 'కాల్ చేయండి', 'ಕಾಲ್ ಮಾಡಿ', 'CALL NOW', 'വിളിക്കൂ') + '</a>' +
           '</div>' +
-          '<div class="pc-grid">' +
-            '<div class="pc-item"><span>🚚</span><b>' + loc('Delivery', 'డెలివరీ', 'ಡೆಲಿವರಿ', 'Delivery', 'ഡെലിവറി') + '</b><small>' + loc('Across India', 'ఇండియా అంతటా', 'ಇಡೀ ಇಂಡಿಯಾ', 'Across India', 'ഇന്ത്യയിലെല്ലായിടത്തും') + '</small></div>' +
-            '<div class="pc-item"><span>💵</span><b>COD</b><small>' + loc('Available', 'అందుబాటులో', 'ಲಭ್ಯವಿದೆ', 'Available', 'ലഭ്യം') + '</small></div>' +
-            '<div class="pc-item"><span>🔄</span><b>' + loc('7-Day', '7 రోజులు', '7 ದಿನ', '7-Day', '7 ദിവസം') + '</b><small>' + loc('Replacement', 'రీప్లేస్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്') + '</small></div>' +
-            '<div class="pc-item"><span>💬</span><b>WhatsApp</b><small>' + loc('Ask anytime', 'ఎప్పుడైనా అడగండి', 'ಯಾವಾಗಬೇಕಾದರೂ', 'Ask anytime', 'എപ്പോഴും ചോദിക്കൂ') + '</small></div>' +
+          /* 🌐 V25 language chips (moved here from the old pd-help block) —
+             WhatsApp help in HER own language, one consistent place */
+          '<div class="pdh-langs pd-care-langs">' + [
+            ['ta', 'தமிழ்', 'வணக்கம் SK Sarees! இந்த சேலையைப் பற்றி கேட்க விரும்புகிறேன்: '],
+            ['te', 'తెలుగు', 'నమస్కారం SK Sarees! ఈ చీర గురించి అడగాలి: '],
+            ['kn', 'ಕನ್ನಡ', 'ನಮಸ್ಕಾರ SK Sarees! ಈ ಸೀರೆ ಬಗ್ಗೆ ಕೇಳಬೇಕು: '],
+            ['ml', 'മലയാളം', 'നമസ്കാരം SK Sarees! ഈ സാരിയെക്കുറിച്ച് ചോദിക്കണം: '],
+            ['en', 'English', 'Hi SK Sarees! I have a question about this saree: ']
+          ].map(x => '<a href="' + waLink(x[2] + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + ')') + '" target="_blank" rel="noopener">' + x[1] + '</a>').join('') +
           '</div>' +
-          '<p class="pc-trust">✓ ' + loc('Quick assistance', 'వేగవంతమైన సహాయం', 'ವೇಗದ ಸಹಾಯ', 'Quick assistance', 'വേഗമേറിയ സഹായം') + ' &nbsp;✓ ' + loc('Quality checked before dispatch', 'పంపే ముందు క్వాలిటీ చెక్', 'ಕಳುಹಿಸುವ ಮೊದಲು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ', 'Quality checked before dispatch', 'അയയ്ക്കും മുമ്പ് ക്വാളിറ്റി ചെക്ക്') + '</p>' +
           '<p class="pc-hint">💡 ' + loc('Want to see more photos or a product video? Ask us on WhatsApp.', 'మరిన్ని ఫోటోలు లేదా వీడియో కావాలా? WhatsApp లో అడగండి.', 'ಇನ್ನಷ್ಟು ಫೋಟೋ ಅಥವಾ ವೀಡಿಯೊ ಬೇಕಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ.', 'Want to see more photos or a product video? Ask us on WhatsApp.', 'കൂടുതൽ ഫോട്ടോ അല്ലെങ്കിൽ വീഡിയോ വേണോ? WhatsApp-ൽ ചോദിക്കൂ.') + '</p>' +
         '</div>' +
         /* 💬 COMPACT REVIEW SUMMARY — no big form; expandable */
+        /* 💬 V25 honest reviews: score is shown ONLY when real review data
+           exists; no data → truthful "new saree" line (never an invented 4.5/5) */
         '<div class="pd-reviews"><div class="pdr-head">' +
-          '<div class="pdr-score"><span class="pdr-stars">★★★★★</span><b>' + (p.rating || 4.5) + '/5</b></div>' +
-          '<span class="pdr-count">' + ((p.reviews || 0) + realReviewCount(p.id) > 0 ? ((p.reviews || 0) + realReviewCount(p.id)) + ' customer reviews' : 'Customer Reviews') + '</span>' +
+          (revTotal > 0
+            ? (p.rating > 0 ? '<div class="pdr-score"><span class="pdr-stars">' + '★'.repeat(Math.min(5, Math.max(1, Math.round(p.rating)))) + '</span><b>' + p.rating + '/5</b></div>' : '') +
+              '<span class="pdr-count">' + revTotal + ' customer reviews</span>'
+            : '<span class="pdr-count">🌱 ' + loc('New saree — no reviews yet', 'కొత్త చీర — ఇంకా రివ్యూలు లేవు', 'ಹೊಸ ಸೀರೆ — ಇನ್ನೂ ರಿವ್ಯೂ ಇಲ್ಲ', 'New saree — no reviews yet', 'പുതിയ സാരി — റിവ്യൂകൾ ഇല്ല') + '</span>') +
         '</div>' +
+        (revTotal > 0 ? '' : '<p class="pdr-safe">✅ COD Available • ↩️ 7-Day Replacement • 🔒 Secure Payment — order risk-free.</p>') +
         '<details class="pdr-read"><summary>📖 ' + loc('Read Customer Reviews', 'రివ్యూలు చదవండి', 'ರಿವ್ಯೂಗಳನ್ನು ಓದಿ', 'Read Customer Reviews', 'റിവ്യൂകൾ വായിക്കൂ') + '</summary>' +
           '<div>' + revs + '</div>' +
         '</details>' +
@@ -3389,7 +3379,7 @@ function buyNowPopup(p, qty, colour){
       '<div class="bn-in"><span>+91</span><input id="bnPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="10-digit mobile" value="' + esc(known) + '"></div>' +
       '<p class="bn-err" id="bnErr"></p>' +
       '<button type="button" class="bn-go" id="bnGo">Continue → Checkout</button>' +
-      '<p class="bn-note">✅ COD Available • 👥 2,300+ happy customers on WhatsApp bookings</p>' +
+      '<p class="bn-note">✅ COD Available • 🔒 Secure Payment • ↩️ 7-Day Replacement</p>' +
     '</div>';
   document.body.appendChild(ov);
   const inp = ov.querySelector('#bnPhone');
