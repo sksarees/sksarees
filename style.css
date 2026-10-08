@@ -4971,3 +4971,115 @@ body[data-page="reels"] .rp-arrow{ display:none }  /* arrows hidden — scroll n
 
 /* desktop floating button removed */
 @media(min-width:900px){ .wa-float{ display:none !important } }
+
+/* ============================================================================
+   💬 v24 — PRODUCT PAGE CRO (2026-10-07)
+   Compact reviews • premium customer care card • micro-CTA • related heading
+   ========================================================================== */
+/* compact review summary */
+.pd-reviews{
+  background:#fff; border:1px solid #EFE8E0; border-radius:14px;
+  padding:14px; margin-top:14px; display:grid; gap:10px;
+}
+.pdr-head{ display:flex; align-items:center; justify-content:space-between; gap:10px }
+.pdr-score{ display:flex; align-items:center; gap:6px }
+.pdr-stars{ color:#E8A000; font-size:.9rem; letter-spacing:2px }
+.pdr-score b{ font-size:1.05rem; color:#4E0D1F; font-weight:800 }
+.pdr-count{ font-size:.72rem; color:#666; font-weight:700 }
+.pd-reviews details{
+  border:1px solid #EFE8E0; border-radius:10px; overflow:hidden;
+}
+.pd-reviews details summary{
+  cursor:pointer; padding:10px 14px; font-size:.8rem; font-weight:700;
+  color:#4E0D1F; list-style:none; display:flex; align-items:center; gap:8px;
+  background:#F8F3EE; transition:background .15s;
+}
+.pd-reviews details summary::-webkit-details-marker{ display:none }
+.pd-reviews details summary::after{ content:'▾'; margin-left:auto; color:#7A1731; font-weight:900; transition:transform .2s }
+.pd-reviews details[open] summary::after{ transform:rotate(180deg) }
+.pd-reviews details summary:hover{ background:#FFF3E0 }
+.pd-reviews details > div{ padding:12px 14px }
+.pd-reviews details > div > p{ margin:2px 0 8px }
+.pd-reviews .rev{ margin-bottom:8px }
+.rev-form{
+  background:#FAFAFA; border:1px dashed #D5CCC0; border-radius:10px;
+  padding:12px; display:grid; gap:8px;
+}
+.rev-form input, .rev-form select, .rev-form textarea{
+  width:100%; border:1.5px solid #E5DCD0; border-radius:8px;
+  padding:10px 12px; font-size:16px; background:#fff; outline:none;
+  box-sizing:border-box;
+}
+.rev-form input:focus, .rev-form textarea:focus{ border-color:#7A1731 }
+.rv-photo-btn{
+  display:block; text-align:center; cursor:pointer;
+  border:1.5px dashed #D5CCC0; border-radius:8px; padding:9px;
+  font-size:.78rem; font-weight:700; color:#666;
+}
+
+/* premium customer care card */
+.pd-care{
+  background:linear-gradient(180deg,#FFFBF5,#FFF5F0);
+  border:1px solid #EAD5CC; border-radius:16px;
+  padding:16px 14px; margin-top:14px; display:grid; gap:12px;
+  box-shadow:0 2px 12px rgba(107,30,46,.04);
+}
+.pc-title{
+  font-size:.88rem; font-weight:800; color:#4E0D1F;
+  letter-spacing:.3px; text-align:center;
+}
+.pc-sub{
+  font-size:.76rem; color:#7A6A5A; text-align:center; margin:0; line-height:1.5;
+}
+.pc-actions{ display:grid; grid-template-columns:1fr auto; gap:10px }
+.pc-wa{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  min-height:50px; background:#25D366; color:#fff;
+  border-radius:12px; text-decoration:none;
+  font-size:.88rem; font-weight:800; letter-spacing:.3px;
+  box-shadow:0 4px 12px rgba(37,211,102,.25);
+}
+.pc-wa:active{ transform:scale(.97) }
+.pc-wa svg{ fill:#fff }
+.pc-call{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  min-height:50px; min-width:110px; padding:0 16px;
+  background:#fff; color:#4E0D1F; border:1.5px solid #4E0D1F;
+  border-radius:12px; text-decoration:none;
+  font-size:.82rem; font-weight:800;
+}
+.pc-call:active{ transform:scale(.97); background:#F8E9EE }
+
+/* help grid 2×2 */
+.pc-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px }
+@media(max-width:480px){ .pc-grid{ grid-template-columns:repeat(2,1fr) } }
+.pc-item{
+  background:#fff; border:1px solid #EFE8E0; border-radius:10px;
+  padding:10px 8px; text-align:center; display:flex; flex-direction:column; gap:2px;
+  align-items:center;
+}
+.pc-item span{ font-size:1.1rem }
+.pc-item b{ font-size:.72rem; color:#222; font-weight:800 }
+.pc-item small{ font-size:.6rem; color:#888; font-weight:600 }
+
+.pc-trust{
+  font-size:.68rem; color:#666; font-weight:700; text-align:center;
+  margin:0; line-height:1.7;
+}
+.pc-hint{
+  font-size:.72rem; color:#7A6A5A; text-align:center; margin:0; font-weight:600;
+  background:#FFF3E0; border-radius:8px; padding:8px 10px; line-height:1.5;
+}
+
+/* "Not sure? Ask" micro-CTA */
+.pd-ask{
+  display:block; text-align:center; font-size:.76rem; font-weight:700;
+  color:#25D366; text-decoration:none; padding:6px 0 2px;
+}
+.pd-ask:hover{ text-decoration:underline }
+
+/* related heading with subtitle */
+#recSection h2 small{
+  display:block; font-size:.68rem; color:#888; font-weight:600;
+  margin-top:2px; letter-spacing:0;
+}

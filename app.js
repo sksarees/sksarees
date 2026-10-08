@@ -3105,7 +3105,8 @@ function renderProduct(){
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
             : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 BUY NOW — ' + money(p.price) + '</button>' +
               '<a class="btn btn-wa btn-xl pd-wa-big" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>') +
-          (out ? '' : '<p class="pd-buy-sub">✅ COD Available • 🔒 Secure Payment • ↩️ 7-Day Replacement</p>') +
+          (out ? '' : '<p class="pd-buy-sub">✅ COD • 🔒 Secure Payment • ↩️ 7-Day Replacement</p>' +
+            '<a class="pd-ask" href="' + waLink('Hi SK Sarees! I have a question about this saree: ' + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + ').') + '" target="_blank" rel="noopener">💬 ' + loc('Not sure? Ask us on WhatsApp before ordering', 'అనుమానం ఉందా? WhatsApp లో అడగండి', 'ಅನುಮಾನ ಇದೆಯಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ', 'Not sure? Ask us on WhatsApp before ordering', 'സംശയമുണ്ടോ? WhatsApp-ൽ ചോദിക്കൂ') + ' →</a>') +
           /* 📱 REAL VIDEO — Facebook/Instagram traffic goes straight to WhatsApp */
           '<div class="pd-realvideo"><div class="prp-txt"><b>📹 ' + loc('இந்த சேலையின் REAL VIDEO/PHOTOS வேண்டுமா?', 'ఈ చీర real video/photos కావాలా?', 'ಈ ಸೀರೆಯ real video/photos ಬೇಕಾ?', 'Want real video/photos of this saree?') + '</b><small>' + loc('Order பண்ணும் முன் உண்மையான வீடியோ பாருங்க!', 'ఆర్డర్ ముందు real video చూడండి!', 'ಆರ್ಡರ್ ಮೊದಲು real video ನೋಡಿ!', 'See the real saree before you order.') + '</small></div>' +
             '<a class="btn prp-btn" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO ON WHATSAPP</a>' +
@@ -3167,18 +3168,41 @@ function renderProduct(){
             '<li>✓ ' + loc('அனுப்பும் முன் தரச் சோதனை', 'పంపే ముందు క్వాలిటీ చెక్', 'ಕಳುಹಿಸುವ ಮೊದಲು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ', 'Quality checked before dispatch') + '</li>' +
             '<li>✓ ' + loc('கொரியருக்கு பாதுகாப்பாக பேக்', 'కొరియర్ కోసం జాగ్రత్తగా ప్యాక్', 'ಕೊರಿಯರ್‌ಗೆ ಎಚ್ಚರಿಕೆಯಿಂದ ಪ್ಯಾಕ್', 'Carefully packed for courier') + '</li>' +
           '</ul></div>' +
-        '<div class="pd-block" style="margin-top:14px"><h3>💬 Testimonials</h3>' + revs +
-          '<div class="rev-form" style="background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:13px;margin-top:12px;display:grid;gap:9px">' +
-            '<b>✍️ Write a testimonial</b>' +
-            '<input id="rvName" placeholder="Your name" maxlength="40" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none">' +
-            '<select id="rvStars" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none"><option value="5">★★★★★ Excellent</option><option value="4">★★★★☆ Very good</option><option value="3">★★★☆☆ Good</option><option value="2">★★☆☆☆ Average</option><option value="1">★☆☆☆☆ Poor</option></select>' +
-            '<textarea id="rvText" rows="2" placeholder="Share your experience…" maxlength="300" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;outline:none;resize:vertical"></textarea>' +
-            /* 📷 photo review — compressed on her phone, saved with the review
-               (works on ANY static host: GitHub Pages, InfinityFree, Netlify…) */
-            '<label class="rv-photo-btn" id="rvPhotoLbl" for="rvPhoto">📷 ' + loc('போட்டோ சேர் (விருப்பம்)', 'ఫోటో జోడించండి (ఆప్షనల్)', 'ಫೋಟೋ ಸೇರಿಸಿ (ಐಚ್ಛಿಕ)', 'Add Photo (optional)') + '</label>' +
+        /* 💬 NEED HELP BEFORE ORDERING — premium customer care card */
+        '<div class="pd-care">' +
+          '<b class="pc-title">💬 ' + loc('NEED HELP BEFORE ORDERING?', 'ఆర్డర్ ముందు సహాయం కావాలా?', 'ಆರ್ಡರ್ ಮೊದಲು ಸಹಾಯ ಬೇಕೆ?', 'NEED HELP BEFORE ORDERING?', 'ഓർഡർ ചെയ്യും മുമ്പ് സഹായം വേണോ?') + '</b>' +
+          '<p class="pc-sub">' + loc('Have a question about this saree? Our customer care team can help you.', 'ఈ చీర గురించి ప్రశ్న ఉందా? మేము సహాయం చేస్తాము.', 'ಈ ಸೀರೆ ಬಗ್ಗೆ ಪ್ರಶ್ನೆ ಇದೆಯಾ? ನಾವು ಸಹಾಯ ಮಾಡುತ್ತೇವೆ.', 'Have a question about this saree? Our customer care team can help you.', 'ഈ സാരിയെക്കുറിച്ച് ചോദ്യമുണ്ടോ? ഞങ്ങൾ സഹായിക്കും.') + '</p>' +
+          '<div class="pc-actions">' +
+            '<a class="pc-wa" href="' + waLink('Hi SK Sarees! I have a question about this saree: ' + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + '). Please share more details.') + '" target="_blank" rel="noopener">' + SVG_WA + loc('CHAT ON WHATSAPP', 'WHATSAPP లో మాట్లాడండి', 'WHATSAPP ನಲ್ಲಿ ಮಾತನಾಡಿ', 'CHAT ON WHATSAPP', 'WHATSAPP-ൽ സംസാരിക്കൂ') + '</a>' +
+            '<a class="pc-call" href="tel:+91' + CONFIG.waNumber.slice(2) + '">📞 ' + loc('CALL NOW', 'కాల్ చేయండి', 'ಕಾಲ್ ಮಾಡಿ', 'CALL NOW', 'വിളിക്കൂ') + '</a>' +
+          '</div>' +
+          '<div class="pc-grid">' +
+            '<div class="pc-item"><span>🚚</span><b>' + loc('Delivery', 'డెలివరీ', 'ಡೆಲಿವರಿ', 'Delivery', 'ഡെലിവറി') + '</b><small>' + loc('Across India', 'ఇండియా అంతటా', 'ಇಡೀ ಇಂಡಿಯಾ', 'Across India', 'ഇന്ത്യയിലെല്ലായിടത്തും') + '</small></div>' +
+            '<div class="pc-item"><span>💵</span><b>COD</b><small>' + loc('Available', 'అందుబాటులో', 'ಲಭ್ಯವಿದೆ', 'Available', 'ലഭ്യം') + '</small></div>' +
+            '<div class="pc-item"><span>🔄</span><b>' + loc('7-Day', '7 రోజులు', '7 ದಿನ', '7-Day', '7 ദിവസം') + '</b><small>' + loc('Replacement', 'రీప్లేస్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്') + '</small></div>' +
+            '<div class="pc-item"><span>💬</span><b>WhatsApp</b><small>' + loc('Ask anytime', 'ఎప్పుడైనా అడగండి', 'ಯಾವಾಗಬೇಕಾದರೂ', 'Ask anytime', 'എപ്പോഴും ചോദിക്കൂ') + '</small></div>' +
+          '</div>' +
+          '<p class="pc-trust">✓ ' + loc('Quick assistance', 'వేగవంతమైన సహాయం', 'ವೇಗದ ಸಹಾಯ', 'Quick assistance', 'വേഗമേറിയ സഹായം') + ' &nbsp;✓ ' + loc('Quality checked before dispatch', 'పంపే ముందు క్వాలిటీ చెక్', 'ಕಳುಹಿಸುವ ಮೊದಲು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ', 'Quality checked before dispatch', 'അയയ്ക്കും മുമ്പ് ക്വാളിറ്റി ചെക്ക്') + '</p>' +
+          '<p class="pc-hint">💡 ' + loc('Want to see more photos or a product video? Ask us on WhatsApp.', 'మరిన్ని ఫోటోలు లేదా వీడియో కావాలా? WhatsApp లో అడగండి.', 'ಇನ್ನಷ್ಟು ಫೋಟೋ ಅಥವಾ ವೀಡಿಯೊ ಬೇಕಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ.', 'Want to see more photos or a product video? Ask us on WhatsApp.', 'കൂടുതൽ ഫോട്ടോ അല്ലെങ്കിൽ വീഡിയോ വേണോ? WhatsApp-ൽ ചോദിക്കൂ.') + '</p>' +
+        '</div>' +
+        /* 💬 COMPACT REVIEW SUMMARY — no big form; expandable */
+        '<div class="pd-reviews"><div class="pdr-head">' +
+          '<div class="pdr-score"><span class="pdr-stars">★★★★★</span><b>' + (p.rating || 4.5) + '/5</b></div>' +
+          '<span class="pdr-count">' + ((p.reviews || 0) + realReviewCount(p.id) > 0 ? ((p.reviews || 0) + realReviewCount(p.id)) + ' customer reviews' : 'Customer Reviews') + '</span>' +
+        '</div>' +
+        '<details class="pdr-read"><summary>📖 ' + loc('Read Customer Reviews', 'రివ్యూలు చదవండి', 'ರಿವ್ಯೂಗಳನ್ನು ಓದಿ', 'Read Customer Reviews', 'റിവ്യൂകൾ വായിക്കൂ') + '</summary>' +
+          '<div>' + revs + '</div>' +
+        '</details>' +
+        '<details class="pdr-write"><summary>✍️ ' + loc('Share your experience — Write a Review', 'మీ అనుభవం పంచుకోండి', 'ನಿಮ್ಮ ಅನುಭವ ಹಂಚಿಕೊಳ್ಳಿ', 'Share your experience — Write a Review', 'നിങ്ങളുടെ അനുഭവം പങ്കിടുക') + '</summary>' +
+          '<div class="rev-form">' +
+            '<input id="rvName" placeholder="Your name" maxlength="40">' +
+            '<select id="rvStars"><option value="5">★★★★★ Excellent</option><option value="4">★★★★☆ Very good</option><option value="3">★★★☆☆ Good</option><option value="2">★★☆☆☆ Average</option><option value="1">★☆☆☆☆ Poor</option></select>' +
+            '<textarea id="rvText" rows="2" placeholder="Share your experience…" maxlength="300"></textarea>' +
+            '<label class="rv-photo-btn" id="rvPhotoLbl" for="rvPhoto">📷 ' + loc('Add Photo (optional)', 'ఫోటో జోడించండి', 'ಫೋಟೋ ಸೇರಿಸಿ', 'Add Photo (optional)', 'ഫോടോ ചേർക്കുക') + '</label>' +
             '<input id="rvPhoto" type="file" accept="image/*" style="display:none" onchange="attachReviewPhoto(this)">' +
-            '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ Post Testimonial</button>' +
-          '</div></div>' +
+            '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ ' + loc('Post Review', 'రివ్యూ పోస్ట్', 'ರಿವ್ಯೂ ಪೋಸ್ಟ್', 'Post Review', 'റിവ്യൂ പോസ്റ്റ്') + '</button>' +
+          '</div>' +
+        '</details></div>' +
         '<div id="wearingGallery"></div>' +
         
       '</div>' +
@@ -3204,7 +3228,7 @@ function renderProduct(){
   }catch(e){}
   /* AI-style similar-saree recommendations (30) + Explore More sections */
   try{ if (window.REC) REC.renderSimilar(p, document.getElementById('recSection')); }catch(e){}
-  try{ const rh = document.querySelector('#recSection h2'); if (rh) rh.innerHTML = '🧵 You May Also Like'; }catch(e2){}
+  try{ const rh = document.querySelector('#recSection h2'); if (rh) rh.innerHTML = '✨ You May Also Like <small>More sarees you may love</small>'; }catch(e2){}
   /* 💰 Share & Earn box under the product */
   try{
     const earnWa = document.getElementById('earnWa');
