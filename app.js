@@ -866,62 +866,15 @@ function renderReelsPage(){
     }
   }catch(e){}
 
-  /* 🛒 CONVERSION FUNNEL — hero → trust → filters → reels → shop → CTA */
-  const pool = PRODUCTS.filter(p => !p.hidden);
-  const best = pool.slice().sort((a2, b2) =>
-    ((b2.badge === 'Bestseller' ? 900 : 0) + (b2.rating || 0) * 10 + (b2.reviews || 0)) -
-    ((a2.badge === 'Bestseller' ? 900 : 0) + (a2.rating || 0) * 10 + (a2.reviews || 0))).slice(0, 6);
-  const liveCats = CATEGORIES.map(c => ({ c, n: pool.filter(p => p.cat === c.slug).length })).filter(x => x.n > 0).sort((a2, b2) => b2.n - a2.n);
 
   app.innerHTML =
-    /* ═══ HERO ═══ */
-    '<section class="rl-hero"><div class="wrap">' +
-      '<h1>' + rloc('Watch It. Love It. Shop It.', 'చూడండి. నచ్చిందా. కొనండి.', 'ನೋಡಿ. ಇಷ್ಟವಾಯಿತಾ. ಖರೀದಿಸಿ.', 'Watch It. Love It. Shop It.', 'കാണൂ. ഇഷ്ടപ്പെടൂ. വാങ്ങൂ.') + '</h1>' +
-      '<p>' + rloc('Latest saree designs, trending styles and special offers from SK Sarees.', 'తాజా చీర డిజైన్లు, ట్రెండింగ్ స్టైల్స్ SK Sarees నుండి.', 'ತಾಜಾ ಸೀರೆ ವಿನ್ಯಾಸಗಳು, ಟ್ರೆಂಡಿಂಗ್ ಶೈಲಿಗಳು SK Sarees ನಿಂದ.', 'Latest saree designs, trending styles and special offers from SK Sarees.', 'പുതിയ സാരി ഡിസൈനുകൾ, ട്രെൻഡിംഗ് സ്റ്റൈലുകൾ SK Sarees.') + '</p>' +
-      '<div class="rl-hero-btns">' +
-        '<a class="btn btn-pd-buy btn-xl" href="shop.html">🛍️ ' + rloc('SHOP SAREES', 'చీరలు కొనండి', 'ಸೀರೆಗಳು ಖರೀದಿಸಿ', 'SHOP SAREES', 'സാരികൾ വാങ്ങൂ') + '</a>' +
-        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! I want to order a saree.') + '" target="_blank" rel="noopener">' + SVG_WA + rloc('ORDER ON WHATSAPP', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>' +
-      '</div>' +
-    '</div></section>' +
-    /* ═══ TRUST STRIP ═══ */
-    '<div class="rl-trust"><div class="wrap">' +
-      '<span>🚚 ' + rloc('Fast Delivery', 'వేగవంతమైన డెలివరీ', 'ವೇಗದ ಡೆಲಿವರಿ', 'Fast Delivery', 'വേഗമേറിയ ഡെലിവറി') + '</span>' +
-      '<span>💵 COD</span>' +
-      '<span>🔒 ' + rloc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + '</span>' +
-      '<span>✅ ' + rloc('Quality Checked', 'క్వాలిటీ చెక్', 'ಕ್ವಾಲಿಟಿ ಚೆಕ್', 'Quality Checked', 'ക്വാലിറ്റി ചെക്ക്') + '</span>' +
-      '<span>🔄 7-Day ' + rloc('Replacement', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്മെന്റ്') + '</span>' +
-    '</div></div>' +
-    /* ═══ REEL GRID — product-linked with price/CTA ═══ */
-    '<div class="rl-sec"><h2>🎬 ' + rloc('Latest Saree Reels', 'తాజా చీర రీల్స్', 'ತಾಜಾ ಸೀರೆ ರೀಲ್ಸ್', 'Latest Saree Reels', 'പുതിയ സാരി റീലുകൾ') + '</h2>' +
+    /* ═══ V26: REELS ONLY (user request) — hero / trust strip / category
+       tiles / best sellers / why-SK / final CTA all removed. The product-
+       linked reel grid + the full-screen scroll reels below are the page. */
+    '<div class="rl-sec" style="padding-top:14px"><h2>🎬 ' + rloc('Latest Saree Reels', 'తాజా చీర రీల్స్', 'ತಾಜಾ ಸೀರೆ ರೀಲ್ಸ್', 'Latest Saree Reels', 'പുതിയ സാരി റീലുകൾ') + '</h2>' +
       '<p class="rl-sub">' + rloc('See the saree before you buy.', 'కొనే ముందు చీర చూడండి.', 'ಖರೀದಿಸುವ ಮೊದಲು ಸೀರೆ ನೋಡಿ.', 'See the saree before you buy.', 'വാങ്ങും മുമ്പ് സാരി കാണൂ.') + '</p>' +
       '<div class="rl-grid" id="rlGrid"></div>' +
-      '<div style="text-align:center;padding:12px 0"><a class="btn btn-pd-buy" href="shop.html">🛍️ ' + rloc('View All Sarees', 'అన్ని చీరలు', 'ಎಲ್ಲಾ ಸೀರೆಗಳು', 'View All Sarees', 'എല്ലാ സാരികളും') + '</a></div>' +
-    '</div>' +
-    /* ═══ SHOP BY CATEGORY ═══ */
-    '<div class="rl-sec"><h2>🧵 ' + rloc('Shop by Category', 'వర్గాల ప్రకారం', 'ವರ್ಗಗಳ ಪ್ರಕಾರ', 'Shop by Category', 'വിഭാഗമനുസരിച്ച്') + '</h2>' +
-      '<div class="rl-cats">' + liveCats.slice(0, 8).map(x =>
-        '<a class="rl-cat" href="shop.html?cat=' + x.c.slug + '"><img src="' + esc(catImage(x.c.slug)) + '" alt="' + esc(x.c.name) + '" loading="lazy" onerror="imgSafe(this)"><span>' + x.c.emoji + ' ' + esc(catName(x.c)) + '</span><small>' + x.n + '</small></a>').join('') +
-      '</div></div>' +
-    /* ═══ BEST SELLERS ═══ */
-    '<div class="rl-sec"><h2>⭐ ' + rloc('Popular Sarees', 'జనప్రియ చీరలు', 'ಜನಪ್ರಿಯ ಸೀರೆಗಳು', 'Popular Sarees', 'ജനപ്രിയ സാരികൾ') + '</h2>' +
-      '<div class="rl-grid">' + best.map(rlCardHTML).join('') + '</div></div>' +
-    /* ═══ WHY SK ═══ */
-    '<div class="rl-sec"><h2>🤝 ' + rloc('Why Shop With SK Sarees?', 'SK Sarees లో ఎందుకు?', 'SK Sarees ನಲ್ಲಿ ಏಕೆ?', 'Why Shop With SK Sarees?', 'എന്തുകൊണ്ട് SK Sarees?') + '</h2>' +
-      '<div class="rl-why">' +
-        ['✓ ' + rloc('Quality checked products', 'క్వాలిటీ చెక్ ఉత్పత్తులు', 'ಕ್ವಾಲಿಟಿ ಚೆಕ್ ಉತ್ಪನ್ನಗಳು', 'Quality checked products', 'ക്വാലിറ്റി ചെക്ക്'),
-         '✓ COD Available',
-         '✓ ' + rloc('Fast dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്'),
-         '✓ ' + rloc('Secure payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure payment', 'സുരക്ഷിത പേയ്മെന്റ്'),
-         '✓ 7-Day ' + rloc('Replacement', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്മെന്റ്'),
-         '✓ WhatsApp ' + rloc('Support', 'సపోర్ట్', 'ಬೆಂಬಲ', 'Support', 'സപ്പോർട്ട്')].map(x => '<span>' + x + '</span>').join('') +
-      '</div></div>' +
-    /* ═══ FINAL CTA ═══ */
-    '<div class="rl-final"><b>' + rloc('Found a Saree You Love?', 'మీకు నచ్చిన చీర కనుగొనడానికి సిద్ధమా?', 'ನಿಮಗೆ ಇಷ್ಟವಾದ ಸೀರೆ ಸಿಗಿತ್ತಾ?', 'Found a Saree You Love?', 'നിങ്ങളുടെ സാരി കണ്ടെത്തിയോ?') + '</b>' +
-      '<span>' + rloc('Shop the latest SK Sarees collections today.', 'ఈరోజే SK Sarees లో షాప్ చేయండి.', 'ಇಂದೆ SK Sarees ನಲ್ಲಿ ಶಾಪ್ ಮಾಡಿ.', 'Shop the latest SK Sarees collections today.', 'ഇന്നുതന്നെ SK Sarees-ൽ ഷോപ്പ്.') + '</span>' +
-      '<div class="rl-hero-btns" style="margin-top:14px">' +
-        '<a class="btn btn-pd-buy btn-xl" href="shop.html">🛍️ ' + rloc('SHOP ALL SAREES', 'అన్ని చీరలు', 'ಎಲ್ಲಾ ಸೀರೆಗಳು', 'SHOP ALL SAREES', 'എല്ലാ സാരികൾ') + '</a>' +
-        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! I want to order a saree.') + '" target="_blank" rel="noopener">' + SVG_WA + rloc('CHAT ON WHATSAPP', 'WHATSAPP లో మాట్లాడండి', 'WHATSAPP ನಲ್ಲಿ ಮಾತನಾಡಿ', 'CHAT ON WHATSAPP', 'WHATSAPP-ൽ സംസാരിക്കൂ') + '</a>' +
-      '</div></div>';
+    '</div>';
 
   /* populate the reel grid with product-linked cards */
   try{
@@ -1733,17 +1686,6 @@ function renderHome(){
   }catch(e){}
 
   app.innerHTML =
-    /* ═══ 3. HERO — shopping-focused ═══ */
-    '<section class="sk-hero"><div class="wrap">' +
-      '<span class="sk-hero-brand">✨ SK SAREES ✨</span>' +
-      '<h1>' + loc('Beautiful Sarees at Honest Prices', 'నిజాయితీ ధరలతో అందమైన చీరలు', 'ನಾಣ್ಯತೆಯ ಬೆಲೆಗಳಲ್ಲಿ ಸುಂದರ ಸೀರೆಗಳು', 'Beautiful Sarees at Honest Prices', 'സത്യസന്ധമായ വിലയിൽ സുന്ദരമായ സാരികൾ') + '</h1>' +
-      '<p class="sk-hero-fab">Silk • Soft Silk • Cotton • Linen • Wedding Sarees</p>' +
-      '<p class="sk-hero-trustln">' + loc('COD Available', 'COD అందుబాటులో', 'COD ಲಭ್ಯವಿದೆ', 'COD Available', 'COD ലഭ്യം') + ' &nbsp;|&nbsp; ' + loc('Fast Delivery', 'వేగవంతమైన డెలివరీ', 'ವೇಗದ ಡೆಲಿವರಿ', 'Fast Delivery', 'വേಗമേಱിയ ഡെലിവറി') + ' &nbsp;|&nbsp; ' + loc('7-Day Replacement', '7 రోజుల రీప్లేస్‌మెంట్', '7 ದಿನಗಳ ಬದಲಿ', '7-Day Replacement', '7 ദിവസത്തെ റീപ്ലേസ്മെന്റ്') + (under.length ? ' &nbsp;|&nbsp; <b>' + loc('Starting From ₹', 'నుండి ₹', 'ನಿಂದ ₹', 'Starting From ₹', 'തുടങ്ങുന്നത് ₹') + underMin + '</b>' : '') + '</p>' +
-      '<div class="sk-hero-btns">' +
-        '<a class="btn btn-pd-buy btn-xl" href="shop.html">🛍️ SHOP BEST SELLERS</a>' +
-        '<a class="btn btn-wa btn-xl" href="' + waLink('Hi SK Sarees! I want to order a saree. Please send me the details.') + '" target="_blank" rel="noopener">' + SVG_WA + loc('ORDER ON WHATSAPP', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>' +
-      '</div>' +
-    '</div></section>' +
     /* ═══ 4. TRUST STRIP ═══ */
     '<div class="sk-tstrip"><div class="wrap">' +
       '<span>💵 ' + loc('COD AVAILABLE', 'COD అందుబాటులో', 'COD ಲಭ್ಯವಿದೆ', 'COD AVAILABLE', 'COD ലഭ്യം') + '</span>' +
@@ -1795,7 +1737,7 @@ function renderHome(){
     secHead('✨ ' + t('newArrivals'), 'shop.html') + '<div class="hc-grid">' + fresh.map(homeCardHTML).join('') + '</div></div>' +
     /* ═══ 10. WHY SK SAREES ═══ */
     secHead('🤝 ' + loc('Why Shop From SK Sarees?', 'SK Sarees లో ఎందుకు కొనాలి?', 'SK Sarees ನಲ್ಲಿ ಏಕೆ ಖರೀದಿಸಬೇಕೆ?', 'Why Shop From SK Sarees?', 'എന്തുകൊണ്ട് SK Sarees?')) + '<div class="sk-why">' +
-      ['⭐ 2,300+ Happy Customers', '💵 COD Available', '⚡ Fast Dispatch', '🔒 Secure Payments', '↩️ 7-Day Replacement', '💬 WhatsApp Support'].map(x => '<span>' + x + '</span>').join('') +
+      ['💵 COD Available', '⚡ Fast Dispatch', '🔒 Secure Payments', '↩️ 7-Day Replacement', '💬 WhatsApp Support'].map(x => '<span>' + x + '</span>').join('') +
       '</div></div>' +
     /* ═══ 11. REAL CUSTOMER REVIEWS ═══ */
     secHead('💬 ' + loc('Real Customer Reviews', 'నిజమైన కస్టమర్ రివ్యూలు', 'ನಿಜವಾದ ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು', 'Real Customer Reviews', 'യഥാർത്ഥ ഉപഭോക്തൃ അവലോകനങ്ങൾ')) +
@@ -3709,7 +3651,7 @@ function renderCartPage(){
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
         : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
-      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipFee || 30) + '</b> online / <b>₹' + (CONFIG.codFee || 100) + '</b> COD • 🎉 <b>FREE shipping above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</b> • 👥 2,300+ happy customers on WhatsApp bookings.</p>' +
+      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipFee || 30) + '</b> online (<b>FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</b>) • 💵 COD — <b>₹' + (CONFIG.codFee || 100) + '</b> booking now + saree balance cash at delivery.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">Proceed to Checkout →</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Order on WhatsApp Instead</a>' +
@@ -3866,7 +3808,7 @@ function coSummaryHTML(){
       (saved > 0 ? '<p class="co-saved">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + saved.toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
       nudge +
       '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:9px;background:var(--bg);margin-top:8px">' + courier + '</p>' +
-      '<p class="small muted" style="text-align:center;margin-top:8px;font-weight:700">✅ Secure Order • 👥 2,300+ Happy Customers • ↩️ 7-Day Replacement</p></div>';
+      '<p class="small muted" style="text-align:center;margin-top:8px;font-weight:700">✅ Secure Order • 💵 COD Available • ↩️ 7-Day Replacement</p></div>';
   }catch(e){ return ''; }
 }
 /* 🎟️ perks under the coupon: loyalty points to use + reseller commission on this order */
@@ -3931,10 +3873,11 @@ function drawCo(){
           '<div class="pm-title">📦 ' + loc('CASH ON DELIVERY', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '</div>' +
           '<div class="pm-codrows"><span>' + loc('Pay', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'Pay', 'പേയ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> ' + loc('booking amount now', 'బుకింగ్ మొత్తం ఇప్పుడే', 'ಬುಕಿಂಗ್ ಮೊತ್ತ ಈಗ', 'booking amount now', 'ബുക്കിംഗ് തുക ഇപ്പോൾ') + '</span>' +
             '<span>' + loc('Remaining', 'మిగిలిన', 'ಉಳಿದ', 'Remaining', 'ബാക്കി') + ' <b>' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + '</b> ' + loc('CASH at delivery', 'డెలివరీ వద్ద క్యాష్', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ಕ್ಯಾಶ್', 'CASH at delivery', 'ഡെലിവറി സമയത്ത് ക്യാഷ്') + '</span></div>' +
-          '<button type="button" class="pm-cta-cod" data-codwa>📦 ' + loc('ORDER WITH COD', 'COD తో ఆర్డర్', 'COD ಜೊತೆ ಆರ್ಡರ್', 'ORDER WITH COD', 'COD-ഉപയോഗിച്ച് ഓർഡർ') + '</button>' +
+          '<button type="button" class="pm-cta-cod" data-gocod>💳 PAY ₹' + (CONFIG.codFee || 100) + ' BOOKING — ORDER COD</button>' +
+          '<button type="button" class="pm-cta-wa" data-codwa>📦 ORDER COD ON WHATSAPP</button>' +
           '<small class="pm-note">₹' + (CONFIG.codFee || 100) + ' ' + loc('advance confirms your order • Balance payable when parcel is delivered', 'అడ్వాన్స్ మీ ఆర్డర్ నిర్ధారిస్తుంది • పార్సల్ అందినప్పుడు బ్యాలెన్స్ చెల్లించాలి', 'ಅಡ್ವಾನ್ಸ್ ನಿಮ್ಮ ಆರ್ಡರ್ ದೃಢೀಕರಿಸುತ್ತದೆ • ಪಾರ್ಸಲ್ ಬಂದಾಗ ಬ್ಯಾಲೆನ್ಸ್ ಪಾವತಿಸಿ', 'advance confirms your order • Balance payable when parcel is delivered', 'അഡ്വാൻസ് ഓർഡർ സ്ഥിരീകരിക്കുന്നു • പാർസൽ ലഭിക്കുമ്പോൾ ബാക്കി നൽകണം') + '</small>' +
         '</div>' +
-        '<div class="pm-trust">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('Fast Dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;⭐ 2,300+ ' + loc('Happy Customers', 'సంతోషకరమైన కస్టమర్లు', 'ಸಂತೋಷದ ಗ್ರಾಹಕರು', 'Happy Customers', 'സന്തോഷകരായ ഉപഭോക്താക്കൾ') + '</div>' +
+        '<div class="pm-trust">🔒 ' + loc('Secure Payment', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('Fast Dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;💵 COD Available' + '</div>' +
       '</div>' +
     '</div>';
   } else {
@@ -3958,7 +3901,7 @@ function drawCo(){
           '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 COD — ₹' + (CONFIG.codFee || 100) + ' booking paid') + '</span>' +
         '</div>' +
         (orderSavings(t) > 0 ? '<p class="co-saved" style="margin:0">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + orderSavings(t).toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
-        '<div class="rvw-total"><span>Total payable</span><b>' + money(t.grand) + '</b></div>' +
+        '<div class="rvw-total"><span>' + (upiPay ? 'Total payable' : 'Total — ₹' + booking + ' now + ' + money(Math.max(0, t.grand - booking)) + ' at delivery') + '</span><b>' + money(t.grand) + '</b></div>' +
       '</div>' +
       (upiPay
         /* 💳 premium UPI payment experience (Razorpay-inspired, original SK design) */
@@ -3973,11 +3916,12 @@ function drawCo(){
             '<div class="pg-apps">GPay • PhonePe • Paytm • BHIM • ' + loc('Any UPI App', 'ఏదైనా UPI యాప్', 'ಯಾವುದೇ UPI ಆ್ಯಪ್', 'Any UPI App', 'ഏത് UPI ആപ്പും') + '</div>' +
             '<div class="pg-upirow"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b><button type="button" class="pg-copy" data-u="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
             '<a class="pg-cta" href="' + upiLink(t.grand, note) + '">🔒 ' + loc('PAY', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('WITH UPI', 'UPI తో', 'UPI ಜೊತೆ', 'WITH UPI', 'UPI-ഉപയോഗിച്ച്') + '</a>' +
-            '<div class="pg-chips">' +
-              '<a class="pg-chip" href="' + upiAppLink('gpay', t.grand, note) + '">Google Pay</a>' +
-              '<a class="pg-chip" href="' + upiAppLink('phonepe', t.grand, note) + '">PhonePe</a>' +
-              '<a class="pg-chip" href="' + upiAppLink('paytm', t.grand, note) + '">Paytm</a>' +
-              '<a class="pg-chip" href="' + upiLink(t.grand, note) + '">UPI</a>' +
+            /* 📱 V26 OPEN-APP buttons — one tap opens the UPI app with amount filled */
+            '<div class="pg-appbtns">' +
+              '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', t.grand, note) + '">📱 OPEN GOOGLE PAY</a>' +
+              '<a class="pg-appbtn pg-appbtn-phonepe" href="' + upiAppLink('phonepe', t.grand, note) + '">📱 OPEN PHONEPE</a>' +
+              '<a class="pg-appbtn pg-appbtn-paytm" href="' + upiAppLink('paytm', t.grand, note) + '">📱 OPEN PAYTM</a>' +
+              '<a class="pg-appbtn pg-appbtn-upi" href="' + upiLink(t.grand, note) + '">📱 OPEN ANY UPI APP</a>' +
             '</div>' +
           '</div>' +
           '<div class="pg-trust">🔒 ' + loc('Secure UPI Payment', 'సురక్షిత UPI చెల్లింపు', 'ಸುರಕ್ಷಿತ UPI ಪಾವತಿ', 'Secure UPI Payment', 'സുരക്ഷിത UPI പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('Fast Dispatch', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പಾച്ച്') + ' &nbsp;✓ ' + loc('Order confirmation after payment', 'చెల్లింపు తర్వాత ఆర్డర్ నిర్ధారణ', 'ಪಾವತಿ ನಂತರ ಆರ್ಡರ್ ದೃಢೀಕರಣ', 'Order confirmation after payment', 'പേയ്മെന്റിന് ശേഷം ഓർഡർ സ്ഥിരീകരണം') + '</div>' +
@@ -3997,11 +3941,17 @@ function drawCo(){
           '<div class="cod-note">💵 COD — pay <b>₹' + booking + ' booking</b> now (covers booking + courier).<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
           '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
           '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 Pay ₹' + booking + ' Booking (UPI)</a>' +
+          '<div class="pg-appbtns">' +
+            '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN GOOGLE PAY</a>' +
+            '<a class="pg-appbtn pg-appbtn-phonepe" href="' + upiAppLink('phonepe', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN PHONEPE</a>' +
+            '<a class="pg-appbtn pg-appbtn-paytm" href="' + upiAppLink('paytm', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN PAYTM</a>' +
+          '</div>' +
           '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
           '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid Booking — Place Order</button></div>') +
       '<button type="button" class="btn btn-ghost" data-back>← Back to edit details</button>' +
     '</div>';
-    if (upiPay) setTimeout(drawUpiQR, 150); /* wait for DOM + qrcode lib */
+    if (upiPay){ window.__pgAmt = t.grand; setTimeout(drawUpiQR, 150); }         /* wait for DOM + qrcode lib */
+    else { window.__pgAmt = booking; setTimeout(drawUpiQR, 150); }   /* 🐛 V26 FIX: the COD ₹100 booking QR never rendered before */
   }
   /* (2026-09-28) liked/viewed saree strips REMOVED from checkout — clean,
      distraction-free payment page */
@@ -4024,7 +3974,7 @@ function drawUpiQR(){
   const note = 'Order ' + (co.pendingId || genOrderId()) + ' SK Sarees';
   try{
     const qr = qrLib(0, 'M');
-    qr.addData(upiLink(t.grand, note));
+    qr.addData(upiLink((window.__pgAmt != null ? window.__pgAmt : t.grand), note));   /* 💵 V26: COD page = ₹100, UPI page = grand */
     qr.make();
     box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   }catch(e){ box.innerHTML = '<p class="small muted">Use the UPI app buttons below, “Pay Now” or the UPI ID.</p>'; }
@@ -4206,44 +4156,45 @@ function doWaOrder(){
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment:'cod', totals: coTotals(), status:'placed' }, true); }catch(e){} }
 }
 function renderOrderComplete(o, viaWa){
+  /* 🎉 V26 — order success = SMALL MODERN WINDOW (user request) instead of
+     the old long success page. Behind it: a short thank-you screen. */
   const app = document.getElementById('app'); if (!app) return;
-  const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, discount:0, grand:0, eta:'' };
-  const items = (o.items || []).map(i => '<div style="display:flex;justify-content:space-between;font-size:.84rem;padding:6px 0;border-bottom:1px dashed var(--line)"><span>' + esc(i.name) + (i.colour ? ' <small class="muted">(' + esc(i.colour) + ')</small>' : '') + ' ×' + i.qty + '</span><b>' + money(i.price * i.qty) + '</b></div>').join('');
-  const mine = myOrders();
-  const cards = mine.length
-    ? mine.map(od => '<div class="order-card"><div class="oc-top"><b>#' + od.id + '</b><span class="status-pill status-' + od.status + '">' + esc((od.status || 'placed').replace('_', ' ')) + '</span></div>' +
-        '<div class="oc-items">' + fmtDT(od.date) + ' • ' + money((od.totals || {}).grand || 0) + ' (' + (od.payment || '').toUpperCase() + ')</div>' +
-        '<a class="btn btn-outline btn-sm" style="margin-top:8px" href="orders.html?id=' + encodeURIComponent(od.id) + '&data=' + encodeURIComponent(JSON.stringify(od)) + '">👁️ View Details</a></div>').join('')
-    : '<div class="empty"><div class="e-ic">📦</div><b>No orders yet</b></div>';
-  const isUpi = (o.payment || '') === 'upi' || (o.payment || '').indexOf('upi') === 0;
-  const successMsg = isUpi
-    ? '⏳ <b>Payment received — waiting for admin confirmation.</b> We will confirm your order on WhatsApp as soon as your UPI payment is verified. 📱'
-    : (viaWa
-        ? '💵 Order sent on WhatsApp — pay <b>₹' + CONFIG.codFee + ' booking</b> (already in the message), remaining amount at delivery. We will confirm shortly! 📱'
-        : '💵 COD — you paid the ₹' + CONFIG.codFee + ' booking now. Remaining amount collected at delivery. We will confirm shortly! 📱');
-  app.innerHTML = '<div class="wrap page">' +
-    '<div class="success"><div class="tick-big"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-      '<h1>' + (viaWa ? '🎉 Order Sent on WhatsApp!' : '🎉 Order Placed Successfully!') + '</h1>' +
-      '<span class="oid">Order ID: #' + esc(o.id) + '</span>' +
-      '<p class="muted small" style="max-width:46ch;margin:8px auto 0">' + successMsg + '</p>' +
-    '</div>' +
-    '<div class="summary" style="margin-top:6px">' + items +
-      (t.discount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Coupon discount</span><b style="color:var(--green)">−' + money(t.discount) + '</b></div>' : '') +
-      (t.bundle > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>🎁 Bundle deal</span><b style="color:var(--green)">−' + money(t.bundle) + '</b></div>' : '') +
-      (t.online > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>💳 Online payment off</span><b style="color:var(--green)">−' + money(t.online) + '</b></div>' : '') +
-      '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-      (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.9rem;padding:6px 0"><span>COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
-      '<div class="row total"><span>Total (' + (o.payment || 'upi').toUpperCase() + ')</span><b>' + money(t.grand) + '</b></div>' +
-      '<div class="small muted" style="text-align:center;margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '</div></div>' +
-    '<div style="display:grid;gap:10px;margin-top:16px;grid-template-columns:1fr 1fr">' +
-      '<a class="btn btn-maroon" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 Track This Order</a>' +
-      '<a class="btn btn-gold" href="orders.html">📋 All My Orders</a>' +
-      '<a class="btn btn-outline" style="grid-column:1/-1" href="' + esc(askReviewWhatsApp(o)) + '" target="_blank" rel="noopener">⭐ Loved it? Review us on Google — 30 seconds!</a>' +
-      (viaWa ? '' : '<a class="btn btn-wa" style="grid-column:1/-1" href="' + waLink('Hi! I just placed order ' + o.id + '. Please confirm it.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Chat with Us on WhatsApp</a>') +
-    '</div>' +
-    '<div style="margin-top:20px"><h3 style="font-size:1.05rem;font-weight:800;margin-bottom:10px">📦 Your Orders</h3>' + cards + '</div>' +
-    orderSuccessRecs(o) +
-  '</div>';
+  const t = o.totals || { itemsTotal: 0, shipping: 0, codFee: 0, discount: 0, grand: 0, eta: '' };
+  const isUpi = (o.payment || '') === 'upi' || String(o.payment || '').indexOf('upi') === 0;
+  const booking = CONFIG.codFee || 100;
+  const paidNow = isUpi ? t.grand : booking;                    /* truthful: paid at this moment */
+  const later = isUpi ? 0 : Math.max(0, t.grand - booking);     /* COD balance — cash at delivery */
+  try{ const old = document.querySelector('.os-ov'); if (old) old.remove(); }catch(e){}
+  app.innerHTML = '<div class="wrap page"><div class="empty" style="padding:34px 14px">' +
+    '<div class="e-ic">🙏</div><b>Thank you, ' + esc(String((o.customer || {}).name || 'friend').split(' ')[0] || 'friend') + '!</b>' +
+    '<span class="muted small" style="max-width:42ch">Order <b>#' + esc(o.id) + '</b> is placed. SK Sarees will confirm on WhatsApp shortly.</span></div></div>';
+  const ov = document.createElement('div');
+  ov.className = 'os-ov';
+  ov.innerHTML =
+    '<div class="os-card" role="dialog" aria-label="Order placed successfully">' +
+      '<button type="button" class="os-x" aria-label="Close">✕</button>' +
+      '<div class="os-tick"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+      '<b class="os-t">' + (viaWa ? '🎉 Order Sent on WhatsApp!' : '🎉 Order Placed Successfully!') + '</b>' +
+      '<span class="os-oid">Order #' + esc(o.id) + '</span>' +
+      '<div class="os-rows">' +
+        '<span>Paid now</span><b>' + money(paidNow) + '</b>' +
+        (later > 0 ? '<span>Cash at delivery</span><b>' + money(later) + '</b>' : '') +
+        '<span>Payment</span><b>' + (isUpi ? 'UPI' : 'COD') + '</b>' +
+        '<span>Delivery</span><b>' + esc(t.eta || 'Fast delivery') + '</b>' +
+      '</div>' +
+      (isUpi
+        ? '<p class="os-note">⏳ Payment verification pending — we confirm on WhatsApp once received.</p>'
+        : '<p class="os-note">💵 ₹' + booking + ' booking received • balance ' + money(later) + ' in cash at delivery.</p>') +
+      '<div class="os-btns">' +
+        '<a class="os-b1" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 Track Order</a>' +
+        '<a class="os-b2" href="shop.html">🛍️ Continue Shopping</a>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(ov);
+  try{
+    ov.querySelector('.os-x').addEventListener('click', () => { try{ ov.remove(); }catch(e){} });
+    ov.addEventListener('click', e2 => { if (e2.target === ov){ try{ ov.remove(); }catch(e){} } });
+  }catch(e){}
 }
 
 /* 💰 RESELLER COMMISSION CARD (profile page) — shows this visitor's reseller
@@ -5060,6 +5011,9 @@ document.addEventListener('click', function(e){
   /* Pay Online button (checkout) -> UPI payment step */
   const pon = e.target.closest('[data-payonline]');
   if (pon){ e.preventDefault(); co.data.payment = 'upi'; if (coValid()){ createPendingPaymentOrder(); co.step = 2; drawCo(); } return; }
+  /* 💵 V26 — direct COD: ₹100 booking payment page (UPI), balance cash at delivery */
+  const gocod = e.target.closest('[data-gocod]');
+  if (gocod){ e.preventDefault(); co.data.payment = 'cod'; if (coValid()){ if (!co.pendingId) co.pendingId = genOrderId(); co.step = 2; drawCo(); } return; }
   /* COD - Order on WhatsApp button (checkout) */
   const codwa = e.target.closest('[data-codwa]');
   if (codwa){ e.preventDefault(); co.data.payment = 'cod'; doWaOrder(); return; }

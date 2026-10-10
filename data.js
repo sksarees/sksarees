@@ -1211,7 +1211,13 @@ function upiAppLink(app, amount, note){
 function calcTotals(payment, pincode){
   const itemsTotal = cartTotal();
   const codFee = 0;
-  const shipping = itemsTotal >= (CONFIG.shipFreeAbove || 1999) ? 0 : (payment === 'cod' ? (CONFIG.codFee || 100) : (CONFIG.shipFee || 30));
+  /* 💵 V26 PRICING MODEL (user request):
+     • ONLINE (UPI)  → saree amount + ₹30 courier (FREE above ₹1,999)
+     • COD           → ₹100 booking (courier charge) paid NOW to confirm,
+                       then the FULL saree amount in CASH at delivery.
+     The ₹100 COD charge applies to every COD order (no free-shipping waiver). */
+  const shipping = payment === 'cod' ? (CONFIG.codFee || 100)
+    : (itemsTotal >= (CONFIG.shipFreeAbove || 1999) ? 0 : (CONFIG.shipFee || 30));
   return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
 }
 
@@ -3149,7 +3155,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 🚚 FREE Shipping above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')} &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking + Courier &nbsp;•&nbsp; 👥 2,300+ Happy Customers on WhatsApp Bookings &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI ₹${CONFIG.shipFee || 30} Courier (FREE above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')}) &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Balance at Delivery &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   /* 🌐 any [data-setlang] button switches the whole site language */
   document.addEventListener('click', function(e){

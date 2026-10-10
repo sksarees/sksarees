@@ -5121,3 +5121,56 @@ body[data-page="reels"] .rp-arrow{ display:none }  /* arrows hidden — scroll n
   .pd-gal .main{ background:#faf7f2 }
   .pd-gal .main img{ max-height:52vh; object-fit:contain }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SK-V26 — desktop float removal • OPEN-APP payment buttons • success window
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* 🖥️ the sticky purchase bar is MOBILE-only — the fixed bottom bar (and its
+   extra body padding) never appears on desktop (user request) */
+@media(min-width:900px){
+  .sticky-bar.sb2{ display:none !important }
+  body[data-page="product"]{ padding-bottom:0 !important }
+}
+/* 📱 OPEN APP buttons — payment page (UPI full payment + COD ₹100 booking) */
+.pg-appbtns{ display:grid; gap:8px; margin:10px 0 4px }
+.pg-appbtn{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  min-height:50px; border-radius:13px; font-weight:800; font-size:.86rem;
+  letter-spacing:.3px; text-decoration:none; border:2px solid transparent;
+}
+.pg-appbtn-gpay{ background:#fff; border-color:#dadce0; color:#3c4043 }
+.pg-appbtn-phonepe{ background:#5f259f; color:#fff }
+.pg-appbtn-paytm{ background:#002970; color:#fff }
+.pg-appbtn-upi{ background:#f7f3ec; border-color:#e3d5c3; color:#5c4a1e }
+.pg-appbtn:active{ transform:scale(.98) }
+/* 💵 COD card secondary button (WhatsApp) */
+.pm-cta-wa{
+  width:100%; min-height:46px; margin-top:8px; border-radius:13px; cursor:pointer;
+  background:#fff; border:2px solid #17a45f; color:#0e7d46; font-weight:800; font-size:.84rem;
+}
+.pm-cta-wa:active{ transform:scale(.98) }
+/* 🎉 ORDER SUCCESS — small modern window */
+.os-ov{
+  position:fixed; inset:0; z-index:120; background:rgba(30,8,16,.55);
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; padding:18px;
+  animation:osIn .18s ease;
+}
+.os-card{
+  position:relative; width:100%; max-width:340px; background:#fff; border-radius:20px;
+  padding:22px 18px 16px; text-align:center; box-shadow:0 24px 60px rgba(60,10,25,.3);
+  animation:osPop .25s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes osIn{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes osPop{ from{ transform:scale(.85); opacity:0 } to{ transform:scale(1); opacity:1 } }
+.os-x{ position:absolute; top:10px; right:12px; border:0; background:#f5f0ea; color:#7a6a5e; width:30px; height:30px; border-radius:50%; font-size:.9rem; font-weight:800; cursor:pointer }
+.os-tick{ width:58px; height:58px; margin:0 auto 10px; border-radius:50%; background:linear-gradient(135deg,#0e9f4f,#188038); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(20,140,70,.35) }
+.os-t{ display:block; font-size:1.02rem; font-weight:800; color:#3a1722 }
+.os-oid{ display:block; font-size:.72rem; color:#9a8b80; font-weight:800; letter-spacing:.4px; margin:2px 0 10px }
+.os-rows{ display:grid; grid-template-columns:1fr auto; gap:4px 12px; text-align:left; background:#faf6f0; border-radius:12px; padding:10px 12px; font-size:.8rem }
+.os-rows span{ color:#8a7a70; font-weight:700 }
+.os-rows b{ color:#3a1722; text-align:right }
+.os-note{ font-size:.72rem; color:#5c4a1e; font-weight:700; background:#fdf6e3; border:1px dashed #e8c66a; border-radius:10px; padding:7px 10px; margin:10px 0 0 }
+.os-btns{ display:grid; gap:8px; margin-top:12px }
+.os-b1{ display:block; background:var(--maroon,#7A1731); color:#fff; border-radius:13px; padding:12px 10px; font-weight:800; font-size:.86rem; text-decoration:none }
+.os-b2{ display:block; background:#faf5ef; border:1.5px solid var(--line,#eadfd4); color:#6b4a3a; border-radius:13px; padding:11px 10px; font-weight:800; font-size:.84rem; text-decoration:none }
