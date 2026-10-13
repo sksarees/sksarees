@@ -12,8 +12,8 @@ const CONFIG = {
   waDisplay : '78679 15699',
   upiId     : 'sk7867915699-1@oksbi',
   upiName   : 'SK SAREES',
-  codFee    : 70,
-  shipFreeAbove : 999,
+  codFee    : 100,
+  shipFreeAbove : 1999,                /* 🎉 FREE courier above ₹1,999 */
   /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
      1 saree TN ₹30 · 2 sarees ₹60 · 3 sarees ₹90 (per unit × qty). */
   shipFee       : 30,
@@ -25,11 +25,11 @@ const CONFIG = {
   /* 💰 Reseller / Share & Earn program: 5% margin per order (GPay OR loyalty
      points) + ₹50-off promo coupon for customers */
   resellerMargin : 5,                // 5% customer share coupon
-  resellerMarginPct : 5,             // 🔥 reseller earns 5% of every confirmed order
+  resellerMarginPct : 5,             // 🔥 reseller earns 5% of every confirmed order (COD AND UPI both)
   resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
   resellerCoupon : 'SHARE5',         // 5% off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
-  onlineDiscount : 1,                 // 💳 1% off when paying ONLINE (UPI); COD = full price
+  onlineDiscount : 0,                 // 1% online discount REMOVED (2026-09-05)
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get 5% off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
@@ -56,10 +56,11 @@ const CONFIG = {
 
 /* ============================ 2. DELIVERY ZONES (by PIN code) ============================ */
 const ZONES = {
-  tn:        { name:'Tamil Nadu',         ship: 30, days: [2, 3] },
-  andra:     { name:'Andhra / Telangana', ship: 40, days: [3, 4] },
-  karnataka: { name:'Karnataka',          ship: 40, days: [3, 4] },
-  other:     { name:'Other states',       ship: 60, days: [5, 7] },
+  /* 🚚 courier by QUANTITY: [1 pc, 2 pcs, 3+ pcs] • 💵 COD booking • 🧵 combo set courier */
+  tn:        { name:'Tamil Nadu',         ship: 30,  tiers:[30, 60, 80],      cod: 100, combo: 60,  days: [2, 3] },
+  andra:     { name:'Andhra / Telangana', ship: 40,  tiers:[40, 80, 100],     cod: 120, combo: 80,  days: [3, 4] },
+  karnataka: { name:'Karnataka',          ship: 40,  tiers:[40, 80, 100],     cod: 120, combo: 80,  days: [3, 4] },
+  other:     { name:'Other states',       ship: 100, tiers:[100, 100, 100],   cod: 150, combo: 100, days: [5, 7] },
 };
 /* ============================ 2b. FESTIVAL CALENDAR + EARLY ACCESS ============================ */
 const FESTIVALS = [
@@ -76,12 +77,6 @@ function currentFestival(){
   if (m === 1 && day >= 10 && day <= 20) return 'pongal';                        /* Pongal: 10–20 Jan */
   if ((m === 10 && day >= 15) || (m === 11 && day <= 15)) return 'diwali';       /* Diwali: ~15 Oct – 15 Nov */
   return 'wedding';                                                              /* default: wedding season */
-}
-function festivalTag(slug){
-  const cur = currentFestival();
-  if (slug === cur) return 'Now live';
-  if (slug === 'wedding') return 'Early access';
-  return 'Coming';
 }
 function festivalName(slug){
   const f = FESTIVALS.find(x => x.slug === slug);
@@ -118,6 +113,7 @@ const CATEGORIES = [
   { slug:'blouse',      name:'Blouse Material',    emoji:'🧵', cls:'c-blouse',      blurb:'Matching pieces' },
   { slug:'accessories', name:'Accessories',        emoji:'🪡', cls:'c-accessories', blurb:'Borders & more' },
   { slug:'bridal-sarees', name:'Bridal Sarees',    emoji:'👰', cls:'c-wedding',      blurb:'Wedding & bridal silks' },
+  { slug:'combo',        name:'Combo Sets',       emoji:'🧵', cls:'c-wedding',      blurb:'Dhoti+shirt & saree combos' },
   { slug:'gayathri-silk', name:'Gayathri Silk',    emoji:'✨', cls:'c-soft-silk',    blurb:'Soft traditional silks' },
   { slug:'samuthrika',    name:'Samuthrika Sarees',emoji:'🌿', cls:'c-silk',         blurb:'Classic drape styles' },
 ];
@@ -307,9 +303,6 @@ function isAdminDevice(){
   try{ return String(LS.get('sk_admin', '0')) === '1'; }catch(e){ return false; }
 }
 /* customer-visible products (hidden ones stay in Admin but never on the store) */
-function visibleProducts(){
-  try{ return PRODUCTS.filter(p => !p.hidden); }catch(e){ return PRODUCTS || []; }
-}
 let PRODUCTS = (() => {
   /* 📦 CATALOG SOURCE: real products come from the ADMIN (sk_products) and
      FIRESTORE (sk_products_cloud cache). The demo BASE catalog in data.js is
@@ -394,8 +387,6 @@ function saveProducts(list){
   try{ if (window.REC) REC.invalidate(); }catch(e){}   /* recompute similarity on change */
   if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }  /* admin edits only */
 }
-function resetProducts(){ PRODUCTS = (() => { let built = BASE.map(b => Object.assign({}, b)); BASE.forEach(b => { VARIANTS.slice(0,3).forEach((v,i)=>{ built.push(Object.assign({}, b, { id: b.id + '-v' + (i+1), name: b.name.replace(/—[^-]*$/, '— ' + v.color), color: v.color + ' variant', price: Math.round(b.price * (1 - v.off/100)), mrp: b.mrp, rating: b.rating, reviews: b.reviews, stock: Math.max(2, b.stock - i*4), badge: b.badge === 'Bestseller' ? '' : b.badge })); }); }); return built; })(); try{ localStorage.removeItem('sk_products'); }catch(e){} }
-function genProductId(name){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
 function normalizeProduct(raw){
   raw = raw || {};
   /* ---- flexible field mapping: supports BOTH schemas ----
@@ -456,10 +447,11 @@ function normalizeProduct(raw){
   return {
     id: pid,
     sku: String(raw.sku || pid).trim(),
-    name: String(raw.name || 'Untitled Saree').trim(),
+    /* 🌐 multilingual product data: admin can set name_ta/name_te/name_kn/name_ml (English fallback) */
+    name: String((typeof lang !== 'undefined' && lang !== 'en' && raw['name_' + lang]) || raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     hidden: !!(raw.hidden === true || raw.hidden === 1 || raw.hidden === 'true' || raw.hidden === '1'),
-    rating: Math.min(5, Math.max(1, +raw.rating || +raw.rat || 4.5)),
+    rating: Math.min(5, Math.max(0, +raw.rating || +raw.rat || 0)),   /* ✅ V25: 0 = no rating (never invent 4.5) */
     reviews: Math.max(0, +raw.reviews || +raw.rev || 0),
     badge,
     img: imgUrl,
@@ -550,9 +542,6 @@ const COLOUR_SWATCHES = {
   Peach:'#ffccbc', Brown:'#6d4c41', Beige:'#c9b79c', Cream:'#f5ebdc', Champagne:'#f7e7ce', Grey:'#757575',
   Silver:'#b0bec5', Black:'#212121', White:'#f5f5f5', Multi:'#b58b5a',
 };
-function swatchHex(name){
-  try{ return COLOUR_SWATCHES[String(name||'').trim()] || '#b58b5a'; }catch(e){ return '#b58b5a'; }
-}
 /* 👀 recently viewed + ❤️ wishlist product ids (newest first, de-duped) — powers
    the "🤖 Recommended for You" strip and smarter suggestions */
 function viewedOrWishedProductIds(){
@@ -563,15 +552,7 @@ function viewedOrWishedProductIds(){
 }
 /* 💳 online-only price: 1% off for UPI payments (COD = full price) */
 const onlinePrice = p => Math.round((p.price || 0) * (100 - (CONFIG.onlineDiscount || 1)) / 100);
-const onlineOffLabel = () => '1% off on online payment';
 /* 👀 "X people viewing now" — deterministic from id so it's stable per product */
-function viewingNow(p){
-  try{
-    let n = 3 + ((p.id || '').length % 6) + ((p.reviews || 0) % 4);
-    if (p.badge === 'Bestseller') n += 3;
-    return Math.min(14, n);
-  }catch(e){ return 4; }
-}
 /* 🤝 Referral: my code → friend gets ₹50 off, I get ₹50 points */
 function myReferralCode(){
   try{ return localStorage.getItem('sk_ref_code') || ''; }catch(e){ return ''; }
@@ -579,23 +560,10 @@ function myReferralCode(){
 function setReferralCode(code){
   try{ localStorage.setItem('sk_ref_code', String(code).trim().toUpperCase()); }catch(e){}
 }
-function genReferralCode(){
-  try{
-    const ph = ((Store.profile || {}).phone || '').replace(/\D/g, '').slice(-4);
-    return 'SK' + ph + Math.floor(10 + Math.random() * 89);
-  }catch(e){ return 'SK' + Math.floor(100 + Math.random() * 900); }
-}
 function referralLink(){
   try{ return location.origin + '/shop.html?ref=' + encodeURIComponent(myReferralCode()); }catch(e){ return ''; }
 }
 /* when a friend buys with my referral → I earn 50 points */
-function creditReferral(order){
-  try{
-    if (!order || !order.referral) return;
-    const cur = +localStorage.getItem('sk_points') || 0;
-    localStorage.setItem('sk_points', String(cur + 50));
-  }catch(e){}
-}
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
 /* age of an order in days (0 if unknown) */
@@ -678,11 +646,6 @@ function nextSku(){
 /* Product ID for new/admin-added products = auto-increment SK number */
 function genProductId(name){ return nextSku(); }
 /* Stable fallback SKU (Firestore products without sku) — SK + 5 digits from id hash */
-function skuGen(id){
-  let h = 0; const s = String(id || 'p');
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return 'SK' + String(10000 + (h % 90000));
-}
 /* Each device gets a unique ID — orders are stamped with it so the user's
    "My Orders" page can always show ONLY this device's orders. */
 /* ============================ 12d. CROSS-BROWSER USER SYNC ============================
@@ -840,9 +803,10 @@ const realReviewCount = id => { try{ return (LS.get('sk_reviews_' + id, [])).len
    Free above ₹999. Falls back to 1 unit when no count given. */
 const cartCount = () => Store.cart.reduce((s, i) => s + (i.qty || 1), 0);
 const shippingFor = (total, pincode, qty) => {
-  if (total >= CONFIG.shipFreeAbove) return 0;
-  const fee = (ZONES[deliveryZone(pincode)] || ZONES.tn).ship;
-  return fee * Math.max(1, +qty || cartCount() || 1);
+  if (total >= CONFIG.shipFreeAbove) return 0;          /* 🚚 FREE above ₹2999 */
+  const z = ZONES[deliveryZone(pincode)] || ZONES.tn;
+  const n = Math.max(1, +qty || cartCount() || 1);      /* 1→tier[0], 2→tier[1], 3+→tier[2] */
+  return (z.tiers || [z.ship])[Math.min(n, (z.tiers || [z.ship]).length) - 1];
 };
 
 /* Delivery estimate — zone + payment aware.
@@ -894,8 +858,8 @@ const REVIEWS = [
   { name:'Anitha V.', place:'Salem', avatar:'#7a4fb0', rating:5, text:'Local pickup saved me delivery time. The owner patiently showed options on a video call. Highly recommended!' },
 ];
 const FAQ = [
-  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (+₹70). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within 12–24 hours (COD orders: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹999 (else ₹30 / ₹40 / ₹60 by state).' },
+  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (booking ₹100–₹150 by state). UPI is 100% secure — we never see your card details.' },
+  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹' + (CONFIG.shipFreeAbove || 1999) + ' — else ₹' + (CONFIG.shipFee || 30) + ' courier (online) or ₹' + (CONFIG.codFee || 100) + ' (COD booking + courier).' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -1041,6 +1005,20 @@ function consumeStock(items){
 function addToCart(id, qty = 1, colour){
   const p = byId(id); if (!p) return;
   if (p.stock != null && p.stock <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
+  /* 🧵 COMBO SETS — the colour slot carries the chosen SHIRT SIZE (S36–XXL44);
+     qty is capped by total stock (combos have no colour-wise stock) */
+  if (p.cat === 'combo'){
+    const c = String(colour || '').trim();
+    const cap = Math.max(1, +p.stock || 10);
+    const ex = Store.cart.find(i => i.id === id && (i.colour || '') === c);
+    if (ex) ex.qty = Math.min((ex.qty || 1) + (qty || 1), cap);
+    else Store.cart.push({ id: id, qty: Math.min(qty || 1, cap), colour: c });
+    Store.saveCart();
+    syncCartReservation();
+    toast('🛒 Combo added to cart' + (c ? ' — size ' + c : ''));
+    fbqSafe('AddToCart', Object.assign(fbqId(id), { value: p.price * (qty || 1), currency: 'INR', quantity: qty || 1 }));
+    return;
+  }
   /* colour separation only when colour-wise stock is set (else single-line cart) */
   const useColours = !!(p.colourStock && Object.keys(p.colourStock).length);
   const defCol = (p.colors && p.colors[0]) || '';
@@ -1115,7 +1093,10 @@ function waLink(text, num = CONFIG.waNumber){
 }
 /* absolute product page URL — classic format: product.html?id=SK75279 */
 function repoBase(){
-  try{ return location.pathname.replace(/[^/]*$/, ''); }catch(e){ return '/'; }
+  /* 🔧 SITE ROOT — always '/' (www.sksaree.shop is at the domain root).
+     Reading location.pathname broke links from category-folder pages
+     (/kanchipuram-sarees/product.html → 404). */
+  return '/';
 }
 function productUrl(p){
   try{ return location.origin + repoBase() + 'product.html?id=' + encodeURIComponent(p.id); }catch(e){ return 'product.html?id=' + encodeURIComponent(p.id); }
@@ -1135,13 +1116,21 @@ function waProductMsg(p){
      if the sharer is a reseller the link carries ?ref=CODE (any page) */
   const url = shareUrl(p);
   const off = offPct(p);
-  return `🪡 Hi! I found this beautiful saree on SK Sarees 🛍️\n\n✨ ${p.name}\n💰 Price: ${money(p.price)}${off ? ' (' + off + '% OFF)' : ''}\n\n📱 Order in 2 minutes — COD & UPI available, fast delivery!\n👉 ${url}\n\nIs it available? Please confirm 😊`;
+  const head = loc(
+    'வணக்கம் SK Sarees! இந்த சேலையை ஆர்டர் செய்ய விரும்புகிறேன். Order details அனுப்புங்கள்.',
+    'నమస్కారం SK Sarees! ఈ చీరను ఆర్డర్ చేయాలనుకుంటున్నాను. Order details పంపండి.',
+    'ನಮಸ್ಕಾರ SK Sarees! ಈ ಸೀರೆಯನ್ನು ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ. Order details ಕಳುಹಿಸಿ.',
+    'Hi SK Sarees, I want to order this saree. Please send me the order details.',
+    'നമസ്കാരം SK Sarees! ഈ സാരി ഓർഡർ ചെയ്യണം. Order details അയക്കൂ.');
+  const lblProduct = loc('சேலை', 'చీర', 'ಸೀರೆ', 'Product', 'സാരി');
+  const lblPrice = loc('விலை', 'ధర', 'ಬೆಲೆ', 'Price', 'വില');
+  return `${head}\n\n🪡 ${lblProduct}: ${p.name}\n🏷️ SKU: ${p.sku || p.id}\n💰 ${lblPrice}: ₹${p.price}${off ? ' (' + off + '% OFF)' : ''}\n\n👉 ${url}`;
 }
 function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
-  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}${location.pathname.replace(/[^/]*$/, '')}product.html?id=${encodeURIComponent(p.id)}`; });
-  const t = cartTotal(); const sh = shippingFor(t, '', cartCount());
-  m += `\n\nShipping (${cartCount()} saree${cartCount() > 1 ? 's' : ''}): ${sh ? money(sh) : 'FREE'}\nTotal: ${money(t + sh)}${sh ? '' : ' (FREE shipping)'}\nPlease confirm availability & delivery.`;
+  Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
+  const t = cartTotal();
+  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} (online) / ₹${CONFIG.codFee || 100} (COD) — FREE above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')}\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
   return m;
 }
 /* 💬 WhatsApp templates — fully defensive: any order (even with missing
@@ -1175,13 +1164,6 @@ function upiAppLink(app, amount, note){
   if (app === 'paytm')   return 'paytmmp://pay?' + base;
   return 'upi://pay?' + base + '&mode=02';
 }
-function calcTotals(payment, pincode){
-  const itemsTotal = cartTotal();
-  const codFee = payment === 'cod' ? CONFIG.codFee : 0;
-  const shipping = shippingFor(itemsTotal, pincode);
-  return { itemsTotal, codFee, shipping, grand: itemsTotal + codFee + shipping, eta: deliveryEstimate(pincode, payment).text };
-}
-
 /* ============================ 9b. ABANDONED CART RECOVERY ============================
    If a visitor leaves items in the cart for 30+ minutes, show a gentle reminder
    banner with a discount coupon + WhatsApp / SMS buttons to bring them back. */
@@ -1199,7 +1181,7 @@ function abandonedCartBanner(){
     /* also fire a browser push/local notification */
     try{ notifyLocal('🧺 Your cart is waiting!', CONFIG.cartCoupon.label + ' Use coupon ' + CONFIG.cartCoupon.code, 'cart.html'); }catch(e){}
     const items = Store.cart.map(i => { const p = byId(i.id); return p ? '• ' + p.name + ' ×' + i.qty : ''; }).filter(Boolean).join('\n');
-    const cartUrl = location.origin + location.pathname.replace(/[^/]*$/, '') + 'cart.html';
+    const cartUrl = location.origin + '/cart.html';
     const msg = 'Hi! You left sarees in your cart 🧺\n\n' + items +
       '\n\n🎟️ Use coupon ' + CONFIG.cartCoupon.code + ' for ' + CONFIG.cartCoupon.off + '% off — offer valid today!\n\n👉 Complete your order: ' + cartUrl + '\n\nHappy shopping! 😊';
     const div = document.createElement('div');
@@ -1229,6 +1211,7 @@ document.addEventListener('click', function(e){
    Usage is tracked in sk_coupon_used (a map code → count). */
 function defaultCoupons(){
   return [
+    { code:'WELCOME50', type:'flat',   value:50, min:999, active:true, label:'First order — ₹50 off', maxUses:0, expiry:'' },
     { code:'AP5',    type:'percent', value:5,  min:0,   active:true, label:'Aadi Festival — 5% off', maxUses:0, expiry:'' },
     { code:'CARTOFFER', type:'percent', value:1, min:0, active:true, label:'Cart reminder — 1% off', maxUses:0, expiry:'' },
     { code:'LATE50', type:'percent', value:5, min:0, active:true, label:'Late delivery — 5% off', maxUses:0, expiry:'' },
@@ -1390,6 +1373,18 @@ function shareUrl(p){
   if (mine) return base + (base.indexOf('?') === -1 ? '?' : '&') + 'ref=' + encodeURIComponent(mine);
   return base;
 }
+/* 📁 category-folder URLs (short names) — drawer + footer link these
+   SEO landing pages instead of shop.html?cat= */
+const CAT_FOLDERS = {
+  kanchipuram:'kanchipuram', 'soft-silk':'soft-silk', cotton:'cotton', silk:'silk',
+  wedding:'wedding', party:'party-wear', georgette:'georgette', designer:'designer',
+  printed:'printed', office:'office-wear', daily:'daily-wear', fancy:'fancy',
+  'half-saree':'half-saree', kids:'kids', 'men-dhoti':'mens-dhoti', blouse:'blouse',
+  accessories:'accessories', 'bridal-sarees':'bridal', 'gayathri-silk':'gayathri-silk',
+  samuthrika:'samuthrika', combo:'combo',
+};
+function catUrl(slug){ return CAT_FOLDERS[slug] ? '/' + CAT_FOLDERS[slug] + '/' : 'shop.html?cat=' + slug; }
+
 /* 🔐 safe query-param reader — tolerates MALFORMED share URLs like
    product.html?id=SK75250?ref=SHA9088 (double ?) by converting every extra ?
    into &, and strips stray ? / spaces from values. Never throws, so no page
@@ -1903,29 +1898,14 @@ function skinToneOf(colorFam){
   if (['white','brown'].indexOf(c) !== -1) return 'medium';
   return 'medium';
 }
-function skinToneRecommendHTML(p){
-  try{
-    /* compute colour family locally (no REC dependency) */
-    const COL = [
-      [/maroon|burgundy|wine|red/i,'red'],[/pink|rose|magenta/i,'pink'],[/emerald|green|peacock|teal|mint|sage/i,'green'],
-      [/navy|blue|turquoise|sky/i,'blue'],[/purple|lavender|violet/i,'purple'],[/gold|yellow|mustard|ochre/i,'gold'],
-      [/white|cream|ivory/i,'white'],[/beige|brown|tan/i,'brown'],[/black|grey|gray/i,'dark'],[/champagne/i,'champagne'],
-    ];
-    const src = String((p.colors||[]).join(' ') + ' ' + (p.color||'')).toLowerCase();
-    let fam = 'multi';
-    for (const [re, v] of COL){ if (re.test(src)){ fam = v; break; } }
-    const best = skinToneOf(fam);
-    const tone = SKIN_TONES[best];
-    return '<div class="skin-note">✨ <b>Looks great on ' + esc(tone.label) + ' skin</b> — a favourite for brides &amp; family in South India!</div>';
-  }catch(e){ return ''; }
-}
-
-/* ============================ 🔑 AUTH — mobile = username, pincode = password ============================
-   Auto-account: the first order/profile save creates the account silently
-   (username = mobile number, password = pincode). Logging in on ANY device
-   with the same mobile + pincode pulls & merges HER data (profile, cart,
-   wishlist, orders, points) — one account everywhere. Pincode is stored as a
-   SHA-256 hash (never plain text). Firestore: accounts/{phone} doc. */
+/* ============================ 🔑 AUTH — REAL FIRESTORE LOGIN ============================
+   mobile = username • pincode = password (SHA-256 hashed, never plain text)
+   Account doc lives in Firestore so it works on EVERY device:
+     • primary : users/acct_{phone}    (rules already allow users — cart sync uses it)
+     • mirror  : accounts/{phone}      (best-effort second copy)
+     • local   : sk_acct_{phone} cache (login still works offline / rules blocked)
+   Account is created silently on first order / profile save, and new users
+   can SIGN UP directly from the login modal (name + mobile + pincode). */
 async function authHash(phone, pin){
   try{
     const enc = new TextEncoder();
@@ -1933,9 +1913,32 @@ async function authHash(phone, pin){
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }catch(e){ return String(pin); }
 }
+/* 💾 local account cache — login works even if Firestore reads are blocked */
+function authLocalGet(phone){
+  try{ const a = JSON.parse(localStorage.getItem('sk_acct_' + phone)); return (a && a.ph === phone) ? a : null; }catch(e){ return null; }
+}
+function authLocalSet(phone, data){
+  try{ localStorage.setItem('sk_acct_' + phone, JSON.stringify(data)); }catch(e){}
+}
 const Auth = {
   current(){
     try{ const a = LS.get('sk_auth', null); return (a && a.phone) ? a : null; }catch(e){ return null; }
+  },
+  /* 📖 read the account — users mirror first (rules allow it), then accounts */
+  async _read(db, phone){
+    let doc = null;
+    try{ doc = await db.collection('users').doc('acct_' + phone).get(); }catch(e1){}
+    if (!doc || !doc.exists){
+      try{ doc = await db.collection('accounts').doc(phone).get(); }catch(e2){}
+    }
+    return (doc && doc.exists) ? (doc.data() || {}) : null;
+  },
+  /* 📝 write the account — users mirror first, accounts second (both merge) */
+  async _write(db, phone, data){
+    let ok = false;
+    try{ await db.collection('users').doc('acct_' + phone).set(data, { merge: true }); ok = true; }catch(e1){}
+    try{ await db.collection('accounts').doc(phone).set(data, { merge: true }); ok = true; }catch(e2){}
+    return ok;
   },
   /* 🔧 create or refresh the account after order / profile save (silent) */
   async autoCreate(phone, pin){
@@ -1943,16 +1946,20 @@ const Auth = {
       phone = String(phone || '').replace(/\D/g, '');
       pin = String(pin || '').trim();
       if (phone.length !== 10 || !/^[6-9]/.test(phone) || pin.length < 5) return false;   /* pincode = 6 digits */
-      if (!FS.enabled()) return false;
-      const db = await FS._getDb(); if (!db) return false;
-      const doc = await db.collection('accounts').doc(phone).get();
-      const prev = (doc.exists && doc.data()) || null;
       const hash = await authHash(phone, pin);
-      if (prev && prev.hash && prev.hash !== hash) return prev;   /* different pin already set → do not overwrite */
+      /* 💾 ALWAYS save the local cache first — login works on this device
+         even if Firestore rules block reads or she is offline */
+      authLocalSet(phone, { ph: phone, hash: hash, name: ((Store.profile || {}).name) || '', savedAt: Date.now() });
       LS.set('sk_auth', { phone });
-      /* 🔧 always write to BOTH accounts/{phone} and users/acct_{phone} —
-         the users collection is rule-allowed already, so login never breaks */
-      try{ await db.collection('users').doc('acct_' + phone).set(Object.assign({}, (doc.exists && prev) ? {} : {}, { ph: phone, hash }), { merge: true }); }catch(e3){}
+      if (!FS.enabled()) return true;                       /* local-only account for now */
+      const db = await FS._getDb(); if (!db) return true;   /* local account saved anyway */
+      const prev = await Auth._read(db, phone);
+      if (prev && prev.hash && prev.hash !== hash){
+        /* a different pin is already set in the cloud → keep the CLOUD pin
+           (and fix our local cache) so login stays consistent everywhere */
+        authLocalSet(phone, { ph: phone, hash: prev.hash, name: prev.name || ((Store.profile || {}).name) || '', savedAt: Date.now() });
+        return prev;
+      }
       const data = {
         ph: phone,
         hash,
@@ -1960,7 +1967,7 @@ const Auth = {
         cart: (Store.cart || []).map(i => ({ id: i.id, qty: i.qty || 1, colour: i.colour || '' })),
         wish: Store.wish || [],
         orders: (Store.orders || []).slice(0, 60),
-        points: pointsBalance(),
+        points: (typeof pointsBalance === 'function') ? pointsBalance() : 0,
         updatedAt: Date.now(),
       };
       /* merge: never erase remote orders/points */
@@ -1976,10 +1983,51 @@ const Auth = {
         data.points = Math.max(+prev.points || 0, data.points);
         if (prev.profile && prev.profile.phone && !String((Store.profile || {}).phone || '').trim()) data.profile = prev.profile;
       }
-      await db.collection('accounts').doc(phone).set(data, { merge: true }).catch(() => {});
-      try{ await db.collection('users').doc('acct_' + phone).set(data, { merge: true }); }catch(e4){}   /* 🔧 mirror */
+      await Auth._write(db, phone, data);
       return true;
     }catch(e){ return false; }
+  },
+  /* 🆕 SIGN UP — name + mobile + pincode → real Firestore account (2 minutes) */
+  async signup(name, phone, pin){
+    try{
+      name = String(name || '').trim();
+      phone = String(phone || '').replace(/\D/g, '');
+      pin = String(pin || '').trim();
+      if (!name) return { ok: false, msg: 'Enter your name' };
+      if (phone.length !== 10 || !/^[6-9]/.test(phone)) return { ok: false, msg: 'Enter a valid 10-digit mobile number' };
+      if (pin.length < 5) return { ok: false, msg: 'Enter your area pincode (6 digits)' };
+      const hash = await authHash(phone, pin);
+      /* remember her name + number on this device (prefills checkout too) */
+      try{
+        const pr = Store.profile || {};
+        Store.profile = Object.assign({}, pr, { name: pr.name || name, phone: pr.phone || phone });
+        Store.saveProfile();
+      }catch(e0){}
+      authLocalSet(phone, { ph: phone, hash: hash, name: name, savedAt: Date.now() });
+      LS.set('sk_auth', { phone });
+      let cloud = false;
+      if (FS.enabled()){
+        try{
+          const db = await FS._getDb();
+          if (db){
+            const prev = await Auth._read(db, phone);
+            if (prev && prev.hash && prev.hash !== hash) return { ok: false, msg: 'This number already has an account — please Login instead' };
+            const data = {
+              ph: phone, hash, profile: Store.profile || {},
+              cart: (Store.cart || []).map(i => ({ id: i.id, qty: i.qty || 1, colour: i.colour || '' })),
+              wish: Store.wish || [],
+              orders: (Store.orders || []).slice(0, 60),
+              points: (typeof pointsBalance === 'function') ? pointsBalance() : 0,
+              createdAt: Date.now(), updatedAt: Date.now(),
+            };
+            await Auth._write(db, phone, data);
+            cloud = true;
+          }
+        }catch(e1){}
+      }
+      try{ if (typeof autoRegisterReseller === 'function') autoRegisterReseller(name, phone); }catch(e2){}   /* 🤝 instant Share & Earn code too */
+      return { ok: true, cloud: cloud, name: name };
+    }catch(e){ return { ok: false, msg: 'Sign up failed — try again' }; }
   },
   /* 🔓 login: verify mobile + pincode → pull & merge HER data onto this device */
   async login(phone, pin){
@@ -1988,49 +2036,51 @@ const Auth = {
       pin = String(pin || '').trim();
       if (phone.length !== 10 || !/^[6-9]/.test(phone)) return { ok: false, msg: 'Enter a valid 10-digit mobile number' };
       if (!pin) return { ok: false, msg: 'Enter your pincode (password)' };
-      if (!FS.enabled()) return { ok: false, msg: 'Account sync needs internet' };
-      const db = await FS._getDb(); if (!db) return { ok: false, msg: 'Connection failed — check internet' };
-      let doc = null; let usedFallback = false;
-      try{
-        doc = await db.collection('accounts').doc(phone).get();
-      }catch(e1){
-        /* 🔧 accounts rules blocked → try the users collection (already
-           allowed by existing rules — cart sync uses it). Doc id: acct_{phone} */
+      const hash = await authHash(phone, pin);
+      /* 1️⃣ Firestore — the REAL cloud account (users mirror first, then accounts) */
+      let acc = null; let fromCloud = false;
+      if (FS.enabled()){
         try{
-          doc = await db.collection('users').doc('acct_' + phone).get();
-          usedFallback = true;
-        }catch(e2){
-          return { ok: false, msg: 'Login blocked — check internet & Firestore rules' };
-        }
+          const db = await FS._getDb();
+          if (db){ acc = await Auth._read(db, phone); fromCloud = !!acc; }
+        }catch(e1){}
       }
-      if (!doc.exists){
-        /* 🔧 no account yet — if THIS device's saved profile matches the number
-           and has a pincode, create the account from it right now, then log in */
+      /* 2️⃣ local cache — login still works offline or if rules block reads */
+      if (!acc){
+        const lc = authLocalGet(phone);
+        if (lc) acc = { ph: phone, hash: lc.hash, profile: { name: lc.name || '', phone: phone } };
+      }
+      /* 3️⃣ no account anywhere — if THIS device's saved profile matches the
+            number and has a pincode, create the account from it right now */
+      if (!acc){
         const pr = Store.profile || {};
         if (String(pr.phone || '').replace(/\D/g, '') === phone && String(pr.pincode || '').trim()){
           const made = await Auth.autoCreate(phone, pr.pincode);
-          if (made === true){
-            return { ok: true, name: (pr.name || ''), created: true };
-          }
+          if (made === true) return { ok: true, name: pr.name || '', created: true };
         }
-        return { ok: false, msg: 'No account for this number yet — place an order or save your profile (with pincode) first' };
+        return { ok: false, needSignup: true, msg: 'No account for this number yet — create one now (2 minutes)' };
       }
-      const acc = doc.data() || {};
-      const hash = await authHash(phone, pin);
-      if (!acc.hash || acc.hash !== hash) return { ok: false, msg: 'Wrong pincode — password is your area pincode' };
-      /* 🔁 MERGE remote data into this device */
-      if (acc.profile && acc.profile.phone) Store.profile = Object.assign({}, Store.profile || {}, acc.profile);
-      const key = i => i.id + '::' + (i.colour || '');
-      const mc = {}; (Store.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; });
-      ((acc.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty || 1); } }));
-      Store.cart = Object.values(mc).slice(-30);
-      const w = {}; (Store.wish || []).concat(acc.wish || []).forEach(id => { if (id) w[id] = 1; });
-      Store.wish = Object.keys(w).slice(-120);
-      const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
-      Store.orders = Object.values(om).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-      try{ localStorage.setItem('sk_points', String(Math.max(pointsBalance(), +acc.points || 0))); }catch(e2){}
+      /* ✅ verify password: SHA-256 hash, or a legacy plain-pin record */
+      if (!acc.hash || (acc.hash !== hash && acc.hash !== String(pin))){
+        return { ok: false, msg: 'Wrong pincode — password is your area pincode' };
+      }
+      /* 🔁 MERGE cloud data into this device */
+      if (fromCloud){
+        if (acc.profile && acc.profile.phone) Store.profile = Object.assign({}, Store.profile || {}, acc.profile);
+        const key = i => i.id + '::' + (i.colour || '');
+        const mc = {}; (Store.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; });
+        ((acc.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty || 1); } }));
+        Store.cart = Object.values(mc).slice(-30);
+        const w = {}; (Store.wish || []).concat(acc.wish || []).forEach(id => { if (id) w[id] = 1; });
+        Store.wish = Object.keys(w).slice(-120);
+        const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
+        Store.orders = Object.values(om).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        try{ localStorage.setItem('sk_points', String(Math.max(pointsBalance(), +acc.points || 0))); }catch(e2){}
+      }
       Store.saveCart(); Store.saveWish(); Store.saveOrders(); Store.saveProfile();
       LS.set('sk_auth', { phone });
+      /* keep the local cache fresh with the pin that just worked */
+      authLocalSet(phone, { ph: phone, hash: hash, name: ((Store.profile || {}).name) || '', savedAt: Date.now() });
       return { ok: true, name: (Store.profile || {}).name || '' };
     }catch(e){ return { ok: false, msg: 'Login failed — try again' }; }
   },
@@ -2040,21 +2090,20 @@ const Auth = {
       const a = this.current();
       if (!a || !FS.enabled()) return false;
       const db = await FS._getDb(); if (!db) return false;
-      const doc = await db.collection('accounts').doc(a.phone).get();
-      const prev = (doc.exists && doc.data()) || {};
+      const prev = (await Auth._read(db, a.phone)) || {};
       const key = i => i.id + '::' + (i.colour || '');
       const mc = {}; ((prev.cart || []).forEach(i => { if (i && i.id) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; }));
       (Store.cart || []).forEach(i => { if (i && i.id){ if (!mc[key(i)]) mc[key(i)] = { id: i.id, qty: i.qty || 1, colour: i.colour || '' }; else mc[key(i)].qty = Math.max(mc[key(i)].qty, i.qty); } });
       const w = {}; (prev.wish || []).concat(Store.wish || []).forEach(id => { if (id) w[id] = 1; });
       const om = {}; (prev.orders || []).concat(Store.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
-      await db.collection('accounts').doc(a.phone).set({
+      await Auth._write(db, a.phone, {
         profile: Store.profile || {},
         cart: Object.values(mc).slice(-30),
         wish: Object.keys(w).slice(-120),
         orders: Object.values(om).sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0)).slice(0, 60),
-        points: Math.max(+prev.points || 0, pointsBalance()),
+        points: Math.max(+prev.points || 0, (typeof pointsBalance === 'function') ? pointsBalance() : 0),
         updatedAt: Date.now(),
-      }, { merge: true });
+      });
       return true;
     }catch(e){ return false; }
   },
@@ -2065,9 +2114,8 @@ const Auth = {
       if (!a) return;
       const db = FS.enabled() ? await FS._getDb() : null;
       if (!db) return;
-      const doc = await db.collection('accounts').doc(a.phone).get();
-      if (!doc.exists) return;
-      const acc = doc.data() || {};
+      const acc = await Auth._read(db, a.phone);
+      if (!acc) return;
       const om = {}; (Store.orders || []).concat(acc.orders || []).forEach(o => { if (o && o.id) om[o.id] = o; });
       const before = Store.orders.length;
       Store.orders = Object.values(om).sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0));
@@ -2143,10 +2191,24 @@ const LANGS = {
     contactUs:'ಸಂಪರ್ಕಿಸಿ', freeShip:'ಉಚಿತ ಡೆಲಿವರಿ', placeOrder:'ಆರ್ಡರ್ ಮಾಡಿ',
     search:'ಸೀರೆಗಳು, ಫ್ಯಾಬ್ರಿಕ್, ಬಣ್ಣ ಹುಡುಕಿ…', all:'ಎಲ್ಲಾ', inStock:'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ', outStock:'ಸ್ಟಾಕ್ ಇಲ್ಲ',
   },
+  ml: {
+    home:'ഹോം', shop:'ഷോപ്പ്', cart:'നിങ്ങളുടെ കാർട്ട്', checkout:'ചെക്ക്ഔട്ട്', myOrders:'എന്റെ ഓർഡറുകൾ', profile:'പ്രൊഫൈൽ',
+    shopAll:'എല്ലാ സാരികളും', addToCart:'കാർട്ടിൽ ചേർക്കുക', buyNow:'ഇപ്പോൾ വാങ്ങുക', orderOnWA:'വാട്ട്‌സ്ആപ്പിൽ ഓർഡർ',
+    viewAll:'എല്ലാം →', bestSellers:'ബെസ്റ്റ് സെല്ലർമാർ', newArrivals:'പുതിയ വരവുകൾ', todaysDeals:'ഇന്നത്തെ ഓഫറുകൾ',
+    categories:'വിഭാഗം അനുസരിച്ച് വാങ്ങുക', aboutUs:'ഞങ്ങളെക്കുറിച്ച്', quickLinks:'ദ്രുത ലിങ്കുകൾ',
+    contactUs:'ബന്ധപ്പെടുക', freeShip:'ഫ്രീ ഡെലിവറി', placeOrder:'ഓർഡർ ചെയ്യുക', language:'ഭാഷ',
+    search:'സാരികൾ, തുണി, നിറം തിരയുക…', all:'എല്ലാം', inStock:'സ്റ്റോക്കിലുണ്ട്', outStock:'സ്റ്റോക്ക് ഇല്ല',
+    shopByCategory:'വിഭാഗം അനുസരിച്ച്',
+  },
 };
 /* 🌐 LANGUAGE: English first — the site opens in English; the language changes
    ONLY when she picks one herself (Profile → Language). Her saved choice is
    always respected. */
+/* 🔗 campaign links can force a language: ?lang=ta/te/kn/ml/en */
+try{
+  const __lp = new URLSearchParams(location.search).get('lang');
+  if (__lp && ['en','ta','te','kn','ml'].indexOf(String(__lp).toLowerCase()) !== -1) LS.set('sk_lang', String(__lp).toLowerCase());
+}catch(e){}
 let lang = LS.get('sk_lang', '') || 'en';
 if (!LANGS[lang]) lang = 'en';
 /* 🙏 greeting word in the visitor's own language (ta/te/kn/en) */
@@ -2154,6 +2216,7 @@ function greetWord(){
   if (lang === 'ta') return 'வணக்கம்';
   if (lang === 'te') return 'నమస్కారం';
   if (lang === 'kn') return 'ನಮಸ್ಕಾರ';
+  if (lang === 'ml') return 'നമസ്കാരം';
   return 'Vanakkam';
 }
 const t = k => (LANGS[lang] && LANGS[lang][k]) || LANGS.en[k] || k;
@@ -2613,7 +2676,7 @@ function seedFirestoreCollections(){
     db.collection('counters').doc('site').set({ visitors: 1, orders: 0, updatedAt: now }, { merge: true }).catch(() => {});
     /* admins: seed admin */
     db.collection('admins').doc('owner').set({
-      name: 'Store Owner', phone: CONFIG.waDisplay, role: 'owner', updatedAt: now,
+      name: 'Shanmugam', phone: '7867915699', role: 'owner', updatedAt: now,
     }, { merge: true }).catch(() => {});
     /* categories: seed all categories */
     CATEGORIES.forEach(c => {
@@ -2687,11 +2750,14 @@ function renderHeader(){
         <a href="profile.html" class="${page==='profile'?'on':''}">${t('profile')}</a>
       </nav>
       <div class="top-actions">
-        ${(userName() ? '<a class="header-greet" href="profile.html" aria-label="My account"><span class="hg-emoji">👋</span><span class="hg-name">' + greetWord() + ', <b>' + esc(userName()) + '</b></span></a>' : '')}
-        <a class="icon-btn" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
+        <a class="icon-btn" href="shop.html" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg></a>
+        <a class="icon-btn ic-profile" href="profile.html" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
         <a class="icon-btn" href="cart.html" aria-label="Cart"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 7H6"/></svg><span class="cart-badge" id="cartBadge" hidden>0</span></a>
       </div>
     </div>
+  </div>
+  <div class="lang-bar" id="langBar" aria-label="Language / மொழி / భాష / ಭಾಷೆ / ഭാഷ">
+    ${[['en','English'],['ta','தமிழ்'],['te','తెలుగు'],['kn','ಕನ್ನಡ'],['ml','മലയാളം']].map(x => '<button type="button" class="lb-btn' + (lang === x[0] ? ' on' : '') + '" data-setlang="' + x[0] + '">' + x[1] + '</button>').join('')}
   </div>
   <div class="overlay" id="overlay"></div>
   <aside class="drawer" id="drawer">
@@ -2703,10 +2769,10 @@ function renderHeader(){
       <a href="cart.html">🛒 ${t('cart')}</a>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="profile.html">👤 ${t('profile')}</a>
-      <a href="#" data-login="1">🔑 Login — மொபைல் + பின்கோட்</a>
+      <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
       <a href="#" data-logout="1" data-authonly="1">🔓 Sign Out</a>
       <div class="sub">${t('shopByCategory')}</div>
-      ${CATEGORIES.slice(0, 8).map(c => `<a href="shop.html?cat=${c.slug}">${c.emoji} ${c.name}</a>`).join('')}
+      ${CATEGORIES.slice(0, 8).map(c => `<a href="${catUrl(c.slug)}">${c.emoji} ${catName(c)}</a>`).join('')}
       <div class="sub">Help</div>
       <a href="orders.html">📦 ${t('myOrders')}</a>
       <a href="share-earn.html">💰 Share &amp; Earn</a>
@@ -2718,17 +2784,41 @@ function renderHeader(){
   document.getElementById('btnMenu').addEventListener('click', openDrawer);
   document.getElementById('overlay').addEventListener('click', closeDrawer);
   document.getElementById('drawerNav').addEventListener('click', e => { const a = e.target.closest('a'); if (a){ if (a.dataset.faq){ e.preventDefault(); closeDrawer(); if (typeof window.scrollToFaq === 'function') window.scrollToFaq(); } else closeDrawer(); } });
+  /* 🔑 logged in? → hide Login links, show Sign Out only */
+  try{
+    const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
+    h.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
+    h.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
+  }catch(e){}
   renderCartBadge();
 }
+/* 🦶 footer — ONLY on the index page (user request 2026-10-06) */
 function renderFooter(){
   const f = document.getElementById('siteFooter'); if (!f) return;
+  /* 🦶 footer shows ONLY on the index page (user request) */
+  if ((document.body.dataset.page || '') !== 'home'){ f.innerHTML = ''; f.style.display = 'none'; return; }
   f.innerHTML = `
   <footer class="sk-footer">
     <div class="f-brand">
       <span class="logo-badge">${SK_LOGOSVG}</span>
       <div><b>${CONFIG.storeName}</b><small>Premium Sarees • Salem</small></div>
     </div>
+    <div class="f-cta-row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px">
+      <a class="btn btn-wa btn-xl" style="width:auto;min-width:220px" href="${CONFIG.waGroup}" target="_blank" rel="noopener">📢 Join WhatsApp Group</a>
+      <a class="btn btn-gold btn-xl" style="width:auto;min-width:200px" href="share-earn.html">💰 Share &amp; Earn 5% — Every Order!</a>
+    </div>
     <div class="f-grid">
+      <div>
+        <h4>Saree Categories</h4>
+        <a href="/kanchipuram/">👑 Kanchipuram Sarees</a>
+        <a href="/soft-silk/">✨ Soft Silk Sarees</a>
+        <a href="/cotton/">🌿 Cotton Sarees</a>
+        <a href="/wedding/">💍 Wedding Sarees</a>
+        <a href="/party-wear/">🎉 Party Wear Sarees</a>
+        <a href="/daily-wear/">🌤️ Daily Wear Sarees</a>
+        <a href="/bridal/">👰 Bridal Sarees</a>
+        <a href="/combo.html">🧵 Dhoti + Shirt Combos</a>
+      </div>
       <div>
         <h4>Shop</h4>
         <a href="index.html">🏠 ${t('home')}</a>
@@ -2750,7 +2840,7 @@ function renderFooter(){
         <a href="tel:+917867915699">📞 +91 78679 15699</a>
         <a href="${CONFIG.waGroup}" target="_blank" rel="noopener">💬 WhatsApp Group</a>
         <a href="${CONFIG.googleReview}" target="_blank" rel="noopener">⭐ Google Reviews</a>
-        <a href="#" data-login="1">🔑 Login</a>
+        <a href="#" data-login="1" data-authhide="1">🔑 Login</a>
       </div>
       <div>
         <h4>Store</h4>
@@ -2767,8 +2857,16 @@ function renderFooter(){
       <a href="${CONFIG.waGroup}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
       <a href="${CONFIG.googleReview}" target="_blank" rel="noopener" aria-label="Review us">⭐</a>
     </div>
-    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu<br>Made with ❤️ for saree lovers</div>
+    <div class="f-langs">
+      <button type="button" data-setlang="en">English</button><span>|</span><button type="button" data-setlang="ta">தமிழ்</button><span>|</span><button type="button" data-setlang="te">తెలుగు</button><span>|</span><button type="button" data-setlang="kn">ಕನ್ನಡ</button><span>|</span><button type="button" data-setlang="ml">മലയാളം</button>
+    </div>
+    <div class="f-bottom">© ${new Date().getFullYear()} ${CONFIG.storeName} • Premium sarees from Salem, Tamil Nadu • 🚚 Shipping Across India<br>Made with ❤️ for saree lovers</div>
   </footer>`;
+  try{
+    const au = (typeof Auth !== 'undefined') ? Auth.current() : null;
+    f.querySelectorAll('[data-authonly]').forEach(el => { el.style.display = au ? 'flex' : 'none'; });
+    f.querySelectorAll('[data-authhide]').forEach(el => { el.style.display = au ? 'none' : 'flex'; });
+  }catch(e){}
 }
 function openDrawer(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
@@ -2806,10 +2904,6 @@ function closeDrawer(){ document.getElementById('drawer').classList.remove('show
     window.gtag('config', 'G-J1W5VVY48L');
   }catch(e){}
 })();
-function gtagSafe(ev, data){
-  try{ if (window.gtag) window.gtag('event', ev, data || {}); }catch(e){}
-}
-
 /* ============================ META PIXEL (Facebook Ads) ============================
    Loads on EVERY page. Standard events fire automatically:
    PageView (each page) · AddToCart · InitiateCheckout · Purchase
@@ -2851,7 +2945,7 @@ function seoInject(){
   try{
     if (document.getElementById('ld-seo')) return;
     const page = (document.body && document.body.dataset.page) || '';
-    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    const base = location.origin + '/';
     const ld = [];
     /* 🌐 Open Graph + Twitter meta (social sharing cards — makes sharing famous) */
     try{
@@ -2898,7 +2992,7 @@ function seoInject(){
       if (p){
         ld.push({ '@context':'https://schema.org','@type':'Product', name:p.name, image:p.img, sku:p.sku || p.id, brand:{ '@type':'Brand', name:CONFIG.storeName },
           offers:{ '@type':'Offer', priceCurrency:'INR', price:p.price, availability: (p.stock != null && p.stock <= 0) ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: location.href, itemCondition:'https://schema.org/NewCondition' },
-          aggregateRating: p.reviews ? { '@type':'AggregateRating', ratingValue:p.rating || 4.5, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
+          aggregateRating: (p.reviews && p.rating > 0) ? { '@type':'AggregateRating', ratingValue:p.rating, reviewCount:p.reviews + realReviewCount(p.id) } : undefined });
         /* Breadcrumb */
         const cat = catOf(p.cat);
         ld.push({ '@context':'https://schema.org','@type':'BreadcrumbList', itemListElement:[
@@ -2931,6 +3025,11 @@ function installApp(){
 }
 function showInstallBanner(){
   try{
+    /* 🖥️ V27: mobile only — the install banner must never float on desktop */
+    try{
+      const desk = window.matchMedia ? !window.matchMedia('(max-width: 900px)').matches : ((window.innerWidth || 1024) > 900);
+      if (desk) return;
+    }catch(e2){}
     if (document.getElementById('installBanner')) return;
     const el = document.createElement('div');
     el.id = 'installBanner';
@@ -2983,8 +3082,13 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🚚 ${t('freeShip')} Above ₹999 &nbsp;•&nbsp; 💵 COD Available (+₹${CONFIG.codFee}) &nbsp;•&nbsp; ⏱ Fast Delivery — On-Time Promise &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI ₹${CONFIG.shipFee || 30} Courier (FREE above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')}) &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Balance at Delivery &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
+  /* 🌐 any [data-setlang] button switches the whole site language */
+  document.addEventListener('click', function(e){
+    const b = e.target.closest('[data-setlang]');
+    if (b){ try{ setLang(b.dataset.setlang); }catch(err){} }
+  });
   try{
     const so = document.querySelector('[data-authonly]');
     if (so){ const a = (typeof Auth !== 'undefined') ? Auth.current() : null; so.style.display = a ? 'flex' : 'none'; }
