@@ -3423,3 +3423,44 @@ body[data-page="reels"] .rp-arrow{ display:none }
 }
 .as-row{ font-size:.92rem; color:#333; font-weight:600; line-height:1.5 }
 .as-row b{ color:#3a1722 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SK-V30 — ADMIN product toolbar + table (was completely unstyled!)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.product-toolbar{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  background:#fff; border:1.5px solid var(--line); border-radius:13px;
+  padding:10px; margin-bottom:12px;
+}
+.product-toolbar input[type="search"]{
+  flex:1 1 220px; min-width:170px; min-height:44px;
+  border:1.5px solid var(--line); border-radius:10px;
+  padding:10px 12px; font-size:.9rem; background:#fff; outline:none;
+}
+.product-toolbar input[type="search"]:focus{ border-color:var(--maroon) }
+.product-toolbar select{
+  flex:0 1 auto; min-height:44px;
+  border:1.5px solid var(--line); border-radius:10px;
+  padding:10px 12px; font-size:.85rem; background:#fff; outline:none;
+}
+.product-toolbar .pt-price{
+  flex:0 1 115px; min-width:92px; min-height:44px;
+  border:1.5px solid var(--line); border-radius:10px;
+  padding:10px 10px; font-size:.85rem; background:#fff; outline:none;
+}
+.product-toolbar .pt-price:focus{ border-color:var(--maroon) }
+.prod-table-wrap{
+  overflow-x:auto; background:#fff;
+  border:1.5px solid var(--line); border-radius:13px;
+  -webkit-overflow-scrolling:touch;
+}
+.prod-table{ width:100%; border-collapse:collapse; min-width:660px }
+.prod-table th{
+  text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.5px;
+  color:#8a7a70; padding:10px; border-bottom:1.5px solid var(--line); white-space:nowrap;
+  background:#faf6f0; position:sticky; top:0;
+}
+.prod-table td{ padding:8px 10px; border-bottom:1px solid #f3ece6; font-size:.85rem; vertical-align:middle }
+.prod-table tr:last-child td{ border-bottom:0 }
+.prod-table td.low{ color:#C62828; font-weight:800 }
+.prod-table input[type="checkbox"]{ width:20px; height:20px; accent-color:var(--maroon); cursor:pointer }

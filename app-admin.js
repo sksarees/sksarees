@@ -187,6 +187,8 @@ const ORDER_PAGE_SIZE = 10;
 let prodSearch = '';         /* Products tab: search query */
 let prodPage = 1;            /* Products tab: pagination */
 let prodCategory = 'all';     /* Products category filter */
+let prodMin = '';             /* V30: price filter — min ₹ */
+let prodMax = '';             /* V30: price filter — max ₹ */
 const PROD_PAGE_SIZE = 1000; /* show all Firestore products in admin */
 let revPage = 1;             /* Reviews tab: pagination */
 const REV_PAGE_SIZE = 10;
@@ -756,7 +758,13 @@ function renderProducts(){
       '<button type="button" class="btn btn-outline btn-sm" id="btnBulkEdit" style="flex:1;min-width:150px">✏️ Edit Selected</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" id="btnDelSel" style="flex:1;min-width:130px;color:var(--red);border:1.5px solid #f0c4c4">🗑️ Delete Selected (<span id="delSelCount">0</span>)</button>' +
     '</div>' +
-    '<div class="product-toolbar"><input id="prodSearch" type="search" placeholder="🔍 Search name, SKU or colour…" autocomplete="off" value="' + esc(prodSearch) + '"><select id="prodCategory"><option value="all">All categories</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '"' + (prodCategory === c.slug ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select></div>' +
+    '<div class="product-toolbar">' +
+      '<input id="prodSearch" type="search" placeholder="🔍 Search name, SKU or colour…" autocomplete="off" value="' + esc(prodSearch) + '">' +
+      '<select id="prodCategory"><option value="all">All categories</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '"' + (prodCategory === c.slug ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select>' +
+      '<input id="prodMin" class="pt-price" type="number" inputmode="numeric" min="0" placeholder="Min ₹" value="' + esc(prodMin) + '">' +
+      '<input id="prodMax" class="pt-price" type="number" inputmode="numeric" min="0" placeholder="Max ₹" value="' + esc(prodMax) + '">' +
+      '<button type="button" class="btn btn-ghost btn-sm" id="prodPriceClear" style="width:auto;min-height:44px">✕ ₹</button>' +
+    '</div>' +
     '<div class="bulk-panel" id="bulkPanel" style="display:none;background:#fff;border:1.5px dashed #d8b24e;border-radius:var(--r);padding:14px;margin-bottom:12px">' +
       '<h3 style="font-size:.95rem;margin-bottom:6px">📥 Bulk Upload Products</h3>' +
       '<p class="small muted" style="margin:6px 0">Upload <b>new products</b> only. CSV format: <b>Name, Price, MRP, Image URL, Category, Badge, SKU, Stock, Colours</b>. Existing product SKU rows are skipped to avoid duplicates.</p>' +
@@ -798,6 +806,9 @@ function renderProducts(){
   });
   document.getElementById('prodSearch').addEventListener('input', e => { prodSearch = e.target.value; prodPage = 1; renderProdBody(); });
   document.getElementById('prodCategory').addEventListener('change', e => { prodCategory = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('prodMin').addEventListener('input', e => { prodMin = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('prodMax').addEventListener('input', e => { prodMax = e.target.value; prodPage = 1; renderProdBody(); });
+  document.getElementById('prodPriceClear').addEventListener('click', () => { prodMin = ''; prodMax = ''; prodPage = 1; renderProducts(); });
   document.getElementById('btnBulkEdit').addEventListener('click', openBulkEditSelected);
   document.getElementById('btnDelSel').addEventListener('click', () => {
     const sel = Array.from(document.querySelectorAll('.prod-sel:checked')).map(cb => cb.value);
@@ -818,7 +829,12 @@ function renderProducts(){
 /* filter by the search box (name, SKU, category, colour) */
 function filteredProds(){
   const q = prodSearch.toLowerCase();
-  return PRODUCTS.filter(p => (prodCategory === 'all' || p.cat === prodCategory) && (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)));
+  const mn = parseFloat(prodMin), mx = parseFloat(prodMax);
+  return PRODUCTS.filter(p =>
+    (prodCategory === 'all' || p.cat === prodCategory) &&
+    (!q || String(p.name + ' ' + (p.sku || '') + ' ' + p.cat + ' ' + (p.color || '')).toLowerCase().includes(q)) &&
+    (!Number.isFinite(mn) || p.price >= mn) &&
+    (!Number.isFinite(mx) || p.price <= mx));
 }
 /* show FIRST 10 products, "Load More" → next 10 */
 function renderProdBody(){
@@ -841,7 +857,7 @@ function renderProdBody(){
     mo.onclick = () => { prodPage++; renderProdBody(); };
   }
   const cl = document.getElementById('prodCount');
-  if (cl) cl.textContent = list.length + ' product' + (list.length === 1 ? '' : 's') + (prodSearch ? ' • filtered' : '') + ' • showing ' + visible.length;
+  if (cl) cl.textContent = list.length + ' product' + (list.length === 1 ? '' : 's') + ((prodSearch || prodCategory !== 'all' || prodMin !== '' || prodMax !== '') ? ' • filtered' : '') + ' • showing ' + visible.length;
   /* keep select-all + count in sync */
   const selAll = document.getElementById('prodSelAll');
   if (selAll) selAll.checked = visible.length > 0 && document.querySelectorAll('.prod-sel:checked').length === visible.length;

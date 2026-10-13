@@ -859,7 +859,7 @@ const REVIEWS = [
 ];
 const FAQ = [
   { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (booking ₹100–₹150 by state). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Free shipping above ₹' + (CONFIG.shipFreeAbove || 1999) + ' — else ₹' + (CONFIG.shipFee || 30) + ' courier (online) or ₹' + (CONFIG.codFee || 100) + ' (COD booking + courier).' },
+  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Courier ₹' + (CONFIG.shipFee || 30) + ' (UPI / GPay / PhonePe) or ₹' + (CONFIG.codFee || 100) + ' COD courier booking — saree balance in cash at delivery.' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -1130,7 +1130,7 @@ function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
   Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal();
-  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} (online) / ₹${CONFIG.codFee || 100} (COD) — FREE above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')}\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
+  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} (UPI / GPay / PhonePe) / ₹${CONFIG.codFee || 100} (COD booking — balance cash at delivery)\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
   return m;
 }
 /* 💬 WhatsApp templates — fully defensive: any order (even with missing
@@ -3082,7 +3082,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI ₹${CONFIG.shipFee || 30} Courier (FREE above ₹${(CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN')}) &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Balance at Delivery &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipFee || 30} &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Balance at Delivery &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   /* 🌐 any [data-setlang] button switches the whole site language */
   document.addEventListener('click', function(e){

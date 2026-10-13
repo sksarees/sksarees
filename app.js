@@ -2789,7 +2789,7 @@ function renderProduct(){
   try{ if (typeof gtag === 'function') gtag('event', 'product_view', { items:[{ item_id:String(p.id), item_name:p.name, price:p.price }] }); }catch(e){}
   const draftD = Object.assign({}, (Store.profile || {}), (loadCoDraft() || {}));
   app.innerHTML =
-    '<div class="wrap"><nav class="pd-breadcrumb" aria-label="Breadcrumb"><a href="index.html">🏠 Home</a> <span>›</span> <a href="shop.html' + (cat ? '?cat=' + encodeURIComponent(cat.slug) : '') + '">' + esc(cat ? cat.name : 'Shop Sarees') + '</a> <span>›</span> <span>' + esc(smartTitle(p)) + '</span></nav></div>' +
+    /* 🧭 V30: breadcrumb removed (user request) */
     '<div class="wrap pd-wrap" style="margin-top:12px">' +
       '<div>' +
         '<div class="pd-gal">' +
@@ -3360,7 +3360,7 @@ function renderCartPage(){
       '</div>';
     return;
   }
-  const t = cartTotal(), n = cartCount(), sh = (t >= (CONFIG.shipFreeAbove || 1999) ? 0 : (CONFIG.shipFee || 30));   /* ₹30 online (COD ₹100) • FREE ₹1,999+ */
+  const t = cartTotal(), n = cartCount(), sh = (CONFIG.shipFee || 30);   /* 💵 V30: flat ₹30 online (COD ₹100) */
   const disc = couponDiscount(co.data.coupon, t);
   const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
@@ -3401,7 +3401,7 @@ function renderCartPage(){
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
         : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
-      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipFee || 30) + '</b> online (<b>FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '</b>) • 💵 COD — <b>₹' + (CONFIG.codFee || 100) + '</b> booking now + saree balance cash at delivery.</p>' +
+      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipFee || 30) + '</b> (GPay / PhonePe / UPI) • 💵 COD — <b>₹' + (CONFIG.codFee || 100) + '</b> courier booking now + saree amount cash at delivery.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">' + loc('செக்அவுட் செல்லுங்கள் →', 'చెక్అవుట్‌కు వెళ్ళండి →', 'ಚೆಕ್ಔಟ್‌ಗೆ ಹೋಗಿ →', 'Proceed to Checkout →', 'ചെക്ക്ഔട്ടിലേക്ക് പോകൂ →') + '</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' + loc('அல்லது WhatsApp-ல் ஆர்டர் செய்யுங்கள்', 'లేదా WhatsApp లో ఆర్డర్ చేయండి', 'ಅಥವಾ WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp Instead', 'അല്ലെങ്കിൽ WhatsApp-ൽ ഓർഡർ ചെയ്യൂ') + '</a>' +
@@ -3463,10 +3463,12 @@ function coCartTotal(){
 }
 function coTotals(){
   const itemsTotal = coCartTotal();
-  /* 💵 CHARGES (2026-09-28 #6): COD → ₹100 booking + courier • Online → ₹30
-     courier • 🎉 FREE shipping above ₹1,999 (both) */
+  /* 💵 V30 PRICING (owner's model): saree ₹500 →
+     • UPI / GPay / PhonePe  = ₹500 + ₹30 courier = ₹530 pay now
+     • COD                   = ₹100 courier booking paid NOW + ₹500 saree CASH at delivery
+     FLAT courier always — no free-shipping rule. */
   const codFee = 0;
-  const shipping = itemsTotal >= (CONFIG.shipFreeAbove || 1999) ? 0 : (co.data.payment === 'cod' ? (CONFIG.codFee || 100) : (CONFIG.shipFee || 30));
+  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : (CONFIG.shipFee || 30);
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = co.buyOnly ? 0 : bundleDiscount();   /* single-product order → NO bundle offer */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -3501,11 +3503,9 @@ function coSummaryHTML(){
     /* 🎉 savings + 🚚 FREE-delivery nudge (grows the order value) */
     const saved = orderSavings(t);
     const cntHere = coItems().reduce(function(s2, i2){ return s2 + (i2.qty || 1); }, 0);
-    const needFree = (CONFIG.shipFreeAbove || 1999) - t.itemsTotal;
+    /* 🚚 V30: free-courier nudge removed — courier is flat ₹30 now */
     let nudge = '';
-    if (t.shipping > 0 && needFree > 0 && needFree <= 700)
-      nudge = '<p class="co-nudge">🚚 ' + loc('இன்னும் ₹' + needFree + ' வாங்குனா courier இலவசம்!', 'మరో ₹' + needFree + ' కొంటే courier ఫ్రీ!', 'ಇನ್ನು ₹' + needFree + ' ಖರೀದಿಸಿದರೆ courier ಉಚಿತ!', 'Add ₹' + needFree + ' more — courier FREE!') + ' <a href="shop.html">' + loc('ஷாப் பண்ணுங்க →', 'షాప్ చేయండి →', 'ಶಾಪ್ ಮಾಡಿ →', 'Shop →') + '</a></p>';
-    else if (!co.buyOnly && cntHere < (CONFIG.bundleCount || 2))
+    if (!co.buyOnly && cntHere < (CONFIG.bundleCount || 2))
       nudge = '<p class="co-nudge">🎁 ' + loc('இன்னொரு saree add பண்ணா ₹' + (CONFIG.bundleOff || 50) + ' Bundle OFF!', 'మరో చీర జోడిస్తే ₹' + (CONFIG.bundleOff || 50) + ' తగ్గింపు!', 'ಇನ್ನೊಂದು ಸೀರೆ ಸೇರಿಸಿದರೆ ₹' + (CONFIG.bundleOff || 50) + ' ರಿಯಾಯಿತಿ!', 'Add one more saree — ₹' + (CONFIG.bundleOff || 50) + ' Bundle OFF!') + ' <a href="shop.html">' + loc('ஷாப் பண்ணுங்க →', 'షాప్ చేయండి →', 'ಶಾಪ್ ಮಾಡಿ →', 'Shop →') + '</a></p>';
     return '<div class="form-card co-sum"><h3>🧾 ' + loc('ஆர்டர் சுருக்கம்', 'ఆర్డర్ సారాంశం', 'ಆರ್ಡರ್ ಸಾರಾಂಶ', 'Order Summary', 'ഓർഡർ സമ്മറി') + '</h3>' +
       (rows || '<p class="small muted">No items yet.</p>') +
@@ -4971,7 +4971,7 @@ document.addEventListener('click', function(e){
     const delBy = eUpi.to ? eUpi.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '';
     if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>' +
       '📦 <b>Delivery by ' + esc(delBy) + '</b> (UPI) • ' + esc(eCod.to ? eCod.to.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '') + ' (COD)<br>' +
-      '🚚 Courier: <b>₹' + (CONFIG.shipFee || 30) + '</b> (Online) / <b>₹' + (CONFIG.codFee || 100) + '</b> (COD) • 🎉 FREE above ₹' + (CONFIG.shipFreeAbove || 1999).toLocaleString('en-IN') + '<br>' +
+      '🚚 Courier: <b>₹' + (CONFIG.shipFee || 30) + '</b> (UPI / GPay / PhonePe) / <b>₹' + (CONFIG.codFee || 100) + '</b> (COD booking)<br>' +
       '✅ Fulfilled by <b>SK SAREES COLLECTION</b>';
     return;
   }
