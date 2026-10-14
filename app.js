@@ -2820,7 +2820,7 @@ function renderProduct(){
             : '<div class="instock" style="margin:6px 0">✅ <b>' + loc('கையிருப்பில் உள்ளது', 'స్టాక్‌లో ఉంది', 'ಸ್ಟಾಕ್ ಇದೆ', 'In stock', 'സ്റ്റോക്കിലുണ്ട്') + '</b> — ' + loc('இன்றே ஆர்டர் செய்யுங்கள், 24 மணி நேரத்தில் அனுப்பப்படும்', 'ఈరోజే ఆర్డర్ చేయండి, 24 గంటల్లో డిస్పాచ్', 'ಇಂದೇ ಆರ್ಡರ್ ಮಾಡಿ, 24 ಗಂಟೆಗಳಲ್ಲಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ', 'order today, dispatched within 24 hrs', 'ഇന്നുതന്നെ ഓർഡർ ചെയ്യൂ, 24 മണിക്കൂറിനുള്ളിൽ അയയ്ക്കും') + '</div>') +
         '<ul class="pd-checks"><li>✓ ' + L_COD() + '</li><li>✓ ' + L_7DAY() + '</li><li>✓ ' + L_QUALITY() + '</li><li>✓ ' + L_DISPATCH() + '</li></ul>' +
         /* 🚚 V25 one-line shipping answer near the price — dynamic from ZONES */
-        '<div class="pd-shipstrip">🚚 ' + loc('இந்தியா முழுவதும்', 'ఇండియా అంతటా', 'ಇಡೀ ಇಂಡಿಯಾ', 'Across India', 'ഇന്ത്യയിലെല്ലായിടത്തും') + ' ' + ZONES.tn.days[0] + '–' + ZONES.other.days[1] + ' ' + L_DAYS() + ' ⚡ ' + loc('24 மணி நேரத்தில் அனுப்புதல்', '24 గంటల్లో డిస్పాచ్', '24 ಗಂಟೆಗಳಲ್ಲಿ ಡಿಸ್ಪಾಚ್', 'Dispatch within 24 hrs', '24 മണിക്കൂറിനുള്ളിൽ ഡിസ്പാച്ച്') + '</div>' +
+        '<div class="pd-shipstrip">🚚 ' + loc('இந்தியா முழுவதும்', 'ఇండియా అంతటా', 'ಇಡೀ ಇಂಡಿಯಾ', 'Across India', 'ഇന്ത്യയിലെല്ലായിടത്തും') + ' ' + ZONES.tn.days[0] + '–' + ZONES.other.days[1] + ' ' + L_DAYS() + ' • ₹' + (CONFIG.shipPerKg || 30) + '/kg ⚡ ' + loc('24 மணி நேரத்தில் அனுப்புதல்', '24 గంటల్లో డిస్పాచ్', '24 ಗಂಟೆಗಳಲ್ಲಿ ಡಿಸ್ಪಾಚ್', 'Dispatch within 24 hrs', '24 മണിക്കൂറിനുള്ളിൽ ഡിസ്പാച്ച്') + '</div>' +
         /* 🎨 COLOUR SELECTION — pick her favourite, rides into checkout */
         ((p.colors || []).length
           ? '<div class="pd-colours" id="pdColours"><small class="muted" style="font-weight:800">🎨 ' + loc('நிறம் தேர்ந்தெடுங்கள்:', 'రంగు ఎంచుకోండి:', 'ಬಣ್ಣ ಆರಿಸಿ:', 'Choose colour:') + '</small><div class="pd-chips">' +
@@ -2864,7 +2864,8 @@ function renderProduct(){
         /* 💳 V25 payment options — only what checkout actually supports */
         '<details class="pd-acc pd-pay" open><summary>💳 ' + loc('பணம் செலுத்தும் வழிகள்', 'చెల్లింపు విధానాలు', 'ಪಾವತಿ ಆಯ್ಕೆಗಳು', 'PAYMENT OPTIONS', 'പേയ്മെന്റ് ഓപ്ഷനുകൾ') + '</summary>' +
           '<div class="pdl-rows"><span>💳 UPI</span><b>GPay • PhonePe • Paytm</b></div>' +
-          '<div class="pdl-rows"><span>💵 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'Cash on Delivery', 'കാഷ് ഓൺ ഡെലിവറി') + '</span><b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் + கொரியர்', 'బుకింగ్ + కొరియర్', 'ಬುಕಿಂಗ್ + ಕೊರಿಯರ್', 'booking + courier', 'ബുക്കിംഗ് + കൊറിയർ') + '</b></div>' +
+          '<div class="pdl-rows"><span>⚖️ ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + '</span><b>₹' + (CONFIG.shipPerKg || 30) + '/kg • ' + loc('சேலை ≈ 800g', 'చీర ≈ 800g', 'ಸೀರೆ ≈ 800g', 'saree ≈ 800g', 'സാരി ≈ 800g') + '</b></div>' +
+          '<div class="pdl-rows"><span>💵 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'Cash on Delivery', 'കാഷ് ഓൺ ഡെലിവറി') + '</span><b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் WhatsApp-ல்', 'అడ్వాన్స్ WhatsApp లో', 'ಅಡ್ವಾನ್ಸ್ WhatsApp ನಲ್ಲಿ', 'advance on WhatsApp', 'അഡ്വാൻസ് WhatsApp-ൽ') + '</b></div>' +
           '<small class="pd-pay-note">🔒 100% ' + L_SECURE() + ' • ' + loc('COD மீதத்தை டெலிவரியின் போது பணமாக கொடுங்கள்', 'COD మిగిలిన మొత్తాన్ని డెలివరీ సమయంలో చెల్లించండి', 'COD ಉಳಿದ ಹಣವನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನೀಡಿ', 'COD balance is paid at delivery', 'COD ബാക്കി തുക ഡെലിവറി സമയത്ത് നൽകണം') + '</small>' +
         '</details>' +
         /* ❓ compact FAQ — real policies only */
@@ -3001,7 +3002,7 @@ function renderProduct(){
       if (!/^\d{6}$/.test(pin)){ r.innerHTML = '<span style="color:#B00020">⚠️ Enter a valid 6-digit pincode</span>'; return; }
       const est = deliveryEstimate(pin, 'cod');
       const zone = ZONES[deliveryZone(pin)] || ZONES.tn;
-      r.innerHTML = '🚚 <b>' + esc(zone.name) + '</b> — Delivery by <b>' + (est.to ? est.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '') + '</b><br>💵 COD Available • ⚡ ' + esc(est.text);
+      r.innerHTML = '🚚 <b>' + esc(zone.name) + '</b> — Delivery by <b>' + (est.to ? est.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '') + '</b><br>🚚 Courier ₹' + (CONFIG.shipPerKg || 30) + '/kg (weight based) • 💵 COD ₹' + (CONFIG.codFee || 100) + ' advance on WhatsApp';
     };
     pdlBtn.addEventListener('click', pdlGo);
     const pdlPinEl = document.getElementById('pdlPin');
@@ -3360,7 +3361,7 @@ function renderCartPage(){
       '</div>';
     return;
   }
-  const t = cartTotal(), n = cartCount(), sh = (CONFIG.shipFee || 30);   /* 💵 V30: flat ₹30 online (COD ₹100) */
+  const t = cartTotal(), n = cartCount(), sh = shipForWeight(cartWeightGrams());   /* ⚖️ V32: ₹30/kg weight based */
   const disc = couponDiscount(co.data.coupon, t);
   const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
@@ -3393,7 +3394,7 @@ function renderCartPage(){
       (bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b style="color:var(--green)">−' + money(bundle) + '</b></div>' : '') +
       (pointsBalance() > 0 ? '<label style="display:flex;gap:8px;align-items:center;font-size:.82rem;font-weight:700;padding:6px 0"><input type="checkbox" id="usePts"' + (co.data.usePoints ? ' checked' : '') + ' style="width:18px;height:18px"> ⭐ Use ' + pointsBalance() + ' points (−' + money(Math.min(pointsRedeemable(), t - disc - bundle)) + ')</label>' : '') +
       (co.data.usePoints && (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() > 0 ? '<div class="row"><span>⭐ Points discount</span><b style="color:var(--green)">−' + money((function(){ try{ return coTotals().pts; }catch(e){ return 0; } })()) + '</b></div>' : '') +
-      '<div class="row"><span>🚚 ' + loc('கொரியர் (ஆன்லைன்)', 'కొరియర్ (ఆన్‌లైన్)', 'ಕೊರಿಯರ್ (ಆನ್‌ಲೈನ್)', 'Courier (Pay Online)', 'കൊറിയർ (ഓൺലൈൻ)') + '</span><b>' + (sh ? money(sh) : 'FREE 🎉') + '</b></div>' +
+      '<div class="row"><span>🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' (' + shipKg(cartWeightGrams()) + 'kg × ₹' + (CONFIG.shipPerKg || 30) + ')</span><b>' + (sh ? money(sh) : 'FREE 🎉') + '</b></div>' +
       '<div class="row total"><span>' + loc('மொத்தம் (ஆன்லைன்)', 'మొత్తం (ఆన్‌లైన్)', 'ಒಟ್ಟು (ಆನ್‌ಲೈನ್)', 'Total (Pay Online)', 'ആകെ (ഓൺലൈൻ)') + '</span><b>' + money(Math.max(0, t - disc - bundle - (co.data.usePoints ? (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() : 0)) + sh) + '</b></div>' +
 
       '<div class="cod-note">💵 COD — ' + loc('charge', 'ఛార్జ్', 'ಶುಲ್ಕ', 'charge', 'ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b>, ' + loc('இப்போது செலுத்தி புக் செய்யுங்கள்', 'ఇప్పుడే చెల్లించి బుక్ చేయండి', 'ಈಗಲೇ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'pay now & book', 'ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + ' • ' + loc('மீதி சேலை தொகை டெலிவரியின் போது பணம்', 'మిగిలిన చీర మొత్తం డెలివరీ సమయంలో నగదు', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'balance saree amount cash at delivery', 'ബാക്കി സാരി തുക ഡെലിവറി സമയത്ത് പണം') + '</div>' +
@@ -3401,7 +3402,7 @@ function renderCartPage(){
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
         : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
-      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipFee || 30) + '</b> (GPay / PhonePe / UPI) • 💵 COD — <b>₹' + (CONFIG.codFee || 100) + '</b> courier booking now + saree amount cash at delivery.</p>' +
+      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipPerKg || 30) + '/kg</b> (' + loc('எடை அடிப்படையில்', 'బరువు ప్రకారం', 'ತೂಕದ ಆಧಾರದಲ್ಲಿ', 'weight based', 'തൂക്കം അനുസരിച്ച്') + ' • 1 ' + loc('சேலை ≈ 800g', 'చీర ≈ 800g', 'ಸೀರೆ ≈ 800g', 'saree ≈ 800g', 'സാരി ≈ 800g') + ') • 💵 COD — <b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் WhatsApp-ல்', 'అడ్వాన్స్ WhatsApp లో', 'ಅಡ್ವಾನ್ಸ್ WhatsApp ನಲ್ಲಿ', 'advance on WhatsApp', 'അഡ്വാൻസ് WhatsApp-ൽ') + '</b> + ' + loc('சேலை தொகை முழுவதும் டெலிவரியில் பணம்', 'చీర మొత్తం డెలివరీలో నగదు', 'ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'full saree amount cash at delivery', 'സാരി തുക പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">' + loc('செக்அவுட் செல்லுங்கள் →', 'చెక్అవుట్‌కు వెళ్ళండి →', 'ಚೆಕ್ಔಟ್‌ಗೆ ಹೋಗಿ →', 'Proceed to Checkout →', 'ചെക്ക്ഔട്ടിലേക്ക് പോകൂ →') + '</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' + loc('அல்லது WhatsApp-ல் ஆர்டர் செய்யுங்கள்', 'లేదా WhatsApp లో ఆర్డర్ చేయండి', 'ಅಥವಾ WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp Instead', 'അല്ലെങ്കിൽ WhatsApp-ൽ ഓർഡർ ചെയ്യൂ') + '</a>' +
@@ -3468,7 +3469,8 @@ function coTotals(){
      • COD                   = ₹100 courier booking paid NOW + ₹500 saree CASH at delivery
      FLAT courier always — no free-shipping rule. */
   const codFee = 0;
-  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : (CONFIG.shipFee || 30);
+  /* ⚖️ V32: ONLINE = ₹30/kg weight slab • COD (WhatsApp orders) = ₹100 flat advance */
+  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : shipForWeight(cartWeightGrams());
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = co.buyOnly ? 0 : bundleDiscount();   /* single-product order → NO bundle offer */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -3515,7 +3517,7 @@ function coSummaryHTML(){
       (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal</span><b class="co-save">−' + money(t.bundle) + '</b></div>' : '') +
       (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount || 1) + '% off</span><b class="co-save">−' + money(t.online) + '</b></div>' : '') +
       (t.pts > 0 ? '<div class="row"><span>⭐ Loyalty points</span><b class="co-save">−' + money(t.pts) + '</b></div>' : '') +
-      '<div class="row"><span>' + (co.data.payment === 'cod' ? '💵 COD — ' + loc('முன்பணம் + கொரியர்', 'బుకింగ్ + కొరియర్', 'ಬುಕಿಂಗ್ + ಕೊರಿಯರ್', 'booking + courier', 'ബുക്കിംഗ് + കൊറിയർ') : '🚚 ' + loc('கொரியர் (ஆன்லைன்)', 'కొరియర్ (ఆన్‌లైన్)', 'ಕೊರಿಯರ್ (ಆನ್‌ಲೈನ್)', 'Courier (Pay Online)', 'കൊറിയർ (ഓൺലൈൻ)')) + '</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
+      '<div class="row"><span>🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' (' + shipKg(cartWeightGrams()) + 'kg × ₹' + (CONFIG.shipPerKg || 30) + ')</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
       (t.codFee > 0 ? '<div class="row"><span>💵 COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>' + loc('மொத்தம்', 'మొత్తం', 'ಒಟ್ಟು', 'Total', 'ആകെ') + '</span><b>' + money(t.grand) + '</b></div>' +
       (saved > 0 ? '<p class="co-saved">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + saved.toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
@@ -3598,11 +3600,10 @@ function drawCo(){
         '</div>' +
         '<div class="pm-card pm-cod">' +
           '<div class="pm-title">📦 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '</div>' +
-          '<div class="pm-codrows"><span>' + loc('COD charge', 'COD ఛార్జ్', 'COD ಶುಲ್ಕ', 'COD charge', 'COD ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> — ' + loc('இப்போது செலுத்தி புக் செய்யுங்கள்', 'ఇప్పుడే చెల్లించి బుక్ చేయండి', 'ಈಗಲೇ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'pay now & book', 'ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + '</span>' +
-            '<span>' + loc('மீதி சேலை தொகை', 'మిగిలిన చీర మొత్తం', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ', 'Balance saree amount', 'ബാക്കി സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + '</b> — ' + loc('டெலிவரியின் போது பணம்', 'డెలివరీ సమయంలో నగదు', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'CASH at delivery', 'ഡെലിവറി സമയത്ത് പണം') + '</span></div>' +
-          '<button type="button" class="pm-cta-cod" data-gocod>💳 PAY ₹' + (CONFIG.codFee || 100) + ' — ORDER COD →</button>' +
-          '<button type="button" class="pm-cta-wa" data-codwa>📦 ORDER COD ON WHATSAPP</button>' +
-          '<small class="pm-note">₹' + (CONFIG.codFee || 100) + ' ' + loc('COD charge செலுத்தினா ஆர்டர் book ஆகும் • மீதி சேலை தொகையை டெலிவரியின் போது பணமாக கொடுங்கள்', 'COD ఛార్జ్ చెల్లిస్తే ఆర్డర్ బుక్ అవుతుంది • మిగిలిన చీర మొత్తాన్ని డెలివరీ సమయంలో నగదుగా ఇవ్వండి', 'COD ಶುಲ್ಕ ಪಾವತಿಸಿದರೆ ಆರ್ಡರ್ ಬುಕ್ ಆಗುತ್ತದೆ • ಉಳಿದ ಸೀರೆ ಮೊತ್ತವನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಿ', 'COD charge paid → order booked • balance saree amount in cash at delivery', 'COD ചാർജ് അടച്ചാൽ ഓർഡർ ബുക്ക് ആകും • ബാക്കി സാരി തുക ഡെലിവറി സമയത്ത് പണമായി നൽകണം') + '</small>' +
+          '<div class="pm-codrows"><span>' + loc('COD charge', 'COD ఛార్జ్', 'COD ಶುಲ್ಕ', 'COD charge', 'COD ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> — ' + loc('WhatsApp-ல் முன்பணம்', 'WhatsApp లో అడ్వాన్స్', 'WhatsApp ನಲ್ಲಿ ಅಡ್ವಾನ್ಸ್', 'advance pay on WhatsApp', 'WhatsApp-ൽ അഡ്വാൻസ്') + '</span>' +
+            '<span>' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Saree amount', 'സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - t.shipping)) + '</b> — ' + loc('முழுவதும் டெலிவரியில் பணம்', 'పూర్తిగా డెలివరీలో నగదు', 'ಪೂರ್ಣವಾಗಿ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'FULL cash at delivery', 'പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '</span></div>' +
+          '<button type="button" class="pm-cta-wa" data-codwa>📦 ORDER COD ON WHATSAPP →</button>' +
+          '<small class="pm-note">' + loc('WhatsApp-ல் ₹100 முன்பணம் செலுத்தி COD ஆர்டர் போடுங்கள் • சேலை தொகை முழுவதும் டெலிவரியின் போது பணம்', 'WhatsApp లో ₹100 అడ్వాన్స్ చెల్లించి COD ఆర్డర్ చేయండి • చీర మొత్తం డెలివరీలో నగదు', 'WhatsApp ನಲ್ಲಿ ₹100 ಅಡ್ವಾನ್ಸ್ ಪಾವತಿಸಿ COD ಆರ್ಡರ್ ಮಾಡಿ • ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'Pay ₹100 advance on WhatsApp to book your COD order • full saree amount in cash at delivery', 'WhatsApp-ൽ ₹100 അഡ്വാൻസ് അടച്ച് COD ഓർഡർ ചെയ്യൂ • സാരി തുക പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '</small>' +
         '</div>' +
         '<div class="pm-trust">🔒 ' + loc('பாதுகாப்பான பணப்பட்டுதல்', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('விரைவு அனுப்புதல்', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;💵 COD Available' + '</div>' +
       '</div>' +
@@ -3741,7 +3742,10 @@ function createPendingPaymentOrder(){
 function confirmPendingPayment(){
   const order = Store.orders.find(o => o.id === co.pendingId);
   if (!order){ doPlaceOrder('upi'); return; }
-  order.paidConfirmed = true; order.paymentStarted = true; order.status = 'pending'; order.paymentMarkedAt = new Date().toISOString(); Store.saveOrders();
+  order.paidConfirmed = true; order.paymentStarted = true; order.status = 'pending'; order.paymentMarkedAt = new Date().toISOString();
+  /* 📊 V32: UPI orders now fire Purchase exactly once (was missing on this path!) */
+  if (!order.__purchaseTracked){ order.__purchaseTracked = true; fbqSafe('Purchase', { value: (order.totals || {}).grand || 0, currency: 'INR', content_ids: (order.items || []).map(i => String(i.id)) }); }
+  Store.saveOrders();
   if (FS.enabled()) FS.saveOrder(order).catch(()=>{});
   if (!co.buyOnly){ Store.cart=[]; Store.saveCart(); syncCartReservation(); }
   renderOrderComplete(order, false);
@@ -3833,7 +3837,7 @@ function doPlaceOrder(payment){
     try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
     try{ if (co.data.usePoints){ const used = Math.min(pointsRedeemable(), (t.pts || 0)); localStorage.setItem('sk_points', String(Math.max(0, pointsRedeemable() - used))); } }catch(e){}
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
-    fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) });
+    if (!order.__purchaseTracked){ order.__purchaseTracked = true; fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) }); try{ Store.saveOrders(); }catch(e2){} }
     renderOrderComplete(order, false);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment, totals: coTotals(), status:'placed' }, false); }catch(e){} }
@@ -3870,11 +3874,12 @@ function doWaOrder(){
     co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, city: order.customer.city || '', state: order.customer.state || '', payment:'upi' } };
     saveCoDraft();
+    if (!order.__purchaseTracked){ order.__purchaseTracked = true; fbqSafe('Purchase', { value: t.grand, currency: 'INR', content_ids: order.items.map(i => String(i.id)) }); try{ Store.saveOrders(); }catch(e2){} }
     const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
       '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
       '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
       order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
-      '\n\n💰 COD — courier charge ₹' + (CONFIG.codFee || 100) + '. I will pay ₹' + (CONFIG.codFee || 100) + ' now to book.\nBalance saree amount ' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + ' — cash at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
+      '\n\n💰 COD — courier charge ₹' + (CONFIG.codFee || 100) + ' advance. I will pay ₹' + (CONFIG.codFee || 100) + ' now on WhatsApp to book.\nSaree amount ' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + ' (FULL) — cash at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
     try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
@@ -3911,7 +3916,7 @@ function renderOrderComplete(o, viaWa){
       '</div>' +
       (isUpi
         ? '<p class="os-note">⏳ Payment verification pending — we confirm on WhatsApp once received.</p>'
-        : '<p class="os-note">💵 COD charge ₹' + booking + ' paid • balance saree amount ' + money(later) + ' — cash at delivery.</p>') +
+        : '<p class="os-note">💵 COD charge ₹' + booking + ' paid • saree amount ' + money(later) + ' — FULL cash at delivery.</p>') +
       '<div class="os-btns">' +
         '<a class="os-b1" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 ' + loc('ஆர்டரை கண்காணி', 'ఆర్డర్ ట్రాక్ చేయండి', 'ಆರ್ಡರ್ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ', 'Track Order', 'ഓർഡർ ട്രാക്ക് ചെയ്യൂ') + '</a>' +
         '<a class="os-b2" href="shop.html">🛍️ ' + loc('தொடர்ந்து ஷாப்பிங் செய்யுங்கள்', 'షాపింగ్ కొనసాగించండి', 'ಶಾಪಿಂಗ್ ಮುಂದುವರಿಸಿ', 'Continue Shopping', 'ഷോപ്പിംഗ് തുടരൂ') + '</a>' +
@@ -4742,8 +4747,6 @@ document.addEventListener('click', function(e){
   const pon = e.target.closest('[data-payonline]');
   if (pon){ e.preventDefault(); co.data.payment = 'upi'; if (coValid()){ createPendingPaymentOrder(); co.step = 2; drawCo(); } return; }
   /* 💵 V26 — direct COD: ₹100 booking payment page (UPI), balance cash at delivery */
-  const gocod = e.target.closest('[data-gocod]');
-  if (gocod){ e.preventDefault(); co.data.payment = 'cod'; if (coValid()){ if (!co.pendingId) co.pendingId = genOrderId(); co.step = 2; drawCo(); } return; }
   /* COD - Order on WhatsApp button (checkout) */
   const codwa = e.target.closest('[data-codwa]');
   if (codwa){ e.preventDefault(); co.data.payment = 'cod'; doWaOrder(); return; }
@@ -4971,7 +4974,7 @@ document.addEventListener('click', function(e){
     const delBy = eUpi.to ? eUpi.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '';
     if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>' +
       '📦 <b>Delivery by ' + esc(delBy) + '</b> (UPI) • ' + esc(eCod.to ? eCod.to.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '') + ' (COD)<br>' +
-      '🚚 Courier: <b>₹' + (CONFIG.shipFee || 30) + '</b> (UPI / GPay / PhonePe) / <b>₹' + (CONFIG.codFee || 100) + '</b> (COD booking)<br>' +
+      '🚚 Courier: <b>₹' + (CONFIG.shipPerKg || 30) + '/kg</b> (weight based) • 💵 COD: <b>₹' + (CONFIG.codFee || 100) + '</b> advance on WhatsApp<br>' +
       '✅ Fulfilled by <b>SK SAREES COLLECTION</b>';
     return;
   }

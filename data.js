@@ -17,6 +17,8 @@ const CONFIG = {
   /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
      1 saree TN ₹30 · 2 sarees ₹60 · 3 sarees ₹90 (per unit × qty). */
   shipFee       : 30,
+  shipPerKg     : 30,                      /* V32: Rs 30 per kg slab */
+  sareeWeight   : 800,                     /* V32: default saree weight grams */
   cartCoupon    : { code:'CARTOFFER', type:'percent', off:1, label:'Your cart is waiting — get 1% off!' },
   dispatchDays  : 7,                 // auto Delivered N days after dispatch
   /* 🛒 bundle deal: buy 2+ sarees → ₹50 off */
@@ -451,7 +453,8 @@ function normalizeProduct(raw){
     name: String((typeof lang !== 'undefined' && lang !== 'en' && raw['name_' + lang]) || raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     hidden: !!(raw.hidden === true || raw.hidden === 1 || raw.hidden === 'true' || raw.hidden === '1'),
-    rating: Math.min(5, Math.max(0, +raw.rating || +raw.rat || 0)),   /* ✅ V25: 0 = no rating (never invent 4.5) */
+    rating: Math.min(5, Math.max(0, +raw.rating || +raw.rat || 0)),
+    weight: Math.max(50, Math.round(+raw.weight || CONFIG.sareeWeight || 800)),   /* ⚖️ grams */   /* ✅ V25: 0 = no rating (never invent 4.5) */
     reviews: Math.max(0, +raw.reviews || +raw.rev || 0),
     badge,
     img: imgUrl,
@@ -461,7 +464,6 @@ function normalizeProduct(raw){
     border: String(raw.border || '—').trim(),
     blouse: String(raw.blouse || 'Blouse piece included').trim(),
     length: String(raw.length || raw.len || '6.3 m + blouse').trim(),
-    weight: String(raw.weight || 'approx 800 g').trim(),
     wash: String(raw.wash || raw.care || 'Normal wash').trim(),
     stock: (function(){ const s = +raw.stock; return Number.isFinite(s) ? Math.max(0, Math.round(s)) : 10; })(),
     colors: colors.length ? colors : ['Multi'],
@@ -802,6 +804,11 @@ const realReviewCount = id => { try{ return (LS.get('sk_reviews_' + id, [])).len
 /* Shipping = zone fee × number of sarees (1 saree TN ₹30, 2 sarees ₹60, …).
    Free above ₹999. Falls back to 1 unit when no count given. */
 const cartCount = () => Store.cart.reduce((s, i) => s + (i.qty || 1), 0);
+/* ⚖️ V32 WEIGHT-BASED SHIPPING — 1 saree ≈ 800 g • ₹30 per kg slab (rounded up)
+   1 saree (800g) → 1kg → ₹30 • 2 (1.6kg) → 2kg → ₹60 • 3 (2.4kg) → 3kg → ₹90 */
+const cartWeightGrams = () => { try{ return Store.cart.reduce((g, i) => { const p = byId(i.id); return g + (i.qty || 1) * ((p && p.weight) || CONFIG.sareeWeight || 800); }, 0); }catch(e){ return CONFIG.sareeWeight || 800; } };
+const shipKg = (grams) => Math.max(1, Math.ceil(((grams || 800)) / 1000));
+const shipForWeight = (grams) => shipKg(grams) * (CONFIG.shipPerKg || 30);
 const shippingFor = (total, pincode, qty) => {
   if (total >= CONFIG.shipFreeAbove) return 0;          /* 🚚 FREE above ₹2999 */
   const z = ZONES[deliveryZone(pincode)] || ZONES.tn;
@@ -859,7 +866,7 @@ const REVIEWS = [
 ];
 const FAQ = [
   { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (booking ₹100–₹150 by state). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Courier ₹' + (CONFIG.shipFee || 30) + ' (UPI / GPay / PhonePe) or ₹' + (CONFIG.codFee || 100) + ' COD courier booking — saree balance in cash at delivery.' },
+  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Courier ₹' + (CONFIG.shipPerKg || 30) + ' per kg (1 saree ≈ 800 g). COD orders are taken on WhatsApp: pay ₹' + (CONFIG.codFee || 100) + ' advance, then the full saree amount in cash at delivery.' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -1130,7 +1137,7 @@ function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
   Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal();
-  m += `\n\n🚚 Courier ₹${CONFIG.shipFee || 30} (UPI / GPay / PhonePe) / ₹${CONFIG.codFee || 100} (COD booking — balance cash at delivery)\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
+  m += `\n\n🚚 Courier ₹${CONFIG.shipPerKg || 30}/kg (weight based — 1 saree ≈ 800g)\n💵 COD — ₹${CONFIG.codFee || 100} advance on WhatsApp + saree amount cash at delivery\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
   return m;
 }
 /* 💬 WhatsApp templates — fully defensive: any order (even with missing
@@ -3082,7 +3089,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipFee || 30} &nbsp;•&nbsp; 💵 COD ₹${CONFIG.codFee || 100} Booking — Balance at Delivery &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipPerKg || 30}/kg &nbsp;•&nbsp; 💵 COD — ₹${CONFIG.codFee || 100} Advance on WhatsApp + Cash on Delivery &nbsp;•&nbsp; ✅ 7-Day Easy Returns</span></div>`);
   renderHeader(); renderFooter();
   /* 🌐 any [data-setlang] button switches the whole site language */
   document.addEventListener('click', function(e){

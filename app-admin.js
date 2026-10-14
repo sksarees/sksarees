@@ -844,7 +844,7 @@ function renderProdBody(){
   tbody.innerHTML = visible.map(p =>
     '<tr data-prow="' + esc(p.id) + '"><td><input type="checkbox" class="prod-sel" value="' + esc(p.id) + '"></td>' +
     '<td><img src="' + esc(p.img) + '" alt="" loading="lazy" decoding="async" width="100" height="100" style="width:100px;height:100px;object-fit:cover;border-radius:8px" onerror="imgSafe(this)" onload="imgLoaded(this)"></td>' +
-    '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + (p.hidden ? ' • 🚫 HIDDEN' : '') + '</small></td>' +
+    '<td style="min-width:180px"><b>' + esc(p.name) + '</b><br><small class="muted">SKU: ' + esc(p.sku || p.id) + ' • ⚖️ ' + (p.weight || 800) + 'g' + (p.hidden ? ' • 🚫 HIDDEN' : '') + '</small></td>' +
     '<td>' + money(p.price) + '</td>' +
     '<td class="' + (p.stock <= 5 ? 'low' : '') + '">' + (p.stock <= 5 ? '🔥 ' + p.stock : p.stock) + '</td>' +
     '<td>' + (p.badge ? esc(p.badge) : '—') + '</td>' +
@@ -881,13 +881,13 @@ function openBulkEditSelected(){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>New Price ₹</label><input id="bePrice" type="number" min="1" placeholder="Keep current"></div><div class="field"><label>New MRP ₹</label><input id="beMrp" type="number" min="1" placeholder="Keep current"></div></div>' +
     '<div class="field"><label>Category</label><select id="beCategory"><option value="__keep__">Keep current category</option>' + CATEGORIES.map(c => '<option value="' + esc(c.slug) + '">' + esc(c.name) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label>New Description</label><textarea id="beDesc" placeholder="Leave empty to keep current description" style="min-height:95px"></textarea></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>Stock</label><input id="beStock" type="number" min="0" placeholder="Keep current"></div><div class="field"><label>Badge</label><select id="beBadge"><option value="__keep__">Keep current</option><option value="">No badge</option><option value="New">New</option><option value="Bestseller">Bestseller</option><option value="Sale">Sale</option><option value="Limited Stock">Limited Stock</option></select></div></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label>Stock</label><input id="beStock" type="number" min="0" placeholder="Keep current"></div><div class="field"><label>⚖️ Weight (g)</label><input id="beWeight" type="number" min="50" placeholder="Keep current"></div></div><div class="field"><label>Badge</label><select id="beBadge"><option value="__keep__">Keep current</option><option value="">No badge</option><option value="New">New</option><option value="Bestseller">Bestseller</option><option value="Sale">Sale</option><option value="Limited Stock">Limited Stock</option></select></div></div>' +
     '<button type="button" class="btn btn-maroon" id="beSave">✅ Save Changes to ' + selected.length + ' Products</button>');
   document.getElementById('beSave').addEventListener('click', () => {
     const name=document.getElementById('beName').value.trim(), desc=document.getElementById('beDesc').value.trim();
-    const price=+document.getElementById('bePrice').value, mrp=+document.getElementById('beMrp').value, stockText=document.getElementById('beStock').value, badge=document.getElementById('beBadge').value, category=document.getElementById('beCategory').value;
+    const price=+document.getElementById('bePrice').value, mrp=+document.getElementById('beMrp').value, stockText=document.getElementById('beStock').value, weightText=document.getElementById('beWeight').value, badge=document.getElementById('beBadge').value, category=document.getElementById('beCategory').value;
     let changed=0;
-    PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (badge !== '__keep__') p.badge=badge; if (category !== '__keep__') p.cat=category; changed++; });
+    PRODUCTS.forEach(p => { if (!selected.includes(p.id)) return; if (name) p.name=name; if (price>0) p.price=Math.round(price); if (mrp>0) p.mrp=Math.round(mrp); if (desc) p.desc=desc; if (stockText !== '' && Number.isFinite(+stockText)) p.stock=Math.max(0,Math.round(+stockText)); if (weightText !== '' && Number.isFinite(+weightText)) p.weight=Math.max(50,Math.round(+weightText)); if (badge !== '__keep__') p.badge=badge; if (category !== '__keep__') p.cat=category; changed++; });
     saveProducts(PRODUCTS); syncSelectedProductsToFirestore(selected); refreshFeedCache(); closeModal(); prodPage=1; renderProdBody(); toast('✅ ' + changed + ' products updated + Firestore sync started');
   });
 }
@@ -1190,6 +1190,7 @@ function openEditProduct(id){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       '<div class="field"><label>Category</label><select id="epCat">' + catOpts + '</select></div>' +
       '<div class="field"><label>Stock</label><input id="epStock" type="number" value="' + p.stock + '"></div></div>' +
+    '<div class="field"><label>⚖️ Weight in grams (courier = ₹30 per kg — 1 saree ≈ 800g)</label><input id="epWeight" type="number" min="50" step="10" value="' + (p.weight || 800) + '"></div>' +
     '<div class="field"><label>Description</label><textarea id="epDesc" style="min-height:90px">' + esc(p.desc || '') + '</textarea></div>' +
     '<div class="field"><label>Badge</label><select id="epBadge"><option value=""' + (!p.badge ? ' selected' : '') + '>—</option><option' + (p.badge === 'Bestseller' ? ' selected' : '') + '>Bestseller</option><option' + (p.badge === 'New' ? ' selected' : '') + '>New</option><option' + (p.badge === 'Sale' ? ' selected' : '') + '>Sale</option><option' + (p.badge === 'Limited Stock' ? ' selected' : '') + '>Limited Stock</option></select></div>' +
     '<div class="field"><label>🖼️ Main Image — upload from phone/computer <b>or</b> paste URL</label><input id="epImg" value="' + esc(p.img) + '"></div>' +
@@ -1230,6 +1231,7 @@ function openEditProduct(id){
         mrp: Math.max(price, +document.getElementById('epMrp').value || price),
         cat: document.getElementById('epCat').value,
         stock: Math.max(0, +document.getElementById('epStock').value || 0),
+        weight: Math.max(50, Math.round(+document.getElementById('epWeight').value || 800)),
         badge: document.getElementById('epBadge').value,
         desc: document.getElementById('epDesc').value.trim() || PRODUCTS[idx].desc,
         img: document.getElementById('epImg').value || PRODUCTS[idx].img,
