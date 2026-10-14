@@ -2832,7 +2832,7 @@ function renderProduct(){
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' — ' + money(p.price) + '</button>' +
+            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' — ' + money(p.price) + ' →</button>' +
               '<button type="button" class="btn btn-atc btn-xl" data-add="' + esc(p.id) + '">🛍️ ' + L_ADDCART() + '</button>' +
               '<a class="btn btn-wa btn-xl pd-wa-big pd-wa-outline" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WHATSAPP-ல் ஆர்டர் செய்யுங்கள்', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>') +
           (out ? '' : '<p class="pd-buy-sub">✅ ' + L_COD() + ' • 🔒 ' + L_SECURE() + ' • ↩️ ' + L_7DAY() + '</p>') +
@@ -2926,7 +2926,7 @@ function renderProduct(){
     /* 📌 sticky mobile purchase bar — WHATSAPP + BUY NOW (spec) */
     '<div class="sticky-bar sb2">' +
       '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WHATSAPP</a>' +
-      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' — ' + money(p.price) + '</button>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' — ' + money(p.price) + ' →</button>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -2969,13 +2969,13 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n); }
+    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n) + ' →'; }
     const addB = document.querySelector('.pd-btns [data-add]');
     if (addB) addB.textContent = '🛍️ ' + L_ADDCART() + ' ×' + n;
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n); }
+    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n) + ' →'; }
     const pdBot = document.getElementById('pdBuyBottom');
-    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n); }
+    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n) + ' →'; }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   /* 🚚 delivery form — pincode → ETA + pre-fills checkout */
@@ -3396,7 +3396,7 @@ function renderCartPage(){
       '<div class="row"><span>🚚 ' + loc('கொரியர் (ஆன்லைன்)', 'కొరియర్ (ఆన్‌లైన్)', 'ಕೊರಿಯರ್ (ಆನ್‌ಲೈನ್)', 'Courier (Pay Online)', 'കൊറിയർ (ഓൺലൈൻ)') + '</span><b>' + (sh ? money(sh) : 'FREE 🎉') + '</b></div>' +
       '<div class="row total"><span>' + loc('மொத்தம் (ஆன்லைன்)', 'మొత్తం (ఆన్‌లైన్)', 'ಒಟ್ಟು (ಆನ್‌ಲೈನ್)', 'Total (Pay Online)', 'ആകെ (ഓൺലൈൻ)') + '</span><b>' + money(Math.max(0, t - disc - bundle - (co.data.usePoints ? (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() : 0)) + sh) + '</b></div>' +
 
-      '<div class="cod-note">💵 COD — <b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் + கொரியர்', 'బుకింగ్ + కొరియర్', 'ಬುಕಿಂಗ್ + ಕೊರಿಯರ್', 'booking + courier', 'ബുക്കിംഗ് + കൊറിയർ') + '</b> • ' + loc('மீதம் டெலிவரியின் போது.', 'మిగిలినది డెలివరీ సమయంలో.', 'ಉಳಿದದ್ದು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ.', 'balance at delivery.', 'ബാക്കി ഡെലിവറി സമയത്ത്.') + '</div>' +
+      '<div class="cod-note">💵 COD — ' + loc('charge', 'ఛార్జ్', 'ಶುಲ್ಕ', 'charge', 'ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b>, ' + loc('இப்போது செலுத்தி புக் செய்யுங்கள்', 'ఇప్పుడే చెల్లించి బుక్ చేయండి', 'ಈಗಲೇ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'pay now & book', 'ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + ' • ' + loc('மீதி சேலை தொகை டெலிவரியின் போது பணம்', 'మిగిలిన చీర మొత్తం డెలివరీ సమయంలో నగదు', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'balance saree amount cash at delivery', 'ബാക്കി സാരി തുക ഡെലിവറി സമയത്ത് പണം') + '</div>' +
 
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
@@ -3593,16 +3593,16 @@ function drawCo(){
           '<div class="pm-sub" style="font-weight:800">🧺 ' + loc('பொருட்கள்', 'వస్తువులు', 'ವಸ್ತುಗಳು', 'Items', 'ഇനങ്ങൾ') + ' ' + money(t.itemsTotal - t.discount - t.bundle) + ' + 🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' ' + (t.shipping ? money(t.shipping) : loc('இலவசம்', 'ఫ్రీ', 'ಫ್ರೀ', 'FREE', 'ഫ്രീ')) + '</div>' +
           '<div class="pm-sub">' + loc('UPI மூலம் பாதுகாப்பாக செலுத்துங்கள்', 'UPI తో సురక్షితంగా చెల్లించండి', 'UPI ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪಾವತಿಸಿ', 'Pay securely using UPI', 'UPI വഴി സുരക്ഷിതമായി പേയ്') + '</div>' +
           '<div class="pm-logos"><i class="pl-gpay">Google Pay</i><i class="pl-phonepe">PhonePe</i><i class="pl-paytm">Paytm</i><i class="pl-upi">UPI</i></div>' +
-          '<button type="button" class="pm-cta-upi" data-payonline>🔒 ' + loc('செலுத்து', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('பாதுகாப்பாக', 'సురక్షితంగా', 'ಸುರಕ್ಷಿತವಾಗಿ', 'SECURELY', 'സുരക്ഷിതമായി') + '</button>' +
+          '<button type="button" class="pm-cta-upi" data-payonline>🔒 ' + loc('செலுத்து', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('பாதுகாப்பாக', 'సురక్షితంగా', 'ಸುರಕ్ಷಿತವಾಗಿ', 'SECURELY', 'സുരക്ഷിതമായി') + ' →</button>' +
           '<small class="pm-note">' + loc('Instant payment • Secure UPI • Order confirmation after payment', 'వెంటనే చెల్లింపు • సురక్షిత UPI • చెల్లింపు తర్వాత ఆర్డర్ నిర్ధారణ', 'ತಕ್ಷಣ ಪಾವತಿ • ಸುರಕ್ಷಿತ UPI • ಪಾವತಿ ನಂತರ ಆರ್ಡರ್ ದೃಢೀಕರಣ', 'Instant payment • Secure UPI • Order confirmation after payment', 'ഉടനടി പേയ്മെന്റ് • സുരക്ഷിത UPI • പേയ്മെന്റിന് ശേഷം ഓർഡർ സ്ഥിരീകരണം') + '</small>' +
         '</div>' +
         '<div class="pm-card pm-cod">' +
           '<div class="pm-title">📦 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '</div>' +
-          '<div class="pm-codrows"><span>' + loc('செலுத்து', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'Pay', 'പേയ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> ' + loc('முன்பணம் இப்போது', 'బుకింగ్ మొత్తం ఇప్పుడే', 'ಬುಕಿಂಗ್ ಮೊತ್ತ ಈಗ', 'booking amount now', 'ബുക്കിംഗ് തുക ഇപ്പോൾ') + '</span>' +
-            '<span>' + loc('மீதம்', 'మిగిలిన', 'ಉಳಿದ', 'Remaining', 'ബാക്കി') + ' <b>' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + '</b> ' + loc('டெலிவரியின் போது பணம்', 'డెలివరీ వద్ద క్యాష్', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ಕ್ಯಾಶ್', 'CASH at delivery', 'ഡെലിവറി സമയത്ത് ക്യാഷ്') + '</span></div>' +
-          '<button type="button" class="pm-cta-cod" data-gocod>💳 PAY ₹' + (CONFIG.codFee || 100) + ' BOOKING — ORDER COD</button>' +
+          '<div class="pm-codrows"><span>' + loc('COD charge', 'COD ఛార్జ్', 'COD ಶುಲ್ಕ', 'COD charge', 'COD ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> — ' + loc('இப்போது செலுத்தி புக் செய்யுங்கள்', 'ఇప్పుడే చెల్లించి బుక్ చేయండి', 'ಈಗಲೇ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'pay now & book', 'ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + '</span>' +
+            '<span>' + loc('மீதி சேலை தொகை', 'మిగిలిన చీర మొత్తం', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ', 'Balance saree amount', 'ബാക്കി സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + '</b> — ' + loc('டெலிவரியின் போது பணம்', 'డెలివరీ సమయంలో నగదు', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'CASH at delivery', 'ഡെലിവറി സമയത്ത് പണം') + '</span></div>' +
+          '<button type="button" class="pm-cta-cod" data-gocod>💳 PAY ₹' + (CONFIG.codFee || 100) + ' — ORDER COD →</button>' +
           '<button type="button" class="pm-cta-wa" data-codwa>📦 ORDER COD ON WHATSAPP</button>' +
-          '<small class="pm-note">₹' + (CONFIG.codFee || 100) + ' ' + loc('advance confirms your order • Balance payable when parcel is delivered', 'అడ్వాన్స్ మీ ఆర్డర్ నిర్ధారిస్తుంది • పార్సల్ అందినప్పుడు బ్యాలెన్స్ చెల్లించాలి', 'ಅಡ್ವಾನ್ಸ್ ನಿಮ್ಮ ಆರ್ಡರ್ ದೃಢೀಕರಿಸುತ್ತದೆ • ಪಾರ್ಸಲ್ ಬಂದಾಗ ಬ್ಯಾಲೆನ್ಸ್ ಪಾವತಿಸಿ', 'advance confirms your order • Balance payable when parcel is delivered', 'അഡ്വാൻസ് ഓർഡർ സ്ഥിരീകരിക്കുന്നു • പാർസൽ ലഭിക്കുമ്പോൾ ബാക്കി നൽകണം') + '</small>' +
+          '<small class="pm-note">₹' + (CONFIG.codFee || 100) + ' ' + loc('COD charge செலுத்தினா ஆர்டர் book ஆகும் • மீதி சேலை தொகையை டெலிவரியின் போது பணமாக கொடுங்கள்', 'COD ఛార్జ్ చెల్లిస్తే ఆర్డర్ బుక్ అవుతుంది • మిగిలిన చీర మొత్తాన్ని డెలివరీ సమయంలో నగదుగా ఇవ్వండి', 'COD ಶುಲ್ಕ ಪಾವತಿಸಿದರೆ ಆರ್ಡರ್ ಬುಕ್ ಆಗುತ್ತದೆ • ಉಳಿದ ಸೀರೆ ಮೊತ್ತವನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಿ', 'COD charge paid → order booked • balance saree amount in cash at delivery', 'COD ചാർജ് അടച്ചാൽ ഓർഡർ ബുക്ക് ആകും • ബാക്കി സാരി തുക ഡെലിവറി സമയത്ത് പണമായി നൽകണം') + '</small>' +
         '</div>' +
         '<div class="pm-trust">🔒 ' + loc('பாதுகாப்பான பணப்பட்டுதல்', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('விரைவு அனுப்புதல்', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;💵 COD Available' + '</div>' +
       '</div>' +
@@ -3642,7 +3642,7 @@ function drawCo(){
             '<div class="pg-scan">' + loc('எந்த UPI ஆப்பிலும் ஸ்கேன் செய்யுங்கள்', 'ఏ UPI యాప్‌తోనైనా స్కాన్ చేయండి', 'ಯಾವುದೇ UPI ಆ್ಯಪ್‌ನಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ', 'Scan with any UPI app', 'ഏത് UPI ആപ്പും ഉപയോഗിച്ച് സ്കാൻ ചെയ്യൂ') + '</div>' +
             '<div class="pg-apps">GPay • PhonePe • Paytm • BHIM • ' + loc('எந்த UPI ஆப்', 'ఏదైనా UPI యాప్', 'ಯಾವುದೇ UPI ಆ್ಯಪ್', 'Any UPI App', 'ഏത് UPI ആപ്പും') + '</div>' +
             '<div class="pg-upirow"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b><button type="button" class="pg-copy" data-u="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
-            '<a class="pg-cta" href="' + upiLink(t.grand, note) + '">🔒 ' + loc('செலுத்து', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('UPI மூலம்', 'UPI తో', 'UPI ಜೊತೆ', 'WITH UPI', 'UPI-ഉപയോഗിച്ച്') + '</a>' +
+            '<a class="pg-cta" href="' + upiLink(t.grand, note) + '">🔒 ' + loc('செலுத்து', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAY', 'പേയ്') + ' ' + money(t.grand) + ' ' + loc('UPI மூலம்', 'UPI తో', 'UPI ಜೊತೆ', 'WITH UPI', 'UPI-ഉപയോഗിച്ച്') + ' →</a>' +
             /* 📱 V26 OPEN-APP buttons — one tap opens the UPI app with amount filled */
             '<div class="pg-appbtns">' +
               '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', t.grand, note) + '">📱 OPEN GOOGLE PAY</a>' +
@@ -3664,17 +3664,17 @@ function drawCo(){
           '<button type="button" class="pg-paid" data-place="upi">✅ ' + loc("I've Paid — Confirm Order", "నేను చెల్లించాను — ఆర్డర్ నిర్ధారించండి", "ನಾನು ಪಾವತಿಸಿದೆನೆ — ಆರ್ಡರ್ ದೃಢೀಕರಿಸಿ", "I've Paid — Confirm Order", 'ഞാൻ പേയ്ച്ചു — ഓർഡർ സ്ഥിരീകരിക്കൂ') + '</button>' +
         '</div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
-          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> ' + loc('முன்பணம் — இப்போது செலுத்துங்கள் (UPI)', 'బుకింగ్ ఫీజు — ఇప్పుడే చెల్లించండి (UPI)', 'ಬುಕಿಂಗ್ ಶುಲ್ಕ — ಈಗಲೇ ಪಾವತಿಸಿ (UPI)', 'booking fee — pay now (UPI)', 'ബുക്കിംഗ് ഫീസ് — ഇപ്പോൾ തന്നെ അടയ്ക്കൂ (UPI)') + '</span></div>' +
-          '<div class="cod-note">💵 COD — pay <b>₹' + booking + ' booking</b> now (covers booking + courier).<br>Remaining <b>' + money(Math.max(0, t.grand - booking)) + '</b> collected at delivery.</div>' +
+          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> ' + loc('COD charge — இப்போது செலுத்துங்கள் (UPI)', 'COD ఛార్జ్ — ఇప్పుడే చెల్లించండి (UPI)', 'COD ಶುಲ್ಕ — ಈಗಲೇ ಪಾವತಿಸಿ (UPI)', 'COD charge — pay now (UPI)', 'COD ചാർജ് — ഇപ്പോൾ തന്നെ അടയ്ക്കൂ (UPI)') + '</span></div>' +
+          '<div class="cod-note">💵 COD — charge <b>₹' + booking + '</b>, pay now &amp; book.<br>' + loc('மீதி சேலை தொகை', 'మిగిలిన చీర మొత్తం', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ', 'Balance saree amount', 'ബാക്കി സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - booking)) + '</b> — ' + loc('டெலிவரியின் போது பணம்', 'డెలివరీ సమయంలో నగదు', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'cash at delivery', 'ഡെലിവറി സമയത്ത് പണം') + '.</div>' +
           '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
-          '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 ' + loc('முன்பணம் செலுத்து', 'బుకింగ్ చెల్లించండి', 'ಬುಕಿಂಗ್ ಪಾವತಿಸಿ', 'Pay', 'അടയ്ക്കൂ') + ' ₹' + booking + ' (UPI)</a>' +
+          '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 ' + loc('முன்பணம் செலுத்து', 'బుకింగ్ చెల్లించండి', 'ಬುಕಿಂಗ್ ಪಾವತಿಸಿ', 'Pay', 'അടയ്ക്കൂ') + ' ₹' + booking + ' (UPI) →</a>' +
           '<div class="pg-appbtns">' +
             '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN GOOGLE PAY</a>' +
             '<a class="pg-appbtn pg-appbtn-phonepe" href="' + upiAppLink('phonepe', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN PHONEPE</a>' +
             '<a class="pg-appbtn pg-appbtn-paytm" href="' + upiAppLink('paytm', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN PAYTM</a>' +
           '</div>' +
-          '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' booking, tap below to place your order.</div>' +
-          '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid Booking — Place Order</button></div>') +
+          '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' COD charge, tap below to place your order.</div>' +
+          '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid the COD Charge — Place Order →</button></div>') +
       '<button type="button" class="btn btn-ghost" data-back>← ' + loc('விவரங்களை மாற்ற திரும்பி செல்', 'వివరాలు మార్చడానికి వెనకకు', 'ವಿವರಗಳನ್ನು ಬದಲಾಯಿಸಲು ಹಿಂತಿರುಗಿ', 'Back to edit details', 'വിവരങ്ങൾ മാറ്റാൻ മടങ്ങൂ') + '</button>' +
     '</div>';
     if (upiPay){ window.__pgAmt = t.grand; setTimeout(drawUpiQR, 150); }         /* wait for DOM + qrcode lib */
@@ -3874,7 +3874,7 @@ function doWaOrder(){
       '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
       '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
       order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
-      '\n\n💰 COD — ₹' + (CONFIG.codFee || 100) + ' booking + courier. I will pay ₹' + (CONFIG.codFee || 100) + ' booking now.\nRemaining ' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + ' at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
+      '\n\n💰 COD — courier charge ₹' + (CONFIG.codFee || 100) + '. I will pay ₹' + (CONFIG.codFee || 100) + ' now to book.\nBalance saree amount ' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + ' — cash at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
     try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
@@ -3911,7 +3911,7 @@ function renderOrderComplete(o, viaWa){
       '</div>' +
       (isUpi
         ? '<p class="os-note">⏳ Payment verification pending — we confirm on WhatsApp once received.</p>'
-        : '<p class="os-note">💵 ₹' + booking + ' booking received • balance ' + money(later) + ' in cash at delivery.</p>') +
+        : '<p class="os-note">💵 COD charge ₹' + booking + ' paid • balance saree amount ' + money(later) + ' — cash at delivery.</p>') +
       '<div class="os-btns">' +
         '<a class="os-b1" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 ' + loc('ஆர்டரை கண்காணி', 'ఆర్డర్ ట్రాక్ చేయండి', 'ಆರ್ಡರ್ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ', 'Track Order', 'ഓർഡർ ട്രാക്ക് ചെയ്യൂ') + '</a>' +
         '<a class="os-b2" href="shop.html">🛍️ ' + loc('தொடர்ந்து ஷாப்பிங் செய்யுங்கள்', 'షాపింగ్ కొనసాగించండి', 'ಶಾಪಿಂಗ್ ಮುಂದುವರಿಸಿ', 'Continue Shopping', 'ഷോപ്പിംഗ് തുടരൂ') + '</a>' +
