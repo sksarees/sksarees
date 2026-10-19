@@ -1486,6 +1486,95 @@ function homeCardHTML(p){
     '</div>' +
   '</div>';
 }
+/* ═══════════ V33: COMPARE SAREES (max 3) ═══════════ */
+const CMP = {
+  key: 'sk_compare',
+  get(){ try{ return JSON.parse(localStorage.getItem(CMP.key) || '[]').filter(id => byId(id)).slice(0, 3); }catch(e){ return []; } },
+  has(id){ return CMP.get().indexOf(id) !== -1; },
+  save(l){ try{ localStorage.setItem(CMP.key, JSON.stringify(l.slice(0, 3))); }catch(e){} CMP.bar(); },
+  toggle(id){
+    const l = CMP.get();
+    const i = l.indexOf(id);
+    if (i >= 0) l.splice(i, 1);
+    else {
+      if (l.length >= 3){ toast('⚖️ ' + loc('3 சேலைகள் மட்டுமே ஒப்பிடலாம்', '3 చీరలు మాత్రమే పోల్చవచ్చు', '3 ಸೀರೆಗಳನ್ನು ಮಾತ್ರ ಹೋಲಿಸಬಹುದು', 'You can compare up to 3 sarees', '3 സാരികൾ മാത്രം താരതമ്യം ചെയ്യാം')); return; }
+      l.push(id);
+      track('compare_used', { id: id, count: l.length });
+    }
+    CMP.save(l);
+    document.querySelectorAll('[data-cmp="' + id + '"]').forEach(b => b.classList.toggle('on', i < 0));
+    toast(i < 0 ? '⚖️ ' + loc('ஒப்பிட சேர்க்கப்பட்டது', 'పోలికకు జోడించబడింది', 'ಹೋಲಿಕೆಗೆ ಸೇರಿಸಲಾಗಿದೆ', 'Added to compare', 'താരതമ്യത്തിലേക്ക് ചേർത്തു') : '✕ ' + loc('ஒப்பீட்டிலிருந்து நீக்கப்பட்டது', 'పోలిక నుండి తీసివేయబడింది', 'ಹೋಲಿಕೆಯಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ', 'Removed from compare', 'താരതമ്യത്തിൽ നിന്ന് നീക്കി'));
+  },
+  bar(){
+    let el = document.getElementById('cmpBar');
+    const l = CMP.get();
+    if (!l.length){ if (el) el.remove(); try{ document.body.classList.remove('cmp-on'); }catch(e){} return; }
+    try{ document.body.classList.add('cmp-on'); }catch(e){}
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'cmpBar'; el.className = 'cmp-bar';
+      document.body.appendChild(el);
+    }
+    el.innerHTML = '<div class="cmp-thumbs">' + l.map(id => { const p = byId(id); return '<span class="cmp-th"><img src="' + esc(p.img) + '" alt=""><i data-cmprm="' + id + '" role="button" aria-label="Remove">✕</i></span>'; }).join('') +
+      '<span class="cmp-empty">' + (3 - l.length) + ' ' + loc('மேலும் சேர்க்கலாம்', 'ఇంకా జోడించవచ్చు', 'ಇನ್ನಷ್ಟು ಸೇರಿಸಬಹುದು', 'more', 'കൂടുതൽ') + '</span></div>' +
+      '<div class="cmp-acts"><button type="button" class="cmp-clear">' + loc('நீக்கு', 'తీసివేయి', 'ತೆಗೆದುಹಾಕಿ', 'Clear', 'നീക്കം') + '</button>' +
+      '<button type="button" class="cmp-go">⚖️ ' + loc('ஒப்பிடு', 'పోల్చండి', 'ಹೋಲಿಸಿ', 'Compare', 'താരതമ്യം') + ' (' + l.length + ')</button></div>';
+    el.querySelector('.cmp-go').onclick = () => CMP.open();
+    el.querySelector('.cmp-clear').onclick = () => { CMP.save([]); };
+    el.querySelectorAll('[data-cmprm]').forEach(b => b.onclick = () => CMP.toggle(b.dataset.cmprm));
+  },
+  open(){
+    const l = CMP.get();
+    if (l.length < 2){ toast('⚖️ ' + loc('குறைந்தது 2 சேலைகள் தேர்ந்தெடுங்கள்', 'కనీసం 2 చీరలు ఎంచుకోండి', 'ಕನಿಷ್ಠ 2 ಸೀರೆಗಳನ್ನು ಆರಿಸಿ', 'Select at least 2 sarees to compare', 'കുറഞ്ഞത് 2 സാരികൾ തിരഞ്ഞെടുക്കൂ')); return; }
+    const ps = l.map(byId);
+    const row = (label, fn) => '<tr><th>' + label + '</th>' + ps.map(p => '<td>' + fn(p) + '</td>').join('') + '</tr>';
+    const html = '<div class="cmp-ov"><div class="cmp-card" role="dialog" aria-label="Compare sarees">' +
+      '<div class="cmp-head"><b>⚖️ ' + loc('சேலைகளை ஒப்பிடுங்கள்', 'చీరలను పోల్చండి', 'ಸೀರೆಗಳನ್ನು ಹೋಲಿಸಿ', 'Compare Sarees', 'സാരികൾ താരതമ്യം ചെയ്യൂ') + '</b><button type="button" class="cmp-x" aria-label="Close">✕</button></div>' +
+      '<div class="cmp-scroll"><table class="cmp-table"><thead><tr><th></th>' +
+        ps.map(p => '<td class="cmp-prod"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '"><b>' + esc(smartTitle(p)) + '</b><small>SKU: ' + esc(p.sku || p.id) + '</small>' +
+          '<a class="cmp-view" href="' + productUrl(p) + '">' + loc('பார்', 'చూడండి', 'ನೋಡಿ', 'View', 'കാണൂ') + ' →</a></td>').join('') +
+      '</tr></thead><tbody>' +
+        row('💰 ' + loc('விலை', 'ధర', 'ಬೆಲೆ', 'Price', 'വില'), p => '<b class="cmp-price">' + money(p.price) + '</b>' + (p.mrp > p.price ? '<br><s class="small muted">' + money(p.mrp) + '</s>' : '')) +
+        row('🧵 ' + loc('துணி', 'ఫ్యాబ్రిక్', 'ಫ್ಯಾಬ್ರಿಕ್', 'Fabric', 'തുണി'), p => esc(p.fabric || '—')) +
+        row('🎨 ' + loc('நிறங்கள்', 'రంగులు', 'ಬಣ್ಣಗಳು', 'Colours', 'നിറങ്ങൾ'), p => esc((p.colors || []).join(', ') || '—')) +
+        row('🎉 ' + loc('சந்தர்ப்பம்', 'సందర్భం', 'ಸಂದರ್ಭ', 'Occasion', 'അവസരം'), p => esc(occLabel(occasionOf(p)))) +
+        row('👩‍🦰 ' + loc('பிளவுஸ்', 'బ్లౌజ్', 'ಬ್ಲೌಸ್', 'Blouse', 'ബ്ലൗസ്'), p => esc(p.blouse || '—')) +
+        row('📏 ' + loc('நீளம்', 'పొడవు', 'ಉದ್ದ', 'Length', 'നീളം'), p => esc(p.length || '—')) +
+        row('✅ ' + loc('இருப்பு', 'స్టాక్', 'ಸ್ಟಾಕ್', 'Stock', 'സ്റ്റോക്ക്'), p => (p.stock != null && p.stock <= 0) ? '<span style="color:#C62828;font-weight:800">Out</span>' : '<span style="color:#1B9E57;font-weight:800">' + loc('உண்டு', 'ఉంది', 'ಇದೆ', 'In stock', 'ഉണ്ട്') + '</span>') +
+        row('🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ'), p => '₹' + (CONFIG.shipPerKg || 30) + '/kg<br><small class="muted">' + (p.weight || 800) + 'g</small>') +
+        row('↩️ ' + loc('மாற்று', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്മെന്റ്'), () => '7 ' + loc('நாட்கள்', 'రోజులు', 'ದಿನ', 'days', 'ദിവസം')) +
+        row('', p => '<button type="button" class="cmp-buy btn btn-pd-buy btn-sm" data-buynow="' + esc(p.id) + '" data-qty="1" style="width:100%;min-height:42px">🛒 ' + L_BUYNOW() + '</button>') +
+      '</tbody></table></div></div></div>';
+    const ov = document.createElement('div');
+    ov.innerHTML = html;
+    document.body.appendChild(ov.firstChild);
+    const close = () => { try{ document.querySelector('.cmp-ov').remove(); }catch(e){} };
+    document.querySelector('.cmp-x').onclick = close;
+    document.querySelector('.cmp-ov').addEventListener('click', e => { if (e.target.classList.contains('cmp-ov')) close(); });
+  }
+};
+/* 🎉 occasion of a product (from its category) */
+function occasionOf(p){
+  const c = String((p && p.cat) || '');
+  if (/wedding|bridal|kanchipuram/.test(c)) return 'wedding';
+  if (/party|fancy|designer|georgette/.test(c)) return 'party';
+  if (/office|linen/.test(c)) return 'office';
+  if (/daily|cotton|printed/.test(c)) return 'daily';
+  return 'festival';
+}
+function occLabel(o){
+  return ({ daily: loc('தினசரி', 'రోజువారీ', 'ದೈನಂದಿನ', 'Daily Wear', 'ദൈനംദിനം'),
+            office: loc('அலுவலகம்', 'ఆఫీస్', 'ಕಚೇರಿ', 'Office Wear', 'ഓഫീസ്'),
+            wedding: loc('திருமணம்', 'పెళ్లి', 'ಮದುವೆ', 'Wedding', 'വിവാഹം'),
+            festival: loc('பண்டிகை', 'పండుగ', 'ಹಬ್ಬ', 'Festival', 'ഉത്സവം'),
+            party: loc('பார்ட்டி', 'పార్టీ', 'ಪಾರ್ಟಿ', 'Party Wear', 'പാർട്ടി') })[o] || o;
+}
+/* 📊 analytics helper (GA4 + Meta, no-op if absent) */
+function track(ev, data){
+  try{ if (typeof gtag === 'function') gtag('event', ev, data || {}); }catch(e){}
+  try{ if (ev === 'filter_used' || ev === 'shop_search') fbqSafe('Search', data || {}); }catch(e){}
+}
+
 function renderHome(){
   const app = document.getElementById('app'); if (!app) return;
   const pool = PRODUCTS.filter(p => !p.hidden);
@@ -1526,6 +1615,25 @@ function renderHome(){
       '<input id="imQ" type="search" placeholder="' + loc('Search sarees, silk sarees, cotton sarees…', 'చీరలు, పట్టు చీరలు, కాటన్ చీరలు వెతకండి…', 'ಸೀರೆಗಳು, ರೇಷ್ಮೆ ಸೀರೆಗಳು, ಕಾಟನ್ ಸೀರೆಗಳು ಹುಡುಕಿ…', 'Search sarees, silk sarees, cotton sarees…', 'സാരികൾ തിരയുക…') + '" autocomplete="off">' +
       '<button type="submit" class="im-search-btn">🔍 Search</button></form>' +
       '<div class="sk-chips" style="padding:8px 0 0">' + ['Silk Saree', 'Cotton Saree', 'Wedding Saree', 'Red Saree', 'Blue Saree'].map(s => '<a class="sk-chip" href="shop.html?q=' + encodeURIComponent(s) + '">' + s + '</a>').join('') + '<a class="sk-chip" href="shop.html?min=0&max=699">Under ₹699</a></div></div>' +
+    /* ═══ V33: FIND YOUR PERFECT SAREE — smart marketplace search panel ═══ */
+    '<div class="wrap"><div class="fp-card">' +
+      '<div class="fp-head"><b>🔍 ' + loc('உங்களுக்கான சேலையை கண்டுபிடிக்கவும்', 'మీకు సరిపోయే చీరను కనుగొనండి', 'ನಿಮಗೆ ಸರಿಹೊಂದುವ ಸೀರೆ ಹುಡುಕಿ', 'Find Your Perfect Saree', 'നിങ്ങൾക്കിണങ്ങിയ സാരി കണ്ടെത്തൂ') + '</b>' +
+        '<small>' + loc('பட்ஜெட் • துணி • நிறம் • சந்தர்ப்பம்', 'బడ్జెట్ • ఫ్యాబ్రిక్ • రంగు • సందర్భం', 'ಬಜೆಟ್ • ಫ್ಯಾಬ್ರಿಕ್ • ಬಣ್ಣ • ಸಂದರ್ಭ', 'Budget • Fabric • Colour • Occasion', 'ബജറ്റ് • തുണി • നിറം • അവസരം') + '</small></div>' +
+      '<div class="fp-budget">' +
+        [['0','499','Under ₹500'],['500','999','₹500–₹999'],['1000','1499','₹1,000–₹1,499'],['1500','3000','₹1,500+']].map(b =>
+          '<button type="button" class="fp-b" data-fpmin="' + b[0] + '" data-fpmax="' + b[1] + '">' + b[2] + '</button>').join('') +
+      '</div>' +
+      '<div class="fp-grid">' +
+        '<select id="fpFabric" aria-label="Fabric"><option value="">' + loc('எல்லா துணிகள்', 'అన్ని ఫ్యాబ్రిక్‌లు', 'ಎಲ್ಲಾ ಫ್ಯಾಬ್ರಿಕ್', 'All fabrics', 'എല്ലാ തുണികളും') + '</option>' +
+          ['cotton','silk','soft silk','linen','georgette','art silk'].map(f => '<option value="' + f + '">' + f.replace(/\b\w/g, m => m.toUpperCase()) + '</option>').join('') + '</select>' +
+        '<select id="fpColour" aria-label="Colour"><option value="">' + loc('எல்லா நிறங்கள்', 'అన్ని రంగులు', 'ಎಲ್ಲಾ ಬಣ್ಣಗಳು', 'All colours', 'എല്ലാ നിറങ്ങളും') + '</option>' +
+          ['Red','Maroon','Pink','Blue','Green','Gold','Purple','Multi'].map(c => '<option value="' + c + '">' + c + '</option>').join('') + '</select>' +
+        '<select id="fpOcc" aria-label="Occasion"><option value="">' + loc('எல்லா சந்தர்ப்பங்கள்', 'అన్ని సందర్భాలు', 'ಎಲ್ಲಾ ಸಂದರ್ಭಗಳು', 'All occasions', 'എല്ലാ അവസരങ്ങളും') + '</option>' +
+          ['daily','office','wedding','festival','party'].map(o => '<option value="' + o + '">' + occLabel(o) + '</option>').join('') + '</select>' +
+      '</div>' +
+      '<label class="fp-avail"><input type="checkbox" id="fpAvail"> ' + loc('இருப்பில் உள்ளவை மட்டும்', 'స్టాక్‌లో ఉన్నవి మాత్రమే', 'ಸ್ಟಾಕ್‌ನಲ್ಲಿರುವವು ಮಾತ್ರ', 'In stock only', 'സ്റ്റോക്കിലുള്ളവ മാത്രം') + '</label>' +
+      '<button type="button" class="fp-go" id="fpGo">' + loc('சேலை தேடு →', 'చీర వెతకండి →', 'ಸೀರೆ ಹುಡುಕಿ →', 'FIND SAREE →', 'സാരി കണ്ടെത്തൂ →') + '</button>' +
+    '</div></div>' +
     /* ═══ 5. SHOP BY CATEGORY — image tiles + Under ₹699 ═══ */
     secHead('🧵 ' + t('shopByCategory'), 'shop.html') + '<div class="sk-cats">' +
       liveCats.slice(0, 5).map(x =>
@@ -1687,7 +1795,7 @@ function renderComboPage(){
 }
 
 /* ============================ SHOP ============================ */
-let shopState = { cat: '', q: '', fabric: '', colour: '', min: 0, max: 3000, sort: 'viewed', shown: 12, list: [] };   /* 🔥 default = most viewed */
+let shopState = { cat: '', q: '', fabric: '', colour: '', occ: '', avail: false, min: 0, max: 3000, sort: 'viewed', shown: 12, list: [] };   /* 🔥 default = most viewed */
 /* 🖼️ category-folder hero image — a real saree photo from THAT category
    (fallback: any product, then the share banner). Also used for og:image. */
 function catHeroImage(slug){
@@ -1711,6 +1819,11 @@ function renderShop(){
   if (smx && +smx > 0) shopState.max = +smx;    /* price filter chips from the homepage */
   const smn = params.get('min');
   if (smn && +smn >= 0) shopState.min = +smn;   /* price RANGE chips (₹500–₹999 etc.) */
+  /* 🔎 V33 deep-links from the home "Find Your Perfect Saree" panel */
+  const fq2 = params.get('fabric'); if (fq2) shopState.fabric = fq2;
+  const cq2 = params.get('colour'); if (cq2) shopState.colour = cq2;
+  const oq2 = params.get('occ'); if (oq2) shopState.occ = oq2;
+  if (params.get('avail') === '1') shopState.avail = true;
   /* 🎨 unique colours across the live catalog (drives the Colour filter) */
   const allColours = [];
   try{
@@ -1748,13 +1861,22 @@ function renderShop(){
         '<select id="cFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All colours</option>' + colOpts + '</select></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Max Price — <span id="priceLbl">₹3,000</span></label>' +
         '<input type="range" id="pFilter" min="299" max="3000" step="100" value="3000" style="width:100%;accent-color:var(--maroon)"></div>' +
+        '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">🎉 Occasion</label>' +
+        '<select id="oFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff">' +
+        '<option value=""' + (!shopState.occ ? ' selected' : '') + '>All occasions</option>' +
+        ['daily','office','wedding','festival','party'].map(o => '<option value="' + o + '"' + (shopState.occ === o ? ' selected' : '') + '>' + occLabel(o) + '</option>').join('') +
+        '</select></div>' +
+        '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">✅ Availability</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;font-size:.84rem;font-weight:700;cursor:pointer;min-height:44px">' +
+        '<input type="checkbox" id="availFilter"' + (shopState.avail ? ' checked' : '') + ' style="width:18px;height:18px;accent-color:var(--maroon)"> In stock only</label></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Sort</label>' +
         '<select id="sFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff">' +
         '<option value="viewed">🔥 Most Viewed</option>' +
         '<option value="foryou">✨ For You (AI)</option>' +
         '<option value="newest">Newest</option><option value="bestselling">Best Selling</option><option value="popular">Popularity</option>' +
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
-      '</div></div>')) +
+      '</div></div>' +
+      '<div style="display:flex;justify-content:flex-end;margin-top:6px"><button type="button" class="btn btn-outline btn-sm" id="clearFilters" style="width:auto;min-height:38px;padding:6px 16px;font-size:.78rem">✕ Clear Filters</button></div>')) +
       '<p class="small muted" id="countLbl" style="margin:12px 0 6px">⏳ Loading sarees…</p>' +
       '<div class="reel-grid" id="grid"></div>' +
       '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="loadMore" style="width:auto;min-width:200px">Load More ↓</button></div>' +
@@ -1785,7 +1907,18 @@ function bindShop(){
   if (el('fFilter')) el('fFilter').addEventListener('change', e => { shopState.fabric = e.target.value; shopState.shown = 12; updateShopList(); });
   if (el('cFilter')) el('cFilter').addEventListener('change', e => { shopState.colour = e.target.value; shopState.shown = 12; updateShopList(); });
   if (el('pFilter')) el('pFilter').addEventListener('input', e => { shopState.max = +e.target.value; if (el('priceLbl')) el('priceLbl').textContent = money(shopState.max); shopState.shown = 12; updateShopList(); });
-  if (el('sFilter')) el('sFilter').addEventListener('change', e => { shopState.sort = e.target.value; shopState.shown = 12; updateShopList(); });
+  if (el('sFilter')) el('sFilter').addEventListener('change', e => { shopState.sort = e.target.value; shopState.shown = 12; track('filter_used', { type: 'sort', value: e.target.value }); updateShopList(); });
+  /* 🎉 V33 occasion + availability filters */
+  if (el('oFilter')) el('oFilter').addEventListener('change', e => { shopState.occ = e.target.value; shopState.shown = 12; track('filter_used', { type: 'occasion', value: e.target.value }); updateShopList(); });
+  if (el('availFilter')) el('availFilter').addEventListener('change', e => { shopState.avail = e.target.checked; shopState.shown = 12; track('filter_used', { type: 'availability', value: e.target.checked }); updateShopList(); });
+  /* ✕ Clear all filters */
+  if (el('clearFilters')) el('clearFilters').addEventListener('click', () => {
+    shopState.q = ''; shopState.fabric = ''; shopState.colour = ''; shopState.occ = ''; shopState.avail = false;
+    shopState.cat = ''; shopState.min = 0; shopState.max = 3000; shopState.shown = 12;
+    try{ history.replaceState(null, '', location.pathname); }catch(e2){}
+    renderShop();
+    track('filter_used', { type: 'clear' });
+  });
   if (el('catChips')) el('catChips').addEventListener('click', e => {
     const b = e.target.closest('[data-cat]'); if (!b) return;
     shopState.cat = b.dataset.cat; shopState.shown = 12; drawChips(); updateShopList();
@@ -1809,6 +1942,8 @@ function shopList(){
     (!shopState.q || (p.name + ' ' + p.fabric + ' ' + p.color + ' ' + (p.sku || '')).toLowerCase().includes(shopState.q.toLowerCase())) &&
     (!shopState.fabric || p.fabric.toLowerCase().includes(shopState.fabric.toLowerCase())) &&
     (!shopState.colour || (p.colors || []).indexOf(shopState.colour) !== -1 || String(p.color || '').toLowerCase().includes(shopState.colour.toLowerCase())) &&
+    (!shopState.occ || occasionOf(p) === shopState.occ) &&
+    (!shopState.avail || (p.stock == null || p.stock > 0)) &&
     p.price <= shopState.max && p.price >= (shopState.min || 0));
   switch (shopState.sort){
     case 'foryou': {
@@ -1860,6 +1995,7 @@ function cardReelHTML(p){
       photos.map((u, i) => '<div class="reel-slide"><img src="' + esc(u) + '" alt="' + esc(p.name) + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" onload="imgLoaded(this)" onerror="imgSafe(this)"></div>').join('') +
       (out ? '<span class="badge red">Out of Stock</span>' : '') +
       (off && !out ? '<span class="offchip">-' + off + '%</span>' : '') +
+      '<span class="cmp-btn' + (CMP.has(p.id) ? ' on' : '') + '" data-cmp="' + esc(p.id) + '" role="button" aria-label="Compare saree" title="Compare">⚖️</span>' +
       '<span class="card-heart' + (Store.wish.includes(p.id) ? ' on' : '') + '" data-wish="' + p.id + '" role="button" aria-label="Save to wishlist">' + (Store.wish.includes(p.id) ? '❤️' : '🤍') + '</span>' +
       (multi ? '<div class="reel-dots">' + photos.map((_, i) => '<i class="' + (i === 0 ? 'on' : '') + '"></i>').join('') + '</div>' : '') +
       (multi
@@ -5065,6 +5201,43 @@ document.addEventListener('input', function(e){
     }
   }catch(e){}
 });
+
+/* ═══════════ V33: home "Find Your Perfect Saree" panel → shop deep-link ═══════════ */
+document.addEventListener('click', function(e){
+  const b = e.target.closest && e.target.closest('.fp-b');
+  if (b){
+    e.preventDefault();
+    document.querySelectorAll('.fp-b').forEach(x => x.classList.toggle('on', x === b));
+    return;
+  }
+  const go = e.target.closest && e.target.closest('#fpGo');
+  if (go){
+    e.preventDefault();
+    const sel = document.querySelector('.fp-b.on');
+    const qs = new URLSearchParams();
+    if (sel){ qs.set('min', sel.dataset.fpmin); qs.set('max', sel.dataset.fpmax); }
+    const fab = (document.getElementById('fpFabric') || {}).value;
+    const col = (document.getElementById('fpColour') || {}).value;
+    const occ = (document.getElementById('fpOcc') || {}).value;
+    const av = document.getElementById('fpAvail');
+    if (fab) qs.set('fabric', fab);
+    if (col) qs.set('colour', col);
+    if (occ) qs.set('occ', occ);
+    if (av && av.checked) qs.set('avail', '1');
+    track('shop_search', { fabric: fab || '', colour: col || '', occ: occ || '', budget: sel ? sel.dataset.fpmin + '-' + sel.dataset.fpmax : '' });
+    const fpUrl = 'shop.html' + (qs.toString() ? '?' + qs.toString() : '');
+    try{ if (window.__testNav){ window.__testNav(fpUrl); return; } }catch(e2){}   /* test hook */
+    location.href = fpUrl;
+    return;
+  }
+  /* 📞 call-click tracking */
+  const tel = e.target.closest && e.target.closest('a[href^="tel:"]');
+  if (tel){ track('call_click', {}); }
+  /* ⚖️ compare toggle from cards */
+  const cmpb = e.target.closest && e.target.closest('[data-cmp]');
+  if (cmpb){ e.preventDefault(); e.stopPropagation(); CMP.toggle(cmpb.dataset.cmp); return; }   /* stop the card-image nav handler */
+}, true);
+document.addEventListener('DOMContentLoaded', () => { try{ CMP.bar(); }catch(e){} });
 
 /* 📊 whatsapp_click tracking — any WhatsApp link tap */
 document.addEventListener('click', function(e){

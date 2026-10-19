@@ -3464,3 +3464,74 @@ body[data-page="reels"] .rp-arrow{ display:none }
 .prod-table tr:last-child td{ border-bottom:0 }
 .prod-table td.low{ color:#C62828; font-weight:800 }
 .prod-table input[type="checkbox"]{ width:20px; height:20px; accent-color:var(--maroon); cursor:pointer }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SK-V33 — Find Your Perfect Saree · Compare Sarees
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* 🔍 smart search panel (home) */
+.fp-card{
+  background:linear-gradient(160deg,#fff,#FFFBF6);
+  border:1.5px solid #EADDCB; border-radius:18px;
+  padding:16px; margin:14px 0 6px; box-shadow:0 8px 26px rgba(90,25,45,.07);
+}
+.fp-head{ display:flex; flex-direction:column; gap:2px; margin-bottom:12px }
+.fp-head b{ font-family:var(--font-display,Georgia),serif; font-size:1.08rem; color:var(--maroon) }
+.fp-head small{ font-size:.72rem; color:#8A7580; font-weight:700; letter-spacing:.3px }
+.fp-budget{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px }
+@media(min-width:520px){ .fp-budget{ grid-template-columns:repeat(4,1fr) } }
+.fp-b{ min-height:44px; border:1.5px solid #EADDCB; border-radius:11px; background:#fff; color:#5C1530; font-size:.78rem; font-weight:800; cursor:pointer }
+.fp-b.on{ background:var(--maroon); border-color:var(--maroon); color:#fff }
+.fp-grid{ display:grid; grid-template-columns:1fr; gap:8px }
+@media(min-width:520px){ .fp-grid{ grid-template-columns:repeat(3,1fr) } }
+.fp-grid select{ min-height:44px; border:1.5px solid #EADDCB; border-radius:11px; padding:10px 12px; font-size:.84rem; font-weight:700; background:#fff; color:#3a1722; outline:none }
+.fp-avail{ display:flex; align-items:center; gap:9px; font-size:.83rem; font-weight:800; color:#3a1722; margin:11px 0; cursor:pointer; min-height:34px }
+.fp-avail input{ width:20px; height:20px; accent-color:var(--maroon) }
+.fp-go{ width:100%; min-height:52px; border-radius:13px; background:var(--maroon); color:#fff; font-size:.95rem; font-weight:900; letter-spacing:.4px; cursor:pointer; box-shadow:0 8px 20px rgba(122,23,49,.22) }
+.fp-go:active{ transform:scale(.99) }
+
+/* ⚖️ compare chip on product cards */
+.cmp-btn{
+  position:absolute; top:8px; left:8px; z-index:3;
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center;
+  font-size:.82rem; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.14);
+  border:1.5px solid transparent;
+}
+.cmp-btn.on{ border-color:var(--maroon); background:#fff7fa }
+/* floating compare bar */
+.cmp-bar{
+  position:fixed; left:10px; right:10px; bottom:calc(10px + env(safe-area-inset-bottom));
+  z-index:95; display:flex; align-items:center; gap:10px; justify-content:space-between;
+  background:#fff; border:1.5px solid #EADDCB; border-radius:15px;
+  padding:9px 11px; box-shadow:0 12px 36px rgba(60,10,25,.2);
+}
+/* never cover page content / cards under the floating bar */
+body.cmp-on{ padding-bottom:92px }
+.cmp-thumbs{ display:flex; align-items:center; gap:6px; min-width:0 }
+.cmp-th{ position:relative; width:38px; height:46px; border-radius:8px; overflow:hidden; flex:0 0 auto }
+.cmp-th img{ width:100%; height:100%; object-fit:cover }
+.cmp-th i{ position:absolute; top:0; right:0; width:15px; height:15px; background:rgba(0,0,0,.62); color:#fff; font-size:.55rem; display:flex; align-items:center; justify-content:center; border-bottom-left-radius:5px; cursor:pointer; font-style:normal }
+.cmp-empty{ font-size:.66rem; color:#8A7580; font-weight:700; white-space:nowrap }
+.cmp-acts{ display:flex; gap:6px; flex:0 0 auto }
+.cmp-clear{ font-size:.7rem; font-weight:800; color:#8A7580; padding:8px 6px; background:none; border:0; cursor:pointer }
+.cmp-go{ background:var(--maroon); color:#fff; font-size:.78rem; font-weight:900; border:0; border-radius:10px; padding:11px 14px; cursor:pointer; white-space:nowrap }
+/* compare modal */
+.cmp-ov{ position:fixed; inset:0; z-index:130; background:rgba(30,8,16,.6); display:flex; align-items:flex-end; justify-content:center; padding:0 }
+@media(min-width:640px){ .cmp-ov{ align-items:center; padding:18px } }
+.cmp-card{ background:#fff; width:100%; max-width:760px; max-height:92vh; border-radius:18px 18px 0 0; display:flex; flex-direction:column; overflow:hidden }
+@media(min-width:640px){ .cmp-card{ border-radius:18px } }
+.cmp-head{ display:flex; align-items:center; justify-content:space-between; padding:13px 15px; border-bottom:1px solid #F0E6DA }
+.cmp-head b{ font-size:1rem; color:var(--maroon) }
+.cmp-x{ width:34px; height:34px; border-radius:50%; background:#F7F0E8; border:0; font-size:.95rem; font-weight:800; cursor:pointer }
+.cmp-scroll{ overflow:auto; -webkit-overflow-scrolling:touch }
+.cmp-table{ border-collapse:collapse; width:100%; min-width:520px }
+.cmp-table th{ text-align:left; font-size:.68rem; color:#8A7580; font-weight:800; padding:9px 11px; background:#FBF6EF; white-space:nowrap; position:sticky; left:0; z-index:1; border-bottom:1px solid #F0E6DA; text-transform:uppercase; letter-spacing:.4px }
+.cmp-table td{ padding:9px 11px; font-size:.8rem; border-bottom:1px solid #F7EFE6; vertical-align:top }
+.cmp-prod{ text-align:center; padding-top:12px !important }
+.cmp-prod img{ width:74px; height:96px; object-fit:cover; border-radius:9px; margin:0 auto 6px; display:block }
+.cmp-prod b{ display:block; font-size:.76rem; line-height:1.35; color:#3a1722 }
+.cmp-prod small{ display:block; font-size:.62rem; color:#8A7580; margin:2px 0 5px }
+.cmp-view{ font-size:.7rem; font-weight:800; color:var(--maroon) }
+.cmp-price{ font-size:.94rem; color:var(--maroon) }
+.cmp-buy{ font-size:.74rem !important; padding:8px 8px !important }
