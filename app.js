@@ -750,7 +750,7 @@ function reelHTML(p, i){
 /* 🛒 reel-grid product card — image + name + price + MRP + OFF + rating + COD + VIEW SAREE + WhatsApp */
 function rlCardHTML(p){
   const off = offPct(p);
-  const revs = (p.reviews || 0) + realReviewCount(p.id);
+  const revs = realRevCount(p);   /* ✅ honest */
   const save = (p.mrp && p.mrp > p.price) ? p.mrp - p.price : 0;
   return '<div class="rlc">' +
     '<a class="rlc-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
@@ -1338,7 +1338,7 @@ function starsHTML(p){
   /* ✅ V25 honest rating: stars + count are shown ONLY when the product has
      real rating & review data. No data → clean "New Arrival" chip — never a
      fake zero-star row, never an invented rating (no-fake-marketing rule). */
-  const rc = ((p.reviews || 0) + realReviewCount(p.id));
+  const rc = realRevCount(p);   /* ✅ honest: written reviews only */
   if (!(p.rating > 0) || rc <= 0) return '<span class="pd-newchip">✨ New Arrival</span>';
   const r = Math.min(5, Math.max(1, Math.round(p.rating)));
   return '<div class="stars">' + '★'.repeat(r) + '☆'.repeat(5 - r) +
@@ -1466,7 +1466,7 @@ function nextFestival2026(){
    BUY NOW (maroon primary) + WhatsApp Order (green) */
 function homeCardHTML(p){
   const off = offPct(p);
-  const revs = (p.reviews || 0) + realReviewCount(p.id);
+  const revs = realRevCount(p);   /* ✅ honest */
   const save = (p.mrp && p.mrp > p.price) ? p.mrp - p.price : 0;
   return '<div class="hc">' +
     '<a class="hc-img" href="product.html?id=' + encodeURIComponent(p.id) + '">' +
@@ -1486,73 +1486,6 @@ function homeCardHTML(p){
     '</div>' +
   '</div>';
 }
-/* ═══════════ V33: COMPARE SAREES (max 3) ═══════════ */
-const CMP = {
-  key: 'sk_compare',
-  get(){ try{ return JSON.parse(localStorage.getItem(CMP.key) || '[]').filter(id => byId(id)).slice(0, 3); }catch(e){ return []; } },
-  has(id){ return CMP.get().indexOf(id) !== -1; },
-  save(l){ try{ localStorage.setItem(CMP.key, JSON.stringify(l.slice(0, 3))); }catch(e){} CMP.bar(); },
-  toggle(id){
-    const l = CMP.get();
-    const i = l.indexOf(id);
-    if (i >= 0) l.splice(i, 1);
-    else {
-      if (l.length >= 3){ toast('⚖️ ' + loc('3 சேலைகள் மட்டுமே ஒப்பிடலாம்', '3 చీరలు మాత్రమే పోల్చవచ్చు', '3 ಸೀರೆಗಳನ್ನು ಮಾತ್ರ ಹೋಲಿಸಬಹುದು', 'You can compare up to 3 sarees', '3 സാരികൾ മാത്രം താരതമ്യം ചെയ്യാം')); return; }
-      l.push(id);
-      track('compare_used', { id: id, count: l.length });
-    }
-    CMP.save(l);
-    document.querySelectorAll('[data-cmp="' + id + '"]').forEach(b => b.classList.toggle('on', i < 0));
-    toast(i < 0 ? '⚖️ ' + loc('ஒப்பிட சேர்க்கப்பட்டது', 'పోలికకు జోడించబడింది', 'ಹೋಲಿಕೆಗೆ ಸೇರಿಸಲಾಗಿದೆ', 'Added to compare', 'താരതമ്യത്തിലേക്ക് ചേർത്തു') : '✕ ' + loc('ஒப்பீட்டிலிருந்து நீக்கப்பட்டது', 'పోలిక నుండి తీసివేయబడింది', 'ಹೋಲಿಕೆಯಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ', 'Removed from compare', 'താരതമ്യത്തിൽ നിന്ന് നീക്കി'));
-  },
-  bar(){
-    let el = document.getElementById('cmpBar');
-    const l = CMP.get();
-    if (!l.length){ if (el) el.remove(); try{ document.body.classList.remove('cmp-on'); }catch(e){} return; }
-    try{ document.body.classList.add('cmp-on'); }catch(e){}
-    if (!el){
-      el = document.createElement('div');
-      el.id = 'cmpBar'; el.className = 'cmp-bar';
-      document.body.appendChild(el);
-    }
-    el.innerHTML = '<div class="cmp-thumbs">' + l.map(id => { const p = byId(id); return '<span class="cmp-th"><img src="' + esc(p.img) + '" alt=""><i data-cmprm="' + id + '" role="button" aria-label="Remove">✕</i></span>'; }).join('') +
-      '<span class="cmp-empty">' + (3 - l.length) + ' ' + loc('மேலும் சேர்க்கலாம்', 'ఇంకా జోడించవచ్చు', 'ಇನ್ನಷ್ಟು ಸೇರಿಸಬಹುದು', 'more', 'കൂടുതൽ') + '</span></div>' +
-      '<div class="cmp-acts"><button type="button" class="cmp-clear">' + loc('நீக்கு', 'తీసివేయి', 'ತೆಗೆದುಹಾಕಿ', 'Clear', 'നീക്കം') + '</button>' +
-      '<button type="button" class="cmp-go">⚖️ ' + loc('ஒப்பிடு', 'పోల్చండి', 'ಹೋಲಿಸಿ', 'Compare', 'താരതമ്യം') + ' (' + l.length + ')</button></div>';
-    el.querySelector('.cmp-go').onclick = () => CMP.open();
-    el.querySelector('.cmp-clear').onclick = () => { CMP.save([]); };
-    el.querySelectorAll('[data-cmprm]').forEach(b => b.onclick = () => CMP.toggle(b.dataset.cmprm));
-  },
-  open(){
-    const l = CMP.get();
-    if (l.length < 2){ toast('⚖️ ' + loc('குறைந்தது 2 சேலைகள் தேர்ந்தெடுங்கள்', 'కనీసం 2 చీరలు ఎంచుకోండి', 'ಕನಿಷ್ಠ 2 ಸೀರೆಗಳನ್ನು ಆರಿಸಿ', 'Select at least 2 sarees to compare', 'കുറഞ്ഞത് 2 സാരികൾ തിരഞ്ഞെടുക്കൂ')); return; }
-    const ps = l.map(byId);
-    const row = (label, fn) => '<tr><th>' + label + '</th>' + ps.map(p => '<td>' + fn(p) + '</td>').join('') + '</tr>';
-    const html = '<div class="cmp-ov"><div class="cmp-card" role="dialog" aria-label="Compare sarees">' +
-      '<div class="cmp-head"><b>⚖️ ' + loc('சேலைகளை ஒப்பிடுங்கள்', 'చీరలను పోల్చండి', 'ಸೀರೆಗಳನ್ನು ಹೋಲಿಸಿ', 'Compare Sarees', 'സാരികൾ താരതമ്യം ചെയ്യൂ') + '</b><button type="button" class="cmp-x" aria-label="Close">✕</button></div>' +
-      '<div class="cmp-scroll"><table class="cmp-table"><thead><tr><th></th>' +
-        ps.map(p => '<td class="cmp-prod"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '"><b>' + esc(smartTitle(p)) + '</b><small>SKU: ' + esc(p.sku || p.id) + '</small>' +
-          '<a class="cmp-view" href="' + productUrl(p) + '">' + loc('பார்', 'చూడండి', 'ನೋಡಿ', 'View', 'കാണൂ') + ' →</a></td>').join('') +
-      '</tr></thead><tbody>' +
-        row('💰 ' + loc('விலை', 'ధర', 'ಬೆಲೆ', 'Price', 'വില'), p => '<b class="cmp-price">' + money(p.price) + '</b>' + (p.mrp > p.price ? '<br><s class="small muted">' + money(p.mrp) + '</s>' : '')) +
-        row('🧵 ' + loc('துணி', 'ఫ్యాబ్రిక్', 'ಫ್ಯಾಬ್ರಿಕ್', 'Fabric', 'തുണി'), p => esc(p.fabric || '—')) +
-        row('🎨 ' + loc('நிறங்கள்', 'రంగులు', 'ಬಣ್ಣಗಳು', 'Colours', 'നിറങ്ങൾ'), p => esc((p.colors || []).join(', ') || '—')) +
-        row('🎉 ' + loc('சந்தர்ப்பம்', 'సందర్భం', 'ಸಂದರ್ಭ', 'Occasion', 'അവസരം'), p => esc(occLabel(occasionOf(p)))) +
-        row('👩‍🦰 ' + loc('பிளவுஸ்', 'బ్లౌజ్', 'ಬ್ಲೌಸ್', 'Blouse', 'ബ്ലൗസ്'), p => esc(p.blouse || '—')) +
-        row('📏 ' + loc('நீளம்', 'పొడవు', 'ಉದ್ದ', 'Length', 'നീളം'), p => esc(p.length || '—')) +
-        row('✅ ' + loc('இருப்பு', 'స్టాక్', 'ಸ್ಟಾಕ್', 'Stock', 'സ്റ്റോക്ക്'), p => (p.stock != null && p.stock <= 0) ? '<span style="color:#C62828;font-weight:800">Out</span>' : '<span style="color:#1B9E57;font-weight:800">' + loc('உண்டு', 'ఉంది', 'ಇದೆ', 'In stock', 'ഉണ്ട്') + '</span>') +
-        row('🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ'), p => '₹' + (CONFIG.shipPerKg || 30) + '/kg<br><small class="muted">' + (p.weight || 800) + 'g</small>') +
-        row('↩️ ' + loc('மாற்று', 'రీప్లేస్‌మెంట్', 'ಬದಲಿ', 'Replacement', 'റീപ്ലേസ്മെന്റ്'), () => '7 ' + loc('நாட்கள்', 'రోజులు', 'ದಿನ', 'days', 'ദിവസം')) +
-        row('', p => '<button type="button" class="cmp-buy btn btn-pd-buy btn-sm" data-buynow="' + esc(p.id) + '" data-qty="1" style="width:100%;min-height:42px">🛒 ' + L_BUYNOW() + '</button>') +
-      '</tbody></table></div></div></div>';
-    const ov = document.createElement('div');
-    ov.innerHTML = html;
-    document.body.appendChild(ov.firstChild);
-    const close = () => { try{ document.querySelector('.cmp-ov').remove(); }catch(e){} };
-    document.querySelector('.cmp-x').onclick = close;
-    document.querySelector('.cmp-ov').addEventListener('click', e => { if (e.target.classList.contains('cmp-ov')) close(); });
-  }
-};
 /* 🎉 occasion of a product (from its category) */
 function occasionOf(p){
   const c = String((p && p.cat) || '');
@@ -1573,6 +1506,53 @@ function occLabel(o){
 function track(ev, data){
   try{ if (typeof gtag === 'function') gtag('event', ev, data || {}); }catch(e){}
   try{ if (ev === 'filter_used' || ev === 'shop_search') fbqSafe('Search', data || {}); }catch(e){}
+}
+
+/* ═══════════ V34: TRUST LAYER — only verifiable facts ═══════════ */
+const TRUST_ITEMS = [
+  { ic: '🏪',
+    t: () => loc('உண்மையான கடை — சேலம்', 'నిజమైన షాప్ — సేలం', 'ನಿಜವಾದ ಅಂಗಡಿ — ಸೇಲಂ', 'Real physical shop — Salem', 'യഥാർത്ഥ കട — സേലം'),
+    s: () => loc('எடங்கணசாலை, சேலம் 637502 — நேரில் வந்து பார்க்கலாம்', 'ఎడంగణసాలై, సేలం 637502 — నేరుగా వచ్చి చూడవచ్చు', 'ಎಡಂಗಣಸಲೈ, ಸೇಲಂ 637502 — ನೇರವಾಗಿ ಬಂದು ನೋಡಬಹುದು', 'Edanganasalai, Salem 637502 — visit us in person', 'എടങ്കണസാലൈ, സേലം 637502 — നേരിട്ട് വന്ന് കാണാം') },
+  { ic: '📸',
+    t: () => loc('100% உண்மையான சேலை போட்டோ', '100% నిజమైన చీర ఫోటోలు', '100% ನಿಜವಾದ ಸೀರೆ ಫೋಟೋ', '100% real saree photos', '100% യഥാർത്ഥ സാരി ഫോട്ടോ'),
+    s: () => loc('AI படம் இல்லை — WhatsApp-ல் நேரடி வீடியோ கேட்கலாம்', 'AI చిత్రాలు లేవు — WhatsApp లో లైవ్ వీడియో అడగండి', 'AI ಚಿತ್ರಗಳಿಲ್ಲ — WhatsApp ನಲ್ಲಿ ಲೈವ್ ವೀಡಿಯೊ ಕೇಳಿ', 'No AI images — ask for a live video on WhatsApp', 'AI ചിത്രങ്ങളില്ല — WhatsApp-ൽ ലൈവ് വീഡിയോ ചോദിക്കൂ') },
+  { ic: '💵',
+    t: () => loc('COD — ₹100 மட்டும் முன்பணம்', 'COD — ₹100 మాత్రమే అడ్వాన్స్', 'COD — ₹100 ಮಾತ್ರ ಮುಂಗಡ', 'COD — only ₹100 advance', 'COD — ₹100 മാത്രം അഡ്വാൻസ്'),
+    s: () => loc('மீதி சேலை தொகை டெலிவரியில் பணமாக', 'మిగిలిన చీర మొత్తం డెలివరీలో నగదు', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'rest of the saree amount in cash at delivery', 'ബാക്കി സാരി തുക ഡെലിവറിയിൽ പണമായി') },
+  { ic: '🔐',
+    t: () => loc('பாதுகாப்பான UPI — SK SAREES பெயருக்கு', 'సురక్షిత UPI — SK SAREES పేరుకు', 'ಸುರಕ್ಷಿತ UPI — SK SAREES ಹೆಸರಿಗೆ', 'Secure UPI to verified name SK SAREES', 'സുരക്ഷിത UPI — SK SAREES പേരിലേക്ക്'),
+    s: () => 'sk7867915699-1@oksbi' },
+  { ic: '🔄',
+    t: () => loc('7 நாள் எளிதான மாற்று', '7 రోజుల సులభ రీప్లేస్‌మెంట్', '7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ', '7-day easy replacement', '7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ്'),
+    s: () => loc('சேதம் அல்லது தவறான சேலை — இலவச மாற்று', 'పాడైన లేదా తప్పు చీర — ఉచిత రీప్లేస్‌మెంట్', 'ಹಾನಿ ಅಥವಾ ತಪ್ಪು ಸೀರೆ — ಉಚಿತ ಬದಲಿ', 'damaged or wrong saree — free replacement', 'കേടായ അല്ലെങ്കിൽ തെറ്റായ സാരി — സൗജന്യ റീപ്ലേസ്മെന്റ്') },
+  { ic: '📞',
+    t: () => loc('நேரடியாக ஒருவர் உதவுவார்', 'నేరుగా ఒక వ్యక్తి సహాయం చేస్తారు', 'ನೇರವಾಗಿ ಒಬ್ಬ ವ್ಯಕ್ತಿ ಸಹಾಯ ಮಾಡುತ್ತಾರೆ', 'Talk to a real person', 'നേരിട്ട് ഒരാൾ സഹായിക്കും'),
+    s: () => '+91 ' + CONFIG.waDisplay + ' · 9 AM – 9 PM' },
+];
+function trustSectionHTML(){
+  return '<div class="wrap sec"><div class="trust-sec">' +
+    '<div class="sec-head" style="margin-bottom:18px"><span class="eyebrow">' + loc('நம்பிக்கை', 'నమ్మకం', 'ನಂಬಿಕೆ', 'TRUST', 'വിശ്വാസം') + '</span>' +
+    '<h2>' + loc('வாடிக்கையாளர்கள் எங்களை நம்புவது ஏன்?', 'కస్టమర్లు మమ్మల్ని ఎందుకు నమ్ముతారు?', 'ಗ್ರಾಹಕರು ನಮ್ಮನ್ನು ಏಕೆ ನಂಬುತ್ತಾರೆ?', 'Why Customers Trust SK Sarees', 'ഉപഭോക്താക്കൾ ഞങ്ങളെ എന്തുകൊണ്ട് വിശ്വസിക്കുന്നു') + '</h2></div>' +
+    '<div class="trust-grid">' + TRUST_ITEMS.map(it =>
+      '<div class="trust-item"><span class="ti-ic">' + it.ic + '</span><div><b>' + it.t() + '</b><small>' + it.s() + '</small></div></div>').join('') +
+    '</div>' +
+    '<div class="trust-cta">' +
+      '<a class="btn btn-wa" style="display:inline-flex;min-height:46px" href="' + waLink('Hi SK Sarees! I want to see a live video of a saree before ordering.') + '" target="_blank" rel="noopener">' + SVG_WA + loc('நேரடி வீடியோ கேளுங்கள்', 'లైవ్ వీడియో అడగండి', 'ಲೈವ್ ವೀಡಿಯೊ ಕೇಳಿ', 'Ask for a live video', 'ലൈവ് വീഡിയോ ചോദിക്കൂ') + '</a>' +
+      '<a class="btn btn-outline" style="display:inline-flex;min-height:46px" href="return-policy.html">' + loc('மாற்று விதிமுறை', 'రీప్లేస్ పాలసీ', 'ಬದಲಿ ನೀತಿ', 'Replacement policy', 'റീപ്ലേസ്മെന്റ് പോളിസി') + ' →</a>' +
+    '</div></div></div>';
+}
+/* compact trust card used on the product page */
+function productTrustCard(p){
+  const rows = [
+    ['🏪', loc('சேலம், தமிழ்நாட்டில் இருந்து அனுப்பப்படுகிறது', 'సేలం, తమిళనాడు నుండి పంపబడుతుంది', 'ಸೇಲಂ, ತಮಿಳುನಾಡಿನಿಂದ ಕಳುಹಿಸಲಾಗುತ್ತದೆ', 'Ships from Salem, Tamil Nadu', 'സേലം, തമിഴ്നാട്ടിൽ നിന്ന് അയയ്ക്കുന്നു')],
+    ['📸', loc('உண்மையான போட்டோ — WhatsApp-ல் வீடியோ கேட்கலாம்', 'నిజమైన ఫోటో — WhatsApp లో వీడియో అడగండి', 'ನಿಜವಾದ ಫೋಟೋ — WhatsApp ನಲ್ಲಿ ವೀಡಿಯೊ ಕೇಳಿ', 'Real photos — ask for video on WhatsApp', 'യഥാർത്ഥ ഫോട്ടോ — WhatsApp-ൽ വീഡിയോ ചോദിക്കൂ')],
+    ['💵', loc('COD: ₹100 முன்பணம் மட்டும் · மீதி டெலிவரியில்', 'COD: ₹100 అడ్వాన్స్ మాత్రమే · మిగిలినది డెలివరీలో', 'COD: ₹100 ಮುಂಗಡ ಮಾತ್ರ · ಉಳಿದದ್ದು ಡೆಲಿವರಿಯಲ್ಲಿ', 'COD: only ₹100 advance · rest at delivery', 'COD: ₹100 അഡ്വാൻസ് മാത്രം · ബാക്കി ഡെലിവറിയിൽ')],
+    ['🔐', loc('UPI — SK SAREES பெயருக்கு மட்டும்', 'UPI — SK SAREES పేరుకు మాత్రమే', 'UPI — SK SAREES ಹೆಸರಿಗೆ ಮಾತ್ರ', 'UPI — paid only to SK SAREES', 'UPI — SK SAREES പേരിലേക്ക് മാത്രം')],
+    ['🔄', loc('7 நாள் எளிதான மாற்று உண்டு', '7 రోజుల సులభ రీప్లేస్‌మెంట్ ఉంది', '7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ ಇದೆ', '7-day easy replacement', '7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ്')],
+  ];
+  return '<div class="pd-trust-card"><b>🛡️ ' + loc('நம்பிக்கையுடன் ஆர்டர் செய்யுங்கள்', 'నమ్మకంగా ఆర్డర్ చేయండి', 'ನಂಬಿಕೆಯಿಂದ ಆರ್ಡರ್ ಮಾಡಿ', 'Order with confidence', 'വിശ്വാസത്തോടെ ഓർഡർ ചെയ്യൂ') + '</b>' +
+    rows.map(r => '<div class="ptc-row"><span>' + r[0] + '</span><small>' + r[1] + '</small></div>').join('') +
+    '<a class="ptc-call" href="tel:+91' + CONFIG.waNumber.slice(2) + '">📞 ' + loc('இப்போதே கேளுங்கள்', 'ఇప్పుడే అడగండి', 'ಈಗಲೇ ಕೇಳಿ', 'Call us now', 'ഇപ്പോൾ തന്നെ വിളിക്കൂ') + ' · +91 ' + CONFIG.waDisplay + '</a></div>';
 }
 
 function renderHome(){
@@ -1683,6 +1663,8 @@ function renderHome(){
     '<div class="sk-south"><h3>🎬 ' + loc('வாங்கும் முன் பாருங்கள்', 'కొనే ముందు చూడండి', 'ಖರೀದಿಸುವ ಮೊದಲು ನೋಡಿ', 'WATCH BEFORE YOU BUY', 'വാങ്ങും മുമ്പ് കാണൂ') + '</h3>' +
       '<p>' + loc('See every saree in real video — then order with confidence.', 'ప్రతి చీరను real video లో చూడండి — ఆపై ఆర్డర్ చేయండి.', 'ಪ್ರತಿ ಸೀರೆಯನ್ನು real video ನಲ್ಲಿ ನೋಡಿ — ನಂತರ ಆರ್ಡರ್ ಮಾಡಿ.', 'See every saree in real video — then order with confidence.', 'ഓരോ സാരിയും real video യിൽ കാണൂ.') + '</p>' +
       '<a class="btn btn-pd-buy" style="display:inline-flex;margin-top:8px" href="reels.html">▶ ' + loc('சேலை வீடியோக்கள் பாருங்கள்', 'చీర VIDEOS చూడండి', 'ಸೀರೆ VIDEOS ನೋಡಿ', 'Watch Saree Videos', 'സാരി VIDEOS കാണൂ') + '</a></div>' +
+    /* ═══ V34: WHY CUSTOMERS TRUST US ═══ */
+    trustSectionHTML() +
     /* ═══ 13. FAQ ═══ */
     secHead('❓ ' + loc('அடிக்கடி கேட்கும் கேள்விகள்', 'సాధారణ ప్రశ్నలు', 'ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳು', 'Frequently Asked Questions', 'സാധാരണ ചോദ്യങ്ങൾ')) + '<div class="pd-faq" style="border:0;padding:0">' +
       [
@@ -1989,13 +1971,12 @@ function cardReelHTML(p){
   const out = p.stock != null && p.stock <= 0;
   const off = offPct(p);
   const multi = photos.length > 1;
-  const rCount = ((p.reviews || 0) + realReviewCount(p.id));
+  const rCount = realRevCount(p);   /* ✅ honest */
   return '<article class="reel-card">' +
     '<div class="reel-imgs' + (multi ? '' : ' single') + '" data-reel="' + esc(p.id) + '" data-url="' + esc(productUrl(p)) + '">' +
       photos.map((u, i) => '<div class="reel-slide"><img src="' + esc(u) + '" alt="' + esc(p.name) + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" onload="imgLoaded(this)" onerror="imgSafe(this)"></div>').join('') +
       (out ? '<span class="badge red">Out of Stock</span>' : '') +
       (off && !out ? '<span class="offchip">-' + off + '%</span>' : '') +
-      '<span class="cmp-btn' + (CMP.has(p.id) ? ' on' : '') + '" data-cmp="' + esc(p.id) + '" role="button" aria-label="Compare saree" title="Compare">⚖️</span>' +
       '<span class="card-heart' + (Store.wish.includes(p.id) ? ' on' : '') + '" data-wish="' + p.id + '" role="button" aria-label="Save to wishlist">' + (Store.wish.includes(p.id) ? '❤️' : '🤍') + '</span>' +
       (multi ? '<div class="reel-dots">' + photos.map((_, i) => '<i class="' + (i === 0 ? 'on' : '') + '"></i>').join('') + '</div>' : '') +
       (multi
@@ -2149,7 +2130,7 @@ function swatchBg(css){
   /* approximate swatch color per hue — keep simple: return a tint */
   const map = {
     'hue-rotate(0deg) saturate(1.1)':'#d0342c',
-    'hue-rotate(-18deg) saturate(1.05) brightness(.92)':'#8f1d3a',
+    'hue-rotate(-18deg) saturate(1.05) brightness(.92)':'#D81B60',
     'hue-rotate(35deg) saturate(1.4) brightness(1.08)':'#c99a2e',
     'hue-rotate(90deg) saturate(1.15)':'#1d8a4e',
     'hue-rotate(160deg) saturate(1.1)':'#1565c0',
@@ -2761,6 +2742,9 @@ const L_BUYNOW   = () => loc('இப்போதே வாங்க', 'ఇప్
 const L_ADDCART  = () => loc('வண்டியில் சேர்', 'కార్ట్‌లో చేర్చండి', 'ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ', 'ADD TO CART', 'കാർട്ടിലേക്ക് ചേർക്കൂ');
 const L_YOUSAVE  = () => loc('நீங்கள் மிச்சம் செய்கிறீர்கள்', 'మీరు ఆదా చేస్తారు', 'ನೀವು ಉಳಿಸುತ್ತೀರಿ', 'You Save', 'നിങ്ങൾ ലാഭിക്കുന്നു');
 const L_QTY      = () => loc('அளவு', 'పరిమాణం', 'ಪ್ರಮಾಣ', 'Quantity', 'അളവ്');
+/* ✅ V34 HONESTY: the catalog's `reviews` field is an unchecked admin number.
+   Only reviews actually written by customers (localStorage / Firestore) count. */
+const realRevCount = (p) => { try{ return realReviewCount(p && p.id); }catch(e){ return 0; } };
 const L_DAYS     = () => loc('நாட்கள்', 'రోజులు', 'ದಿನಗಳು', 'Days', 'ദിവസം');
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
@@ -2861,7 +2845,7 @@ function renderProduct(){
   try{ if (window.REC) REC.trackView(p.id); }catch(e){}
   const related = PRODUCTS.filter(x => !x.hidden && x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
-  const revTotal = (p.reviews || 0) + realReviewCount(p.id);   /* ✅ V25 real review count — drives the honest review summary */
+  const revTotal = realRevCount(p);   /* ✅ honest */   /* ✅ V25 real review count — drives the honest review summary */
   /* ✅ "Verified customer" badge shows ONLY for reviews posted by users who
      saved their address & phone (real, reachable customers — honest trust) */
   const revs = (userRevs.length
@@ -2870,10 +2854,15 @@ function renderProduct(){
     '<div id="remoteRevs"></div>' +   /* 📡 reviews + photos from ALL customers (Firestore) */
     /* 🛟 never show a negative empty state — products with catalog reviews show
        their rating; brand-new ones show an honest order-risk-free trust line */
-    (userRevs.length ? '' :
-      (p.reviews > 0
-        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (p.rating > 0 ? p.rating + '/5 — ' : '') + p.reviews + ' customers loved this saree 💜</p>'
-        : '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">🌱 No written reviews yet — you could be the first!</p>'));
+    (userRevs.length ? '' : (function(){
+      /* ✅ V34 HONESTY: only WRITTEN reviews count. The catalog `reviews` number is
+         an unchecked admin field — showing "132 customers loved this" from it would
+         be fake social proof. Real reviews arrive from Firestore (remoteRevs). */
+      const written = realRevCount(p);
+      return written > 0
+        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (p.rating > 0 ? p.rating + '/5 — ' : '') + written + ' ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು', 'customer reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ') + '</p>'
+        : '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">🌱 ' + loc('இன்னும் எழுத்துப்பூர்வ கருத்து இல்லை — நீங்கள் முதல் ஆளாகலாம்!', 'ఇంకా వ్రాసిన రివ్యూ లేదు — మీరు మొదటి వ్యక్తి కావచ్చు!', 'ಇನ್ನೂ ಬರೆದ ವಿಮರ್ಶೆ ಇಲ್ಲ — ನೀವು ಮೊದಲಿಗರಾಗಬಹುದು!', 'No written reviews yet — you could be the first!', 'ഇനിയും എഴുതിയ അവലോകനം ഇല്ല — നിങ്ങൾക്ക് ആദ്യത്തെയാളാകാം!') + '</p>';
+    })());
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
   const gal = [];
   try{
@@ -2897,7 +2886,7 @@ function renderProduct(){
     : '';
   /* 📄 Product + 🧭 Breadcrumb JSON-LD schema (SEO) */
   try{
-    const revCount = (p.reviews || 0) + realReviewCount(p.id);
+    const revCount = realRevCount(p);   /* ✅ honest */
     const siteRoot = CONFIG.siteUrl || 'https://www.sksaree.shop';
     const bl = document.getElementById('pdBreadcrumbLd') || document.createElement('script');
     bl.id = 'pdBreadcrumbLd'; bl.type = 'application/ld+json';
@@ -2985,6 +2974,8 @@ function renderProduct(){
           '</div>' +
           '<p class="small" id="pdlResult" style="margin:0;color:#333"></p>' +
         '</div>' +
+        /* 🛡️ V34: trust card — verifiable facts only */
+        productTrustCard(p) +
         /* 📦 WHAT YOU RECEIVE — honest, from product data */
         /* 📋 PRODUCT DETAILS — clean rows (spec) */
         '<details class="pd-acc pd-specs" open><summary>📋 ' + loc('தயாரிப்பு விவரங்கள்', 'ఉత్పత్తి వివరాలు', 'ಉత్పನ್ನ ವಿವರಗಳು', 'PRODUCT DETAILS', 'പ്രൊഡക്ട് വിവരങ്ങൾ') + '</summary><ul>' +
@@ -3294,7 +3285,7 @@ function buyNowPopup(p, qty, colour){
 function revCardHTML(r){
   try{
     const verified = !!(r && r.verified);
-    return '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#8f1d3a">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name || 'Anonymous') + '</b><small>' +
+    return '<div class="rev" style="margin-bottom:8px"><div class="rev-top"><span class="avatar" style="background:#D81B60">' + esc((r.name || 'A')[0]) + '</span><div><b>' + esc(r.name || 'Anonymous') + '</b><small>' +
       (verified ? '\u2705 Verified customer' : loc('\u0bb5\u0bbe\u0b9f\u0bbf\u0b95\u0bcd\u0b95\u0bc8\u0baf\u0bbe\u0bb3\u0bb0\u0bcd \u0bb0\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c15\u0c38\u0c4d\u0c1f\u0c2e\u0c30\u0c4d \u0c30\u0bbf\u0bb5\u0bcd\u0baf\u0bc2', '\u0c97\u0ccd\u0cb0\u0bbe\u0cb9\u0c95 \u0cb5\u0cbf\u0cae\u0cb0\u0ccd\u0cb6\u0cc6', 'Customer review')) +
       '</small></div></div><div class="stars">' + '\u2605'.repeat(r.rating || 5) + '\u2606'.repeat(5 - (r.rating || 5)) + '</div><p>' + esc(r.text || '') + '</p>' +
       (r.photo ? '<span class="rev-photo" role="button" data-revphoto="1" title="Customer photo \u2014 tap to view"><img src="' + r.photo + '" alt="customer photo" onload="imgLoaded(this)" style="width:88px;height:88px;object-fit:cover;border-radius:12px;border:2px solid #e8c66a;display:block;margin-top:7px;box-shadow:0 3px 9px rgba(61,10,27,.14)"></span>' : '') +
@@ -3742,6 +3733,15 @@ function drawCo(){
           '<small class="pm-note">' + loc('WhatsApp-ல் ₹100 முன்பணம் செலுத்தி COD ஆர்டர் போடுங்கள் • சேலை தொகை முழுவதும் டெலிவரியின் போது பணம்', 'WhatsApp లో ₹100 అడ్వాన్స్ చెల్లించి COD ఆర్డర్ చేయండి • చీర మొత్తం డెలివరీలో నగదు', 'WhatsApp ನಲ್ಲಿ ₹100 ಅಡ್ವಾನ್ಸ್ ಪಾವತಿಸಿ COD ಆರ್ಡರ್ ಮಾಡಿ • ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'Pay ₹100 advance on WhatsApp to book your COD order • full saree amount in cash at delivery', 'WhatsApp-ൽ ₹100 അഡ്വാൻസ് അടച്ച് COD ഓർഡർ ചെയ്യൂ • സാരി തുക പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '</small>' +
         '</div>' +
         '<div class="pm-trust">🔒 ' + loc('பாதுகாப்பான பணப்பட்டுதல்', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('விரைவு அனுப்புதல்', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;💵 COD Available' + '</div>' +
+        /* 🛡️ V34: verified payee + what happens next */
+        '<div class="co-trust">' +
+          '<div class="cot-payee">🔐 ' + loc('நீங்கள் பணம் செலுத்துவது', 'మీరు చెల్లించేది', 'ನೀವು ಪಾವತಿಸುವುದು', 'You are paying', 'നിങ്ങൾ അടയ്ക്കുന്നത്') + ' <b>SK SAREES</b> · <code>' + esc(CONFIG.upiId) + '</code></div>' +
+          '<div class="cot-next"><b>' + loc('அடுத்து என்ன நடக்கும்?', 'తర్వాత ఏమి జరుగుతుంది?', 'ಮುಂದೆ ಏನಾಗುತ್ತದೆ?', 'What happens next?', 'അടുത്തതായി എന്ത് സംഭവിക്കും?') + '</b>' +
+            '<span>1️⃣ ' + loc('ஆர்டர் பதிவாகும்', 'ఆర్డర్ నమోదవుతుంది', 'ಆರ್ಡರ್ ದಾಖಲಾಗುತ್ತದೆ', 'Your order is recorded', 'ഓർഡർ രേഖപ്പെടുത്തും') + '</span>' +
+            '<span>2️⃣ ' + loc('WhatsApp-ல் உறுதி செய்வோம்', 'WhatsApp లో నిర్ధారిస్తాము', 'WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತೇವೆ', 'We confirm on WhatsApp', 'WhatsApp-ൽ സ്ഥിരീകരിക്കും') + '</span>' +
+            '<span>3️⃣ ' + loc('24 மணி நேரத்தில் அனுப்புதல்', '24 గంటల్లో డిస్పాచ్', '24 ಗಂಟೆಗಳಲ್ಲಿ ಡಿಸ್ಪಾಚ್', 'Dispatch within 24 hrs', '24 മണിക്കൂറിനുള്ളിൽ ഡിസ്പാച്ച്') + '</span>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
     '</div>';
   } else {
@@ -4053,6 +4053,11 @@ function renderOrderComplete(o, viaWa){
       (isUpi
         ? '<p class="os-note">⏳ Payment verification pending — we confirm on WhatsApp once received.</p>'
         : '<p class="os-note">💵 COD charge ₹' + booking + ' paid • saree amount ' + money(later) + ' — FULL cash at delivery.</p>') +
+      '<div class="os-next"><b>' + loc('அடுத்து என்ன?', 'తర్వాత ఏమి?', 'ಮುಂದೆ ಏನು?', 'What next?', 'അടുത്തത് എന്ത്?') + '</b>' +
+        '<span>1️⃣ ' + loc('ஆர்டர் பெறப்பட்டது', 'ఆర్డర్ అందింది', 'ಆರ್ಡರ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ', 'Order received', 'ഓർഡർ ലഭിച്ചു') + '</span>' +
+        '<span>2️⃣ ' + loc('WhatsApp-ல் உறுதி', 'WhatsApp లో నిర్ధారణ', 'WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಣ', 'WhatsApp confirmation', 'WhatsApp സ്ഥിരീകരണം') + '</span>' +
+        '<span>3️⃣ ' + loc('24 மணி நேரத்தில் அனுப்புதல்', '24 గంటల్లో డిస్పాచ్', '24 ಗಂಟೆಗಳಲ್ಲಿ ಡಿಸ್ಪಾಚ್', 'Dispatch within 24 hrs', '24 മണിക്കൂറിനുള്ളിൽ ഡിസ്പാച്ച്') + '</span>' +
+      '</div>' +
       '<div class="os-btns">' +
         '<a class="os-b1" href="orders.html?id=' + encodeURIComponent(o.id) + '&data=' + encodeURIComponent(JSON.stringify(o)) + '">📦 ' + loc('ஆர்டரை கண்காணி', 'ఆర్డర్ ట్రాక్ చేయండి', 'ಆರ್ಡರ್ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ', 'Track Order', 'ഓർഡർ ട്രാക്ക് ചെയ്യൂ') + '</a>' +
         '<a class="os-b2" href="shop.html">🛍️ ' + loc('தொடர்ந்து ஷாப்பிங் செய்யுங்கள்', 'షాపింగ్ కొనసాగించండి', 'ಶಾಪಿಂಗ್ ಮುಂದುವರಿಸಿ', 'Continue Shopping', 'ഷോപ്പിംഗ് തുടരൂ') + '</a>' +
@@ -5233,11 +5238,7 @@ document.addEventListener('click', function(e){
   /* 📞 call-click tracking */
   const tel = e.target.closest && e.target.closest('a[href^="tel:"]');
   if (tel){ track('call_click', {}); }
-  /* ⚖️ compare toggle from cards */
-  const cmpb = e.target.closest && e.target.closest('[data-cmp]');
-  if (cmpb){ e.preventDefault(); e.stopPropagation(); CMP.toggle(cmpb.dataset.cmp); return; }   /* stop the card-image nav handler */
 }, true);
-document.addEventListener('DOMContentLoaded', () => { try{ CMP.bar(); }catch(e){} });
 
 /* 📊 whatsapp_click tracking — any WhatsApp link tap */
 document.addEventListener('click', function(e){
