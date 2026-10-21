@@ -1597,23 +1597,44 @@ function renderHome(){
       '<div class="sk-chips" style="padding:8px 0 0">' + ['Silk Saree', 'Cotton Saree', 'Wedding Saree', 'Red Saree', 'Blue Saree'].map(s => '<a class="sk-chip" href="shop.html?q=' + encodeURIComponent(s) + '">' + s + '</a>').join('') + '<a class="sk-chip" href="shop.html?min=0&max=699">Under ₹699</a></div></div>' +
     /* ═══ V33: FIND YOUR PERFECT SAREE — smart marketplace search panel ═══ */
     '<div class="wrap"><div class="fp-card">' +
-      '<div class="fp-head"><b>🔍 ' + loc('உங்களுக்கான சேலையை கண்டுபிடிக்கவும்', 'మీకు సరిపోయే చీరను కనుగొనండి', 'ನಿಮಗೆ ಸರಿಹೊಂದುವ ಸೀರೆ ಹುಡುಕಿ', 'Find Your Perfect Saree', 'നിങ്ങൾക്കിണങ്ങിയ സാരി കണ്ടെത്തൂ') + '</b>' +
-        '<small>' + loc('பட்ஜெட் • துணி • நிறம் • சந்தர்ப்பம்', 'బడ్జెట్ • ఫ్యాబ్రిక్ • రంగు • సందర్భం', 'ಬಜೆಟ್ • ಫ್ಯಾಬ್ರಿಕ್ • ಬಣ್ಣ • ಸಂದರ್ಭ', 'Budget • Fabric • Colour • Occasion', 'ബജറ്റ് • തുണി • നിറം • അവസരം') + '</small></div>' +
+      '<div class="fp-head"><b>🔍 ' + loc('உங்களுக்கான சேலையை கண்டுபிடிக்கவும்', 'మీకు సరిపోయే చీరను కనుగొనండి', 'ನಿಮಗೆ ಸರಿಹೊಂದುವ ಸೀರೆ ಹುಡುಕಿ', 'Find Your Perfect Saree', 'നിങ്ങൾക്കിണങ്ങിയ സാരി കണ്ടെത്തൂ') + '</b></div>' +
+
       '<div class="fp-budget">' +
+
         [['0','499','Under ₹500'],['500','999','₹500–₹999'],['1000','1499','₹1,000–₹1,499'],['1500','3000','₹1,500+']].map(b =>
+
           '<button type="button" class="fp-b" data-fpmin="' + b[0] + '" data-fpmax="' + b[1] + '">' + b[2] + '</button>').join('') +
+
       '</div>' +
-      '<div class="fp-grid">' +
-        '<select id="fpFabric" aria-label="Fabric"><option value="">' + loc('எல்லா துணிகள்', 'అన్ని ఫ్యాబ్రిక్‌లు', 'ಎಲ್ಲಾ ಫ್ಯಾಬ್ರಿಕ್', 'All fabrics', 'എല്ലാ തുണികളും') + '</option>' +
-          ['cotton','silk','soft silk','linen','georgette','art silk'].map(f => '<option value="' + f + '">' + f.replace(/\b\w/g, m => m.toUpperCase()) + '</option>').join('') + '</select>' +
-        '<select id="fpColour" aria-label="Colour"><option value="">' + loc('எல்லா நிறங்கள்', 'అన్ని రంగులు', 'ಎಲ್ಲಾ ಬಣ್ಣಗಳು', 'All colours', 'എല്ലാ നിറങ്ങളും') + '</option>' +
-          ['Red','Maroon','Pink','Blue','Green','Gold','Purple','Multi'].map(c => '<option value="' + c + '">' + c + '</option>').join('') + '</select>' +
-        '<select id="fpOcc" aria-label="Occasion"><option value="">' + loc('எல்லா சந்தர்ப்பங்கள்', 'అన్ని సందర్భాలు', 'ಎಲ್ಲಾ ಸಂದರ್ಭಗಳು', 'All occasions', 'എല്ലാ അവസരങ്ങളും') + '</option>' +
-          ['daily','office','wedding','festival','party'].map(o => '<option value="' + o + '">' + occLabel(o) + '</option>').join('') + '</select>' +
-      '</div>' +
-      '<label class="fp-avail"><input type="checkbox" id="fpAvail"> ' + loc('இருப்பில் உள்ளவை மட்டும்', 'స్టాక్‌లో ఉన్నవి మాత్రమే', 'ಸ್ಟಾಕ್‌ನಲ್ಲಿರುವವು ಮಾತ್ರ', 'In stock only', 'സ്റ്റോക്കിലുള്ളവ മാത്രം') + '</label>' +
+
+      /* 🔽 optional filters hidden by default — the panel stays SIMPLE */
+
+      '<details class="fp-more"><summary>' + loc('மேலும் விருப்பங்கள் (துணி · நிறம் · சந்தர்ப்பம்)', 'మరిన్ని ఎంపికలు (ఫ్యాబ్రిక్ · రంగు · సందర్భం)', 'ಹೆಚ್ಚಿನ ಆಯ್ಕೆಗಳು (ಫ್ಯಾಬ್ರಿಕ್ · ಬಣ್ಣ · ಸಂದರ್ಭ)', 'More options (fabric · colour · occasion)', 'കൂടുതൽ ഓപ്ഷനുകൾ (തുണി · നിറം · അവസരം)') + ' ▾</summary>' +
+
+        '<div class="fp-grid">' +
+
+          '<select id="fpFabric" aria-label="Fabric"><option value="">' + loc('எல்லா துணிகள்', 'అన్ని ఫ్యాబ్రిక్‌లు', 'ಎಲ್ಲಾ ಫ್ಯಾಬ್ರಿಕ್', 'All fabrics', 'എല്ലാ തുണികളും') + '</option>' +
+
+            ['cotton','silk','soft silk','linen','georgette','art silk'].map(f => '<option value="' + f + '">' + f.replace(/\b\w/g, m => m.toUpperCase()) + '</option>').join('') + '</select>' +
+
+          '<select id="fpColour" aria-label="Colour"><option value="">' + loc('எல்லா நிறங்கள்', 'అన్ని రంగులు', 'ಎಲ್ಲಾ ಬಣ್ಣಗಳು', 'All colours', 'എല്ലാ നിറങ്ങളും') + '</option>' +
+
+            ['Red','Maroon','Pink','Blue','Green','Gold','Purple','Multi'].map(c => '<option value="' + c + '">' + c + '</option>').join('') + '</select>' +
+
+          '<select id="fpOcc" aria-label="Occasion"><option value="">' + loc('எல்லா சந்தர்ப்பங்கள்', 'అన్ని సందర్భాలు', 'ಎಲ್ಲಾ ಸಂದರ್ಭಗಳು', 'All occasions', 'എല്ലാ അവസരങ്ങളും') + '</option>' +
+
+            ['daily','office','wedding','festival','party'].map(o => '<option value="' + o + '">' + occLabel(o) + '</option>').join('') + '</select>' +
+
+        '</div>' +
+
+        '<label class="fp-avail"><input type="checkbox" id="fpAvail"> ' + loc('இருப்பில் உள்ளவை மட்டும்', 'స్టాక్‌లో ఉన్నవి మాత్రమే', 'ಸ್ಟಾಕ್‌ನಲ್ಲಿರುವವು ಮಾತ್ರ', 'In stock only', 'സ്റ്റോക്കിലുള്ളവ മാത്രം') + '</label>' +
+
+      '</details>' +
+
       '<button type="button" class="fp-go" id="fpGo">' + loc('சேலை தேடு →', 'చీర వెతకండి →', 'ಸೀರೆ ಹುಡುಕಿ →', 'FIND SAREE →', 'സാരി കണ്ടെത്തൂ →') + '</button>' +
+
     '</div></div>' +
+
     /* ═══ 5. SHOP BY CATEGORY — image tiles + Under ₹699 ═══ */
     secHead('🧵 ' + t('shopByCategory'), 'shop.html') + '<div class="sk-cats">' +
       liveCats.slice(0, 5).map(x =>
@@ -3539,6 +3560,9 @@ function renderCartPage(){
 
 /* ============================ CHECKOUT ============================ */
 let co = { step: 1, buyOnly: null, data: { name:'', phone:'', address:'', pincode:'', payment:'upi', coupon:'' } };
+/* ✅ V36 BUGFIX: module-level idempotency flag — `co` is rebuilt after every order,
+   so a flag stored on `co` was lost and a double-tap created duplicate orders. */
+let __placingOrder = false;
 /* 🇮🇳 Indian states — South India first */
 const IN_STATES = ['Tamil Nadu','Puducherry','Karnataka','Andhra Pradesh','Telangana','Kerala','Maharashtra','Odisha','Goa','Gujarat','Madhya Pradesh','Chhattisgarh','West Bengal','Uttar Pradesh','Bihar','Jharkhand','Rajasthan','Punjab','Haryana','Delhi','Uttarakhand','Himachal Pradesh','Jammu & Kashmir','Assam','Other'];
 /* 🗺️ state defaults to the visitor's language region (user request):
@@ -3576,6 +3600,17 @@ function renderCheckoutPage(){
   drawCo();
 }
 /* items used for THIS checkout: buy-now → only the chosen product, else cart */
+/* ⚖️ V36 BUGFIX: weight must come from the items actually being ordered
+   (coItems() honours Buy-Now), NOT from Store.cart — in Buy-Now mode the cart
+   may be empty, which under-charged the courier (₹30 instead of ₹60 on 1200 g). */
+function orderWeightGrams(){
+  try{
+    return coItems().reduce((g, i) => {
+      const p = byId(i.id);
+      return g + (i.qty || 1) * ((p && p.weight) || CONFIG.sareeWeight || 800);
+    }, 0) || (CONFIG.sareeWeight || 800);
+  }catch(e){ return CONFIG.sareeWeight || 800; }
+}
 function coItems(){
   try{
     if (co.buyOnly){
@@ -3597,7 +3632,7 @@ function coTotals(){
      FLAT courier always — no free-shipping rule. */
   const codFee = 0;
   /* ⚖️ V32: ONLINE = ₹30/kg weight slab • COD (WhatsApp orders) = ₹100 flat advance */
-  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : shipForWeight(cartWeightGrams());
+  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : shipForWeight(orderWeightGrams());   /* ✅ V36: order items, not cart */
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = co.buyOnly ? 0 : bundleDiscount();   /* single-product order → NO bundle offer */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -3644,7 +3679,7 @@ function coSummaryHTML(){
       (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal</span><b class="co-save">−' + money(t.bundle) + '</b></div>' : '') +
       (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount || 1) + '% off</span><b class="co-save">−' + money(t.online) + '</b></div>' : '') +
       (t.pts > 0 ? '<div class="row"><span>⭐ Loyalty points</span><b class="co-save">−' + money(t.pts) + '</b></div>' : '') +
-      '<div class="row"><span>🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' (' + shipKg(cartWeightGrams()) + 'kg × ₹' + (CONFIG.shipPerKg || 30) + ')</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
+      '<div class="row"><span>🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' (' + shipKg(orderWeightGrams()) + 'kg × ₹' + (CONFIG.shipPerKg || 30) + ')</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
       (t.codFee > 0 ? '<div class="row"><span>💵 COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>' + loc('மொத்தம்', 'మొత్తం', 'ಒಟ್ಟು', 'Total', 'ആകെ') + '</span><b>' + money(t.grand) + '</b></div>' +
       (saved > 0 ? '<p class="co-saved">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + saved.toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
@@ -3934,6 +3969,10 @@ function doPlaceOrder(payment){
   try{
     const d = co.data;
     if (!coValid()) return;
+    /* ✅ V36 BUGFIX: idempotency — a double-tap must never create two orders */
+    if (__placingOrder){ return; }
+    __placingOrder = true;
+    setTimeout(() => { __placingOrder = false; }, 4000);   /* safety reset */
     recordLead(d.name, d.phone, d.coupon || '');   /* 📋 lead collected */
     const t = coTotals();
     const couponUsed = d.coupon || '';
@@ -3982,6 +4021,10 @@ function doWaOrder(){
   try{
     const d = co.data;
     if (!coValid()) return;
+    /* ✅ V36 BUGFIX: idempotency — a double-tap must never create two orders */
+    if (__placingOrder){ return; }
+    __placingOrder = true;
+    setTimeout(() => { __placingOrder = false; }, 4000);   /* safety reset */
     const t = coTotals();
     const myReseller = currentReseller();
     const order = {

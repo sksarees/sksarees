@@ -3552,3 +3552,24 @@ main{ overflow-x:clip }
   letter-spacing:2.4px; text-transform:uppercase; margin-bottom:3px;
 }
 .trust-sec .eyebrow{ color:var(--maroon) }
+
+
+/* ═══ V36: simpler Find-Your-Saree panel — optional filters collapsed ═══ */
+.fp-more{ margin:10px 0 12px; border:1px solid #F0E2D2; border-radius:11px; background:#FFFDFA; overflow:hidden }
+.fp-more > summary{
+  list-style:none; cursor:pointer; padding:11px 13px; font-size:.78rem; font-weight:800;
+  color:var(--maroon); display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.fp-more > summary::-webkit-details-marker{ display:none }
+.fp-more[open] > summary{ border-bottom:1px solid #F0E2D2 }
+.fp-more .fp-grid{ padding:11px 13px 4px }
+.fp-more .fp-avail{ margin:0 13px 11px }
+.fp-card{ padding:14px }
+.fp-card .fp-go{ margin-top:2px }
+
+/* ═══ V36b BUGFIX: an explicit `display` on a child of <details> breaks the
+   native open/close behaviour (content stayed visible when collapsed).
+   Hide everything except <summary> while closed. ═══ */
+.fp-more:not([open]) > *:not(summary){ display:none !important }
+.fp-more[open] > .fp-grid{ display:grid }
+.fp-more[open] > .fp-avail{ display:flex }
