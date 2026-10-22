@@ -760,7 +760,7 @@ function rlCardHTML(p){
     '</a>' +
     '<div class="rlc-b">' +
       '<a class="rlc-t" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
-      (revs > 0 && p.rating > 0 ? '<span class="rlc-rate">⭐ ' + p.rating + ' (' + revs + ')</span>' : '') +
+      (revs > 0 && realAvgRating(p) > 0 ? '<span class="rlc-rate">⭐ ' + realAvgRating(p) + ' (' + revs + ')</span>' : '') +
       '<div class="rlc-price"><b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' +
         (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</div>' +
       (save > 0 ? '<span class="rlc-save">Save ₹' + save.toLocaleString('en-IN') + '</span>' : '') +
@@ -1338,11 +1338,12 @@ function starsHTML(p){
   /* ✅ V25 honest rating: stars + count are shown ONLY when the product has
      real rating & review data. No data → clean "New Arrival" chip — never a
      fake zero-star row, never an invented rating (no-fake-marketing rule). */
-  const rc = realRevCount(p);   /* ✅ honest: written reviews only */
-  if (!(p.rating > 0) || rc <= 0) return '<span class="pd-newchip">✨ New Arrival</span>';
-  const r = Math.min(5, Math.max(1, Math.round(p.rating)));
+  const rc = realRevCount(p);            /* ✅ honest: written reviews only */
+  const avg = realAvgRating(p);          /* ✅ V38: computed, never p.rating */
+  if (avg <= 0 || rc <= 0) return '<span class="pd-newchip">✨ New Arrival</span>';
+  const r = Math.min(5, Math.max(1, Math.round(avg)));
   return '<div class="stars">' + '★'.repeat(r) + '☆'.repeat(5 - r) +
-    ' <span>' + p.rating + '</span>' +
+    ' <span>' + avg + '</span>' +
     '<span class="cnt">(' + rc + ' reviews)</span></div>';
 }
 function cardHTML(p){
@@ -1475,7 +1476,7 @@ function homeCardHTML(p){
     '</a>' +
     '<div class="hc-b">' +
       '<a class="hc-t" href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(String(smartTitle(p)).split(' | ')[0]) + '</a>' +
-      '<span class="hc-rate">' + (p.rating > 0 ? '⭐ ' + p.rating + (revs > 0 ? ' (' + revs + ')' : '') : '✨ New') + '</span>' +
+      '<span class="hc-rate">' + (realAvgRating(p) > 0 ? '⭐ ' + realAvgRating(p) + (revs > 0 ? ' (' + revs + ')' : '') : '✨ New') + '</span>' +
       '<div class="hc-price"><b>₹' + (p.price || 0).toLocaleString('en-IN') + '</b>' + (p.mrp && p.mrp > p.price ? '<s>₹' + p.mrp.toLocaleString('en-IN') + '</s>' : '') + '</div>' +
       (save > 0 ? '<span class="hc-save">Save ₹' + save.toLocaleString('en-IN') + '</span>' : '') +
       '<span class="hc-meta">💵 COD Available</span>' +
@@ -2007,7 +2008,7 @@ function cardReelHTML(p){
     '</div>' +
     '<div class="reel-info">' +
       '<h3>' + esc(smartTitle(p)) + '</h3>' +
-      '<div class="reel-meta"><span class="reel-rate">' + (p.rating > 0 ? '⭐ ' + p.rating + (rCount ? ' <em>(' + rCount + ')</em>' : '') : '✨ New') + '</span><b class="reel-price">' + money(p.price) + '</b></div>' +
+      '<div class="reel-meta"><span class="reel-rate">' + (realAvgRating(p) > 0 ? '⭐ ' + realAvgRating(p) + (rCount ? ' <em>(' + rCount + ')</em>' : '') : '✨ New') + '</span><b class="reel-price">' + money(p.price) + '</b></div>' +
     '</div>' +
   '</article>';
 }
@@ -2766,6 +2767,16 @@ const L_QTY      = () => loc('அளவு', 'పరిమాణం', 'ಪ್ರ
 /* ✅ V34 HONESTY: the catalog's `reviews` field is an unchecked admin number.
    Only reviews actually written by customers (localStorage / Firestore) count. */
 const realRevCount = (p) => { try{ return realReviewCount(p && p.id); }catch(e){ return 0; } };
+/* ✅ V38: the TRUE average star rating, computed from written reviews only.
+   0 when there are none — never fall back to the admin `p.rating` field. */
+const realAvgRating = (p) => {
+  try{
+    const list = LS.get('sk_reviews_' + (p && p.id), []) || [];
+    if (!list.length) return 0;
+    const sum = list.reduce((s, r) => s + (Math.min(5, Math.max(1, +r.rating || 0)) || 0), 0);
+    return Math.round((sum / list.length) * 10) / 10;
+  }catch(e){ return 0; }
+};
 const L_DAYS     = () => loc('நாட்கள்', 'రోజులు', 'ದಿನಗಳು', 'Days', 'ദിവസം');
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
@@ -2866,7 +2877,8 @@ function renderProduct(){
   try{ if (window.REC) REC.trackView(p.id); }catch(e){}
   const related = PRODUCTS.filter(x => !x.hidden && x.cat === p.cat && x.id !== p.id).slice(0, 4);
   const userRevs = LS.get('sk_reviews_' + p.id, []);
-  const revTotal = realRevCount(p);   /* ✅ honest */   /* ✅ V25 real review count — drives the honest review summary */
+  const revTotal = realRevCount(p);   /* ✅ honest */
+  const revAvg = realAvgRating(p);    /* ✅ V38: computed from written reviews */   /* ✅ V25 real review count — drives the honest review summary */
   /* ✅ "Verified customer" badge shows ONLY for reviews posted by users who
      saved their address & phone (real, reachable customers — honest trust) */
   const revs = (userRevs.length
@@ -2926,7 +2938,7 @@ function renderProduct(){
       brand: { '@type':'Brand', name:'SK Sarees' },
       offers: { '@type':'Offer', url: shareUrl(p), priceCurrency:'INR', price: p.price,
         availability: out ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock' },
-      ...(revCount > 0 && p.rating > 0 ? { aggregateRating: { '@type':'AggregateRating', ratingValue: p.rating, reviewCount: revCount } } : {})
+      ...(revCount > 0 && realAvgRating(p) > 0 ? { aggregateRating: { '@type':'AggregateRating', ratingValue: realAvgRating(p), reviewCount: revCount } } : {})
     });
     document.head.appendChild(pl);
   }catch(e){}
@@ -2984,6 +2996,17 @@ function renderProduct(){
           (out ? '' : '<p class="pd-buy-sub">✅ ' + L_COD() + ' • 🔒 ' + L_SECURE() + ' • ↩️ ' + L_7DAY() + '</p>') +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
+        /* 🛡️ V38: honest "what you get / what if" block right under the CTA */
+        '<div class="pd-assure">' +
+          '<b class="pa-title">🛡️ ' + loc('நம்பிக்கையுடன் ஆர்டர் செய்யுங்கள்', 'నమ్మకంగా ఆర్డర్ చేయండి', 'ನಂಬಿಕೆಯಿಂದ ಆರ್ಡರ್ ಮಾಡಿ', 'Order with confidence', 'വിശ്വാസത്തോടെ ഓർഡർ ചെയ്യൂ') + '</b>' +
+          '<div class="pa-grid">' +
+            '<div class="pa-item"><span>💵</span><div><b>' + loc('COD உண்டு', 'COD ఉంది', 'COD ಇದೆ', 'COD available', 'COD ലഭ്യം') + '</b><small>' + loc('₹100 முன்பணம் மட்டும் · மீதி டெலிவரியில்', '₹100 అడ్వాన్స్ మాత్రమే · మిగిలినది డెలివరీలో', '₹100 ಮುಂಗಡ ಮಾತ್ರ · ಉಳಿದದ್ದು ಡೆಲಿವರಿಯಲ್ಲಿ', 'only ₹100 advance · rest at delivery', '₹100 അഡ്വാൻസ് മാത്രം · ബാക്കി ഡെലിവറിയിൽ') + '</small></div></div>' +
+            '<div class="pa-item"><span>↩️</span><div><b>' + loc('7 நாள் மாற்று', '7 రోజుల రీప్లేస్‌మెంట్', '7 ದಿನಗಳ ಬದಲಿ', '7-day replacement', '7 ദിവസത്തെ റീപ്ലേസ്മെന്റ്') + '</b><small>' + loc('சேதம் / தவறான சேலை — இலவசம்', 'పాడైన / తప్పు చీర — ఉచితం', 'ಹಾನಿ / ತಪ್ಪು ಸೀರೆ — ಉಚಿತ', 'damaged or wrong saree — free', 'കേടായ / തെറ്റായ സാരി — സൗജന്യം') + '</small></div></div>' +
+            '<div class="pa-item"><span>📸</span><div><b>' + loc('உண்மையான போட்டோ', 'నిజమైన ఫోటోలు', 'ನಿಜವಾದ ಫೋಟೋ', 'Real photos', 'യഥാർത്ഥ ഫോട്ടോ') + '</b><small>' + loc('WhatsApp-ல் நேரடி வீடியோ கேட்கலாம்', 'WhatsApp లో లైవ్ వీడియో అడగండి', 'WhatsApp ನಲ್ಲಿ ಲೈವ್ ವೀಡಿಯೊ ಕೇಳಿ', 'ask for a live video on WhatsApp', 'WhatsApp-ൽ ലൈവ് വീഡിയോ ചോദിക്കൂ') + '</small></div></div>' +
+            '<div class="pa-item"><span>📞</span><div><b>' + loc('நேரடி உதவி', 'ప్రత్యక్ష సహాయం', 'ನೇರ ಸಹಾಯ', 'Human help', 'നേരിട്ട് സഹായം') + '</b><small>+91 ' + CONFIG.waDisplay + ' · 9 AM – 9 PM</small></div></div>' +
+          '</div>' +
+          '<div class="pa-pay">🔐 ' + loc('பணம்', 'చెల్లింపు', 'ಪಾವತಿ', 'Payment', 'പേയ്മെന്റ്') + ': <b>SK SAREES</b> · ' + esc(CONFIG.upiId) + ' · <a href="tel:+91' + CONFIG.waNumber.slice(2) + '">📞 ' + loc('கால் செய்யுங்கள்', 'కాల్ చేయండి', 'ಕಾಲ್ ಮಾಡಿ', 'Call us', 'വിളിക്കൂ') + '</a></div>' +
+        '</div>' +
         '<div class="pd-delivery"><b>🚚 ' + loc('டெலிவரி தகவல்', 'డెలివరీ సమాచారం', 'ಡೆಲಿವರಿ ಮಾಹಿತಿ', 'DELIVERY INFORMATION', 'ഡെലിവറി വിവരം') + '</b>' +
           '<div class="pdl-rows"><span>தமிழ்நாடு</span><b>' + (ZONES.tn.days[0]) + '–' + (ZONES.tn.days[1]) + ' ' + L_DAYS() + '</b></div>' +
           '<div class="pdl-rows"><span>' + loc('ஆந்திரா / கர்நாடகா', 'ఆంధ్ర / కర్ణాటక', 'ಆಂಧ್ರ / ಕರ್ನಾಟಕ', 'Andhra / Karnataka', 'ആന്ധ്ര / കർണാടക') + '</span><b>' + (ZONES.apka ? ZONES.apka.days[0] : 3) + '–' + (ZONES.apka ? ZONES.apka.days[1] : 4) + ' ' + L_DAYS() + '</b></div>' +
@@ -3048,8 +3071,8 @@ function renderProduct(){
         /* 💬 V25 honest reviews: score is shown ONLY when real review data
            exists; no data → truthful "new saree" line (never an invented 4.5/5) */
         '<div class="pd-reviews"><div class="pdr-head">' +
-          (revTotal > 0
-            ? (p.rating > 0 ? '<div class="pdr-score"><span class="pdr-stars">' + '★'.repeat(Math.min(5, Math.max(1, Math.round(p.rating)))) + '</span><b>' + p.rating + '/5</b></div>' : '') +
+          (revTotal > 0 && revAvg > 0
+            ? '<div class="pdr-score"><span class="pdr-stars">' + '★'.repeat(Math.min(5, Math.max(1, Math.round(revAvg)))) + '</span><b>' + revAvg + '/5</b></div>' +
               '<span class="pdr-count">' + revTotal + ' ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು', 'customer reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ') + '</span>'
             : '<span class="pdr-count">🌱 ' + loc('New saree — no reviews yet', 'కొత్త చీర — ఇంకా రివ్యూలు లేవు', 'ಹೊಸ ಸೀರೆ — ಇನ್ನೂ ರಿವ್ಯೂ ಇಲ್ಲ', 'New saree — no reviews yet', 'പുതിയ സാരി — റിവ്യൂകൾ ഇല്ല') + '</span>') +
         '</div>' +
@@ -3914,8 +3937,9 @@ function confirmPendingPayment(){
   const order = Store.orders.find(o => o.id === co.pendingId);
   if (!order){ doPlaceOrder('upi'); return; }
   order.paidConfirmed = true; order.paymentStarted = true; order.status = 'pending'; order.paymentMarkedAt = new Date().toISOString();
-  /* 📊 V32: UPI orders now fire Purchase exactly once (was missing on this path!) */
-  if (!order.__purchaseTracked){ order.__purchaseTracked = true; fbqSafe('Purchase', { value: (order.totals || {}).grand || 0, currency: 'INR', content_ids: (order.items || []).map(i => String(i.id)) }); }
+  /* ✅ V37 HONEST TRACKING: the customer SAYS they paid — the store has not
+     verified it yet, so this is AddPaymentInfo, not Purchase. */
+  if (!order.__payInfoTracked){ order.__payInfoTracked = true; fbqSafe('AddPaymentInfo', { value: (order.totals || {}).grand || 0, currency: 'INR', content_ids: (order.items || []).map(i => String(i.id)) }); try{ gtag && gtag('event', 'upi_payment_marked', { value: (order.totals || {}).grand || 0, currency: 'INR' }); }catch(e4){} }
   Store.saveOrders();
   if (FS.enabled()) FS.saveOrder(order).catch(()=>{});
   if (!co.buyOnly){ Store.cart=[]; Store.saveCart(); syncCartReservation(); }
@@ -3988,6 +4012,7 @@ function doPlaceOrder(payment){
       /* UPI: customer tapped "I've Paid" → paidConfirmed=true, awaiting admin
          confirmation; COD: ₹100 booking paid now */
       status: payment === 'upi' ? 'pending' : 'placed',
+      attr: getAttribution(),                    /* ✅ V37: which ad brought her */
       paidConfirmed: payment === 'upi',          /* ✅ customer says they paid */
       bookingPaid: payment === 'cod' ? CONFIG.codFee : (payment === 'upi' ? t.grand : 0),
       device: deviceId(),
@@ -4012,7 +4037,9 @@ function doPlaceOrder(payment){
     try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
     try{ if (co.data.usePoints){ const used = Math.min(pointsRedeemable(), (t.pts || 0)); localStorage.setItem('sk_points', String(Math.max(0, pointsRedeemable() - used))); } }catch(e){}
     fbqSafe('InitiateCheckout', { value: t.grand, currency: 'INR', num_items: orderCount });
-    if (!order.__purchaseTracked){ order.__purchaseTracked = true; fbqSafe('Purchase', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) }); try{ Store.saveOrders(); }catch(e2){} }
+    /* ✅ V37: the order exists but money is not verified yet → AddPaymentInfo */
+    if (!order.__payInfoTracked){ order.__payInfoTracked = true; fbqSafe('AddPaymentInfo', { value: t.grand, currency: 'INR', num_items: orderCount, content_ids: order.items.map(i => String(i.id)) }); try{ Store.saveOrders(); }catch(e2){} }
+    try{ gtag && gtag('event', 'checkout_order_created', { value: t.grand, currency: 'INR' }); }catch(e5){}
     renderOrderComplete(order, false);
     try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
   }catch(err){ console.warn(err); try{ renderOrderComplete({ id: genOrderId(), date: new Date().toISOString(), items: [], customer: co.data, payment, totals: coTotals(), status:'placed' }, false); }catch(e){} }
@@ -4032,6 +4059,7 @@ function doWaOrder(){
       items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim(), city: '', state: '' },
       payment: 'cod', totals: t, status: 'placed',
+      attr: getAttribution(),                     /* ✅ V37: which ad brought her */
       bookingPaid: CONFIG.codFee || 100,          /* ₹100 booking paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
       margin: 0,
@@ -4053,8 +4081,14 @@ function doWaOrder(){
     co.buyOnly = null;   /* buy-now order done → back to normal cart mode */
     co = { step: 1, data: { name: order.customer.name, phone: order.customer.phone, address: order.customer.address, pincode: order.customer.pincode, city: order.customer.city || '', state: order.customer.state || '', payment:'upi' } };
     saveCoDraft();
-    if (!order.__purchaseTracked){ order.__purchaseTracked = true; fbqSafe('Purchase', { value: t.grand, currency: 'INR', content_ids: order.items.map(i => String(i.id)) }); try{ Store.saveOrders(); }catch(e2){} }
-    const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id +
+    /* ✅ V37 HONEST TRACKING: a WhatsApp order is a LEAD, not a purchase —
+       staff still has to confirm it. Firing Purchase here made Meta optimise
+       for the wrong people and inflated ROAS. */
+    order.leadTracked = true;
+    fbqSafe('Lead', { value: t.grand, currency: 'INR', content_name: 'WhatsApp COD order', content_ids: order.items.map(i => String(i.id)) });
+    try{ gtag && gtag('event', 'whatsapp_order_submitted', { value: t.grand, currency: 'INR' }); }catch(e3){}
+    const adSrc = attributionLabel();
+    const msg = 'Hi! I want to confirm my COD order:\n\n🪡 Order ID: ' + order.id + (adSrc ? '\n📣 Ad: ' + adSrc : '') +
       '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
       '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
       order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
