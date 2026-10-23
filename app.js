@@ -2861,6 +2861,25 @@ function wearClaim(pid){
     if (document.body.dataset.page === 'product'){ try{ renderProduct(); }catch(e3){} }
   }catch(e){}
 }
+/* ═══════════ V40: WhatsApp group card + popup ═══════════ */
+function waGroupCardHTML(){
+  return '<div class="wag-card">' +
+    '<div class="wag-ic">📢</div>' +
+    '<div class="wag-txt"><b>' + loc('WhatsApp குரூப்-ல் சேருங்கள்', 'WhatsApp గ్రూప్‌లో చేరండి', 'WhatsApp ಗ್ರೂಪ್ ಸೇರಿ', 'Join our WhatsApp group', 'WhatsApp ഗ്രൂപ്പിൽ ചേരൂ') + '</b>' +
+      '<small>' + loc('புதிய சேலை, ஆஃபர் எல்லாம் முதலில் தெரியும்', 'కొత్త చీరలు, ఆఫర్లు మొదట తెలుస్తాయి', 'ಹೊಸ ಸೀರೆ, ಆಫರ್ ಮೊದಲು ತಿಳಿಯುತ್ತದೆ', 'New sarees & offers first', 'പുതിയ സാരികളും ഓഫറുകളും ആദ്യം') + '</small></div>' +
+    '<button type="button" class="wag-btn" id="wagOpen">' + loc('சேர்', 'చేరండి', 'ಸೇರಿ', 'Join', 'ചേരൂ') + '</button>' +
+  '</div>';
+}
+function openWaGroupPopup(){
+  const link = (typeof CONFIG !== 'undefined' && CONFIG.waGroup) || 'https://chat.whatsapp.com/';
+  openModal('<div style="text-align:center">' +
+    '<div style="font-size:2.6rem;line-height:1">📢</div>' +
+    '<h2 style="font-size:1.08rem;font-weight:900;margin:10px 0 4px;color:var(--maroon)">' + loc('SK Sarees WhatsApp குரூப்', 'SK Sarees WhatsApp గ్రూప్', 'SK Sarees WhatsApp ಗ್ರೂಪ್', 'SK Sarees WhatsApp Group', 'SK Sarees WhatsApp ഗ്രൂപ്പ്') + '</h2>' +
+    '<p class="small muted" style="margin:0 0 14px;line-height:1.6">' + loc('புதிய சேலை வரும்போது, ஆஃபர் வரும்போது முதலில் இங்கே தெரியும். யாரும் உங்களைத் தொந்தரவு செய்ய மாட்டாங்க.', 'కొత్త చీరలు, ఆఫర్లు మొదట ఇక్కడ తెలుస్తాయి. ఎవరూ ఇబ్బంది పెట్టరు.', 'ಹೊಸ ಸೀರೆ, ಆಫರ್ ಮೊದಲು ಇಲ್ಲಿ ತಿಳಿಯುತ್ತದೆ. ಯಾರೂ ಬ bother ಮಾಡುವುದಿಲ್ಲ.', 'New sarees and offers reach you first. No spam — leave any time.', 'പുതിയ സാരികളും ഓഫറുകളും ആദ്യം ഇവിടെ. ബുദ്ധിമുട്ടിക്കില്ല.') + '</p>' +
+    '<a class="btn btn-wa" style="width:100%;min-height:50px;font-size:.92rem" href="' + esc(link) + '" target="_blank" rel="noopener">' + SVG_WA + loc('குரூப்-ல் சேருங்கள்', 'గ్రూప్‌లో చేరండి', 'ಗ್ರೂಪ್ ಸೇರಿ', 'JOIN THE GROUP', 'ഗ്രൂപ്പിൽ ചേരൂ') + '</a>' +
+    '<button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;min-height:44px" onclick="closeModal()">' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Not now', 'പിന്നീട്') + '</button>' +
+  '</div>');
+}
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
   /* 🔐 defensive id: safeParams fixes broken links like
@@ -3068,24 +3087,14 @@ function renderProduct(){
           : low
             ? '<div class="lowchip" style="margin:6px 0">🔥 <b>' + loc('இன்னும்', 'ఇంకా', 'ಇನ್ನೂ', 'Only', 'ഇനിയും') + ' ' + p.stock + ' ' + loc('மட்டுமே', 'మాత్రమే', 'ಮಾತ್ರ', 'left', 'മാത്രം') + '</b> — ' + loc('விரைவில் ஆர்டர் செய்யுங்கள்!', 'త్వరగా ఆర్డర్ చేయండి!', 'ಬೇಗ ಆರ್ಡರ್ ಮಾಡಿ!', 'order soon, stock is limited!', 'വേഗം ഓർഡർ ചെയ്യൂ!') + '</div>'
             : '<div class="instock" style="margin:6px 0">✅ <b>' + loc('கையிருப்பில் உள்ளது', 'స్టాక్‌లో ఉంది', 'ಸ್ಟಾಕ್ ಇದೆ', 'In stock', 'സ്റ്റോക്കിലുണ്ട്') + '</b> — ' + loc('இன்றே ஆர்டர் செய்யுங்கள், 24 மணி நேரத்தில் அனுப்பப்படும்', 'ఈరోజే ఆర్డర్ చేయండి, 24 గంటల్లో డిస్పాచ్', 'ಇಂದೇ ಆರ್ಡರ್ ಮಾಡಿ, 24 ಗಂಟೆಗಳಲ್ಲಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ', 'order today, dispatched within 24 hrs', 'ഇന്നുതന്നെ ഓർഡർ ചെയ്യൂ, 24 മണിക്കൂറിനുള്ളിൽ അയയ്ക്കും') + '</div>') +
-        '<ul class="pd-checks"><li>✓ ' + L_COD() + '</li><li>✓ ' + L_7DAY() + '</li><li>✓ ' + L_QUALITY() + '</li><li>✓ ' + L_DISPATCH() + '</li></ul>' +
-        /* 🚚 V25 one-line shipping answer near the price — dynamic from ZONES */
-        '<div class="pd-shipstrip">🚚 ' + loc('இந்தியா முழுவதும்', 'ఇండియా అంతటా', 'ಇಡೀ ಇಂಡಿಯಾ', 'Across India', 'ഇന്ത്യയിലെല്ലായിടത്തും') + ' ' + ZONES.tn.days[0] + '–' + ZONES.other.days[1] + ' ' + L_DAYS() + ' • ₹' + (CONFIG.shipPerKg || 30) + '/kg ⚡ ' + loc('24 மணி நேரத்தில் அனுப்புதல்', '24 గంటల్లో డిస్పాచ్', '24 ಗಂಟೆಗಳಲ್ಲಿ ಡಿಸ್ಪಾಚ್', 'Dispatch within 24 hrs', '24 മണിക്കൂറിനുള്ളിൽ ഡിസ്പാച്ച്') + '</div>' +
-        /* 🎨 COLOUR SELECTION — pick her favourite, rides into checkout */
-        ((p.colors || []).length
-          ? '<div class="pd-colours" id="pdColours"><small class="muted" style="font-weight:800">🎨 ' + loc('நிறம் தேர்ந்தெடுங்கள்:', 'రంగు ఎంచుకోండి:', 'ಬಣ್ಣ ಆರಿಸಿ:', 'Choose colour:') + '</small><div class="pd-chips">' +
-            p.colors.map((c, i) => '<button type="button" class="pd-colour' + (i === 0 ? ' on' : '') + '" data-colour="' + esc(c) + '">' + esc(c) + '</button>').join('') +
-          '</div></div>'
-          : '') +
         '<div class="qty-row"><b>' + L_QTY() + '</b>' + '<div class="qty"><button type="button" data-qm>−</button><span id="qtyVal">1</span><button type="button" data-qp>+</button></div><b id="qtyTotal" style="color:#B8860B;font-size:1.1rem;margin-left:auto">' + money(p.price) + '</b></div>' +
         /* 🔴 BUY NOW + sub-line + 📱 REAL VIDEO CTA + WhatsApp order */
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' — ' + money(p.price) + ' →</button>' +
+            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' →</button>' +
               '<button type="button" class="btn btn-atc btn-xl" data-add="' + esc(p.id) + '">🛍️ ' + L_ADDCART() + '</button>' +
               '<a class="btn btn-wa btn-xl pd-wa-big pd-wa-outline" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WHATSAPP-ல் ஆர்டர் செய்யுங்கள்', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>') +
-          (out ? '' : '<p class="pd-buy-sub">✅ ' + L_COD() + ' • 🔒 ' + L_SECURE() + ' • ↩️ ' + L_7DAY() + '</p>') +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
         /* 🛡️ V38: honest "what you get / what if" block right under the CTA */
@@ -3110,8 +3119,6 @@ function renderProduct(){
           '</div>' +
           '<p class="small" id="pdlResult" style="margin:0;color:#333"></p>' +
         '</div>' +
-        /* 🛡️ V34: trust card — verifiable facts only */
-        productTrustCard(p) +
         /* 🎁 V39: SHARE → ₹100 OFF (tiered) */
         '<div id="shCardBox">' + sharePanelHTML(p) + '</div>' +
         /* 📦 WHAT YOU RECEIVE — honest, from product data */
@@ -3131,36 +3138,15 @@ function renderProduct(){
           '<div class="pdl-rows"><span>💳 UPI</span><b>GPay • PhonePe • Paytm</b></div>' +
           '<div class="pdl-rows"><span>⚖️ ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + '</span><b>₹' + (CONFIG.shipPerKg || 30) + '/kg • ' + loc('சேலை ≈ 800g', 'చీర ≈ 800g', 'ಸೀರೆ ≈ 800g', 'saree ≈ 800g', 'സാരി ≈ 800g') + '</b></div>' +
           '<div class="pdl-rows"><span>💵 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'Cash on Delivery', 'കാഷ് ഓൺ ഡെലിവറി') + '</span><b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் WhatsApp-ல்', 'అడ్వాన్స్ WhatsApp లో', 'ಅಡ್ವಾನ್ಸ್ WhatsApp ನಲ್ಲಿ', 'advance on WhatsApp', 'അഡ്വാൻസ് WhatsApp-ൽ') + '</b></div>' +
-          '<small class="pd-pay-note">🔒 100% ' + L_SECURE() + ' • ' + loc('COD மீதத்தை டெலிவரியின் போது பணமாக கொடுங்கள்', 'COD మిగిలిన మొత్తాన్ని డెలివరీ సమయంలో చెల్లించండి', 'COD ಉಳಿದ ಹಣವನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನೀಡಿ', 'COD balance is paid at delivery', 'COD ബാക്കി തുക ഡെലിവറി സമയത്ത് നൽകണം') + '</small>' +
         '</details>' +
         /* ❓ compact FAQ — real policies only */
         '<div class="pd-faq"><b>❓ ' + loc('சிறிய கேள்விகள்', 'త్వరిత ప్రశ్నలు', 'ತ್ವರಿತ ಪ್ರಶ್ನೆಗಳು', 'QUICK QUESTIONS', 'ചെറിയ ചോദ്യങ്ങൾ') + '</b>' +
-          '<details><summary>' + loc('COD கிடைக்குமா?', 'COD ఉందా?', 'COD ಇದೆಯೇ?', 'Is COD available?', 'COD ഉണ്ടോ?') + '</summary><div>' + loc('ஆம் — கேஷ் ஆன் டெலிவரி உண்டு (₹' + (CONFIG.codFee || 100) + ' முன்பணம் + கொரியர்). மீதம் டெலிவரியின் போது.', 'అవును — COD ఉంది (₹' + (CONFIG.codFee || 100) + ' బుకింగ్ + కొరియర్). మిగిలినది డెలివరీ సమయంలో.', 'ಹೌದು — COD ಇದೆ (₹' + (CONFIG.codFee || 100) + ' ಬುಕಿಂಗ್ + ಕೊರಿಯರ್). ಉಳಿದದ್ದು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ.', 'Yes — Cash on Delivery is available (₹' + (CONFIG.codFee || 100) + ' booking + courier). Balance at delivery.', 'അതെ — COD ലഭ്യമാണ് (₹' + (CONFIG.codFee || 100) + ' ബുക്കിംഗ് + കൊറിയർ). ബാക്കി ഡെലിവറി സമയത്ത്.') + '</div></details>' +
           '<details><summary>' + loc('டெலிவரி எத்தனை நாள்?', 'డెలివరీ ఎన్ని రోజులు?', 'ಡೆಲಿವರಿ ಎಷ್ಟು ದಿನ?', 'How many days will delivery take?', 'ഡെലിവറി എത്ര ദിവസം?') + '</summary><div>' + loc('தமிழ்நாடு 2–3 நாட்கள் • ஆந்திரா/கர்நாடகா 3–4 நாட்கள் • மற்ற மாநிலங்கள் 5–7 நாட்கள்.', 'తమిళనాడు 2–3 రోజులు • ఆంధ్ర/కర్ణాటక 3–4 రోజులు • ఇతర రాష్ట్రాలు 5–7 రోజులు.', 'ತಮಿಳುನಾಡು 2–3 ದಿನ • ಆಂಧ್ರ/ಕರ್ನಾಟಕ 3–4 ದಿನ • ಇತರ ರಾಜ್ಯಗಳು 5–7 ದಿನ.', 'Tamil Nadu 2–3 days • Andhra/Karnataka 3–4 days • Other states 5–7 days.', 'തമിഴ്നാട് 2–3 ദിവസം • ആന്ധ്ര/കർണാടക 3–4 ദിവസം • മറ്റ് സംസ്ഥാനങ്ങൾ 5–7 ദിവസം.') + '</div></details>' +
           '<details><summary>' + loc('ஆர்டர் செய்யும் முன் உண்மையான வீடியோ பார்க்கலாமா?', 'ఆర్డర్ ముందు నిజమైన వీడియో చూడవచ్చా?', 'ಆರ್ಡರ್ ಮೊದಲು ನಿಜವಾದ ವೀಡಿಯೋ ನೋಡಬಹುದಾ?', 'Can I see a real video before ordering?', 'ഓർഡർ ചെയ്യും മുമ്പ് യഥാർത്ഥ വീഡിയോ കാണാമോ?') + '</summary><div>' + loc('ஆம்! WhatsApp-ல் SKU அனுப்புங்கள் — உடனே உண்மையான வீடியோ/புகைப்படங்களை அனுப்புகிறோம்.', 'అవును! WhatsApp లో SKU పంపండి — వెంటనే నిజమైన వీడియో/ఫోటోలు పంపుతాము.', 'ಹೌದು! WhatsApp ನಲ್ಲಿ SKU ಕಳುಹಿಸಿ — ತಕ್ಷಣ ನಿಜವಾದ ವೀಡಿಯೊ/ಫೋಟೋ ಕಳುಹಿಸುತ್ತೇವೆ.', 'Yes! Send us the SKU on WhatsApp — we share the real video/photos right away.', 'അതെ! WhatsApp-ൽ SKU അയയ്ക്കൂ — ഉടനടി യഥാർത്ഥ വീഡിയോ/ഫോട്ടോ അയയ്ക്കാം.') + '</div></details>' +
-          '<details><summary>' + loc('மாற்றுத்திட்டம் என்ன?', 'రీప్లేస్‌మెంట్ పాలసీ ఏమిటి?', 'ಬದಲಿ ನೀತಿ ಏನು?', 'What is the replacement policy?', 'റീപ്ലേസ്മെന്റ് പോളിസി എന്താണ്?') + '</summary><div>' + loc('7 நாள் எளிதான மாற்று — சேதம், தவறான அல்லது குறைபாடுள்ள சேலைகள் இலவசமாக மாற்றப்படும். 7 நாட்களுக்குள் WhatsApp-ல் தொடர்பு கொள்ளுங்கள்.', '7 రోజుల సులభ రీప్లేస్‌మెంట్ — పాడైన, తప్పుదారి లేదా లోపం ఉన్న చీరలు ఉచితంగా మార్చబడతాయి. 7 రోజుల్లోపు WhatsApp లో సంప్రదించండి.', '7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ — ಹಾನಿಗೊಂಡ, ತಪ್ಪಾದ ಅಥವಾ ದೋಷವುಳ್ಳ ಸೀರೆಗಳನ್ನು ಉಚಿತವಾಗಿ ಬದಲಾಯಿಸಲಾಗುತ್ತದೆ. 7 ದಿನಗಳೊಳಗೆ WhatsApp ನಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ.', '7-day easy replacement — damaged, wrong or defective sarees are replaced free. Contact us on WhatsApp within 7 days.', '7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ് — തകരന്ന, തെറ്റായ അല്ലെങ്കിൽ കുറവുള്ള സാരികൾ സൗജന്യമായി മാറ്റും. 7 ദിവസത്തിനുള്ളിൽ WhatsApp-ൽ ബന്ധപ്പെടൂ.') + ' <a href="return-policy.html">' + loc('முழு விவரம் →', 'పూర్తి పాలసీ →', 'ಪೂರ್ಣ ನೀತಿ →', 'Full policy →', 'പൂർണ്ണ പോളിസി →') + '</a></div></details>' +
           '<details><summary>' + loc('SK Sarees-ஐ எப்படி தொடர்பு கொள்வது?', 'SK Sarees ను ఎలా సంప్రదించాలి?', 'SK Sarees ಅನ್ನು ಹೇಗೆ ಸಂಪರ್ಕಿಸಬೇಕು?', 'How can I contact SK Sarees?', 'SK Sarees-നെ എങ്ങനെ ബന്ധപ്പെടണം?') + '</summary><div>WhatsApp / ' + loc('கால்', 'కాల్', 'ಕಾಲ್', 'Call', 'കാൾ') + ': <a href="tel:+91' + CONFIG.waNumber.slice(2) + '">+91 ' + CONFIG.waDisplay + '</a> • 9 AM – 9 PM, all days.</div></details>' +
         '</div>' +
-        /* 💬 NEED HELP BEFORE ORDERING — premium customer care card */
-        '<div class="pd-care">' +
-          '<b class="pc-title">💬 ' + loc('ஆர்டர் செய்யும் முன் உதவி வேண்டுமா?', 'ఆర్డర్ ముందు సహాయం కావాలా?', 'ಆರ್ಡರ್ ಮೊದಲು ಸಹಾಯ ಬೇಕೆ?', 'NEED HELP BEFORE ORDERING?', 'ഓർഡർ ചെയ്യും മുമ്പ് സഹായം വേണോ?') + '</b>' +
-          '<p class="pc-sub">' + loc('இந்த சேலையைப் பற்றி கேள்வி உண்டா? எங்கள் கஸ்டமர் கேர் உதவும்.', 'ఈ చీర గురించి ప్రశ్న ఉందా? మేము సహాయం చేస్తాము.', 'ಈ ಸೀರೆ ಬಗ್ಗೆ ಪ್ರಶ್ನೆ ಇದೆಯಾ? ನಾವು ಸಹಾಯ ಮಾಡುತ್ತೇವೆ.', 'Have a question about this saree? Our customer care team can help you.', 'ഈ സാരിയെക്കുറിച്ച് ചോദ്യമുണ്ടോ? ഞങ്ങൾ സഹായിക്കും.') + '</p>' +
-          '<div class="pc-actions">' +
-            '<a class="pc-wa" href="' + waLink('Hi SK Sarees! I have a question about this saree: ' + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + '). Please share more details.') + '" target="_blank" rel="noopener">' + SVG_WA + 'WHATSAPP' + '</a>' +
-            '<a class="pc-call" href="tel:+91' + CONFIG.waNumber.slice(2) + '">📞 ' + loc('இப்போதே கால் செய்யுங்கள்', 'కాల్ చేయండి', 'ಕಾಲ್ ಮಾಡಿ', 'CALL NOW', 'വിളിക്കൂ') + '</a>' +
-          '</div>' +
-          /* 🌐 V25 language chips (moved here from the old pd-help block) —
-             WhatsApp help in HER own language, one consistent place */
-          '<div class="pdh-langs pd-care-langs">' + [
-            ['ta', 'தமிழ்', 'வணக்கம் SK Sarees! இந்த சேலையைப் பற்றி கேட்க விரும்புகிறேன்: '],
-            ['te', 'తెలుగు', 'నమస్కారం SK Sarees! ఈ చీర గురించి అడగాలి: '],
-            ['kn', 'ಕನ್ನಡ', 'ನಮಸ್ಕಾರ SK Sarees! ಈ ಸೀರೆ ಬಗ್ಗೆ ಕೇಳಬೇಕು: '],
-            ['ml', 'മലയാളം', 'നമസ്കാരം SK Sarees! ഈ സാരിയെക്കുറിച്ച് ചോദിക്കണം: '],
-            ['en', 'English', 'Hi SK Sarees! I have a question about this saree: ']
-          ].map(x => '<a href="' + waLink(x[2] + smartTitle(p) + ' (SKU: ' + esc(p.sku || p.id) + ')') + '" target="_blank" rel="noopener">' + x[1] + '</a>').join('') +
-          '</div>' +
-          '<p class="pc-hint">💡 ' + loc('மேலும் புகைப்படங்கள் அல்லது வீடியோ வேண்டுமா? WhatsApp-ல் கேளுங்கள்.', 'మరిన్ని ఫోటోలు లేదా వీడియో కావాలా? WhatsApp లో అడగండి.', 'ಇನ್ನಷ್ಟು ಫೋಟೋ ಅಥವಾ ವೀಡಿಯೊ ಬೇಕಾ? WhatsApp ನಲ್ಲಿ ಕೇಳಿ.', 'Want to see more photos or a product video? Ask us on WhatsApp.', 'കൂടുതൽ ഫോട്ടോ അല്ലെങ്കിൽ വീഡിയോ വേണോ? WhatsApp-ൽ ചോദിക്കൂ.') + '</p>' +
-        '</div>' +
+        /* 📢 V40: WhatsApp GROUP (replaces the old "need help" card) */
+        waGroupCardHTML() +
         /* 💬 COMPACT REVIEW SUMMARY — no big form; expandable */
         /* 💬 V25 honest reviews: score is shown ONLY when real review data
            exists; no data → truthful "new saree" line (never an invented 4.5/5) */
@@ -3170,7 +3156,6 @@ function renderProduct(){
               '<span class="pdr-count">' + revTotal + ' ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು', 'customer reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ') + '</span>'
             : '<span class="pdr-count">🌱 ' + loc('New saree — no reviews yet', 'కొత్త చీర — ఇంకా రివ్యూలు లేవు', 'ಹೊಸ ಸೀರೆ — ಇನ್ನೂ ರಿವ್ಯೂ ಇಲ್ಲ', 'New saree — no reviews yet', 'പുതിയ സാരി — റിവ്യൂകൾ ഇല്ല') + '</span>') +
         '</div>' +
-        (revTotal > 0 ? '' : '<p class="pdr-safe">✅ ' + L_COD() + ' • ↩️ ' + L_7DAY() + ' • 🔒 ' + L_SECURE() + ' — ' + loc('பயமின்றி ஆர்டர் செய்யுங்கள்!', 'భయం లేకుండా ఆర్డర్ చేయండి!', 'ಭಯವಿಲ್ಲದೆ ಆರ್ಡರ್ ಮಾಡಿ!', 'order risk-free.', 'ഭയമില്ലാതെ ഓർഡർ ചെയ്യൂ!') + '</p>') +
         '<details class="pdr-read"><summary>📖 ' + loc('வாடிக்கையாளர் கருத்துகளை படியுங்கள்', 'రివ్యూలు చదవండి', 'ರಿವ್ಯೂಗಳನ್ನು ಓದಿ', 'Read Customer Reviews', 'റിവ്യൂകൾ വായിക്കൂ') + '</summary>' +
           '<div>' + revs + '</div>' +
         '</details>' +
@@ -3194,7 +3179,7 @@ function renderProduct(){
     /* 📌 sticky mobile purchase bar — WHATSAPP + BUY NOW (spec) */
     '<div class="sticky-bar sb2">' +
       '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WHATSAPP</a>' +
-      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' — ' + money(p.price) + ' →</button>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' →</button>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -3237,13 +3222,13 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n) + ' →'; }
+    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW() + ' →'; }
     const addB = document.querySelector('.pd-btns [data-add]');
     if (addB) addB.textContent = '🛍️ ' + L_ADDCART() + ' ×' + n;
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n) + ' →'; }
+    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW() + ' →'; }
     const pdBot = document.getElementById('pdBuyBottom');
-    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW() + ' — ' + money(p.price * n) + ' →'; }
+    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW() + ' →'; }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   /* 🚚 delivery form — pincode → ETA + pre-fills checkout */
@@ -3519,11 +3504,14 @@ async function shareEarnProduct(p){
   }catch(e0){}
   try{
     const url = shareUrl(p);   /* carries ?ref=CODE automatically when she has one */
+    /* ✅ V40: the old copy used invalid \U0001F… escapes (rendered as "U0001F338")
+       and promised FREE delivery, which no longer exists. Rewritten honestly. */
     const msg = loc(
-      '\U0001F338 ' + p.name + '\n\U0001F4B0 \u0bb5\u0bbf\u0bb2\u0bc8: ' + money(p.price) + '\n\U0001F381 \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bc1\u0b95\u0bcd\u0b95\u0bc1 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A \u20B92999+ \u0b87\u0bb2\u0bb5\u0b9a \u0b9f\u0bc6\u0bb2\u0bbf\u0bb5\u0bb0\u0bbf \u2022 COD & UPI\n\n\U0001F449 ' + url,
-      '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url,
-      '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF \u2014 Code: ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url,
-      '\U0001F338 ' + p.name + '\n\U0001F4B0 Price: ' + money(p.price) + '\n\U0001F381 Get 5% OFF with code ' + CONFIG.resellerCoupon + '!\n\U0001F69A FREE delivery above \u20B9999 \u2022 COD & UPI\n\n\U0001F449 ' + url);
+      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 ₹100 OFF for you — code SHARE100 (min ₹999)\n🚚 COD available · All-India delivery\n\n👉 ' + url,
+      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 మీకు ₹100 తగ్గింపు — SHARE100 (కనీసం ₹999)\n🚚 COD ఉంది · ఇండియా అంతటా\n\n👉 ' + url,
+      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 ನಿಮಗೆ ₹100 ರಿಯಾಯಿತಿ — SHARE100 (ಕನಿಷ್ಠ ₹999)\n🚚 COD ಇದೆ · ಇಡೀ ಇಂಡಿಯಾ\n\n👉 ' + url,
+      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 ₹100 OFF for you — code SHARE100 (min ₹999)\n🚚 COD available · All-India delivery\n\n👉 ' + url,
+      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 നിങ്ങൾക്ക് ₹100 ഓഫ് — SHARE100 (കുറഞ്ഞത് ₹999)\n🚚 COD ലഭ്യം · ഇന്ത്യയിലെല്ലായിടത്തും\n\n👉 ' + url);
     try{
       if (navigator.share){
         let file = null;
@@ -3813,7 +3801,7 @@ function coSummaryHTML(){
       (saved > 0 ? '<p class="co-saved">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + saved.toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
       nudge +
       '<p class="small" style="border:1px dashed var(--line);border-radius:10px;padding:9px;background:var(--bg);margin-top:8px">' + courier + '</p>' +
-      '<p class="small muted" style="text-align:center;margin-top:8px;font-weight:700">✅ Secure Order • 💵 COD Available • ↩️ 7-Day Replacement</p></div>';
+      '</div>';
   }catch(e){ return ''; }
 }
 /* 🎟️ perks under the coupon: loyalty points to use + reseller commission on this order */
@@ -3895,7 +3883,6 @@ function drawCo(){
           '<button type="button" class="pm-cta-wa" data-codwa>📦 ORDER COD ON WHATSAPP →</button>' +
           '<small class="pm-note">' + loc('WhatsApp-ல் ₹100 முன்பணம் செலுத்தி COD ஆர்டர் போடுங்கள் • சேலை தொகை முழுவதும் டெலிவரியின் போது பணம்', 'WhatsApp లో ₹100 అడ్వాన్స్ చెల్లించి COD ఆర్డర్ చేయండి • చీర మొత్తం డెలివరీలో నగదు', 'WhatsApp ನಲ್ಲಿ ₹100 ಅಡ್ವಾನ್ಸ್ ಪಾವತಿಸಿ COD ಆರ್ಡರ್ ಮಾಡಿ • ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'Pay ₹100 advance on WhatsApp to book your COD order • full saree amount in cash at delivery', 'WhatsApp-ൽ ₹100 അഡ്വാൻസ് അടച്ച് COD ഓർഡർ ചെയ്യൂ • സാരി തുക പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '</small>' +
         '</div>' +
-        '<div class="pm-trust">🔒 ' + loc('பாதுகாப்பான பணப்பட்டுதல்', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('விரைவு அனுப்புதல்', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്') + ' &nbsp;💵 COD Available' + '</div>' +
         /* 🛡️ V34: verified payee + what happens next */
         '<div class="co-trust">' +
           '<div class="cot-payee">🔐 ' + loc('நீங்கள் பணம் செலுத்துவது', 'మీరు చెల్లించేది', 'ನೀವು ಪಾವತಿಸುವುದು', 'You are paying', 'നിങ്ങൾ അടയ്ക്കുന്നത്') + ' <b>SK SAREES</b> · <code>' + esc(CONFIG.upiId) + '</code></div>' +
@@ -5395,6 +5382,21 @@ document.addEventListener('click', function(e){
   if (b){
     e.preventDefault();
     document.querySelectorAll('.fp-b').forEach(x => x.classList.toggle('on', x === b));
+    /* ✅ V40: tapping a budget tile searches RIGHT AWAY (no need for FIND SAREE) */
+    const qs = new URLSearchParams();
+    qs.set('min', b.dataset.fpmin); qs.set('max', b.dataset.fpmax);
+    const fab = (document.getElementById('fpFabric') || {}).value;
+    const col = (document.getElementById('fpColour') || {}).value;
+    const occ = (document.getElementById('fpOcc') || {}).value;
+    const av = document.getElementById('fpAvail');
+    if (fab) qs.set('fabric', fab);
+    if (col) qs.set('colour', col);
+    if (occ) qs.set('occ', occ);
+    if (av && av.checked) qs.set('avail', '1');
+    track('shop_search', { budget: b.dataset.fpmin + '-' + b.dataset.fpmax, from: 'budget_tile' });
+    const fpUrl = 'shop.html?' + qs.toString();
+    try{ if (window.__testNav){ window.__testNav(fpUrl); return; } }catch(e2){}
+    location.href = fpUrl;
     return;
   }
   const go = e.target.closest && e.target.closest('#fpGo');
@@ -5417,6 +5419,9 @@ document.addEventListener('click', function(e){
     location.href = fpUrl;
     return;
   }
+  /* 📢 V40: WhatsApp group popup */
+  const wago = e.target.closest && e.target.closest('#wagOpen');
+  if (wago){ e.preventDefault(); openWaGroupPopup(); return; }
   /* 🎁 V39: share-now button → real share + reward */
   const shb = e.target.closest && e.target.closest('[data-sharenow]');
   if (shb){ e.preventDefault(); shareEarnProduct(byId(shb.dataset.sharenow)); return; }

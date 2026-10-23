@@ -3665,3 +3665,45 @@ body[data-page="product"] .lang-bar{ display:none !important }
   position:absolute; left:4px; bottom:3px; font-size:.6rem; font-weight:900; color:#fff;
   background:rgba(0,0,0,.6); border-radius:5px; padding:1px 5px;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SK-V40 — simpler product page
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* 1. no horizontal scrollbar on the product-page rails (still swipeable) */
+body[data-page="product"] .pd-thumbs,
+body[data-page="product"] .pd-vid-rail,
+body[data-page="product"] .pdh-langs{
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+body[data-page="product"] .pd-thumbs::-webkit-scrollbar,
+body[data-page="product"] .pd-vid-rail::-webkit-scrollbar,
+body[data-page="product"] .pdh-langs::-webkit-scrollbar{ display:none; height:0; width:0 }
+
+/* 2. tighter, calmer product page */
+.pd-info h1{ margin-bottom:4px }
+.pd-priceblock{ margin:8px 0 6px !important }
+.pd-benefit{ margin:0 0 6px !important }
+.qty-row{ margin:10px 0 !important }
+.pd-btns{ gap:8px !important; margin-top:10px }
+.pd-btns .btn{ min-height:52px }
+.pd-assure{ margin-top:12px !important }
+
+/* 6. WhatsApp group card */
+.wag-card{
+  display:flex; align-items:center; gap:11px;
+  border:1.5px solid #CFEBD8; border-radius:14px;
+  background:linear-gradient(160deg,#F7FDF9,#fff);
+  padding:11px 13px; margin:14px 0 4px; min-width:0;
+}
+.wag-ic{
+  width:38px; height:38px; flex:0 0 auto; border-radius:11px;
+  background:#E8F9EE; display:flex; align-items:center; justify-content:center; font-size:1.15rem;
+}
+.wag-txt{ flex:1; min-width:0 }
+.wag-txt b{ display:block; font-size:.8rem; color:#0e7d46; line-height:1.3 }
+.wag-txt small{ display:block; font-size:.68rem; color:#6b8074; margin-top:1px; line-height:1.35 }
+.wag-btn{
+  flex:0 0 auto; min-height:38px; padding:8px 16px; border-radius:10px; border:0;
+  background:var(--wa); color:#fff; font-weight:900; font-size:.78rem; cursor:pointer;
+}
