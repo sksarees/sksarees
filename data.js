@@ -155,7 +155,7 @@ const imgLocal = file => {
    Used as the final fallback so a missing photo never shows a broken icon. */
 const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">' +
-  '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f1d3a"/><stop offset="1" stop-color="#5c0f26"/></linearGradient></defs>' +
+  '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D81B60"/><stop offset="1" stop-color="#8A0F3C"/></linearGradient></defs>' +
   '<rect width="800" height="600" fill="url(#g)"/>' +
   '<rect x="56" y="56" width="688" height="488" rx="18" fill="none" stroke="#e8c66a" stroke-width="5"/>' +
   '<text x="400" y="320" text-anchor="middle" font-family="Georgia, serif" font-size="170" font-weight="bold" fill="#e8c66a">SK</text>' +
@@ -389,6 +389,17 @@ function saveProducts(list){
   try{ if (window.REC) REC.invalidate(); }catch(e){}   /* recompute similarity on change */
   if (FS.enabled()){ try{ Sync.pushProducts(); }catch(e){} }  /* admin edits only */
 }
+/* ✅ V39: collect every valid YouTube id from a product record
+   (video, videoUrl, video2, video3, videos:[]) — order preserved, de-duped */
+function VIDEO_IDS(raw){
+  raw = raw || {};
+  const out = [];
+  const push = u => { const id = ytId(u); if (id && out.indexOf(id) === -1) out.push(id); };
+  push(raw.video); push(raw.videoUrl);
+  (Array.isArray(raw.videos) ? raw.videos : []).forEach(push);
+  push(raw.video2); push(raw.video3);
+  return out;
+}
 function normalizeProduct(raw){
   raw = raw || {};
   /* ---- flexible field mapping: supports BOTH schemas ----
@@ -469,7 +480,8 @@ function normalizeProduct(raw){
     colors: colors.length ? colors : ['Multi'],
     colourStock,
     desc: String(raw.desc || 'Beautiful handpicked saree from our collection.').trim(),
-    video: ytId(raw.video || raw.videoUrl || ''),
+    video: VIDEO_IDS(raw)[0] || '',        /* ✅ V39: first video (compat) */
+    videos: VIDEO_IDS(raw),                /* ✅ V39: every valid video id */
   };
 }
 
@@ -857,7 +869,7 @@ const LS = {
 
 /* ============================ 6. REVIEWS / FAQ / PROCESS ============================ */
 const REVIEWS = [
-  { name:'Lakshmi S.', place:'Salem', avatar:'#8f1d3a', rating:5, text:'Ordered the Kanchipuram silk for my daughter’s wedding — pure quality, just like the photos. Delivery was fast and the WhatsApp confirmation made it so easy!' },
+  { name:'Lakshmi S.', place:'Salem', avatar:'#D81B60', rating:5, text:'Ordered the Kanchipuram silk for my daughter’s wedding — pure quality, just like the photos. Delivery was fast and the WhatsApp confirmation made it so easy!' },
   { name:'Priya R.', place:'Chennai', avatar:'#2f7d5b', rating:5, text:'The cotton sarees are so soft and comfortable. Loved the COD option. Will definitely order again this Aadi season!' },
   { name:'Meenakshi K.', place:'Coimbatore', avatar:'#5a3d8f', rating:5, text:'Best place to buy sarees online. Paid through UPI — instant and safe. The owner personally confirmed my order on WhatsApp.' },
   { name:'Kavitha M.', place:'Erode', avatar:'#b57f1f', rating:4, text:'Beautiful handloom saree, exact colours as shown. Fits the budget too. Thank you SK Sarees!' },
@@ -1230,6 +1242,82 @@ function getCoupons(){
   return defaultCoupons();
 }
 function saveCoupons(list){ try{ localStorage.setItem('sk_coupons', JSON.stringify(list || [])); }catch(e){} }
+/* ═══════════ V39: EARNED COUPONS ═══════════
+   Rewards create REAL one-time coupons inside the existing coupon system, so
+   the cart / checkout / admin all work unchanged. maxUses:1 → one redemption. */
+function earnCoupon(code, value, label, min){
+  try{
+    const s = String(code || '').trim().toUpperCase();
+    if (!s) return null;
+    const list = getCoupons();
+    const ex = list.find(c => String(c.code || '').toUpperCase() === s);
+    if (ex) return ex;                        /* already earned → don't re-create */
+    const c = { code:s, type:'flat', value:+value || 0, min:+min || 0, active:true, label:label || s, maxUses:1, expiry:'' };
+    list.push(c);
+    saveCoupons(list);
+    try{ const e = JSON.parse(localStorage.getItem('sk_earned') || '[]'); if (e.indexOf(s) === -1){ e.push(s); localStorage.setItem('sk_earned', JSON.stringify(e)); } }catch(e2){}
+    return c;
+  }catch(e){ return null; }
+}
+function myEarnedCoupons(){
+  try{
+    const codes = JSON.parse(localStorage.getItem('sk_earned') || '[]');
+    return codes.map(code => couponFor(code)).filter(Boolean);
+  }catch(e){ return []; }
+}
+/* ═══════════ A. SHARE → ₹100 OFF (tiered) ═══════════ */
+const SHARE_TIERS = [
+  { n:1, code:'SHARE100', value:100, min:999,  label:'Shared a saree — ₹100 off' },
+  { n:3, code:'SHARE200', value:200, min:1499, label:'Shared 3 sarees — ₹200 off' },
+  { n:5, code:'SHARE300', value:300, min:1999, label:'Shared 5 sarees — ₹300 off' }
+];
+const ShareEarn = {
+  KEY: 'sk_share_log',
+  get(){ try{ return JSON.parse(localStorage.getItem(this.KEY) || '[]'); }catch(e){ return []; } },
+  count(){ return this.get().length; },
+  /* record a share (one per product per day, so she can't spam-tap) */
+  log(pid){
+    try{
+      const l = this.get();
+      const day = new Date().toDateString();
+      const dup = l.some(x => x && x.pid === String(pid||'') && x.day === day);
+      if (!dup){ l.push({ pid:String(pid||''), day:day, ts:Date.now() }); localStorage.setItem(this.KEY, JSON.stringify(l.slice(-300))); }
+      return this.reward();
+    }catch(e){ return null; }
+  },
+  /* grant the highest tier reached (all lower tiers also unlocked) */
+  reward(){
+    const n = this.count();
+    let granted = null;
+    SHARE_TIERS.forEach(t => { if (n >= t.n){ const c = earnCoupon(t.code, t.value, t.label, t.min); if (c) granted = c; } });
+    return granted;
+  },
+  /* what the customer will get at the next tier */
+  next(){
+    const n = this.count();
+    return SHARE_TIERS.find(t => n < t.n) || null;
+  },
+  best(){ const n = this.count(); let c = null; SHARE_TIERS.forEach(t => { if (n >= t.n) c = t; }); return c; }
+};
+/* ═══════════ B. WEAR & EARN — photo → ₹100 OFF ═══════════ */
+const WearEarn = {
+  KEY: 'sk_wear_claim',
+  claimed(){ try{ return !!localStorage.getItem(this.KEY); }catch(e){ return false; } },
+  coupon(){ try{ const c = localStorage.getItem(this.KEY); return c ? couponFor(c) : null; }catch(e){ return null; } },
+  claim(photoDataUrl, phone){
+    try{
+      let c = couponFor('WEAR100');
+      if (!c) c = earnCoupon('WEAR100', 100, 'Wear & Earn — wore our saree & sent a photo', 999);
+      if (c){ localStorage.setItem(this.KEY, c.code); }
+      try{
+        const list = JSON.parse(localStorage.getItem('sk_wear_list') || '[]');
+        list.push({ code:'WEAR100', phone:String(phone||''), photo:photoDataUrl || '', date:Date.now(), product:(localStorage.getItem('sk_wear_pid') || '') });
+        localStorage.setItem('sk_wear_list', JSON.stringify(list.slice(-40)));
+      }catch(e2){}
+      return c;
+    }catch(e){ return null; }
+  }
+};
 function couponUsedCount(code){
   try{ const m = JSON.parse(localStorage.getItem('sk_coupon_used') || '{}'); return +m[String(code).trim().toUpperCase()] || 0; }catch(e){ return 0; }
 }
@@ -1452,6 +1540,48 @@ function bumpResellerView(code){
     }
   }catch(e){}
 }
+/* ═══════════ V37: AD ATTRIBUTION (UTM) ═══════════
+   Captures utm_source / utm_medium / utm_campaign / utm_content / utm_term
+   plus fbclid (Meta) on the FIRST landing, keeps them for 30 days, and lets
+   orders carry "which ad brought this customer".
+   Privacy: stored on the device only, no personal data. */
+const ATTR_KEY = 'sk_attr';
+function captureAttribution(){
+  try{
+    const p = safeParams();
+    const keys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
+    const found = {};
+    keys.forEach(k => { const v = String(p.get(k) || '').trim(); if (v) found[k] = v.slice(0, 80); });
+    const fbclid = String(p.get('fbclid') || '').trim();
+    if (fbclid) found.fbclid = fbclid.slice(0, 120);
+    if (!Object.keys(found).length) return null;
+    /* a NEW campaign on the link always wins (last-touch for that visit) */
+    found.ts = Date.now();
+    found.landing = (location.pathname.split('/').pop() || 'index.html');
+    try{ localStorage.setItem(ATTR_KEY, JSON.stringify(found)); }catch(e){}
+    return found;
+  }catch(e){ return null; }
+}
+function getAttribution(){
+  try{
+    const a = JSON.parse(localStorage.getItem(ATTR_KEY) || 'null');
+    if (!a || !a.ts) return null;
+    if (Date.now() - a.ts > 30 * 864e5){ try{ localStorage.removeItem(ATTR_KEY); }catch(e){} return null; }
+    return a;
+  }catch(e){ return null; }
+}
+/* short human label for the WhatsApp message */
+function attributionLabel(){
+  const a = getAttribution(); if (!a) return '';
+  const parts = [];
+  if (a.utm_source) parts.push(a.utm_source);
+  if (a.utm_campaign) parts.push(a.utm_campaign);
+  if (a.utm_content) parts.push(a.utm_content);
+  return parts.join(' / ');
+}
+/* ✅ V37: capture the ad source on the FIRST page load (after the helpers exist) */
+try{ captureAttribution(); }catch(e){}
+
 function readRef(){
   try{
     const ref = safeParams().get('ref');
@@ -2725,7 +2855,7 @@ function maybeAutoDeliver(){
 const NAV = [
   ['index.html', 'home'], ['shop.html', 'shop'], ['cart.html', 'cart'], ['orders.html', 'orders'], ['profile.html', 'profile'],
 ];
-const SK_LOGOSVG = '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="4" fill="#e8c66a"/><text x="12" y="16.8" text-anchor="middle" font-size="9.5" font-weight="800" fill="#70142c" font-family="Arial, sans-serif">SK</text></svg>';
+const SK_LOGOSVG = '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="4" fill="#e8c66a"/><text x="12" y="16.8" text-anchor="middle" font-size="9.5" font-weight="800" fill="#B0144D" font-family="Arial, sans-serif">SK</text></svg>';
 /* 🎬 reels drawer label — auto language (device) for te/kn users */
 function reelsDrawerLabel(){
   try{

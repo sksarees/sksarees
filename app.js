@@ -2778,6 +2778,89 @@ const realAvgRating = (p) => {
   }catch(e){ return 0; }
 };
 const L_DAYS     = () => loc('நாட்கள்', 'రోజులు', 'ದಿನಗಳು', 'Days', 'ദിവസം');
+/* ═══════════ V39 UI: share rewards + wear & earn ═══════════ */
+function sharePanelHTML(p){
+  const n = ShareEarn.count();
+  const best = ShareEarn.best();
+  const next = ShareEarn.next();
+  const pct = Math.min(100, Math.round((n / 5) * 100));
+  const cpn = best ? couponFor(best.code) : null;
+  return '<div class="sh-card">' +
+    '<b class="sh-title">🎁 ' + loc('ஷேர் பண்ணி ₹100 OFF பெறுங்கள்', 'షేర్ చేసి ₹100 ఆఫ్ పొందండి', 'ಶೇರ್ ಮಾಡಿ ₹100 ಆಫ್ ಪಡೆಯಿರಿ', 'Share a saree — get ₹100 OFF', 'ഷെയർ ചെയ്ത് ₹100 ഓഫ് നേടൂ') + '</b>' +
+    '<p class="sh-sub">' + loc('உங்க ஃபேமிலி / WhatsApp குரூப்-ல் இந்த சேலையை ஷேர் பண்ணுங்க. ஷேர் பண்ணா உடனே கூப்பன் கிடைக்கும்!', 'మీ ఫ్యామిలీ / WhatsApp గ్రూప్‌లో ఈ చీరను షేర్ చేయండి. షేర్ చేస్తే వెంటనే కూపన్!', 'ನಿಮ್ಮ ಫ್ಯಾಮಿಲಿ / WhatsApp ಗ్రూప್‌ನಲ್ಲಿ ಈ ಸೀರೆ ಶೇರ್ ಮಾಡಿ. ಶೇರ್ ಮಾಡಿದರೆ ತಕ್ಷಣ ಕೂಪನ್!', 'Share this saree in your family / WhatsApp group — the coupon is issued instantly.', 'നിങ്ങളുടെ ഫാമിലി / WhatsApp ഗ്രൂപ്പിൽ ഈ സാരി ഷെയർ ചെയ്യൂ. ഷെയർ ചെയ്താൽ ഉടൻ കൂപ്പൺ!') + '</p>' +
+    '<div class="sh-tiers">' + SHARE_TIERS.map(t =>
+      '<div class="sh-tier' + (n >= t.n ? ' done' : '') + '"><b>₹' + t.value + '</b><small>' + t.n + ' ' + loc('ஷேர்', 'షేర్', 'ಶೇರ್', 'shares', 'ഷെയർ') + '</small></div>').join('') + '</div>' +
+    '<div class="sh-bar"><i style="width:' + pct + '%"></i></div>' +
+    (cpn
+      ? '<div class="sh-won">✅ <b>' + esc(cpn.code) + '</b> — ' + money(cpn.value) + ' OFF (' + loc('குறைந்தபட்சம்', 'కనీసం', 'ಕನಿಷ್ಠ', 'min', 'മിനിമം') + ' ' + money(cpn.min) + ') · ' + loc('checkout-ல் போடுங்கள்', 'checkout లో పెట్టండి', 'checkout ನಲ್ಲಿ ಹಾಕಿ', 'use it at checkout', 'checkout-ൽ ഇടൂ') + '</div>'
+      : '') +
+    '<button type="button" class="sh-btn" data-sharenow="' + esc(p.id) + '">📤 ' + loc('இப்போது ஷேர் பண்ணுங்கள்', 'ఇప్పుడు షేర్ చేయండి', 'ಈಗ ಶೇರ್ ಮಾಡಿ', 'Share this saree now', 'ഇപ്പോൾ ഷെയർ ചെയ്യൂ') + '</button>' +
+    (next ? '<small class="sh-next">' + loc('அடுத்து', 'తర్వాత', 'ಮುಂದೆ', 'Next', 'അടുത്തത്') + ': ' + (next.n - n) + ' ' + loc('ஷேர் → ₹' + next.value + ' OFF', 'షేర్ → ₹' + next.value + ' ఆఫ్', 'ಶೇರ್ → ₹' + next.value + ' ಆಫ್', 'shares → ₹' + next.value + ' OFF', 'ഷെയർ → ₹' + next.value + ' ഓഫ്') + '</small>'
+      : '<small class="sh-next">🏆 ' + loc('எல்லா tier-உம் பெற்றீர்கள்!', 'అన్ని టైర్లు పొందారు!', 'ಎಲ್ಲಾ ಟೈರ್ ಪಡೆದಿದ್ದೀರಿ!', 'All tiers unlocked!', 'എല്ലാ ടയറും നേടി!') + '</small>') +
+  '</div>';
+}
+function wearEarnHTML(p){
+  const c = WearEarn.claimed() ? WearEarn.coupon() : null;
+  if (c){
+    return '<div class="wear-card done"><b>🎉 ' + loc('Wear & Earn — பெற்றீர்கள்!', 'Wear & Earn — పొందారు!', 'Wear & Earn — ಪಡೆದಿದ್ದೀರಿ!', 'Wear & Earn — you earned it!', 'Wear & Earn — നേടി!') + '</b>' +
+      '<div class="wear-coupon"><b>' + esc(c.code) + '</b><span>' + money(c.value) + ' OFF · ' + loc('குறைந்தபட்சம்', 'కనీసం', 'ಕನಿಷ್ಠ', 'min', 'മിനിമം') + ' ' + money(c.min) + '</span></div>' +
+      '<small>' + loc('checkout-ல் இந்த கூப்பன் போட்டு ₹100 சேமிக்கவும்.', 'checkout లో ఈ కూపన్ పెట్టి ₹100 ఆదా చేయండి.', 'checkout ನಲ್ಲಿ ಈ ಕೂಪನ್ ಹಾಕಿ ₹100 ಉಳಿಸಿ.', 'Use this code at checkout and save ₹100.', 'checkout-ൽ ഈ കൂപ്പൺ ഇട്ട് ₹100 ലാഭിക്കൂ.') + '</small></div>';
+  }
+  return '<div class="wear-card">' +
+    '<b>📸 ' + loc('Wear & Earn — போட்டோ அனுப்பி ₹100 OFF', 'Wear & Earn — ఫోటో పంపి ₹100 ఆఫ్', 'Wear & Earn — ಫೋಟೋ ಕಳುಹಿಸಿ ₹100 ಆಫ್', 'Wear & Earn — send a photo, get ₹100 OFF', 'Wear & Earn — ഫോട്ടോ അയച്ച് ₹100 ഓഫ്') + '</b>' +
+    '<p>' + loc('நீங்க வாங்கின சேலை போட்டுட்டு ஒரு போட்டோ அனுப்புங்க. உடனே ₹100 OFF கூப்பன்! (உங்க அனுமதியுடன் மட்டும் website-ல் காட்டுவோம்)', 'మీరు కొన్న చీర వేసుకుని ఫోటో పంపండి. వెంటనే ₹100 ఆఫ్ కూపన్! (మీ అనుమతితో మాత్రమే వెబ్‌సైట్‌లో చూపిస్తాం)', 'ನೀವು ಖರೀದಿಸಿದ ಸೀರೆ ಉಟ್ಟು ಫೋಟೋ ಕಳುಹಿಸಿ. ತಕ್ಷಣ ₹100 ಆಫ್ ಕೂಪನ್! (ನಿಮ್ಮ ಒಪ್ಪಿಗೆಯಿಂದ ಮಾತ್ರ ವೆಬ್‌ಸೈಟ್‌ನಲ್ಲಿ ತೋರಿಸುತ್ತೇವೆ)', 'Send a photo wearing our saree — get ₹100 OFF instantly. (We only show it on the site with your permission.)', 'നിങ്ങൾ വാങ്ങിയ സാരി ഉടുത്ത് ഫോട്ടോ അയയ്ക്കൂ — ഉടൻ ₹100 ഓഫ്! (നിങ്ങളുടെ അനുമതിയോടെ മാത്രം സൈറ്റിൽ കാണിക്കും)') + '</p>' +
+    '<div class="wear-form">' +
+      '<input id="wePhone" inputmode="numeric" maxlength="10" placeholder="' + loc('WhatsApp number', 'WhatsApp నంబర్', 'WhatsApp ಸಂಖ್ಯೆ', 'Your WhatsApp number', 'WhatsApp നമ്പർ') + '">' +
+      '<label class="wear-photo" for="wePhoto">📷 ' + loc('போட்டோ தேர்ந்தெடு', 'ఫోటో ఎంచుకోండి', 'ಫೋಟೋ ಆರಿಸಿ', 'Choose your photo', 'ഫോട്ടോ തിരഞ്ഞെടുക്കൂ') + '</label>' +
+      '<input id="wePhoto" type="file" accept="image/*" style="display:none" onchange="wearPhotoPick(this)">' +
+      '<button type="button" class="wear-btn" data-wearclaim="' + esc(p.id) + '">🎁 ' + loc('₹100 OFF பெறுங்கள்', '₹100 ఆఫ్ పొందండి', '₹100 ಆಫ್ ಪಡೆಯಿರಿ', 'Claim ₹100 OFF', '₹100 ഓഫ് നേടൂ') + '</button>' +
+    '</div>' +
+    '<small class="wear-note">' + loc('போட்டோ இல்லாமலும் claim பண்ணலாம் — பிறகு WhatsApp-ல் அனுப்புங்க.', 'ఫోటో లేకుండా కూడా క్లెయిమ్ చేయవచ్చు — తర్వాత WhatsApp లో పంపండి.', 'ಫೋಟೋ ಇಲ್ಲದೆಯೂ ಕ್ಲೈಮ್ ಮಾಡಬಹುದು — ನಂತರ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ.', 'You can claim without a photo too — just send it later on WhatsApp.', 'ഫോട്ടോ ഇല്ലാതെയും ക്ലെയിം ചെയ്യാം — പിന്നീട് WhatsApp-ൽ അയയ്ക്കൂ.') + '</small>' +
+  '</div>';
+}
+window.__wearPhoto = '';
+function wearPhotoPick(input){
+  try{
+    const f = (input.files || [])[0];
+    if (!f) return;
+    if (!/^image\//.test(f.type || '')){ toast('⚠️ Images only'); input.value = ''; return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try{
+          const MAX = 700;
+          const sc = Math.min(1, MAX / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas');
+          cv.width = Math.max(1, Math.round(img.width * sc));
+          cv.height = Math.max(1, Math.round(img.height * sc));
+          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          window.__wearPhoto = cv.toDataURL('image/jpeg', 0.8);
+          toast('✅ ' + (loc ? loc('போட்டோ தயார் — claim பண்ணுங்கள்!', 'ఫోటో సిద్ధం — క్లెయిమ్ చేయండి!', 'ಫೋಟೋ ಸಿದ್ಧ — ಕ್ಲೈಮ್ ಮಾಡಿ!', 'Photo ready — now claim!', 'ഫോട്ടോ തയ്യാർ — ക്ലെയിം ചെയ്യൂ!') : 'Photo ready'));
+        }catch(e){}
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  }catch(e){}
+}
+function wearClaim(pid){
+  try{
+    const ph = ((document.getElementById('wePhone') || {}).value || '').replace(/\D/g, '');
+    if (ph && !/^\d{10}$/.test(ph)){ toast('⚠️ ' + loc('10 இலக்க எண் கொடுங்கள்', '10 అంకెల నంబర్ ఇవ్వండి', '10 ಅಂಕಿಯ ಸಂಖ್ಯೆ ನೀಡಿ', '10-digit number please', '10 അക്ക നമ്പർ നൽകൂ')); return; }
+    try{ if (pid) localStorage.setItem('sk_wear_pid', String(pid)); }catch(e){}
+    const c = WearEarn.claim(window.__wearPhoto || '', ph);
+    window.__wearPhoto = '';
+    if (!c){ toast('⚠️ ' + loc('மீண்டும் முயற்சிக்கவும்', 'మళ్ళీ ప్రయత్నించండి', 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ', 'Please try again', 'വീണ്ടും ശ്രമിക്കൂ')); return; }
+    try{ if (typeof fbqSafe === 'function') fbqSafe('CompleteRegistration', { content_name:'Wear & Earn' }); }catch(e){}
+    toast('🎉 ' + c.code + ' — ' + money(c.value) + ' OFF ' + loc('பெற்றீர்கள்!', 'పొందారు!', 'ಪಡೆದಿದ್ದೀರಿ!', 'unlocked!', 'നേടി!'));
+    try{
+      const msg = '📸 Wear & Earn claim\n\n' + (pid ? 'Saree: ' + (byId(pid) || {}).name + ' (SKU: ' + (byId(pid) || {}).sku + ')\n' : '') + (ph ? 'Phone: ' + ph + '\n' : '') + 'Coupon given: ' + c.code + '\n\nHere is my photo wearing the saree 👇';
+      window.open(waLink(msg), '_blank', 'noopener');
+    }catch(e2){}
+    if (document.body.dataset.page === 'product'){ try{ renderProduct(); }catch(e3){} }
+  }catch(e){}
+}
 function renderProduct(){
   const app = document.getElementById('app'); if (!app) return;
   /* 🔐 defensive id: safeParams fixes broken links like
@@ -2912,10 +2995,19 @@ function renderProduct(){
   const out = p.stock != null && p.stock <= 0;
   const low = !out && p.stock <= 5;
   const thumbs = gallery.map((u, i) => '<button type="button" class="pd-thumb' + (i === 0 ? ' on' : '') + '" data-thumb="' + i + '" aria-label="Photo ' + (i + 1) + '"><img src="' + esc(u) + '" alt="" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)"></button>').join('');
-  const vidBlock = p.video
-    ? '<div class="pd-video"><h3>🎬 SEE THE SAREE IN REAL VIDEO</h3><div class="video-frame"><iframe src="https://www.youtube.com/embed/' + esc(p.video) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
-      '<p class="pdv-more">Want more real photos/videos?</p>' +
-      '<a class="btn prp-btn" style="width:100%;box-sizing:border-box" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 GET REAL VIDEO ON WHATSAPP</a></div>'
+  /* 🎬 V39 VIDEO GALLERY — every video of this saree in one player + rail */
+  const vidList = (p.videos && p.videos.length) ? p.videos : (p.video ? [p.video] : []);
+  const vidBlock = vidList.length
+    ? '<div class="pd-video"><h3>🎬 ' + loc('இந்த சேலையின் உண்மையான வீடியோ', 'ఈ చీర నిజమైన వీడియో', 'ಈ ಸೀರೆಯ ನಿಜವಾದ ವೀಡಿಯೊ', 'SEE THIS SAREE IN REAL VIDEO', 'ഈ സാരിയുടെ യഥാർത്ഥ വീഡിയോ') + '</h3>' +
+      '<div class="video-frame"><iframe id="pdVidFrame" src="https://www.youtube.com/embed/' + esc(vidList[0]) + '?rel=0" title="Product video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
+      (vidList.length > 1
+        ? '<div class="pd-vid-rail">' + vidList.map((v, i) =>
+            '<button type="button" class="pd-vid-th' + (i === 0 ? ' on' : '') + '" data-vid="' + esc(v) + '" aria-label="Video ' + (i + 1) + '">' +
+              '<img src="https://img.youtube.com/vi/' + esc(v) + '/hqdefault.jpg" alt="" loading="lazy" onerror="imgSafe(this)">' +
+              '<span>' + (i + 1) + '</span></button>').join('') + '</div>'
+        : '') +
+      '<p class="pdv-more">' + loc('இன்னும் போட்டோ / வீடியோ வேண்டுமா?', 'ఇంకా ఫోటోలు / వీడియో కావాలా?', 'ಇನ್ನಷ್ಟು ಫೋಟೋ / ವೀಡಿಯೊ ಬೇಕಾ?', 'Want more real photos/videos?', 'കൂടുതൽ ഫോട്ടോ / വീഡിയോ വേണോ?') + '</p>' +
+      '<a class="btn prp-btn" style="width:100%;box-sizing:border-box" href="' + waLink('Hi SK Sarees, I want the real video/photos of ' + smartTitle(p) + ', SKU ' + esc(p.sku || p.id) + '.') + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் வீடியோ கேளுங்கள்', 'WhatsApp లో వీడియో అడగండి', 'WhatsApp ನಲ್ಲಿ ವೀಡಿಯೊ ಕೇಳಿ', 'GET REAL VIDEO ON WHATSAPP', 'WhatsApp-ൽ വീഡിയോ ചോദിക്കൂ') + '</a></div>'
     : '';
   /* 📄 Product + 🧭 Breadcrumb JSON-LD schema (SEO) */
   try{
@@ -3020,6 +3112,8 @@ function renderProduct(){
         '</div>' +
         /* 🛡️ V34: trust card — verifiable facts only */
         productTrustCard(p) +
+        /* 🎁 V39: SHARE → ₹100 OFF (tiered) */
+        '<div id="shCardBox">' + sharePanelHTML(p) + '</div>' +
         /* 📦 WHAT YOU RECEIVE — honest, from product data */
         /* 📋 PRODUCT DETAILS — clean rows (spec) */
         '<details class="pd-acc pd-specs" open><summary>📋 ' + loc('தயாரிப்பு விவரங்கள்', 'ఉత్పత్తి వివరాలు', 'ಉత్పನ್ನ ವಿವರಗಳು', 'PRODUCT DETAILS', 'പ്രൊഡക്ട് വിവരങ്ങൾ') + '</summary><ul>' +
@@ -3090,6 +3184,8 @@ function renderProduct(){
             '<button type="button" class="btn btn-maroon btn-sm" data-comment="' + p.id + '">✍️ ' + loc('கருத்து பதிவிடு', 'రివ్యూ పోస్ట్', 'ರಿವ್ಯೂ ಪೋಸ್ಟ್', 'Post Review', 'റിവ്യൂ പോസ്റ്റ്') + '</button>' +
           '</div>' +
         '</details></div>' +
+        /* 📸 V39: WEAR & EARN — photo → ₹100 OFF */
+        wearEarnHTML(p) +
         '<div id="wearingGallery"></div>' +
         
       '</div>' +
@@ -3412,6 +3508,15 @@ function attachReviewPhoto(input){
    is shown on the page — everything generates on click. */
 async function shareEarnProduct(p){
   if (!p) return;
+  /* 🎁 V39: record the share and grant the tiered reward BEFORE opening WhatsApp
+     (the reward is real either way — no fake "you earned" message) */
+  try{
+    const won = ShareEarn.log(p.id);
+    /* ♻️ refresh the card so the earned coupon shows up immediately */
+    try{ const box = document.getElementById('shCardBox'); if (box) box.innerHTML = sharePanelHTML(p); }catch(eR){}
+    if (won) toast('🎁 ' + won.code + ' — ' + money(won.value) + ' OFF ' + loc('உங்களுக்கு கிடைத்தது!', 'మీకు లభించింది!', 'ನಿಮಗೆ ಸಿಕ್ಕಿತು!', 'earned for you!', 'നിങ്ങൾക്ക് ലഭിച്ചു!'));
+    else { const nx = ShareEarn.next(); if (nx) toast('🎁 ' + loc('இன்னும் ' + (nx.n - ShareEarn.count()) + ' share — ₹' + nx.value + ' OFF!', 'ఇంకా ' + (nx.n - ShareEarn.count()) + ' షేర్ — ₹' + nx.value + ' తగ్గింపు!', 'ಇನ್ನೂ ' + (nx.n - ShareEarn.count()) + ' ಶೇರ್ — ₹' + nx.value + ' ರಿಯಾಯಿತಿ!', (nx.n - ShareEarn.count()) + ' more share → ₹' + nx.value + ' OFF!', 'ഇനിയും ' + (nx.n - ShareEarn.count()) + ' ഷെയർ — ₹' + nx.value + ' ഓഫ്!')); }
+  }catch(e0){}
   try{
     const url = shareUrl(p);   /* carries ?ref=CODE automatically when she has one */
     const msg = loc(
@@ -5312,10 +5417,27 @@ document.addEventListener('click', function(e){
     location.href = fpUrl;
     return;
   }
+  /* 🎁 V39: share-now button → real share + reward */
+  const shb = e.target.closest && e.target.closest('[data-sharenow]');
+  if (shb){ e.preventDefault(); shareEarnProduct(byId(shb.dataset.sharenow)); return; }
+  /* 📸 V39: Wear & Earn claim */
+  const wcb = e.target.closest && e.target.closest('[data-wearclaim]');
+  if (wcb){ e.preventDefault(); wearClaim(wcb.dataset.wearclaim); return; }
+  /* 🎬 V39: video thumbnail → swap the player */
+  const vth = e.target.closest && e.target.closest('[data-vid]');
+  if (vth){
+    e.preventDefault();
+    const fr = document.getElementById('pdVidFrame');
+    if (fr){ fr.src = 'https://www.youtube.com/embed/' + vth.dataset.vid + '?rel=0&autoplay=1'; }
+    document.querySelectorAll('.pd-vid-th').forEach(b => b.classList.toggle('on', b === vth));
+    return;
+  }
+
   /* 📞 call-click tracking */
   const tel = e.target.closest && e.target.closest('a[href^="tel:"]');
   if (tel){ track('call_click', {}); }
 }, true);
+
 
 /* 📊 whatsapp_click tracking — any WhatsApp link tap */
 document.addEventListener('click', function(e){

@@ -3601,3 +3601,67 @@ body[data-page="product"] .lang-bar{ display:none !important }
 }
 .pa-pay b{ color:var(--maroon) }
 .pa-pay a{ color:#0e7d46; font-weight:900; white-space:nowrap }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SK-V39 — Share rewards · Wear & Earn · Video gallery
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* 🎁 share card */
+.sh-card{
+  border:1.5px solid #F3D9E3; border-radius:14px; background:linear-gradient(170deg,#fff,#FFF6FA);
+  padding:13px 14px; margin:12px 0 4px;
+}
+.sh-title{ display:block; font-size:.85rem; font-weight:900; color:var(--maroon) }
+.sh-sub{ font-size:.72rem; color:#8A7580; margin:4px 0 10px; line-height:1.45 }
+.sh-tiers{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:8px }
+.sh-tier{ text-align:center; border:1.5px dashed #F0DDE6; border-radius:10px; padding:7px 4px; background:#fff }
+.sh-tier b{ display:block; font-size:.9rem; color:var(--maroon) }
+.sh-tier small{ font-size:.62rem; color:#8A7580; font-weight:700 }
+.sh-tier.done{ border-style:solid; border-color:#1B9E57; background:#F1FAF4 }
+.sh-tier.done b{ color:#0e7d46 }
+.sh-bar{ height:7px; border-radius:99px; background:#F3E6EC; overflow:hidden; margin-bottom:9px }
+.sh-bar i{ display:block; height:100%; background:linear-gradient(90deg,#E24B87,#D81B60); border-radius:99px; transition:width .4s }
+.sh-won{ font-size:.74rem; font-weight:800; color:#0e7d46; background:#F1FAF4; border:1px solid #CFEBD8; border-radius:9px; padding:7px 10px; margin-bottom:9px; overflow-wrap:anywhere }
+.sh-btn{ width:100%; min-height:48px; border:0; border-radius:12px; background:var(--maroon); color:#fff; font-weight:900; font-size:.86rem; cursor:pointer; box-shadow:0 6px 16px rgba(216,27,96,.22) }
+.sh-btn:active{ transform:scale(.99) }
+.sh-next{ display:block; text-align:center; font-size:.68rem; color:#8A7580; font-weight:700; margin-top:7px }
+/* 📸 wear & earn */
+.wear-card{
+  border:1.5px solid #E7DCCB; border-radius:14px; background:linear-gradient(170deg,#fff,#FFFCF6);
+  padding:13px 14px; margin:16px 0 6px;
+}
+.wear-card > b{ display:block; font-size:.85rem; font-weight:900; color:#8A6A1A }
+.wear-card p{ font-size:.72rem; color:#6b5a50; margin:5px 0 10px; line-height:1.5 }
+.wear-form{ display:grid; gap:8px }
+.wear-form input[type="tel"], .wear-form #wePhone{
+  width:100%; min-height:44px; border:1.5px solid #EADDCB; border-radius:11px;
+  padding:10px 12px; font-size:.86rem; background:#fff; outline:none; min-width:0;
+}
+.wear-photo{
+  display:flex; align-items:center; justify-content:center; gap:6px; min-height:44px;
+  border:1.5px dashed #D9C9AE; border-radius:11px; background:#fff; cursor:pointer;
+  font-size:.8rem; font-weight:800; color:#8A6A1A;
+}
+.wear-btn{
+  width:100%; min-height:48px; border:0; border-radius:12px;
+  background:linear-gradient(135deg,#E8A020,#C9861A); color:#fff;
+  font-weight:900; font-size:.86rem; cursor:pointer; box-shadow:0 6px 16px rgba(200,134,26,.25);
+}
+.wear-note{ display:block; font-size:.66rem; color:#8A7580; margin-top:8px; line-height:1.45 }
+.wear-card.done{ border-color:#CFEBD8; background:#F7FDF9 }
+.wear-card.done > b{ color:#0e7d46 }
+.wear-coupon{ display:flex; align-items:center; gap:10px; margin:8px 0 6px; flex-wrap:wrap }
+.wear-coupon b{ background:#fff; border:1.5px dashed #1B9E57; color:#0e7d46; border-radius:9px; padding:6px 12px; font-size:.9rem; letter-spacing:1px }
+.wear-coupon span{ font-size:.76rem; font-weight:800; color:#0e7d46 }
+/* 🎬 video gallery rail */
+.pd-vid-rail{ display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:9px 2px 3px }
+.pd-vid-th{
+  position:relative; flex:0 0 auto; width:96px; height:58px; border-radius:9px; overflow:hidden;
+  border:2px solid #EADDCB; background:#000; padding:0; cursor:pointer;
+}
+.pd-vid-th.on{ border-color:var(--maroon) }
+.pd-vid-th img{ width:100%; height:100%; object-fit:cover; opacity:.85 }
+.pd-vid-th span{
+  position:absolute; left:4px; bottom:3px; font-size:.6rem; font-weight:900; color:#fff;
+  background:rgba(0,0,0,.6); border-radius:5px; padding:1px 5px;
+}

@@ -567,7 +567,19 @@ function updateStatus(id, status){
   const fi = (fsOrders || []).findIndex(x => x.id === id);
   const o = fi >= 0 ? fsOrders[fi] : Store.orders.find(x => x.id === id);
   if (!o) return;
+  const prevStatus = o.status;
   o.status = status;
+  /* ✅ V37 HONEST TRACKING: this is the ONLY place a real Purchase is fired —
+     the owner has verified the order (payment received / COD accepted).
+     Fires once per order (order.__purchaseTracked guard). */
+  try{
+    if ((status === 'confirmed' || status === 'shipped') && prevStatus !== status && !o.__purchaseTracked){
+      o.__purchaseTracked = true;
+      o.confirmedAt = o.confirmedAt || new Date().toISOString();
+      try{ fbqSafe('Purchase', { value: (o.totals || {}).grand || 0, currency: 'INR', content_ids: (o.items || []).map(i => String(i.id)), content_name: 'Order confirmed' }); }catch(e){}
+      try{ gtag && gtag('event', 'purchase', { value: (o.totals || {}).grand || 0, currency: 'INR', transaction_id: o.id }); }catch(e){}
+    }
+  }catch(e){}
   if (status === 'shipped'){
     dispatchOrder(o);
     o.dispatchedAt = o.dispatchedAt || new Date().toISOString();
@@ -1201,7 +1213,9 @@ function openEditProduct(id){
     '</div>' +
     '<div class="field"><label>➕ Extra Image 1</label><input id="epImg2" value="' + esc((p.images || [])[1] || '') + '" placeholder="https://…"></div>' +
     '<div class="field"><label>➕ Extra Image 2</label><input id="epImg3" value="' + esc((p.images || [])[2] || '') + '" placeholder="https://…"></div>' +
-    '<div class="field"><label>Video URL (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
+    '<div class="field"><label>🎬 Video 1 (YouTube — optional)</label><input id="epVideo" value="' + esc(p.video ? 'https://www.youtube.com/watch?v=' + p.video : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
+    '<div class="field"><label>🎬 Video 2 (optional)</label><input id="epVideo2" value="' + esc(p.videos && p.videos[1] ? 'https://www.youtube.com/watch?v=' + p.videos[1] : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
+    '<div class="field"><label>🎬 Video 3 (optional)</label><input id="epVideo3" value="' + esc(p.videos && p.videos[2] ? 'https://www.youtube.com/watch?v=' + p.videos[2] : '') + '" placeholder="https://youtube.com/watch?v=…"></div>' +
     '<div class="field"><label>🎨 Colours (comma separated)</label><input id="epColors" value="' + esc((p.colors || []).join(', ')) + '"></div>' +
     '<div class="field"><label>Colour-wise stock (optional — auto-deduct on order)</label><input id="epColStock" value="' + esc(p.colourStock ? Object.keys(p.colourStock).map(k => k + ':' + p.colourStock[k]).join(', ') : '') + '" placeholder="e.g. Red:3, Blue:2"></div>' +
     '<button type="button" class="btn btn-maroon" id="epSave">💾 Save Changes</button>');
@@ -1238,6 +1252,7 @@ function openEditProduct(id){
         img2: document.getElementById('epImg2').value,
         img3: document.getElementById('epImg3').value,
         video: ytId(document.getElementById('epVideo').value),
+        videos: [ytId(document.getElementById('epVideo').value), ytId((document.getElementById('epVideo2') || {}).value || ''), ytId((document.getElementById('epVideo3') || {}).value || '')].filter(Boolean),
         colors: document.getElementById('epColors').value.split(',').map(s => s.trim()).filter(Boolean),
         colourStock: csMap,
       });
@@ -1660,7 +1675,7 @@ function statusImage(p){
       if (!ctx){ resolve(null); return; }
       /* background gradient */
       const g = ctx.createLinearGradient(0, 0, W, H);
-      g.addColorStop(0, '#8f1d3a'); g.addColorStop(1, '#5c0f26');
+      g.addColorStop(0, '#D81B60'); g.addColorStop(1, '#8A0F3C');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
       /* gold inner border */
       ctx.strokeStyle = '#e8c66a'; ctx.lineWidth = 14;
@@ -1680,8 +1695,8 @@ function statusImage(p){
             ctx.drawImage(img, phPad + (phW - dw) / 2, phTop + (phH - dh) / 2, dw, dh);
           } else {
             /* fallback: clean SK monogram */
-            ctx.fillStyle = 'rgba(143,29,58,.12)'; ctx.fillRect(phPad, phTop, phW, phH);
-            ctx.fillStyle = '#8f1d3a'; ctx.font = 'bold 190px Georgia, serif'; ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(216,27,96,.12)'; ctx.fillRect(phPad, phTop, phW, phH);
+            ctx.fillStyle = '#D81B60'; ctx.font = 'bold 190px Georgia, serif'; ctx.textAlign = 'center';
             ctx.fillText('SK', W / 2, phTop + phH / 2 + 60);
           }
           ctx.restore();
@@ -2004,7 +2019,7 @@ function renderReviews(){
   const visible = list.slice(0, revPage * REV_PAGE_SIZE);
   wrap.innerHTML = visible.map(r =>
     '<div class="rev-admin-row" style="display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px">' +
-    '<span class="avatar" style="background:#8f1d3a;flex:0 0 auto;width:34px;height:34px;font-size:.8rem">' + esc((r.name || 'A')[0]) + '</span>' +
+    '<span class="avatar" style="background:#D81B60;flex:0 0 auto;width:34px;height:34px;font-size:.8rem">' + esc((r.name || 'A')[0]) + '</span>' +
     '<div style="flex:1;min-width:0"><b style="font-size:.85rem">' + esc(r.name) + '</b> <span class="stars" style="display:inline">' + '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5)) + '</span>' +
     '<small class="muted" style="display:block">on ' + esc(r.pname) + '</small>' +
     '<p style="font-size:.82rem;margin-top:3px;color:#4a3f38">' + esc(r.text) + '</p></div>' +
