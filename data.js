@@ -59,9 +59,10 @@ const CONFIG = {
 /* ============================ 2. DELIVERY ZONES (by PIN code) ============================ */
 const ZONES = {
   /* 🚚 courier by QUANTITY: [1 pc, 2 pcs, 3+ pcs] • 💵 COD booking • 🧵 combo set courier */
-  tn:        { name:'Tamil Nadu',         ship: 30,  tiers:[30, 60, 80],      cod: 100, combo: 60,  days: [2, 3] },
-  andra:     { name:'Andhra / Telangana', ship: 40,  tiers:[40, 80, 100],     cod: 120, combo: 80,  days: [3, 4] },
-  karnataka: { name:'Karnataka',          ship: 40,  tiers:[40, 80, 100],     cod: 120, combo: 80,  days: [3, 4] },
+  tn:        { name:'Tamil Nadu',         ship: 30,  tiers:[30, 60, 90],      cod: 100, combo: 60,  days: [2, 3] },
+  andra:     { name:'Andhra / Telangana', ship: 40,  tiers:[40, 80, 120],     cod: 120, combo: 80,  days: [3, 4] },
+  karnataka: { name:'Karnataka',          ship: 40,  tiers:[40, 80, 120],     cod: 120, combo: 80,  days: [3, 4] },
+  kerala:    { name:'Kerala',             ship: 40,  tiers:[40, 80, 120],     cod: 120, combo: 80,  days: [3, 4] },
   other:     { name:'Other states',       ship: 100, tiers:[100, 100, 100],   cod: 150, combo: 100, days: [5, 7] },
 };
 /* ============================ 2b. FESTIVAL CALENDAR + EARLY ACCESS ============================ */
@@ -92,6 +93,7 @@ function deliveryZone(pincode){
   if (/^6[0-4]/.test(p)) return 'tn';        /* 60x–64x = Tamil Nadu */
   if (/^5[0-3]/.test(p)) return 'andra';     /* 50x–53x = Andhra/Telangana */
   if (/^5[6-9]/.test(p)) return 'karnataka'; /* 56x–59x = Karnataka */
+  if (/^6[7-9]/.test(p)) return 'kerala';    /* 67x–69x = Kerala */
   return 'other';
 }
 
@@ -820,7 +822,16 @@ const cartCount = () => Store.cart.reduce((s, i) => s + (i.qty || 1), 0);
    1 saree (800g) → 1kg → ₹30 • 2 (1.6kg) → 2kg → ₹60 • 3 (2.4kg) → 3kg → ₹90 */
 const cartWeightGrams = () => { try{ return Store.cart.reduce((g, i) => { const p = byId(i.id); return g + (i.qty || 1) * ((p && p.weight) || CONFIG.sareeWeight || 800); }, 0); }catch(e){ return CONFIG.sareeWeight || 800; } };
 const shipKg = (grams) => Math.max(1, Math.ceil(((grams || 800)) / 1000));
-const shipForWeight = (grams) => shipKg(grams) * (CONFIG.shipPerKg || 30);
+/* ✅ V41: courier = zone rate × quantity tier
+   TN 30/60/90 · Kerala+AP+KA 40/80/120 · other states 100 */
+const shipForWeight = (grams, pincode) => {
+  try{
+    const z = ZONES[deliveryZone(pincode)] || ZONES.tn;
+    const n = Math.max(1, shipKg(grams || 800));         /* 800 g/saree → 1,2,3… */
+    const tiers = z.tiers || [z.ship];
+    return tiers[Math.min(n, tiers.length) - 1];
+  }catch(e){ return shipKg(grams) * (CONFIG.shipPerKg || 30); }
+};
 const shippingFor = (total, pincode, qty) => {
   if (total >= CONFIG.shipFreeAbove) return 0;          /* 🚚 FREE above ₹2999 */
   const z = ZONES[deliveryZone(pincode)] || ZONES.tn;
@@ -940,7 +951,15 @@ function memberSinceText(){
     return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
   }catch(e){ return ''; }
 }
-function cartTotal(){ return Store.cart.reduce((s,i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0); }
+function cartTotal(){
+  /* ✅ V41: honour the per-line ₹1-per-share discount (max ₹100 per product) */
+  return Store.cart.reduce((s, i) => {
+    const p = byId(i.id);
+    if (!p) return s;
+    const off = Math.min(100, Math.max(0, +(i.off || 0)));
+    return s + Math.max(1, p.price - off) * i.qty;
+  }, 0);
+}
 /* ---- STOCK (1 psc model) ----
    Products have limited stock (often 1 psc). Stock is consumed when an order is
    placed; cart reservations (this device + other devices via Firestore) reduce
@@ -1043,6 +1062,8 @@ function addToCart(id, qty = 1, colour){
   const defCol = (p.colors && p.colors[0]) || '';
   const c = useColours ? (colour || defCol) : '';
   const ex = useColours ? Store.cart.find(i => i.id === id && (i.colour || defCol) === c) : Store.cart.find(i => i.id === id);
+  /* ✅ V41: carry the ₹1-per-share discount earned on the product page */
+  const __shareOff = (function(){ try{ return Math.min(100, Math.max(0, +ShareDisc.saved(id) || 0)); }catch(e){ return 0; } })();
   const have = ex ? (ex.qty || 1) : 0;
   const avail = liveStock(p, c);                        /* stock − remote − my cart */
   if (avail <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
@@ -1051,8 +1072,9 @@ function addToCart(id, qty = 1, colour){
   if (ex){
     ex.qty = Math.min(have + qty, cap);
     if (!useColours && ex.colour) ex.colour = '';
+    if (__shareOff > (ex.off || 0)) ex.off = __shareOff;
   } else {
-    Store.cart.push({ id, qty: Math.min(qty, cap), colour: useColours ? c : '' });
+    Store.cart.push({ id, qty: Math.min(qty, cap), colour: useColours ? c : '', off: __shareOff || 0 });
   }
   Store.saveCart();
   syncCartReservation();
@@ -1265,7 +1287,30 @@ function myEarnedCoupons(){
     return codes.map(code => couponFor(code)).filter(Boolean);
   }catch(e){ return []; }
 }
-/* ═══════════ A. SHARE → ₹100 OFF (tiered) ═══════════ */
+/* ═══════════ V41: SHARE → ₹1 per share (max ₹100) — PER PRODUCT ═══════════
+   Owner's rule: every genuine WhatsApp share knocks ₹1 off THIS saree, up to
+   ₹100. A different saree starts again from ₹100. Only a share that the
+   browser confirms (Web Share API promise) or that returns to the page after
+   opening WhatsApp counts — never a bare tap. */
+const ShareDisc = {
+  KEY: 'sk_share_disc',
+  all(){ try{ return JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; }catch(e){ return {}; } },
+  saved(pid){ const a = this.all(); return Math.max(0, Math.min(100, +((a[String(pid)] || 0)) || 0)); },
+  priceOf(p){ try{ const s = this.saved(p && p.id); return Math.max(1, (+p.price || 0) - s); }catch(e){ return (p && p.price) || 0; } },
+  add(pid){
+    try{
+      const a = this.all(); const k = String(pid);
+      const cur = Math.max(0, Math.min(100, +a[k] || 0));
+      if (cur >= 100) return 100;
+      a[k] = cur + 1;
+      localStorage.setItem(this.KEY, JSON.stringify(a));
+      return a[k];
+    }catch(e){ return 0; }
+  },
+  clear(pid){ try{ const a = this.all(); delete a[String(pid)]; localStorage.setItem(this.KEY, JSON.stringify(a)); }catch(e){} }
+};
+
+/* ═══════════ (legacy) tiered share engine — kept for older order data ═══════════ */
 const SHARE_TIERS = [
   { n:1, code:'SHARE100', value:100, min:999,  label:'Shared a saree — ₹100 off' },
   { n:3, code:'SHARE200', value:200, min:1499, label:'Shared 3 sarees — ₹200 off' },

@@ -2780,23 +2780,21 @@ const realAvgRating = (p) => {
 const L_DAYS     = () => loc('நாட்கள்', 'రోజులు', 'ದಿನಗಳು', 'Days', 'ദിവസം');
 /* ═══════════ V39 UI: share rewards + wear & earn ═══════════ */
 function sharePanelHTML(p){
-  const n = ShareEarn.count();
-  const best = ShareEarn.best();
-  const next = ShareEarn.next();
-  const pct = Math.min(100, Math.round((n / 5) * 100));
-  const cpn = best ? couponFor(best.code) : null;
+  const saved = ShareDisc.saved(p.id);
+  const left = Math.max(0, 100 - saved);
   return '<div class="sh-card">' +
-    '<b class="sh-title">🎁 ' + loc('ஷேர் பண்ணி ₹100 OFF பெறுங்கள்', 'షేర్ చేసి ₹100 ఆఫ్ పొందండి', 'ಶೇರ್ ಮಾಡಿ ₹100 ಆಫ್ ಪಡೆಯಿರಿ', 'Share a saree — get ₹100 OFF', 'ഷെയർ ചെയ്ത് ₹100 ഓഫ് നേടൂ') + '</b>' +
-    '<p class="sh-sub">' + loc('உங்க ஃபேமிலி / WhatsApp குரூப்-ல் இந்த சேலையை ஷேர் பண்ணுங்க. ஷேர் பண்ணா உடனே கூப்பன் கிடைக்கும்!', 'మీ ఫ్యామిలీ / WhatsApp గ్రూప్‌లో ఈ చీరను షేర్ చేయండి. షేర్ చేస్తే వెంటనే కూపన్!', 'ನಿಮ್ಮ ಫ್ಯಾಮಿಲಿ / WhatsApp ಗ్రూప್‌ನಲ್ಲಿ ಈ ಸೀರೆ ಶೇರ್ ಮಾಡಿ. ಶೇರ್ ಮಾಡಿದರೆ ತಕ್ಷಣ ಕೂಪನ್!', 'Share this saree in your family / WhatsApp group — the coupon is issued instantly.', 'നിങ്ങളുടെ ഫാമിലി / WhatsApp ഗ്രൂപ്പിൽ ഈ സാരി ഷെയർ ചെയ്യൂ. ഷെയർ ചെയ്താൽ ഉടൻ കൂപ്പൺ!') + '</p>' +
-    '<div class="sh-tiers">' + SHARE_TIERS.map(t =>
-      '<div class="sh-tier' + (n >= t.n ? ' done' : '') + '"><b>₹' + t.value + '</b><small>' + t.n + ' ' + loc('ஷேர்', 'షేర్', 'ಶೇರ್', 'shares', 'ഷെയർ') + '</small></div>').join('') + '</div>' +
-    '<div class="sh-bar"><i style="width:' + pct + '%"></i></div>' +
-    (cpn
-      ? '<div class="sh-won">✅ <b>' + esc(cpn.code) + '</b> — ' + money(cpn.value) + ' OFF (' + loc('குறைந்தபட்சம்', 'కనీసం', 'ಕನಿಷ್ಠ', 'min', 'മിനിമം') + ' ' + money(cpn.min) + ') · ' + loc('checkout-ல் போடுங்கள்', 'checkout లో పెట్టండి', 'checkout ನಲ್ಲಿ ಹಾಕಿ', 'use it at checkout', 'checkout-ൽ ഇടൂ') + '</div>'
-      : '') +
-    '<button type="button" class="sh-btn" data-sharenow="' + esc(p.id) + '">📤 ' + loc('இப்போது ஷேர் பண்ணுங்கள்', 'ఇప్పుడు షేర్ చేయండి', 'ಈಗ ಶೇರ್ ಮಾಡಿ', 'Share this saree now', 'ഇപ്പോൾ ഷെയർ ചെയ്യൂ') + '</button>' +
-    (next ? '<small class="sh-next">' + loc('அடுத்து', 'తర్వాత', 'ಮುಂದೆ', 'Next', 'അടുത്തത്') + ': ' + (next.n - n) + ' ' + loc('ஷேர் → ₹' + next.value + ' OFF', 'షేర్ → ₹' + next.value + ' ఆఫ్', 'ಶೇರ್ → ₹' + next.value + ' ಆಫ್', 'shares → ₹' + next.value + ' OFF', 'ഷെയർ → ₹' + next.value + ' ഓഫ്') + '</small>'
-      : '<small class="sh-next">🏆 ' + loc('எல்லா tier-உம் பெற்றீர்கள்!', 'అన్ని టైర్లు పొందారు!', 'ಎಲ್ಲಾ ಟೈರ್ ಪಡೆದಿದ್ದೀರಿ!', 'All tiers unlocked!', 'എല്ലാ ടയറും നേടി!') + '</small>') +
+    '<b class="sh-title">💚 ' + loc('ஷேர் பண்ணுங்க — ஒவ்வொரு ஷேருக்கும் ₹1 OFF', 'షేర్ చేయండి — ప్రతి షేర్‌కు ₹1 ఆఫ్', 'ಶೇರ್ ಮಾಡಿ — ಪ್ರತಿ ಶೇರ್‌ಗೆ ₹1 ಆಫ್', 'Share it — ₹1 OFF per share', 'ഷെയർ ചെയ്യൂ — ഓരോ ഷെയറിനും ₹1 ഓഫ്') + '</b>' +
+    '<p class="sh-sub">' + loc('WhatsApp குரூப்-ல் இந்த சேலையை ஷேர் பண்ணுங்க. ₹100 வரை குறையும் (இந்த சேலைக்கு மட்டும்).', 'WhatsApp గ్రూప్‌లో ఈ చీరను షేర్ చేయండి. ₹100 వరకు తగ్గుతుంది (ఈ చీరకు మాత్రమే).', 'WhatsApp ಗ್ರೂಪ್‌ನಲ್ಲಿ ಈ ಸೀರೆ ಶೇರ್ ಮಾಡಿ. ₹100 ವರೆಗೆ ಕಡಿಮೆಯಾಗುತ್ತದೆ (ಈ ಸೀರೆಗೆ ಮಾತ್ರ).', 'Share this saree in a WhatsApp group. Up to ₹100 off — this saree only.', 'WhatsApp ഗ്രൂപ്പിൽ ഈ സാരി ഷെയർ ചെയ്യൂ. ₹100 വരെ കുറയും (ഈ സാരിക്ക് മാത്രം).') + '</p>' +
+    '<div class="sh-now">' +
+      '<div class="sh-num"><b>' + (saved ? '−' + money(saved) : '₹0') + '</b><small>' + loc('சேமிப்பு', 'ఆదా', 'ಉಳಿತಾಯ', 'saved', 'ലാഭം') + '</small></div>' +
+      '<div class="sh-left"><b>' + money(left) + '</b><small>' + loc('இன்னும் குறையலாம்', 'ఇంకా తగ్గవచ్చు', 'ಇನ್ನೂ ಕಡಿಮೆಯಾಗಬಹುದು', 'more possible', 'ഇനിയും കുറയാം') + '</small></div>' +
+    '</div>' +
+    '<div class="sh-bar"><i style="width:' + saved + '%"></i></div>' +
+    '<button type="button" class="sh-btn" data-sharenow="' + esc(p.id) + '"' + (left <= 0 ? ' disabled' : '') + '>' +
+      (left <= 0
+        ? '✅ ' + loc('₹100 முழுவதும் குறைந்துவிட்டது!', '₹100 పూర్తిగా తగ్గింది!', '₹100 ಸಂಪೂರ್ಣ ಕಡಿಮೆಯಾಗಿದೆ!', 'Full ₹100 off unlocked!', '₹100 മുഴുവൻ കുറഞ്ഞു!')
+        : '📤 ' + loc('WhatsApp-ல் ஷேர் பண்ணு', 'WhatsApp లో షేర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಶೇರ್ ಮಾಡಿ', 'Share on WhatsApp', 'WhatsApp-ൽ ഷെയർ ചെയ്യൂ')) + '</button>' +
+    '<small class="sh-next">' + loc('உண்மையில் ஷேர் ஆனா மட்டுமே கணக்கில் எடுக்கும்', 'నిజంగా షేర్ అయితేనే లెక్కిస్తుంది', 'ನಿಜವಾಗಿ ಶೇರ್ ಆದರೆ ಮಾತ್ರ ಎಣಿಸುತ್ತದೆ', 'Counted only when the share really happens', 'യഥാർത്ഥത്തിൽ ഷെയർ ചെയ്താൽ മാത്രം കണക്കാക്കും') + '</small>' +
   '</div>';
 }
 function wearEarnHTML(p){
@@ -3092,7 +3090,7 @@ function renderProduct(){
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' →</button>' +
+            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + '</button>' +
               '<button type="button" class="btn btn-atc btn-xl" data-add="' + esc(p.id) + '">🛍️ ' + L_ADDCART() + '</button>' +
               '<a class="btn btn-wa btn-xl pd-wa-big pd-wa-outline" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WHATSAPP-ல் ஆர்டர் செய்யுங்கள்', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>') +
         '</div>' +
@@ -3170,7 +3168,6 @@ function renderProduct(){
           '</div>' +
         '</details></div>' +
         /* 📸 V39: WEAR & EARN — photo → ₹100 OFF */
-        wearEarnHTML(p) +
         '<div id="wearingGallery"></div>' +
         
       '</div>' +
@@ -3179,7 +3176,7 @@ function renderProduct(){
     /* 📌 sticky mobile purchase bar — WHATSAPP + BUY NOW (spec) */
     '<div class="sticky-bar sb2">' +
       '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WHATSAPP</a>' +
-      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + ' →</button>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + '</button>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -3222,13 +3219,13 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW() + ' →'; }
+    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW(); }
     const addB = document.querySelector('.pd-btns [data-add]');
     if (addB) addB.textContent = '🛍️ ' + L_ADDCART() + ' ×' + n;
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW() + ' →'; }
+    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW(); }
     const pdBot = document.getElementById('pdBuyBottom');
-    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW() + ' →'; }
+    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW(); }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   /* 🚚 delivery form — pincode → ETA + pre-fills checkout */
@@ -3493,42 +3490,46 @@ function attachReviewPhoto(input){
    is shown on the page — everything generates on click. */
 async function shareEarnProduct(p){
   if (!p) return;
-  /* 🎁 V39: record the share and grant the tiered reward BEFORE opening WhatsApp
-     (the reward is real either way — no fake "you earned" message) */
+  /* ✅ V41: link-only (instant, no image). The ₹1 credit is applied ONLY when a
+     real share is confirmed — either the Web Share API resolved, or the customer
+     actually left the page and came back from WhatsApp. */
+  if (ShareDisc.saved(p.id) >= 100){ toast('✅ ' + loc('₹100 முழுவதும் குறைந்துவிட்டது', '₹100 పూర్తిగా తగ్గింది', '₹100 ಸಂಪೂರ್ಣ ಕಡಿಮೆಯಾಗಿದೆ', 'You already have the full ₹100 off', '₹100 മുഴുവൻ ലഭിച്ചു')); return; }
+  const url = shareUrl(p);
+  const deal = '🌸 ' + smartTitle(p) + '\n💰 ₹' + ShareDisc.priceOf(p) + '\n\n👉 ' + url;
+
+  const credit = () => {
+    const now = ShareDisc.add(p.id);
+    try{ const box = document.getElementById('shCardBox'); if (box) box.innerHTML = sharePanelHTML(p); }catch(e){}
+    try{ const pb = document.querySelector('.pd-price b'); if (pb) pb.textContent = money(ShareDisc.priceOf(p)); }catch(e){}
+    toast('🎁 ₹' + now + ' ' + loc('குறைந்தது! இப்போது', 'తగ్గింది! ఇప్పుడు', 'ಕಡಿಮೆಯಾಗಿದೆ! ಈಗ', 'off! Now', 'കുറഞ്ഞു! ഇപ്പോൾ') + ' ₹' + ShareDisc.priceOf(p));
+    try{ fbqSafe('Share', { content_ids:[String(p.id)], content_name:'Product share' }); }catch(e){}
+    try{ if (typeof gtag === 'function') gtag('event', 'share', { method:'whatsapp', content_id:String(p.id) }); }catch(e){}
+  };
+
   try{
-    const won = ShareEarn.log(p.id);
-    /* ♻️ refresh the card so the earned coupon shows up immediately */
-    try{ const box = document.getElementById('shCardBox'); if (box) box.innerHTML = sharePanelHTML(p); }catch(eR){}
-    if (won) toast('🎁 ' + won.code + ' — ' + money(won.value) + ' OFF ' + loc('உங்களுக்கு கிடைத்தது!', 'మీకు లభించింది!', 'ನಿಮಗೆ ಸಿಕ್ಕಿತು!', 'earned for you!', 'നിങ്ങൾക്ക് ലഭിച്ചു!'));
-    else { const nx = ShareEarn.next(); if (nx) toast('🎁 ' + loc('இன்னும் ' + (nx.n - ShareEarn.count()) + ' share — ₹' + nx.value + ' OFF!', 'ఇంకా ' + (nx.n - ShareEarn.count()) + ' షేర్ — ₹' + nx.value + ' తగ్గింపు!', 'ಇನ್ನೂ ' + (nx.n - ShareEarn.count()) + ' ಶೇರ್ — ₹' + nx.value + ' ರಿಯಾಯಿತಿ!', (nx.n - ShareEarn.count()) + ' more share → ₹' + nx.value + ' OFF!', 'ഇനിയും ' + (nx.n - ShareEarn.count()) + ' ഷെയർ — ₹' + nx.value + ' ഓഫ്!')); }
-  }catch(e0){}
+    if (navigator.share){
+      await navigator.share({ title: smartTitle(p), text: deal, url });
+      credit();
+      return;
+    }
+  }catch(err){
+    if (err && err.name === 'AbortError') return;   /* cancelled → no credit */
+  }
+
   try{
-    const url = shareUrl(p);   /* carries ?ref=CODE automatically when she has one */
-    /* ✅ V40: the old copy used invalid \U0001F… escapes (rendered as "U0001F338")
-       and promised FREE delivery, which no longer exists. Rewritten honestly. */
-    const msg = loc(
-      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 ₹100 OFF for you — code SHARE100 (min ₹999)\n🚚 COD available · All-India delivery\n\n👉 ' + url,
-      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 మీకు ₹100 తగ్గింపు — SHARE100 (కనీసం ₹999)\n🚚 COD ఉంది · ఇండియా అంతటా\n\n👉 ' + url,
-      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 ನಿಮಗೆ ₹100 ರಿಯಾಯಿತಿ — SHARE100 (ಕನಿಷ್ಠ ₹999)\n🚚 COD ಇದೆ · ಇಡೀ ಇಂಡಿಯಾ\n\n👉 ' + url,
-      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 ₹100 OFF for you — code SHARE100 (min ₹999)\n🚚 COD available · All-India delivery\n\n👉 ' + url,
-      '🌸 ' + p.name + '\n💰 ₹' + p.price + '\n🎁 നിങ്ങൾക്ക് ₹100 ഓഫ് — SHARE100 (കുറഞ്ഞത് ₹999)\n🚚 COD ലഭ്യം · ഇന്ത്യയിലെല്ലായിടത്തും\n\n👉 ' + url);
-    try{
-      if (navigator.share){
-        let file = null;
-        try{
-          const imgUrl = p.img || ((p.images || [])[0]);
-          if (navigator.canShare && imgUrl){
-            const blob = await fetchImageBlob(imgUrl);   /* 🖼️ proxy-backed — googleusercontent-safe */
-            if (blob && blob.size && blob.size < 4.5e6) file = new File([blob], 'sk-saree.jpg', { type: blob.type || 'image/jpeg' });
-          }
-        }catch(e2){}
-        const payload = { title: p.name, text: msg, url };
-        if (file && navigator.canShare({ files: [file] })) payload.files = [file];
-        navigator.share(payload).then(() => {}, () => { try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e3){} });
-        return;
-      }
-    }catch(e){}
-    try{ window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); }catch(e){}
+    const t0 = Date.now();
+    let done = false;
+    const onBack = () => {
+      if (done || document.visibilityState !== 'visible') return;
+      if (Date.now() - t0 < 1200) return;           /* too fast → never left */
+      done = true;
+      document.removeEventListener('visibilitychange', onBack);
+      window.removeEventListener('focus', onBack);
+      credit();
+    };
+    document.addEventListener('visibilitychange', onBack);
+    window.addEventListener('focus', onBack);
+    window.open('https://wa.me/?text=' + encodeURIComponent(deal), '_blank', 'noopener');
   }catch(e){}
 }
 async function shareWaProduct(p){
@@ -3625,7 +3626,8 @@ function renderCartPage(){
       '</div>';
     return;
   }
-  const t = cartTotal(), n = cartCount(), sh = shipForWeight(cartWeightGrams());   /* ⚖️ V32: ₹30/kg weight based */
+  let __pin = ''; try{ __pin = (JSON.parse(localStorage.getItem('sk_co_draft') || '{}') || {}).pincode || ''; }catch(e){}
+  const t = cartTotal(), n = cartCount(), sh = shipForWeight(cartWeightGrams(), __pin);   /* ✅ V41: zone × qty */
   const disc = couponDiscount(co.data.coupon, t);
   const bundle = bundleDiscount();               /* 2+ sarees → ₹50 off */
   const coup = couponFor(co.data.coupon);
@@ -3732,13 +3734,20 @@ function coItems(){
     if (co.buyOnly){
       const p = byId(co.buyOnly.id);
       if (!p) return [];
-      return [{ id: p.id, name: p.name, price: p.price, qty: co.buyOnly.qty || 1, colour: co.buyOnly.colour || '' }];
+      const off = Math.min(100, Math.max(0, +(co.buyOnly.off != null ? co.buyOnly.off : ShareDisc.saved(p.id))));
+      return [{ id: p.id, name: p.name, price: Math.max(1, p.price - off), qty: co.buyOnly.qty || 1, colour: co.buyOnly.colour || '' }];
     }
   }catch(e){}
   return Store.cart.slice();
 }
 function coCartTotal(){
-  return coItems().reduce((s, i) => { const p = byId(i.id); return s + (p ? p.price * i.qty : 0); }, 0);
+  /* ✅ V41: honour the per-line ₹1-per-share discount */
+  return coItems().reduce((s, i) => {
+    const p = byId(i.id);
+    if (!p) return s;
+    const off = Math.min(100, Math.max(0, +(i.off || 0)));
+    return s + Math.max(1, p.price - off) * i.qty;
+  }, 0);
 }
 function coTotals(){
   const itemsTotal = coCartTotal();
@@ -3748,7 +3757,7 @@ function coTotals(){
      FLAT courier always — no free-shipping rule. */
   const codFee = 0;
   /* ⚖️ V32: ONLINE = ₹30/kg weight slab • COD (WhatsApp orders) = ₹100 flat advance */
-  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : shipForWeight(orderWeightGrams());   /* ✅ V36: order items, not cart */
+  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : shipForWeight(orderWeightGrams(), co.data.pincode);   /* ✅ V41: zone × qty */
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = co.buyOnly ? 0 : bundleDiscount();   /* single-product order → NO bundle offer */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -3925,7 +3934,8 @@ function drawCo(){
           '<div class="pg-amtbox"><b>' + money(t.grand) + '</b><span>' + loc('செலுத்த வேண்டிய தொகை', 'చెల్లించవలసిన మొత్తం', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount Payable', 'അടയ്ക്കേണ്ട തുക') + '</span><small>Order #' + esc(co.pendingId || '') + '</small></div>' +
           '<div class="pg-card">' +
             '<div class="pg-paytitle">' + loc('UPI மூலம் பாதுகாப்பாக செலுத்துங்கள்', 'UPI తో సురక్షితంగా చెల్లించండి', 'UPI ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪಾವತಿಸಿ', 'Pay securely using UPI', 'UPI വഴി സുരക്ഷിതമായി പേയ്') + '</div>' +
-            '<div class="pg-qrbox"><div id="upiQR"></div></div>' +
+            '<button type="button" class="pg-qrbtn" id="pgQrToggle">📷 ' + loc('QR கோடு காட்டு', 'QR కోడ్ చూపించు', 'QR ಕೋಡ್ ತೋರಿಸಿ', 'Show QR code', 'QR കോഡ് കാണിക്കൂ') + '</button>' +
+            '<div class="pg-qrbox" id="pgQrBox" style="display:none"><div id="upiQR"></div></div>' +
             '<div class="pg-scan">' + loc('எந்த UPI ஆப்பிலும் ஸ்கேன் செய்யுங்கள்', 'ఏ UPI యాప్‌తోనైనా స్కాన్ చేయండి', 'ಯಾವುದೇ UPI ಆ್ಯಪ್‌ನಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ', 'Scan with any UPI app', 'ഏത് UPI ആപ്പും ഉപയോഗിച്ച് സ്കാൻ ചെയ്യൂ') + '</div>' +
             '<div class="pg-apps">GPay • PhonePe • Paytm • BHIM • ' + loc('எந்த UPI ஆப்', 'ఏదైనా UPI యాప్', 'ಯಾವುದೇ UPI ಆ್ಯಪ್', 'Any UPI App', 'ഏത് UPI ആപ്പും') + '</div>' +
             '<div class="pg-upirow"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b><button type="button" class="pg-copy" data-u="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
@@ -3938,7 +3948,6 @@ function drawCo(){
               '<a class="pg-appbtn pg-appbtn-upi" href="' + upiLink(t.grand, note) + '">📱 OPEN ANY UPI APP</a>' +
             '</div>' +
           '</div>' +
-          '<div class="pg-trust">🔒 ' + loc('பாதுகாப்பான UPI பணம்', 'సురక్షిత UPI చెల్లింపు', 'ಸುರಕ್ಷಿತ UPI ಪಾವತಿ', 'Secure UPI Payment', 'സുരക്ഷിത UPI പേയ്മെന്റ്') + ' &nbsp;✓ 7-Day Replacement &nbsp;📦 ' + loc('விரைவு அனுப்புதல்', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പಾച്ച്') + ' &nbsp;✓ ' + loc('பணம் செலுத்திய பின் ஆர்டர் உறுதி', 'చెల్లింపు తర్వాత ఆర్డర్ నిర్ధారణ', 'ಪಾವತಿ ನಂತರ ಆರ್ಡರ್ ದೃಢೀಕರಣ', 'Order confirmation after payment', 'പേയ്മെന്റിന് ശേഷം ഓർഡർ സ്ഥിരീകരണം') + '</div>' +
           '<details class="pg-help"><summary>' + loc('எப்படி செலுத்துவது?', 'ఎలా చెల్లించాలి?', 'ಹೇಗೆ ಪಾವತಿಸಬೇಕೆ?', 'How to pay?', 'എങ്ങനെ പേയ്ക്കാം?') + '</summary><div>' +
             '<ol><li>' + loc('"Pay with UPI" அழுத்துங்கள்', '\"Pay with UPI\" నొక్కండి', '\"Pay with UPI\" ಒತ್ತಿ', 'Tap \"Pay with UPI\"', '\"Pay with UPI\" അമർത്തൂ') + '</li>' +
               '<li>' + loc('உங்கள் UPI ஆப்பை தேர்ந்தெடுங்கள்', 'మీ UPI యాప్ ఎంచుకోండి', 'ನಿಮ್ಮ UPI ಆ್ಯಪ್ ಆರಿಸಿ', 'Select your UPI app', 'നിങ്ങളുടെ UPI ആപ്പ് തിരഞ്ഞെടുക്കൂ') + '</li>' +
@@ -3953,7 +3962,8 @@ function drawCo(){
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
           '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> ' + loc('COD charge — இப்போது செலுத்துங்கள் (UPI)', 'COD ఛార్జ్ — ఇప్పుడే చెల్లించండి (UPI)', 'COD ಶುಲ್ಕ — ಈಗಲೇ ಪಾವತಿಸಿ (UPI)', 'COD charge — pay now (UPI)', 'COD ചാർജ് — ഇപ്പോൾ തന്നെ അടയ്ക്കൂ (UPI)') + '</span></div>' +
           '<div class="cod-note">💵 COD — charge <b>₹' + booking + '</b>, pay now &amp; book.<br>' + loc('மீதி சேலை தொகை', 'మిగిలిన చీర మొత్తం', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ', 'Balance saree amount', 'ബാക്കി സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - booking)) + '</b> — ' + loc('டெலிவரியின் போது பணம்', 'డెలివరీ సమయంలో నగదు', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'cash at delivery', 'ഡെലിവറി സമയത്ത് പണം') + '.</div>' +
-          '<div class="qr-box" style="margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
+          '<button type="button" class="pg-qrbtn" id="pgQrToggle" style="margin-top:10px">📷 ' + loc('QR கோடு காட்டு', 'QR కోడ్ చూపించు', 'QR ಕೋಡ್ ತೋರಿಸಿ', 'Show QR code', 'QR കോഡ് കാണിക്കൂ') + '</button>' +
+          '<div class="qr-box" id="pgQrBox" style="display:none;margin-top:10px"><div id="upiQR"></div><div class="upi-id">' + esc(CONFIG.upiId) + ' <button type="button" class="btn btn-ghost btn-sm" style="min-height:30px;padding:4px 10px" data-copy="' + esc(CONFIG.upiId) + '">Copy</button></div></div>' +
           '<a class="btn btn-gold btn-xl" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📲 ' + loc('முன்பணம் செலுத்து', 'బుకింగ్ చెల్లించండి', 'ಬುಕಿಂಗ್ ಪಾವತಿಸಿ', 'Pay', 'അടയ്ക്കൂ') + ' ₹' + booking + ' (UPI) →</a>' +
           '<div class="pg-appbtns">' +
             '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN GOOGLE PAY</a>' +
@@ -3964,8 +3974,9 @@ function drawCo(){
           '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid the COD Charge — Place Order →</button></div>') +
       '<button type="button" class="btn btn-ghost" data-back>← ' + loc('விவரங்களை மாற்ற திரும்பி செல்', 'వివరాలు మార్చడానికి వెనకకు', 'ವಿವರಗಳನ್ನು ಬದಲಾಯಿಸಲು ಹಿಂತಿರುಗಿ', 'Back to edit details', 'വിവരങ്ങൾ മാറ്റാൻ മടങ്ങൂ') + '</button>' +
     '</div>';
-    if (upiPay){ window.__pgAmt = t.grand; setTimeout(drawUpiQR, 150); }         /* wait for DOM + qrcode lib */
-    else { window.__pgAmt = booking; setTimeout(drawUpiQR, 150); }   /* 🐛 V26 FIX: the COD ₹100 booking QR never rendered before */
+    /* ✅ V41: QR is drawn only when the customer taps "Show QR code"
+       COD page → ₹100 booking • UPI page → full payable amount */
+    window.__pgAmt = upiPay ? t.grand : (CONFIG.codFee || 100);
   }
   /* (2026-09-28) liked/viewed saree strips REMOVED from checkout — clean,
      distraction-free payment page */
@@ -5417,6 +5428,18 @@ document.addEventListener('click', function(e){
     const fpUrl = 'shop.html' + (qs.toString() ? '?' + qs.toString() : '');
     try{ if (window.__testNav){ window.__testNav(fpUrl); return; } }catch(e2){}   /* test hook */
     location.href = fpUrl;
+    return;
+  }
+  /* 📷 V41: show the UPI QR only on demand */
+  const qrt = e.target.closest && e.target.closest('#pgQrToggle');
+  if (qrt){
+    e.preventDefault();
+    const box = document.getElementById('pgQrBox');
+    if (box){
+      box.style.display = 'block';
+      qrt.style.display = 'none';
+      setTimeout(() => { try{ drawUpiQR(); }catch(err){} }, 60);
+    }
     return;
   }
   /* 📢 V40: WhatsApp group popup */
