@@ -2883,27 +2883,87 @@ function openWaGroupPopup(){
     '<button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;min-height:44px" onclick="closeModal()">' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Not now', 'പിന്നീട്') + '</button>' +
   '</div>');
 }
-/* ═══════════ V42: FULL-SCREEN QUICK VIEW (index / shop image tap) ═══════════ */
-function openQuickView(pid){
+/* ═══════════ V44: FULL-SCREEN STORY VIEW (index / shop / product page) ═══════════
+   Tap a saree photo → Instagram-status style full-screen viewer:
+     • segmented progress bar at the top (▓▓░░)
+     • 5 seconds per photo → the next photo changes automatically
+     • tap the RIGHT half of the photo = forward, LEFT half = backward
+     • native swipe still works, ✕ / Esc closes
+     • caption + price + Product Details + Buy Now / Chat stay under the photo */
+var __QV_MS = 5000;
+var __qvTimer = null, __qvIdx = 0, __qvN = 0, __qvPhotos = [], __qvLockUntil = 0;
+function qvStopTimer(){
+  if (__qvTimer){ clearTimeout(__qvTimer); __qvTimer = null; }
+}
+/* paint the segmented bar: past = full, current = filling for 5s, future = empty */
+function qvPaint(idx){
+  var segs = Array.prototype.slice.call(document.querySelectorAll('#qvSegs .qv-seg'));
+  for (var i = 0; i < segs.length; i++){
+    var s = segs[i], bar = s.querySelector('i');
+    if (!bar) continue;
+    if (i < idx){ s.className = 'qv-seg done'; bar.style.transition = 'none'; bar.style.width = '100%'; }
+    else if (i === idx){
+      bar.style.transition = 'none'; bar.style.width = '0';
+      try{ void bar.offsetWidth; }catch(e){}
+      bar.style.transition = 'width ' + __QV_MS + 'ms linear';
+      bar.style.width = '100%';
+      s.className = 'qv-seg on';
+    } else { s.className = 'qv-seg'; bar.style.transition = 'none'; bar.style.width = '0'; }
+  }
+}
+function qvAuto(){
+  qvStopTimer();
+  if (!__qvN || __qvIdx >= __qvN - 1) return;          /* last photo → stay, no loop */
+  __qvTimer = setTimeout(function(){ qvGoTo(__qvIdx + 1); }, __QV_MS);
+}
+function qvGoTo(idx){
+  var track = document.getElementById('qvTrack');
+  if (!track || !__qvN) return;
+  idx = Math.max(0, Math.min(__qvN - 1, idx));
+  __qvIdx = idx;
+  __qvLockUntil = Date.now() + 520;                    /* ignore the scroll we cause ourselves */
+  var w = track.clientWidth || 1;
   try{
-    const p = byId(pid); if (!p) return;
-    let photos = [];
-    try{ photos = (typeof reelPhotos === 'function' ? reelPhotos(p) : []).filter(Boolean); }catch(e){}
-    if (!photos.length) photos = [p.img].filter(Boolean);
+    if (typeof track.scrollTo === 'function') track.scrollTo({ left: idx * w, behavior: 'smooth' });
+    else track.scrollLeft = idx * w;
+  }catch(e){ try{ track.scrollLeft = idx * w; }catch(e2){} }
+  qvPaint(idx);
+  qvAuto();
+}
+function openQuickView(pid, startIdx, photoList){
+  try{
+    var p = byId(pid); if (!p) return;
+    var photos = [];
+    try{
+      photos = (photoList && photoList.length ? photoList : (typeof reelPhotos === 'function' ? reelPhotos(p) : [])).filter(Boolean);
+    }catch(e){}
+    if (!photos.length && p.img) photos = [p.img];
     if (!photos.length) return;
-    const out = p.stock != null && p.stock <= 0;
-    const price = (typeof ShareDisc !== 'undefined') ? ShareDisc.priceOf(p) : p.price;
-    let ov = document.getElementById('qvOv'); if (ov) ov.remove();
+    qvStopTimer();
+    __qvPhotos = photos;
+    __qvN = photos.length;
+    __qvIdx = Math.max(0, Math.min(photos.length - 1, +startIdx || 0));
+
+    var out = p.stock != null && p.stock <= 0;
+    var price = (typeof ShareDisc !== 'undefined') ? ShareDisc.priceOf(p) : p.price;
+    var onPd = (document.body.dataset.page === 'product');
+    var ov = document.getElementById('qvOv'); if (ov) ov.remove();
+
+    var slides = photos.map(function(u, i){
+      return '<div class="qv-slide">' +
+        '<img src="' + esc(u) + '" alt="' + esc(p.name) + '" loading="' + (Math.abs(i - __qvIdx) <= 1 ? 'eager' : 'lazy') + '" onerror="imgSafe(this)">' +
+        (photos.length > 1 ? '<b class="qv-count">' + (i + 1) + ' / ' + photos.length + '</b>' : '') +
+        (i === 0 ? '<span class="qv-hint">‹ swipe ›</span>' : '') +
+      '</div>';
+    }).join('');
 
     ov = document.createElement('div');
     ov.id = 'qvOv'; ov.className = 'qv-ov';
     ov.innerHTML =
-      '<div class="qv-segs" id="qvSegs">' + photos.map((_, i) => '<span class="qv-seg' + (i === 0 ? ' on' : '') + '"><i></i></span>').join('') + '</div>' +
+      '<div class="qv-segs" id="qvSegs">' + photos.map(function(){ return '<span class="qv-seg"><i></i></span>'; }).join('') + '</div>' +
       '<button type="button" class="qv-x" id="qvX" aria-label="Close">✕</button>' +
       '<div class="qv-scroll" id="qvScroll">' +
-        '<div class="qv-track" id="qvTrack">' +
-          photos.map((u, i) => '<div class="qv-slide"><img src="' + esc(u) + '" alt="' + esc(p.name) + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" onerror="imgSafe(this)"></div>').join('') +
-        '</div>' +
+        '<div class="qv-track" id="qvTrack">' + slides + '</div>' +
         '<div class="qv-cap">' +
           '<h2>' + esc(smartTitle(p)) + '</h2>' +
           '<div class="qv-price"><b>' + money(price) + '</b>' +
@@ -2914,7 +2974,9 @@ function openQuickView(pid){
         '</div>' +
         '<button type="button" class="qv-det" id="qvDet">' + loc('தயாரிப்பு விவரங்கள்', 'ఉత్పత్తి వివరాలు', 'ಉತ್ಪನ್ನ ವಿವರಗಳು', 'Product Details', 'പ്രൊഡക്ട് വിവരങ്ങൾ') + ' ▾</button>' +
         '<div class="qv-detbox" id="qvDetBox" style="display:none">' + qvDetailsHTML(p) + '</div>' +
-        '<a class="qv-full" href="' + productUrl(p) + '">' + loc('முழு பக்கத்தை பார்க்க', 'పూర్తి పేజీ చూడండి', 'ಪೂರ್ಣ ಪುಟ ನೋಡಿ', 'View full product page', 'പൂർണ്ണ പേജ് കാണൂ') + ' →</a>' +
+        (onPd
+          ? '<button type="button" class="qv-full qv-close2" id="qvClose2">✕ ' + loc('மூடு — விவரங்கள் கீழே', 'మూసివేయి — వివరాలు కింద', 'ಮುಚ್ಚಿ — ವಿವರಗಳು ಕೆಳಗೆ', 'Close — details below', 'അടയ്ക്കൂ — വിവരങ്ങൾ താഴെ') + '</button>'
+          : '<a class="qv-full" href="' + productUrl(p) + '">' + loc('முழு பக்கத்தை பார்க்க', 'పూర్తి పేజీ చూడండి', 'ಪೂರ್ಣ ಪುಟ ನೋಡಿ', 'View full product page', 'പൂർണ്ണ പേജ് കാണൂ') + ' →</a>') +
       '</div>' +
       '<div class="qv-cta">' +
         (out
@@ -2925,36 +2987,73 @@ function openQuickView(pid){
     document.body.appendChild(ov);
     document.body.style.overflow = 'hidden';
 
-    const track = ov.querySelector('#qvTrack');
-    const segs = Array.from(ov.querySelectorAll('.qv-seg'));
-    const paint = (idx) => segs.forEach((s, i) => {
-      s.classList.toggle('on', i <= idx);
-    });
+    var track = ov.querySelector('#qvTrack');
     if (track){
-      track.addEventListener('scroll', () => {
-        const cur = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-        paint(cur);
+      /* start exactly on the photo that was tapped — no animation */
+      requestAnimationFrame(function(){
+        try{ track.scrollLeft = __qvIdx * (track.clientWidth || 1); }catch(e){}
+        qvPaint(__qvIdx);
+        qvAuto();
+      });
+      /* manual swipe → sync the bar + restart the 5s timer */
+      track.addEventListener('scroll', function(){
+        if (Date.now() < __qvLockUntil) return;
+        var cur = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        cur = Math.max(0, Math.min(__qvN - 1, cur));
+        if (cur !== __qvIdx){ __qvIdx = cur; qvPaint(cur); qvAuto(); }
       }, { passive: true });
+      /* tap RIGHT half = forward · tap LEFT half = backward */
+      var qvDown = null;
+      var qvTapAt = function(x, y, t0){
+        if (!qvDown) return;
+        var dx = x - qvDown.x, dy = y - qvDown.y, dt = Date.now() - (t0 || qvDown.t);
+        qvDown = null;
+        if (Math.abs(dx) > 14 || Math.abs(dy) > 14 || dt > 700) return;   /* that was a swipe, not a tap */
+        var r = track.getBoundingClientRect();
+        if (!r || !r.width) return;
+        if (x - r.left > r.width * 0.5) qvGoTo(__qvIdx + 1);              /* RIGHT half → forward */
+        else qvGoTo(__qvIdx - 1);                                          /* LEFT half  → backward */
+      };
+      track.addEventListener('pointerdown', function(ev){ qvDown = { x: ev.clientX, y: ev.clientY, t: Date.now() }; }, { passive: true });
+      track.addEventListener('pointerup', function(ev){ qvTapAt(ev.clientX, ev.clientY, qvDown && qvDown.t); }, { passive: true });
+      /* very old phones without PointerEvents → touch fallback */
+      if (!window.PointerEvent){
+        track.addEventListener('touchstart', function(ev){ var p0 = ev.touches[0]; if (p0) qvDown = { x: p0.clientX, y: p0.clientY, t: Date.now() }; }, { passive: true });
+        track.addEventListener('touchend', function(ev){ var p0 = ev.changedTouches[0]; if (p0) qvTapAt(p0.clientX, p0.clientY, qvDown && qvDown.t); }, { passive: true });
+      }
     }
     ov.querySelector('#qvX').addEventListener('click', closeQuickView);
-    ov.querySelector('#qvDet').addEventListener('click', () => {
-      const box = ov.querySelector('#qvDetBox');
-      const open = box.style.display !== 'none';
+    var c2 = ov.querySelector('#qvClose2'); if (c2) c2.addEventListener('click', closeQuickView);
+    ov.querySelector('#qvDet').addEventListener('click', function(){
+      var box = ov.querySelector('#qvDetBox');
+      var open = box.style.display !== 'none';
       box.style.display = open ? 'none' : 'block';
-      ov.querySelector('#qvDet').textContent = loc('தயாரிப்பு விவரங்கள்', 'ఉత్పత్తి వివరాలు', 'ಉತ್ಪನ್ನ ವಿವರಗಳು', 'Product Details', 'പ്രൊഡക്ട് വിവരങ്ങൾ') + (open ? ' ▾' : ' ▴');
+      this.textContent = loc('தயாரிப்பு விவரங்கள்', 'ఉత్పత్తి వివరాలు', 'ಉತ್ಪನ್ನ ವಿವರಗಳು', 'Product Details', 'പ്രൊഡക്ട് വിവരങ്ങൾ') + (open ? ' ▾' : ' ▴');
     });
-    /* swipe feel: arrow keys on desktop */
+    /* keyboard: ← backward · → forward · Esc close */
     document.addEventListener('keydown', function esc2(ev){
       if (!document.getElementById('qvOv')){ document.removeEventListener('keydown', esc2); return; }
       if (ev.key === 'Escape') closeQuickView();
-      if (ev.key === 'ArrowRight' && track) track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
-      if (ev.key === 'ArrowLeft' && track) track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' });
+      else if (ev.key === 'ArrowRight') qvGoTo(__qvIdx + 1);
+      else if (ev.key === 'ArrowLeft') qvGoTo(__qvIdx - 1);
     });
   }catch(e){ console.warn('quick view', e); }
 }
 function closeQuickView(){
-  try{ const ov = document.getElementById('qvOv'); if (ov) ov.remove(); }catch(e){}
+  try{ qvStopTimer(); }catch(e){}
+  try{ var ov = document.getElementById('qvOv'); if (ov) ov.remove(); }catch(e){}
   try{ document.body.style.overflow = ''; }catch(e){}
+  /* product page → keep the big photo on the last one you saw */
+  try{
+    if (document.body.dataset.page === 'product' && __qvPhotos.length){
+      var u = __qvPhotos[__qvIdx];
+      var mi = document.getElementById('pdMainImg');
+      if (mi && u && mi.getAttribute('src') !== u) mi.src = u;
+      var th = Array.prototype.slice.call(document.querySelectorAll('[data-thumb]'));
+      for (var i = 0; i < th.length; i++) th[i].classList.toggle('on', i === __qvIdx);
+      window.__pdGalIdx = __qvIdx;
+    }
+  }catch(e){}
 }
 function qvDetailsHTML(p){
   const cat = (CATEGORIES.find(c => c.slug === p.cat) || {});
@@ -3151,7 +3250,8 @@ function renderProduct(){
     '<div class="wrap pd-wrap" style="margin-top:12px">' +
       '<div>' +
         '<div class="pd-gal">' +
-          '<div class="main" id="pdMain" title="Tap to view this saree as a reel"><a href="reels.html?reel=' + encodeURIComponent(p.id) + '"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)"></a></div>' +
+          '<div class="main" id="pdMain" data-qv="' + esc(p.id) + '" title="Tap to see all photos"><img id="pdMainImg" src="' + esc(gallery[0]) + '" alt="' + esc(p.name) + '" fetchpriority="high" decoding="async" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+            (gallery.length > 1 ? '<span class="pd-photocount">📸 ' + gallery.length + '</span>' : '') + '</div>' +
 
           (gallery.length > 1 ? '<div class="pd-thumbs">' + thumbs + '</div>' : '') +
         '</div>' +
@@ -5168,6 +5268,7 @@ document.addEventListener('click', function(e){
   const pb = e.target.closest('#pdBuyBtn, [data-buynow]');
   if (pb){
     e.preventDefault();
+    try{ if (pb.closest('#qvOv')) closeQuickView(); }catch(e0){}   /* V44: close the story view first */
     try{ fbqSafe('buy_now_click'); }catch(err0){}   /* 📊 tracking */
     const pBn = byId(pb.dataset.buynow || '');
     if (!pBn){ try{ location.href = 'checkout.html'; }catch(err){} return; }
@@ -5466,11 +5567,13 @@ document.addEventListener('click', function(e){
     }
     return;
   }
-  /* 📄 tap the big product photo → FULL-SCREEN gallery (swipe all photos) */
-  if (e.target.id === 'pdMainImg'){
+  /* 📸 tap the big product photo → FULL-SCREEN STORY VIEW (5s progress, tap L/R) */
+  if (e.target.closest('#pdMain')){
     e.preventDefault();
     const gal = (window.__pdGallery || []).slice();
     const start = Math.max(0, +window.__pdGalIdx || 0);
+    const pdId = currentProductId();
+    if (pdId && typeof openQuickView === 'function'){ openQuickView(pdId, start, gal); return; }
     openGalleryViewer(gal, start, e.target.alt || '');
     return;
   }

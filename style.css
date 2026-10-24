@@ -3900,3 +3900,40 @@ h1,h2,h3{ letter-spacing:-.3px }
 }
 .cot-step b{ display:block; font-size:.78rem; color:#3a1722; line-height:1.35 }
 .cot-step small{ display:block; font-size:.68rem; color:#8A7580; line-height:1.4; margin-top:1px }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V44 — STORY VIEW: segmented 5-second progress bar + tap left / right
+   (product page photo, index + shop card photo)
+   ══════════════════════════════════════════════════════════════════════════ */
+.qv-segs{ filter:drop-shadow(0 1px 3px rgba(0,0,0,.65)) }
+.qv-seg{ height:4px; background:rgba(255,255,255,.30) }
+.qv-seg i{ width:0; background:#fff; border-radius:2px; transition:none; will-change:width }
+.qv-seg.done i{ width:100% }
+.qv-seg.on i{ width:100% }
+.qv-slide{ position:relative; min-height:48vh }
+.qv-slide img{ max-height:64vh }
+.qv-scroll{ overscroll-behavior:contain }
+.qv-count{
+  position:absolute; right:10px; bottom:10px; z-index:2;
+  font-size:.66rem; font-weight:800; letter-spacing:.03em; color:#fff;
+  background:rgba(0,0,0,.5); border-radius:20px; padding:3px 9px;
+  -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+}
+.qv-hint{
+  position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+  font-size:.66rem; font-weight:700; color:#fff; white-space:nowrap;
+  background:rgba(0,0,0,.42); border-radius:20px; padding:5px 13px;
+  pointer-events:none; animation:qvHint 3s ease forwards;
+}
+@keyframes qvHint{ 0%,65%{ opacity:.95 } 100%{ opacity:0 } }
+.qv-full.qv-close2{
+  display:block; width:100%; border:0; background:none; cursor:pointer;
+  font-family:inherit; padding:14px 0 18px;
+}
+/* small photo-count badge on the product page main photo (affordance) */
+.pd-photocount{
+  position:absolute; right:10px; bottom:10px; z-index:3;
+  font-size:.68rem; font-weight:800; color:#fff;
+  background:rgba(0,0,0,.5); border-radius:20px; padding:4px 10px;
+  pointer-events:none;
+}
