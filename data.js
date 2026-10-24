@@ -3264,7 +3264,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span>🔥 ${festivalName(currentFestival())} Special — Up to 40% OFF &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipPerKg || 30}/kg &nbsp;•&nbsp; 💵 COD — ₹${CONFIG.codFee || 100} Advance on WhatsApp + Cash on Delivery</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span><a href="diwali-sale.html" style="color:inherit;text-decoration:none">🪔 ${festivalName(currentFestival())} Sale — <b style="text-decoration:underline">50% வரை தள்ளுபடி →</b></a> &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipPerKg || 30}/kg &nbsp;•&nbsp; 💵 COD — ₹${CONFIG.codFee || 100} Advance on WhatsApp + Cash on Delivery</span></div>`);
   renderHeader(); renderFooter();
   /* 🌐 any [data-setlang] button switches the whole site language */
   document.addEventListener('click', function(e){
