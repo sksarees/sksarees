@@ -952,11 +952,11 @@ function memberSinceText(){
   }catch(e){ return ''; }
 }
 function cartTotal(){
-  /* ✅ V41: honour the per-line ₹1-per-share discount (max ₹100 per product) */
+  /* ✅ V45: honour the per-line ₹5-per-share discount (max ₹50 per product) */
   return Store.cart.reduce((s, i) => {
     const p = byId(i.id);
     if (!p) return s;
-    const off = Math.min(100, Math.max(0, +(i.off || 0)));
+    const off = Math.min(SHARE_MAX, Math.max(0, +(i.off || 0)));
     return s + Math.max(1, p.price - off) * i.qty;
   }, 0);
 }
@@ -1062,8 +1062,8 @@ function addToCart(id, qty = 1, colour){
   const defCol = (p.colors && p.colors[0]) || '';
   const c = useColours ? (colour || defCol) : '';
   const ex = useColours ? Store.cart.find(i => i.id === id && (i.colour || defCol) === c) : Store.cart.find(i => i.id === id);
-  /* ✅ V41: carry the ₹1-per-share discount earned on the product page */
-  const __shareOff = (function(){ try{ return Math.min(100, Math.max(0, +ShareDisc.saved(id) || 0)); }catch(e){ return 0; } })();
+  /* ✅ V45: carry the ₹5-per-share discount earned on the product page */
+  const __shareOff = (function(){ try{ return Math.min(SHARE_MAX, Math.max(0, +ShareDisc.saved(id) || 0)); }catch(e){ return 0; } })();
   const have = ex ? (ex.qty || 1) : 0;
   const avail = liveStock(p, c);                        /* stock − remote − my cart */
   if (avail <= 0){ toast('😞 Out of stock — ask us on WhatsApp'); return; }
@@ -1200,10 +1200,25 @@ function upiLink(amount, note){
 function upiAppLink(app, amount, note){
   const base = 'pa=' + CONFIG.upiId + '&pn=' + encodeURIComponent(CONFIG.upiName) +
     '&am=' + Number(amount).toFixed(2) + '&cu=INR&tn=' + encodeURIComponent(note || 'SK Sarees order');
-  if (app === 'gpay')    return 'intent://pay?' + base + '#Intent;scheme=upi;package=com.google.android.apps.nfcpay;S.browser_fallback_url=' + encodeURIComponent('https://pay.google.com/') + ';end';
-  if (app === 'phonepe') return 'phonepe://pay?' + base;
-  if (app === 'paytm')   return 'paytmmp://pay?' + base;
-  return 'upi://pay?' + base + '&mode=02';
+  const generic = 'upi://pay?' + base + '&mode=02';
+  let ios = false;
+  try{ ios = /iPad|iPhone|iPod/.test(navigator.userAgent || ''); }catch(e){}
+  /* ✅ V45: REAL app packages so the tap actually opens the app.
+     Android → intent:// with the correct package + a UPI fallback if the app
+     is not installed.  iOS → the app's own scheme.  Desktop → generic UPI. */
+  if (app === 'gpay'){
+    if (ios) return 'tez://upi/pay?' + base;                      /* Google Pay iOS scheme */
+    return 'intent://pay?' + base + '#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;S.browser_fallback_url=' + encodeURIComponent(generic) + ';end';
+  }
+  if (app === 'phonepe'){
+    if (ios) return 'phonepe://pay?' + base;
+    return 'intent://pay?' + base + '#Intent;scheme=phonepe;package=com.phonepe.app;S.browser_fallback_url=' + encodeURIComponent(generic) + ';end';
+  }
+  if (app === 'paytm'){
+    if (ios) return 'paytmmp://pay?' + base;
+    return 'intent://pay?' + base + '#Intent;scheme=paytmmp;package=net.one97.paytm;S.browser_fallback_url=' + encodeURIComponent(generic) + ';end';
+  }
+  return generic;
 }
 /* ============================ 9b. ABANDONED CART RECOVERY ============================
    If a visitor leaves items in the cart for 30+ minutes, show a gentle reminder
@@ -1287,27 +1302,105 @@ function myEarnedCoupons(){
     return codes.map(code => couponFor(code)).filter(Boolean);
   }catch(e){ return []; }
 }
-/* ═══════════ V41: SHARE → ₹1 per share (max ₹100) — PER PRODUCT ═══════════
-   Owner's rule: every genuine WhatsApp share knocks ₹1 off THIS saree, up to
-   ₹100. A different saree starts again from ₹100. Only a share that the
-   browser confirms (Web Share API promise) or that returns to the page after
-   opening WhatsApp counts — never a bare tap. */
+/* ═══════════ V45: SHARE → ₹5 per share (max ₹50) — PER PRODUCT ═══════════
+   Owner's rule (2026-10-24): every genuine WhatsApp share knocks ₹5 off THIS
+   saree, up to ₹50 off (10 real shares). A different saree starts again at ₹0,
+   so every product has its own ₹50 ceiling.
+   Only a share the browser confirms (Web Share API resolved / WhatsApp Status
+   posted) or that returns to the page after opening WhatsApp counts — never a
+   bare tap. Everything is a DISCOUNT on the saree, never cash. */
+const SHARE_STEP = 5;     /* ₹ off per confirmed share */
+const SHARE_MAX  = 50;    /* max ₹ off per product    */
 const ShareDisc = {
-  KEY: 'sk_share_disc',
+  KEY: 'sk_share_disc', STEP: SHARE_STEP, MAX: SHARE_MAX,
   all(){ try{ return JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; }catch(e){ return {}; } },
-  saved(pid){ const a = this.all(); return Math.max(0, Math.min(100, +((a[String(pid)] || 0)) || 0)); },
+  saved(pid){ const a = this.all(); return Math.max(0, Math.min(SHARE_MAX, +((a[String(pid)] || 0)) || 0)); },
   priceOf(p){ try{ const s = this.saved(p && p.id); return Math.max(1, (+p.price || 0) - s); }catch(e){ return (p && p.price) || 0; } },
   add(pid){
     try{
       const a = this.all(); const k = String(pid);
-      const cur = Math.max(0, Math.min(100, +a[k] || 0));
-      if (cur >= 100) return 100;
-      a[k] = cur + 1;
+      const cur = Math.max(0, Math.min(SHARE_MAX, +a[k] || 0));
+      if (cur >= SHARE_MAX) return SHARE_MAX;
+      a[k] = Math.min(SHARE_MAX, cur + SHARE_STEP);
       localStorage.setItem(this.KEY, JSON.stringify(a));
       return a[k];
     }catch(e){ return 0; }
   },
   clear(pid){ try{ const a = this.all(); delete a[String(pid)]; localStorage.setItem(this.KEY, JSON.stringify(a)); }catch(e){} }
+};
+
+/* ═══════════ V46: MANUAL ORDER → PAYMENT LINK ═══════════
+   The shop takes an order on WhatsApp, the owner types it once in
+   Admin → 📝 Manual Order, and the customer gets ONE link
+   (…/pay.html?o=ORDER&d=…) that shows the exact items, courier and total with
+   the UPI QR + GPay / PhonePe / Paytm buttons.
+   The link carries a tiny base64 snapshot of the order, so the page opens
+   instantly (0 Firestore reads) and still works if the customer is offline
+   later. Firestore is then asked ONCE for the live status (paid / confirmed).
+   No phone number, no address and no UPI PIN ever travels in the link. */
+const PayLink = {
+  /* base64url, unicode-safe (Tamil saree names survive) */
+  enc(obj){
+    try{
+      const s = JSON.stringify(obj);
+      return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }catch(e){ return ''; }
+  },
+  dec(str){
+    try{
+      let t = String(str || '').replace(/-/g, '+').replace(/_/g, '/');
+      while (t.length % 4) t += '=';
+      return JSON.parse(decodeURIComponent(escape(atob(t))));
+    }catch(e){ return null; }
+  },
+  /* compact snapshot — short keys keep the link under ~400 characters */
+  payload(order){
+    const t = (order && order.totals) || {};
+    return {
+      o: String((order && order.id) || ''),
+      n: String(((order && order.customer) || {}).name || '').slice(0, 40),
+      d: String((order && order.date) || '').slice(0, 10),
+      p: String((order && order.payment) || 'upi'),
+      it: ((order && order.items) || []).map(i => [String(i.name || '').slice(0, 60), Math.max(0, +i.price || 0), Math.max(1, +i.qty || 1)]),
+      t: {
+        s: Math.max(0, +t.itemsTotal || 0),
+        sh: Math.max(0, +t.shipping || 0),
+        f: Math.max(0, +t.codFee || 0),
+        di: Math.max(0, +t.discount || 0),
+        g: Math.max(0, +t.grand || 0)
+      }
+    };
+  },
+  url(order){
+    const base = (typeof CONFIG !== 'undefined' && CONFIG.siteUrl ? CONFIG.siteUrl : (location.origin || 'https://www.sksaree.shop'));
+    return base.replace(/\/+$/, '') + '/pay.html?o=' + encodeURIComponent(order.id) + '&d=' + this.enc(this.payload(order));
+  },
+  /* turn the URL snapshot back into an order-shaped object */
+  fromPayload(oid, p){
+    if (!p && !oid) return null;
+    const items = ((p && p.it) || []).map((a, i) => ({ id: 'pl' + i, name: String(a[0] || 'Saree'), price: +a[1] || 0, qty: +a[2] || 1, colour: '' }));
+    const t = (p && p.t) || {};
+    return {
+      id: String((p && p.o) || oid || ''),
+      date: (p && p.d) || '',
+      payment: (p && p.p) || 'upi',
+      customer: { name: (p && p.n) || '' },
+      items: items,
+      totals: {
+        itemsTotal: +t.s || 0, shipping: +t.sh || 0, codFee: +t.f || 0,
+        discount: +t.di || 0, grand: +t.g || 0
+      },
+      _fromLink: true
+    };
+  },
+  /* what the customer has to pay RIGHT NOW */
+  amountDue(order){
+    const t = (order && order.totals) || {};
+    if ((order && order.payment) === 'cod') return Math.max(0, +t.codFee || 0);   /* ₹100 booking */
+    return Math.max(0, +t.grand || 0);
+  },
+  /* total the owner will collect */
+  grand(order){ try{ return Math.max(0, +(((order || {}).totals || {}).grand) || 0); }catch(e){ return 0; } }
 };
 
 /* ═══════════ (legacy) tiered share engine — kept for older order data ═══════════ */

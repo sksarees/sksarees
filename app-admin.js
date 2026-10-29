@@ -126,6 +126,7 @@ function enableLiveSync(){
 }
 function refreshAdminTab(){
   try{
+    if (adminTab === 'manual'){ try{ moPaintRecent(); }catch(e){} return; }   /* V46: keep the link card visible */
     if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
     else if (adminTab === 'products') renderProducts();
     else if (adminTab === 'resellers') renderResellers();
@@ -200,6 +201,7 @@ function renderAdmin(){
     '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-outline btn-sm" id="btnAlerts" style="width:auto;min-width:0;padding:5px 10px;font-size:.72rem">🔔 Order Alerts</button><span class="sync-pill online" id="cloudPill">💾 Saved on device</span></div></div>' +
     '<div class="admin-tabs">' +
       '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
+      '<button type="button" class="admin-tab" id="tabManual">📝 Manual Order</button>' +
       '<button type="button" class="admin-tab" id="tabProducts">🛍️ Products</button>' +
       '<button type="button" class="admin-tab" id="tabBulk">📥 Bulk Upload & Edit</button>' +
       '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
@@ -213,6 +215,8 @@ function renderAdmin(){
   /* Pull custom Firestore categories once for admin category manager. */
   try{ if(FS.enabled()) FS._getDb().then(db=>{ if(!db)return; db.collection('categories').get().then(q=>{ q.forEach(d=>{const c=d.data()||{}; if(c.slug && !CATEGORIES.some(x=>x.slug===c.slug)) CATEGORIES.push({slug:c.slug,name:c.name||c.slug,emoji:c.emoji||'🪡',cls:'c-daily',blurb:c.name||c.slug});}); }); }); }catch(e){}
   document.getElementById('tabOrders').addEventListener('click', () => switchTab('orders'));
+  const tabM = document.getElementById('tabManual');
+  if (tabM) tabM.addEventListener('click', () => switchTab('manual'));
   document.getElementById('tabProducts').addEventListener('click', () => switchTab('products'));
   document.getElementById('tabReviews').addEventListener('click', () => switchTab('reviews'));
   document.getElementById('tabBulk').addEventListener('click', () => switchTab('bulk'));
@@ -273,13 +277,14 @@ function renderAdmin(){
 
 function switchTab(t){
   adminTab = t;
-  ['tabOrders','tabProducts','tabBulk','tabReviews','tabResellers','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
+  ['tabOrders','tabManual','tabProducts','tabBulk','tabReviews','tabResellers','tabFeed','tabCoupons','tabDashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', id === 'tab' + t[0].toUpperCase() + t.slice(1));
   });
   const body = document.getElementById('tabBody'); if (!body) return;
   try{
     if (t === 'orders'){ renderFilters(); renderOrderList(); }
+    else if (t === 'manual'){ renderManualOrder(); }
     else if (t === 'products') renderProducts();
     else if (t === 'bulk') renderBulkManager();
     else if (t === 'reviews') renderReviews();
@@ -557,6 +562,7 @@ function orderCard(o){
     '<div class="oc-btns">' +
       '<a class="btn btn-wa btn-sm" href="' + waLink(TPL_CONFIRM(o), c.phone) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Send Confirmation</a>' +
       '<a class="btn btn-outline btn-sm" href="' + waLink(TPL_DELIVERY(o), c.phone) + '" target="_blank" rel="noopener">🚚 Send Delivery Reminder</a>' +
+      (o.paidConfirmed ? '' : '<button type="button" class="btn btn-outline btn-sm" data-paylink="' + esc(o.id) + '" style="width:auto">🔗 Payment Link</button>') +
       '<button type="button" class="btn btn-buy btn-sm" data-label="' + esc(o.id) + '" style="width:auto">🧾 Courier Label</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" data-delorder="' + esc(o.id) + '" style="width:auto;color:var(--red)">🗑️ Delete Order</button>' +
     '</div></div>';
@@ -2097,6 +2103,35 @@ document.addEventListener('click', e => {
     prodPage = 1; renderProdBody(); toast('🗑️ Deleted from Admin + Firestore. Download and upload catalog.json to remove it for customers too.');
     return;
   }
+  /* 🔗 V46: resend the customer payment link for ANY order */
+  const plk = e.target.closest('[data-paylink]');
+  if (plk){
+    try{
+      const id = plk.dataset.paylink;
+      const o = (fsOrders || []).find(x => x && x.id === id) || (Store.orders || []).find(x => x && x.id === id);
+      if (!o){ toast('⚠️ Order not found'); return; }
+      const link = PayLink.url(o);
+      const due = PayLink.amountDue(o);
+      const msg = '🌸 *SK Sarees* — Order #' + o.id +
+        '\n\n👗 ' + (o.items || []).map(i => i.name + ' ×' + i.qty).join('\n👗 ') +
+        '\n\n💰 Order total: ₹' + PayLink.grand(o) +
+        ((o.payment === 'cod') ? '\n💵 COD: இப்போ ₹' + due + ' advance மட்டும் — மீதி ₹' + Math.max(0, PayLink.grand(o) - due) + ' டெலிவரியில் cash' : '\n💳 UPI — இப்போவே pay பண்ணலாம்') +
+        '\n\n👉 Pay here: ' + link +
+        '\n\nபணம் செலுத்தியதும் “I\'ve Paid” அழுத்துங்க — நாங்க WhatsApp-ல confirm பண்ணுவோம். 🩷';
+      openModal('<div class="mo-modal">' +
+        '<b class="mo-h">🔗 Payment link — Order #' + esc(o.id) + '</b>' +
+        '<p class="mo-note" style="font-size:.76rem;color:#6E5763;margin:0 0 8px">' + esc((o.customer || {}).name || '') + ' · ' + money(PayLink.grand(o)) + ' · ' + String(o.payment || '').toUpperCase() + '</p>' +
+        '<div class="mo-linkbox"><input id="moLinkVal" readonly value="' + esc(link) + '"><button type="button" id="moCopy">Copy</button></div>' +
+        '<div class="mo-linkbtns">' +
+          '<a class="mo-wa" href="' + esc(waLink(msg, (o.customer || {}).phone)) + '" target="_blank" rel="noopener">💬 WhatsApp-ல் அனுப்பு</a>' +
+          '<a class="mo-open" href="' + esc(link) + '" target="_blank" rel="noopener">👁 Link பார்க்க</a>' +
+        '</div>' +
+      '</div>');
+      const cp = document.getElementById('moCopy');
+      if (cp) cp.addEventListener('click', () => { const v = document.getElementById('moLinkVal'); if (v){ v.select(); copyText(v.value); } });
+    }catch(e){ toast('⚠️ Could not build the link'); }
+    return;
+  }
   const delo = e.target.closest('[data-delorder]');
   if (delo){
     const id = delo.dataset.delorder;
@@ -2149,3 +2184,322 @@ document.addEventListener('click', e => {
 document.addEventListener('click', e => { if (e.target.closest('[data-close]')) { e.preventDefault(); closeModal(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+/* ══════════════════════════════════════════════════════════════════════════
+   V46 — ADMIN: 📝 MANUAL ORDER → PAYMENT LINK
+   The order comes on WhatsApp. The owner types it once here:
+     customer → sarees → courier / discount → payment mode
+   and gets a ready link that the customer opens and pays (UPI / GPay…).
+   The order is saved to Firestore (so the pay page can show it live) and to
+   this device, and it shows up in the normal Orders list.
+   ══════════════════════════════════════════════════════════════════════════ */
+let mo = { items: [], courierTouched: false, lastLink: '', lastId: '' };
+
+function moCourierFor(pincode, qty){
+  try{
+    const z = ZONES[deliveryZone(pincode)] || ZONES.tn;
+    const tiers = z.tiers || [z.ship];
+    const n = Math.max(1, +qty || 1);
+    return tiers[Math.min(n, tiers.length) - 1];
+  }catch(e){ return 30; }
+}
+function moQty(){ return (mo.items || []).reduce((s, i) => s + (+i.qty || 1), 0); }
+function moSubtotal(){ return (mo.items || []).reduce((s, i) => s + (+i.price || 0) * (+i.qty || 1), 0); }
+function moTotals(){
+  const sub = moSubtotal();
+  const pin = (document.getElementById('moPin') || {}).value || '';
+  const courierEl = document.getElementById('moCourier');
+  const courier = courierEl ? Math.max(0, +courierEl.value || 0) : moCourierFor(pin, moQty());
+  const discEl = document.getElementById('moDisc');
+  const disc = discEl ? Math.max(0, +discEl.value || 0) : 0;
+  const payEl = document.getElementById('moPay');
+  const pay = payEl ? payEl.value : 'upi';
+  /* 💵 same pricing model as the website checkout:
+       UPI  = sarees + courier (zone × qty) — all paid now
+       COD  = sarees + ₹100 COD charge — ₹100 paid now, saree amount in CASH */
+  const codFee = pay === 'cod' ? (CONFIG.codFee || 100) : 0;
+  const shipping = pay === 'cod' ? codFee : courier;
+  const grand = Math.max(0, sub - disc + shipping);
+  return { itemsTotal: sub, shipping: shipping, discount: disc, codFee: codFee, grand: grand, pay: pay };
+}
+
+function renderManualOrder(){
+  const body = document.getElementById('tabBody'); if (!body) return;
+  body.innerHTML =
+  '<div class="mo-wrap">' +
+    '<div class="mo-hero">' +
+      '<b>📝 ' + 'WhatsApp Order → Payment Link</b>' +
+      '<p>Customer WhatsApp-ல ஆர்டர் கொடுத்தாங்களா? இங்கே ஒரு தடவை type பண்ணுங்க — ready-ஆ ஒரு <b>payment link</b> வரும். அதை WhatsApp-ல அனுப்புங்க, அவங்க UPI-ல pay பண்ணுவாங்க.</p>' +
+    '</div>' +
+
+    '<div class="mo-card">' +
+      '<b class="mo-h">1️⃣ Customer</b>' +
+      '<div class="mo-grid">' +
+        '<label>பெயர் *<input id="moName" placeholder="Customer name" maxlength="40" autocomplete="off"></label>' +
+        '<label>WhatsApp எண் *<input id="moPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10" autocomplete="off"></label>' +
+        '<label class="mo-wide">முகவரி<input id="moAddr" placeholder="Door no, street, town" maxlength="120" autocomplete="off"></label>' +
+        '<label>PIN code<input id="moPin" placeholder="637502" inputmode="numeric" maxlength="6" autocomplete="off"></label>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="mo-card">' +
+      '<b class="mo-h">2️⃣ சேலை / Items</b>' +
+      '<input id="moQ" class="mo-search" placeholder="🔍 சேலை பேர் அல்லது SKU type பண்ணுங்க…" autocomplete="off">' +
+      '<div id="moResults" class="mo-results"></div>' +
+      '<div id="moItems" class="mo-items"></div>' +
+      '<details class="mo-custom"><summary>➕ இந்த சேலை website-ல இல்லையா? நேரடியா type பண்ணுங்க</summary>' +
+        '<div class="mo-grid">' +
+          '<label class="mo-wide">Item பேர்<input id="moCN" placeholder="e.g. Kanchipuram Silk — Red" maxlength="60"></label>' +
+          '<label>விலை ₹<input id="moCP" placeholder="1200" inputmode="numeric"></label>' +
+          '<label>எண்ணிக்கை<input id="moCQ" placeholder="1" inputmode="numeric" value="1"></label>' +
+        '</div>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="moCAdd" style="margin-top:8px;width:auto">➕ Add item</button>' +
+      '</details>' +
+    '</div>' +
+
+    '<div class="mo-card">' +
+      '<b class="mo-h">3️⃣ கூரியர் · தள்ளுபடி · பணம்</b>' +
+      '<div class="mo-grid">' +
+        '<label>கூரியர் ₹<input id="moCourier" inputmode="numeric" value="30"></label>' +
+        '<label>தள்ளுபடி ₹<input id="moDisc" inputmode="numeric" value="0"></label>' +
+        '<label class="mo-wide">பணம் எப்படி?<select id="moPay"><option value="upi">UPI — முழு தொகை இப்போவே</option><option value="cod">COD — ₹' + (CONFIG.codFee || 100) + ' advance மட்டும்</option></select></label>' +
+      '</div>' +
+      '<div class="mo-hint" id="moZoneHint"></div>' +
+      '<div class="mo-totals" id="moTotals"></div>' +
+      '<button type="button" class="mo-create" id="moCreate">🔗 Create order &amp; get payment link</button>' +
+    '</div>' +
+
+    '<div id="moLink"></div>' +
+    '<div class="mo-card"><b class="mo-h">📋 Recent manual orders</b><div id="moRecent" class="mo-recent"></div></div>' +
+  '</div>';
+
+  /* ── wiring ─────────────────────────────────────────────────────────── */
+  const q = document.getElementById('moQ');
+  if (q) q.addEventListener('input', () => moSearch(q.value));
+  const pin = document.getElementById('moPin');
+  if (pin) pin.addEventListener('input', () => { if (!mo.courierTouched) moAutoCourier(); moPaintTotals(); });
+  const courier = document.getElementById('moCourier');
+  if (courier) courier.addEventListener('input', () => { mo.courierTouched = true; moPaintTotals(); });
+  const disc = document.getElementById('moDisc');
+  if (disc) disc.addEventListener('input', moPaintTotals);
+  const pay = document.getElementById('moPay');
+  if (pay) pay.addEventListener('change', moPaintTotals);
+  const cadd = document.getElementById('moCAdd');
+  if (cadd) cadd.addEventListener('click', () => {
+    const n = (document.getElementById('moCN').value || '').trim();
+    const p = Math.max(0, +document.getElementById('moCP').value || 0);
+    const qq = Math.max(1, +document.getElementById('moCQ').value || 1);
+    if (n.length < 2){ toast('⚠️ Item பேர் எழுதுங்க'); return; }
+    if (!p){ toast('⚠️ விலை எழுதுங்க'); return; }
+    mo.items.push({ id: 'custom-' + Date.now().toString(36), name: n, price: p, qty: qq, colour: '', custom: true });
+    document.getElementById('moCN').value = ''; document.getElementById('moCP').value = ''; document.getElementById('moCQ').value = '1';
+    moPaintItems(); moAutoCourier(); moPaintTotals();
+    toast('✅ Item added');
+  });
+  const cr = document.getElementById('moCreate');
+  if (cr) cr.addEventListener('click', moCreate);
+
+  moPaintItems(); moAutoCourier(); moPaintTotals(); moPaintRecent();
+  moEnsurePool();
+}
+
+/* product pool: Firestore products first, then the static catalogue (free) */
+function moPool(){
+  let pool = [];
+  try{ pool = (PRODUCTS || []).filter(p => p && p.id); }catch(e){ pool = []; }
+  if (!pool.length){
+    try{
+      const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
+      if (Array.isArray(raw) && raw.length){
+        pool = raw.map(x => { try{ return (typeof normalizeProduct === 'function') ? normalizeProduct(x) : x; }catch(e){ return x; } })
+                  .filter(p => p && p.id);
+      }
+    }catch(e){}
+  }
+  if (!pool.length && window.__moCat) pool = window.__moCat;
+  return pool;
+}
+/* Firestore list still loading (or blocked)? read the static catalogue once — free */
+function moEnsurePool(){
+  try{
+    if (moPool().length || window.__moCatLoading) return;
+    window.__moCatLoading = 1;
+    fetch('catalog.json', { cache: 'force-cache' })
+      .then(r => r && r.json ? r.json() : [])
+      .then(list => {
+        window.__moCatLoading = 0;
+        if (!Array.isArray(list) || !list.length) return;
+        window.__moCat = list.map(x => { try{ return (typeof normalizeProduct === 'function') ? normalizeProduct(x) : x; }catch(e){ return x; } }).filter(p => p && p.id);
+        const q = document.getElementById('moQ');
+        if (q && q.value.trim().length >= 2) moSearch(q.value);
+      })
+      .catch(() => { window.__moCatLoading = 0; });
+  }catch(e){}
+}
+function moSearch(term){
+  const box = document.getElementById('moResults'); if (!box) return;
+  const t = String(term || '').trim().toLowerCase();
+  if (t.length < 2){ box.innerHTML = ''; return; }
+  let list = [];
+  try{
+    list = moPool().filter(p => !p.hidden && (
+      String(p.name || '').toLowerCase().includes(t) ||
+      String(p.sku || '').toLowerCase().includes(t) ||
+      String(p.id || '').toLowerCase().includes(t))).slice(0, 8);
+  }catch(e){}
+  if (!list.length){ box.innerHTML = '<p class="mo-none">இல்லை — கீழே “நேரடியா type பண்ணுங்க” use பண்ணுங்க.</p>'; return; }
+  box.innerHTML = list.map(p =>
+    '<button type="button" class="mo-res" data-moadd="' + esc(p.id) + '">' +
+      '<img src="' + esc(p.img || '') + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+      '<span>' + esc(p.name) + '<small>' + esc(p.sku || p.id) + ' · ' + money(p.price) + '</small></span>' +
+      '<i>＋</i></button>').join('');
+  box.querySelectorAll('[data-moadd]').forEach(b => b.addEventListener('click', () => moAddProduct(b.dataset.moadd)));
+}
+function moAddProduct(id){
+  try{
+    const p = moPool().find(x => String(x.id) === String(id)); if (!p) return;
+    const ex = mo.items.find(i => i.id === p.id);
+    if (ex) ex.qty = (+ex.qty || 1) + 1;
+    else mo.items.push({ id: p.id, name: p.name, price: +p.price || 0, qty: 1, colour: '' });
+    const q = document.getElementById('moQ'); if (q){ q.value = ''; }
+    moSearch('');
+    moPaintItems(); moAutoCourier(); moPaintTotals();
+    toast('✅ ' + p.name + ' added');
+  }catch(e){}
+}
+function moPaintItems(){
+  const box = document.getElementById('moItems'); if (!box) return;
+  if (!mo.items.length){ box.innerHTML = '<p class="mo-none">இன்னும் item இல்லை — மேலே தேடுங்க அல்லது நேரடியா type பண்ணுங்க.</p>'; return; }
+  box.innerHTML = mo.items.map((i, ix) =>
+    '<div class="mo-item">' +
+      '<span class="mo-item-n">' + esc(i.name) + '<small>' + money(i.price) + ' each</small></span>' +
+      '<span class="mo-qty"><button type="button" data-moq="' + ix + '">−</button><b>' + (+i.qty || 1) + '</b><button type="button" data-moq="' + ix + '">+</button></span>' +
+      '<b class="mo-item-t">' + money((+i.price || 0) * (+i.qty || 1)) + '</b>' +
+      '<button type="button" class="mo-x" data-mox="' + ix + '" aria-label="Remove">✕</button>' +
+    '</div>').join('');
+  box.querySelectorAll('[data-moq]').forEach(b => b.addEventListener('click', () => {
+    const ix = +b.dataset.moq, d = (b.textContent.trim() === '+') ? 1 : -1;
+    mo.items[ix].qty = Math.max(1, (+mo.items[ix].qty || 1) + d);
+    moPaintItems(); moAutoCourier(); moPaintTotals();
+  }));
+  box.querySelectorAll('[data-mox]').forEach(b => b.addEventListener('click', () => {
+    mo.items.splice(+b.dataset.mox, 1);
+    moPaintItems(); moAutoCourier(); moPaintTotals();
+  }));
+}
+function moAutoCourier(){
+  const el = document.getElementById('moCourier'); if (!el) return;
+  if (mo.courierTouched) return;
+  const pin = (document.getElementById('moPin') || {}).value || '';
+  el.value = String(moCourierFor(pin, moQty()));
+  const hint = document.getElementById('moZoneHint');
+  if (hint){
+    const z = ZONES[deliveryZone(pin)] || ZONES.tn;
+    hint.innerHTML = pin.length === 6
+      ? '📍 <b>' + esc(z.name) + '</b> · ' + moQty() + ' சேலை → கூரியர் ₹' + moCourierFor(pin, moQty()) + ' (மாற்றணும்னா மேலே type பண்ணுங்க)'
+      : '📍 PIN code போட்டா கூரியர் தானா வரும் (TN ₹30 / KL·AP·KA ₹40 / மற்றது ₹100)';
+  }
+}
+function moPaintTotals(){
+  const box = document.getElementById('moTotals'); if (!box) return;
+  const t = moTotals();
+  box.innerHTML =
+    '<div><span>சேலை தொகை (' + moQty() + ')</span><b>' + money(t.itemsTotal) + '</b></div>' +
+    (t.discount ? '<div class="mo-save"><span>தள்ளுபடி</span><b>−' + money(t.discount) + '</b></div>' : '') +
+    '<div><span>' + (t.pay === 'cod' ? 'COD charge (கூரியர்-க்கு பதிலா)' : 'கூரியர்') + '</span><b>' + money(t.shipping) + '</b></div>' +
+    '<div class="mo-grand"><span>மொத்தம்</span><b>' + money(t.grand) + '</b></div>' +
+    (t.pay === 'cod'
+      ? '<div class="mo-cod">💵 COD: இப்போ <b>' + money(t.codFee) + '</b> மட்டும் advance + டெலிவரியில் <b>' + money(t.grand - t.codFee) + '</b> cash</div>'
+      : '<div class="mo-cod" style="background:#F7FDF9;color:#0e7d46">💳 UPI: இப்போவே <b>' + money(t.grand) + '</b> முழுசா pay</div>');
+}
+function moCreate(){
+  try{
+    const name = (document.getElementById('moName').value || '').trim();
+    const phone = (document.getElementById('moPhone').value || '').trim();
+    const addr = (document.getElementById('moAddr').value || '').trim();
+    const pin = (document.getElementById('moPin').value || '').trim();
+    if (name.length < 2){ toast('⚠️ Customer பேர் எழுதுங்க'); document.getElementById('moName').focus(); return; }
+    if (!validPhone(phone)){ toast('⚠️ சரியான 10-digit WhatsApp எண் எழுதுங்க'); document.getElementById('moPhone').focus(); return; }
+    if (!mo.items.length){ toast('⚠️ குறைந்தது ஒரு சேலை add பண்ணுங்க'); return; }
+    if (pin && !/^\d{6}$/.test(pin)){ toast('⚠️ PIN code 6 இலக்கமா இருக்கணும்'); return; }
+
+    const t = moTotals();
+    const order = {
+      id: genOrderId(),
+      date: new Date().toISOString(),
+      items: mo.items.map(i => ({ id: i.id, name: i.name, price: +i.price || 0, qty: +i.qty || 1, colour: i.colour || '' })),
+      customer: { name: name, phone: phone, address: addr, pincode: pin },
+      payment: t.pay,
+      source: 'manual',
+      status: 'pending',
+      paidConfirmed: false,
+      paidClaimed: false,
+      bookingPaid: 0,
+      totals: t,
+      device: 'admin',
+      note: 'WhatsApp order — created by shop (Admin → Manual Order)'
+    };
+    /* save locally + cloud */
+    try{ Store.orders.push(order); Store.saveOrders(); }catch(e){}
+    try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.saveOrder(order); }catch(e){}
+    mo.lastId = order.id;
+    mo.lastLink = PayLink.url(order);
+    moShowLink(order);
+    moPaintRecent();
+    toast('✅ Order ' + order.id + ' created — link ready!');
+  }catch(e){ toast('⚠️ Could not create order'); }
+}
+function moShowLink(order){
+  const box = document.getElementById('moLink'); if (!box) return;
+  const link = PayLink.url(order);
+  const t = order.totals || {};
+  const isCod = order.payment === 'cod';
+  const due = PayLink.amountDue(order);
+  const msg = '🌸 *SK Sarees* — Order #' + order.id +
+    '\n\n👗 ' + (order.items || []).map(i => i.name + ' ×' + i.qty).join('\n👗 ') +
+    '\n\n💰 Order total: ₹' + (t.grand || 0) +
+    (isCod ? '\n💵 COD: இப்போ ₹' + due + ' advance மட்டும் — மீதி ₹' + Math.max(0, (t.grand || 0) - due) + ' டெலிவரியில் cash' : '\n💳 UPI — இப்போவே pay பண்ணலாம்') +
+    '\n\n👉 Pay here: ' + link +
+    '\n\nபணம் செலுத்தியதும் அந்த பக்கத்துல “I\'ve Paid” அழுத்துங்க — நாங்க WhatsApp-ல confirm பண்ணுவோம். 🩷';
+  box.innerHTML =
+    '<div class="mo-card mo-linkcard">' +
+      '<b class="mo-h">✅ Order #' + esc(order.id) + ' ready</b>' +
+      '<div class="mo-linkbox"><input id="moLinkVal" readonly value="' + esc(link) + '"><button type="button" id="moCopy">Copy</button></div>' +
+      '<div class="mo-linkbtns">' +
+        '<a class="mo-wa" href="' + esc(waLink(msg, order.customer.phone)) + '" target="_blank" rel="noopener">💬 WhatsApp-ல் customer-க்கு அனுப்பு</a>' +
+        '<a class="mo-open" href="' + esc(link) + '" target="_blank" rel="noopener">👁 Link பார்க்க</a>' +
+      '</div>' +
+      '<p class="mo-note">📲 WhatsApp திறக்காதுனா: link-ஐ copy பண்ணி customer-க்கு நேரடியா அனுப்புங்க.</p>' +
+    '</div>';
+  const cp = document.getElementById('moCopy');
+  if (cp) cp.addEventListener('click', () => {
+    const v = document.getElementById('moLinkVal');
+    if (v){ v.select(); copyText(v.value); }
+  });
+}
+function moPaintRecent(){
+  const box = document.getElementById('moRecent'); if (!box) return;
+  let list = [];
+  try{
+    const all = (typeof adminAllOrders === 'function' ? adminAllOrders() : (Store.orders || []));
+    list = (all || []).filter(o => o && o.source === 'manual').sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 12);
+  }catch(e){}
+  if (!list.length){ box.innerHTML = '<p class="mo-none">இன்னும் manual order இல்லை.</p>'; return; }
+  box.innerHTML = list.map(o => {
+    const t = o.totals || {};
+    const paid = o.paidConfirmed || /confirm|ship|deliver/i.test(String(o.status || ''));
+    const claimed = o.paidClaimed;
+    return '<div class="mo-recent-row">' +
+      '<div class="mo-recent-b"><b>#' + esc(o.id) + '</b><small>' + esc((o.customer || {}).name || '') + ' · ' + money(t.grand || 0) + ' · ' + String(o.payment || '').toUpperCase() + '</small>' +
+        (claimed && !paid ? '<span class="mo-chip claim">💳 Customer says paid — verify</span>' : '') +
+        (paid ? '<span class="mo-chip ok">✅ Paid / confirmed</span>' : '') +
+      '</div>' +
+      '<div class="mo-recent-a">' +
+        '<button type="button" class="mo-mini" data-molink="' + esc(o.id) + '">🔗 Link</button>' +
+        '<a class="mo-mini" href="' + esc(waLink('🌸 SK Sarees — Order #' + o.id + ' payment link 👉 ' + PayLink.url(o), (o.customer || {}).phone)) + '" target="_blank" rel="noopener">💬</a>' +
+      '</div></div>';
+  }).join('');
+  box.querySelectorAll('[data-molink]').forEach(b => b.addEventListener('click', () => {
+    const o = (typeof adminAllOrders === 'function' ? adminAllOrders() : Store.orders).find(x => x && x.id === b.dataset.molink);
+    if (o){ mo.lastLink = PayLink.url(o); moShowLink(o); window.scrollTo({ top: document.getElementById('moLink').offsetTop - 80, behavior: 'smooth' }); }
+  }));
+}

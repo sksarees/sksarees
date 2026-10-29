@@ -34,6 +34,7 @@ async function init(){
     else if (page === 'feed') renderFeedPage();
     else if (page === 'reels') renderReelsPage();
     else if (page === 'combo') renderComboPage();
+    else if (page === 'pay') renderPayPage();
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
   try{ startActiveEngine(); }catch(e){} /* ⏱️ counts REAL browsing seconds (visible tab only) */
@@ -807,6 +808,7 @@ function renderReelsPage(){
     '<button type="button" class="rp-arrow down" data-rpnav="1" aria-label="Next reel">⌄</button>';
   app.appendChild(scrollWrap);
   appendReels(10);
+  try{ rpStoryInit(); }catch(e){}          /* 🎬 V45: 5-second story bar + tap L/R */
   /* 🔥 load GLOBAL like counts (Firestore — one cached read) */
   try{ loadReelCounts().then(() => applyReelCountsToDom()).catch(() => {}); }catch(e){}
   try{ startReelStatsFlusher(); }catch(e){}   /* 📈 global views + dwell → admin rankings */
@@ -1095,7 +1097,14 @@ async function saveReelStatus(p, quote){
         if (blob && navigator.canShare){
           const file = new File([blob], 'sk-sarees-status.jpg', { type: 'image/jpeg' });
           if (navigator.canShare({ files: [file] })){
-            navigator.share({ files: [file], text: shareTxt, title: 'SK Sarees' }).then(() => {}, () => {});
+            navigator.share({ files: [file], text: shareTxt, title: 'SK Sarees' }).then(() => {
+              /* ✅ a posted status IS a real share → credit ₹5 off this saree */
+              try{
+                var now = ShareDisc.add(p.id);
+                var box2 = document.getElementById('shCardBox'); if (box2) box2.innerHTML = sharePanelHTML(p);
+                toast('🎁 ₹' + now + ' ' + rloc('குறைந்தது! இப்போது', 'తగ్గింది! ఇప్పుడు', 'ಕಡಿಮೆಯಾಗಿದೆ! ಈಗ', 'off! Now') + ' ₹' + ShareDisc.priceOf(p));
+              }catch(e5){}
+            }, () => {});
             toast('📲 ' + rloc('Status-ஆ வையுங்க! உங்க contact list எல்லாரும் பார்ப்பாங்க 💜', 'స్టేటస్‌గా పెట్టండి! మీ కాంటాక్ట్ లిస్ట్ అందరూ చూస్తారు 💜', 'ಸ್ಟೇಟಸ್ ಆಗಿ ಇಡಿ! ನಿಮ್ಮ ಸಂಪರ್ಕ ಪಟ್ಟಿ ಎಲ್ಲರೂ ನೋಡುತ್ತಾರೆ 💜', 'Post it as your Status! Your whole contact list sees it 💜'));
             maybeEarnHint();
             return;
@@ -2786,20 +2795,27 @@ const L_DAYS     = () => loc('நாட்கள்', 'రోజులు', 'ದ
 /* ═══════════ V39 UI: share rewards + wear & earn ═══════════ */
 function sharePanelHTML(p){
   const saved = ShareDisc.saved(p.id);
-  const left = Math.max(0, 100 - saved);
+  const left = Math.max(0, SHARE_MAX - saved);
+  const pct = Math.round((saved / SHARE_MAX) * 100);
+  const mine = (function(){ try{ return myResellerCode(); }catch(e){ return ''; } })();
   return '<div class="sh-card">' +
-    '<b class="sh-title">💚 ' + loc('ஷேர் பண்ணுங்க — ஒவ்வொரு ஷேருக்கும் ₹1 OFF', 'షేర్ చేయండి — ప్రతి షేర్‌కు ₹1 ఆఫ్', 'ಶೇರ್ ಮಾಡಿ — ಪ್ರತಿ ಶೇರ್‌ಗೆ ₹1 ಆಫ್', 'Share it — ₹1 OFF per share', 'ഷെയർ ചെയ്യൂ — ഓരോ ഷെയറിനും ₹1 ഓഫ്') + '</b>' +
-    '<p class="sh-sub">' + loc('WhatsApp குரூப்-ல் இந்த சேலையை ஷேர் பண்ணுங்க. ₹100 வரை குறையும் (இந்த சேலைக்கு மட்டும்).', 'WhatsApp గ్రూప్‌లో ఈ చీరను షేర్ చేయండి. ₹100 వరకు తగ్గుతుంది (ఈ చీరకు మాత్రమే).', 'WhatsApp ಗ್ರೂಪ್‌ನಲ್ಲಿ ಈ ಸೀರೆ ಶೇರ್ ಮಾಡಿ. ₹100 ವರೆಗೆ ಕಡಿಮೆಯಾಗುತ್ತದೆ (ಈ ಸೀರೆಗೆ ಮಾತ್ರ).', 'Share this saree in a WhatsApp group. Up to ₹100 off — this saree only.', 'WhatsApp ഗ്രൂപ്പിൽ ഈ സാരി ഷെയർ ചെയ്യൂ. ₹100 വരെ കുറയും (ഈ സാരിക്ക് മാത്രം).') + '</p>' +
+    '<b class="sh-title">💚 ' + loc('ஷேர் பண்ணுங்க — ஒவ்வொரு ஷேருக்கும் ₹5 OFF', 'షేర్ చేయండి — ప్రతి షేర్‌కు ₹5 ఆఫ్', 'ಶೇರ್ ಮಾಡಿ — ಪ್ರತಿ ಶೇರ್‌ಗೆ ₹5 ಆಫ್', 'Share it — ₹5 OFF per share', 'ഷെയർ ചെയ്യൂ — ഓരോ ഷെയറിനും ₹5 ഓഫ്') + '</b>' +
+    '<p class="sh-sub">' + loc('WhatsApp குரூப் / Status-ல் இந்த சேலையை ஷேர் பண்ணுங்க. ₹50 வரை குறையும் (இந்த சேலைக்கு மட்டும்).', 'WhatsApp గ్రూప్ / స్టేటస్‌లో ఈ చీరను షేర్ చేయండి. ₹50 వరకు తగ్గుతుంది (ఈ చీరకు మాత్రమే).', 'WhatsApp ಗ್ರೂಪ್ / ಸ್ಟೇಟಸ್‌ನಲ್ಲಿ ಈ ಸೀರೆ ಶೇರ್ ಮಾಡಿ. ₹50 ವರೆಗೆ ಕಡಿಮೆಯಾಗುತ್ತದೆ (ಈ ಸೀರೆಗೆ ಮಾತ್ರ).', 'Share this saree on WhatsApp group / Status. Up to ₹50 off — this saree only.', 'WhatsApp ഗ്രൂപ്പ് / സ്റ്റാറ്റസിൽ ഈ സാരി ഷെയർ ചെയ്യൂ. ₹50 വരെ കുറയും (ഈ സാരിക്ക് മാത്രം).') + '</p>' +
     '<div class="sh-now">' +
       '<div class="sh-num"><b>' + (saved ? '−' + money(saved) : '₹0') + '</b><small>' + loc('சேமிப்பு', 'ఆదా', 'ಉಳಿತಾಯ', 'saved', 'ലാഭം') + '</small></div>' +
       '<div class="sh-left"><b>' + money(left) + '</b><small>' + loc('இன்னும் குறையலாம்', 'ఇంకా తగ్గవచ్చు', 'ಇನ್ನೂ ಕಡಿಮೆಯಾಗಬಹುದು', 'more possible', 'ഇനിയും കുറയാം') + '</small></div>' +
     '</div>' +
-    '<div class="sh-bar"><i style="width:' + saved + '%"></i></div>' +
+    '<div class="sh-bar"><i style="width:' + pct + '%"></i></div>' +
     '<button type="button" class="sh-btn" data-sharenow="' + esc(p.id) + '"' + (left <= 0 ? ' disabled' : '') + '>' +
       (left <= 0
-        ? '✅ ' + loc('₹100 முழுவதும் குறைந்துவிட்டது!', '₹100 పూర్తిగా తగ్గింది!', '₹100 ಸಂಪೂರ್ಣ ಕಡಿಮೆಯಾಗಿದೆ!', 'Full ₹100 off unlocked!', '₹100 മുഴുവൻ കുറഞ്ഞു!')
-        : '📤 ' + loc('WhatsApp-ல் ஷேர் பண்ணு', 'WhatsApp లో షేర్ చేయి', 'WhatsApp ನಲ್ಲಿ ಶೇರ್ ಮಾಡಿ', 'Share on WhatsApp', 'WhatsApp-ൽ ഷെയർ ചെയ്യൂ')) + '</button>' +
+        ? '✅ ' + loc('₹50 முழுவதும் குறைந்துவிட்டது!', '₹50 పూర్తిగా తగ్గింది!', '₹50 ಸಂಪೂರ್ಣ ಕಡಿಮೆಯಾಗಿದೆ!', 'Full ₹50 off unlocked!', '₹50 മുഴുവൻ കുറഞ്ഞു!')
+        : '📤 ' + loc('WhatsApp-ல் ஷேர் பண்ணு (₹5 OFF)', 'WhatsApp లో షేర్ చేయి (₹5 ఆఫ్)', 'WhatsApp ನಲ್ಲಿ ಶೇರ್ ಮಾಡಿ (₹5 ಆಫ್)', 'Share on WhatsApp (₹5 OFF)', 'WhatsApp-ൽ ഷെയർ ചെയ്യൂ (₹5 ഓഫ്)')) + '</button>' +
     '<small class="sh-next">' + loc('உண்மையில் ஷேர் ஆனா மட்டுமே கணக்கில் எடுக்கும்', 'నిజంగా షేర్ అయితేనే లెక్కిస్తుంది', 'ನಿಜವಾಗಿ ಶೇರ್ ಆದರೆ ಮಾತ್ರ ಎಣಿಸುತ್ತದೆ', 'Counted only when the share really happens', 'യഥാർത്ഥത്തിൽ ഷെയർ ചെയ്താൽ മാത്രം കണക്കാക്കും') + '</small>' +
+    /* 💰 single-level referral: friend orders from your link → 5% commission */
+    '<button type="button" class="sh-earn" data-earnjoin="1">' +
+      (mine ? '💰 ' + loc('உங்க code: ', 'మీ కోడ్: ', 'ನಿಮ್ಮ ಕೋಡ್: ', 'Your code: ') + '<b>' + esc(mine) + '</b> · ' + loc('ஒவ்வொரு ஆர்டருக்கும் 5%', 'ప్రతి ఆర్డర్‌కు 5%', 'ಪ್ರತಿ ಆರ್ಡರ್‌ಗೆ 5%', '5% on every order')
+             : '💰 ' + loc('இலவச code எடுங்க — நண்பர் ஆர்டர் பண்ணா 5% கமிஷன்', 'ఉచిత కోడ్ పొందండి — ఫ్రెండ్ ఆర్డర్ చేస్తే 5% కమిషన్', 'ಉಚಿತ ಕೋಡ್ ಪಡೆಯಿರಿ — ಸ್ನೇಹಿತ ಆರ್ಡರ್ ಮಾಡಿದರೆ 5% ಕಮಿಷನ್', 'Get a free code — earn 5% when a friend orders')) +
+    '</button>' +
   '</div>';
 }
 function wearEarnHTML(p){
@@ -2947,13 +2963,14 @@ function openQuickView(pid, startIdx, photoList){
     var out = p.stock != null && p.stock <= 0;
     var price = (typeof ShareDisc !== 'undefined') ? ShareDisc.priceOf(p) : p.price;
     var onPd = (document.body.dataset.page === 'product');
+    var qText = qvQuoteOf(p);                     /* 🌸 kavithai / thathuvam line */
     var ov = document.getElementById('qvOv'); if (ov) ov.remove();
 
     var slides = photos.map(function(u, i){
       return '<div class="qv-slide">' +
         '<img src="' + esc(u) + '" alt="' + esc(p.name) + '" loading="' + (Math.abs(i - __qvIdx) <= 1 ? 'eager' : 'lazy') + '" onerror="imgSafe(this)">' +
         (photos.length > 1 ? '<b class="qv-count">' + (i + 1) + ' / ' + photos.length + '</b>' : '') +
-        (i === 0 ? '<span class="qv-hint">‹ swipe ›</span>' : '') +
+        (i === 0 ? '<span class="qv-hint">↔ tap side · ↕ swipe</span>' : '') +
       '</div>';
     }).join('');
 
@@ -2962,6 +2979,7 @@ function openQuickView(pid, startIdx, photoList){
     ov.innerHTML =
       '<div class="qv-segs" id="qvSegs">' + photos.map(function(){ return '<span class="qv-seg"><i></i></span>'; }).join('') + '</div>' +
       '<button type="button" class="qv-x" id="qvX" aria-label="Close">✕</button>' +
+      '<button type="button" class="qv-status" id="qvStatus" aria-label="WhatsApp Status">📲</button>' +
       '<div class="qv-scroll" id="qvScroll">' +
         '<div class="qv-track" id="qvTrack">' + slides + '</div>' +
         '<div class="qv-cap">' +
@@ -2971,6 +2989,7 @@ function openQuickView(pid, startIdx, photoList){
             (offPct(p) ? '<span class="qv-off">' + offPct(p) + '% OFF</span>' : '') +
           '</div>' +
           '<div class="qv-meta">' + (p.fabric ? '🧵 ' + esc(p.fabric) + ' · ' : '') + '🏷️ SKU: ' + esc(p.sku || p.id) + (out ? ' · ❌ Out of stock' : '') + '</div>' +
+          (qText ? '<p class="qv-quote">💬 ' + esc(qText) + '</p>' : '') +
         '</div>' +
         '<button type="button" class="qv-det" id="qvDet">' + loc('தயாரிப்பு விவரங்கள்', 'ఉత్పత్తి వివరాలు', 'ಉತ್ಪನ್ನ ವಿವರಗಳು', 'Product Details', 'പ്രൊഡക്ട് വിവരങ്ങൾ') + ' ▾</button>' +
         '<div class="qv-detbox" id="qvDetBox" style="display:none">' + qvDetailsHTML(p) + '</div>' +
@@ -3021,9 +3040,45 @@ function openQuickView(pid, startIdx, photoList){
         track.addEventListener('touchstart', function(ev){ var p0 = ev.touches[0]; if (p0) qvDown = { x: p0.clientX, y: p0.clientY, t: Date.now() }; }, { passive: true });
         track.addEventListener('touchend', function(ev){ var p0 = ev.changedTouches[0]; if (p0) qvTapAt(p0.clientX, p0.clientY, qvDown && qvDown.t); }, { passive: true });
       }
+      /* ↕ VERTICAL swipe — bottom→top = next photo, top→bottom = previous photo
+         (finger never lifts, exactly like a WhatsApp status) */
+      var vy = null, vx = null, vLock = false;
+      track.addEventListener('touchstart', function(ev){
+        if (!ev.touches || ev.touches.length !== 1) return;
+        vy = ev.touches[0].clientY; vx = ev.touches[0].clientX; vLock = false;
+        qvStopTimer();                                   /* pause while the finger is down */
+      }, { passive: true });
+      track.addEventListener('touchmove', function(ev){
+        if (vy == null || !ev.touches || ev.touches.length !== 1) return;
+        var dy0 = ev.touches[0].clientY - vy, dx0 = ev.touches[0].clientX - vx;
+        if (!vLock && Math.abs(dy0) > 10 && Math.abs(dy0) > Math.abs(dx0)) vLock = true;
+        if (vLock){ try{ ev.preventDefault(); }catch(e1){} }   /* don't scroll the page */
+      }, { passive: false });
+      track.addEventListener('touchend', function(ev){
+        if (vy == null) return;
+        var t0 = (ev.changedTouches && ev.changedTouches[0]) || {};
+        var dy = (t0.clientY || 0) - vy, dx = (t0.clientX || 0) - vx;
+        vy = null; vLock = false;
+        if (Math.abs(dy) > 46 && Math.abs(dy) > Math.abs(dx)) qvGoTo(__qvIdx + (dy < 0 ? 1 : -1));
+        else qvAuto();                                   /* short tap / no move → resume */
+      }, { passive: true });
+      /* 🖱 desktop: mouse-drag up / down also changes the photo */
+      var my = null;
+      track.addEventListener('mousedown', function(ev){ my = ev.clientY; }, { passive: true });
+      track.addEventListener('mouseup', function(ev){
+        if (my == null) return;
+        var dy = ev.clientY - my; my = null;
+        if (Math.abs(dy) > 70) qvGoTo(__qvIdx + (dy < 0 ? 1 : -1));
+      }, { passive: true });
     }
     ov.querySelector('#qvX').addEventListener('click', closeQuickView);
     var c2 = ov.querySelector('#qvClose2'); if (c2) c2.addEventListener('click', closeQuickView);
+    /* 📲 WhatsApp Status — the customer's own status = finger-touch sharing */
+    var stBtn = ov.querySelector('#qvStatus');
+    if (stBtn) stBtn.addEventListener('click', function(){
+      try{ qvStopTimer(); }catch(e){}
+      try{ saveReelStatus(p, qText); }catch(e){}
+    });
     ov.querySelector('#qvDet').addEventListener('click', function(){
       var box = ov.querySelector('#qvDetBox');
       var open = box.style.display !== 'none';
@@ -3054,6 +3109,11 @@ function closeQuickView(){
       window.__pdGalIdx = __qvIdx;
     }
   }catch(e){}
+}
+/* 🌸 the kavithai / thathuvam line shown inside the story view (same pool as
+   reels.html, in the customer's language) — words, never a fake claim */
+function qvQuoteOf(p){
+  try{ return (typeof reelQuoteFor === 'function') ? (reelQuoteFor(p, 0) || '') : ''; }catch(e){ return ''; }
 }
 function qvDetailsHTML(p){
   const cat = (CATEGORIES.find(c => c.slug === p.cat) || {});
@@ -3681,10 +3741,10 @@ function attachReviewPhoto(input){
    is shown on the page — everything generates on click. */
 async function shareEarnProduct(p){
   if (!p) return;
-  /* ✅ V41: link-only (instant, no image). The ₹1 credit is applied ONLY when a
-     real share is confirmed — either the Web Share API resolved, or the customer
+  /* ✅ V45: link-only (instant, no image). The ₹5 credit is applied ONLY when a
+     real share is confirmed — the Web Share API resolved, or the customer
      actually left the page and came back from WhatsApp. */
-  if (ShareDisc.saved(p.id) >= 100){ toast('✅ ' + loc('₹100 முழுவதும் குறைந்துவிட்டது', '₹100 పూర్తిగా తగ్గింది', '₹100 ಸಂಪೂರ್ಣ ಕಡಿಮೆಯಾಗಿದೆ', 'You already have the full ₹100 off', '₹100 മുഴുവൻ ലഭിച്ചു')); return; }
+  if (ShareDisc.saved(p.id) >= SHARE_MAX){ toast('✅ ' + loc('₹50 முழுவதும் குறைந்துவிட்டது', '₹50 పూర్తిగా తగ్గింది', '₹50 ಸಂಪೂರ್ಣ ಕಡಿಮೆಯಾಗಿದೆ', 'You already have the full ₹50 off', '₹50 മുഴുവൻ ലഭിച്ചു')); return; }
   const url = shareUrl(p);
   const deal = '🌸 ' + smartTitle(p) + '\n💰 ₹' + ShareDisc.priceOf(p) + '\n\n👉 ' + url;
 
@@ -3925,7 +3985,7 @@ function coItems(){
     if (co.buyOnly){
       const p = byId(co.buyOnly.id);
       if (!p) return [];
-      const off = Math.min(100, Math.max(0, +(co.buyOnly.off != null ? co.buyOnly.off : ShareDisc.saved(p.id))));
+      const off = Math.min(SHARE_MAX, Math.max(0, +(co.buyOnly.off != null ? co.buyOnly.off : ShareDisc.saved(p.id))));
       return [{ id: p.id, name: p.name, price: Math.max(1, p.price - off), qty: co.buyOnly.qty || 1, colour: co.buyOnly.colour || '' }];
     }
   }catch(e){}
@@ -3936,7 +3996,7 @@ function coCartTotal(){
   return coItems().reduce((s, i) => {
     const p = byId(i.id);
     if (!p) return s;
-    const off = Math.min(100, Math.max(0, +(i.off || 0)));
+    const off = Math.min(SHARE_MAX, Math.max(0, +(i.off || 0)));
     return s + Math.max(1, p.price - off) * i.qty;
   }, 0);
 }
@@ -3978,7 +4038,7 @@ function coSummaryHTML(){
     const zn = ZONES[zone] || ZONES.tn;
     const rows = coItems().map(i => {
       const p = byId(i.id); if (!p) return '';
-      const off = Math.min(100, Math.max(0, +(i.off || 0)));
+      const off = Math.min(SHARE_MAX, Math.max(0, +(i.off || 0)));
       return '<div class="row cos-item"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span>' + esc(p.name) + (i.colour ? ' (' + esc(i.colour) + ')' : '') + ' ×' + i.qty +
         (off > 0 ? '<br><small style="color:#0e7d46;font-weight:800">🎁 ' + loc('ஷேர் தள்ளுபடி', 'షేర్ తగ్గింపు', 'ಶೇರ್ ರಿಯಾಯಿತಿ', 'Share discount', 'ഷെയർ ഡിസ്കൗണ്ട്') + ' −' + money(off) + '</small>' : '') +
         '</span><b>' + money(Math.max(1, p.price - off) * i.qty) + '</b></div>';
@@ -4001,7 +4061,7 @@ function coSummaryHTML(){
       (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal</span><b class="co-save">−' + money(t.bundle) + '</b></div>' : '') +
       (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount || 1) + '% off</span><b class="co-save">−' + money(t.online) + '</b></div>' : '') +
       (t.pts > 0 ? '<div class="row"><span>⭐ Loyalty points</span><b class="co-save">−' + money(t.pts) + '</b></div>' : '') +
-      ((function(){ const sv = coItems().reduce((s,i) => s + Math.min(100, Math.max(0, +(i.off||0))) * (i.qty||1), 0); return sv > 0 ? '<div class="row"><span>🎁 ' + loc('ஷேர் தள்ளுபடி', 'షేర్ తగ్గింపు', 'ಶೇರ್ ರಿಯಾಯಿತಿ', 'Share discount', 'ഷെയർ ഡിസ്കൗണ്ട്') + '</span><b class="co-save">−' + money(sv) + '</b></div>' : ''; })()) +
+      ((function(){ const sv = coItems().reduce((s,i) => s + Math.min(SHARE_MAX, Math.max(0, +(i.off||0))) * (i.qty||1), 0); return sv > 0 ? '<div class="row"><span>🎁 ' + loc('ஷேர் தள்ளுபடி', 'షేర్ తగ్గింపు', 'ಶೇರ್ ರಿಯಾಯಿತಿ', 'Share discount', 'ഷെയർ ഡിസ്കൗണ്ട്') + '</span><b class="co-save">−' + money(sv) + '</b></div>' : ''; })()) +
       '<div class="row"><span>🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' (' + shipKg(orderWeightGrams()) + 'kg × ₹' + (CONFIG.shipPerKg || 30) + ')</span><b class="' + (t.shipping ? '' : 'co-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
       (t.codFee > 0 ? '<div class="row"><span>💵 COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
       '<div class="row total"><span>' + loc('மொத்தம்', 'మొత్తం', 'ಒಟ್ಟು', 'Total', 'ആകെ') + '</span><b>' + money(t.grand) + '</b></div>' +
@@ -4044,7 +4104,7 @@ function drawCo(){
   /* 🖼️ fresh item lines with product thumbnails */
   const itemLines = coItems().map(i => {
     const p = byId(i.id); if (!p) return '';
-    const off = Math.min(100, Math.max(0, +(i.off || 0)));
+    const off = Math.min(SHARE_MAX, Math.max(0, +(i.off || 0)));
     return '<div class="rvw-item"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span>' + esc(p.name) + (i.colour ? ' <small class="muted">(' + esc(i.colour) + ')</small>' : '') + ' ×' + i.qty +
       (off > 0 ? ' <small style="color:#0e7d46;font-weight:800">🎁 −' + money(off) + '</small>' : '') +
       '</span><b>' + money(Math.max(1, p.price - off) * i.qty) + '</b></div>';
@@ -4190,6 +4250,8 @@ function drawCo(){
               '<a class="pg-appbtn pg-appbtn-paytm" href="' + upiAppLink('paytm', t.grand, note) + '">📱 OPEN PAYTM</a>' +
               '<a class="pg-appbtn pg-appbtn-upi" href="' + upiLink(t.grand, note) + '">📱 OPEN ANY UPI APP</a>' +
             '</div>' +
+            '<p class="pg-apptip">' + loc('GPay / PhonePe திறக்கலையா? "OPEN ANY UPI APP" அழுத்தி UPI ID-ஐ காப்பி செய்யுங்கள் — அல்லது QR ஸ்கேன் செய்யுங்கள்.', 'GPay / PhonePe తెరవలేదా? "OPEN ANY UPI APP" నొక్కి UPI ID కాపీ చేయండి — లేదా QR స్కాన్ చేయండి.', 'GPay / PhonePe ತೆರೆಯಲಿಲ್ಲವೇ? "OPEN ANY UPI APP" ಒತ್ತಿ UPI ID ಕಾಪಿ ಮಾಡಿ — ಅಥವಾ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.', 'GPay / PhonePe not opening? Tap "OPEN ANY UPI APP" and copy the UPI ID — or scan the QR code.', 'GPay / PhonePe തുറന്നില്ലേ? "OPEN ANY UPI APP" അമർത്തി UPI ID കോപ്പി ചെയ്യൂ — അല്ലെങ്കിൽ QR സ്കാൻ ചെയ്യൂ.') + '</p>' +
+
           '</div>' +
           '<details class="pg-help"><summary>' + loc('எப்படி செலுத்துவது?', 'ఎలా చెల్లించాలి?', 'ಹೇಗೆ ಪಾವತಿಸಬೇಕೆ?', 'How to pay?', 'എങ്ങനെ പേയ്ക്കാം?') + '</summary><div>' +
             '<ol><li>' + loc('"Pay with UPI" அழுத்துங்கள்', '\"Pay with UPI\" నొక్కండి', '\"Pay with UPI\" ಒತ್ತಿ', 'Tap \"Pay with UPI\"', '\"Pay with UPI\" അമർത്തൂ') + '</li>' +
@@ -4216,7 +4278,10 @@ function drawCo(){
             '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN GOOGLE PAY</a>' +
             '<a class="pg-appbtn pg-appbtn-phonepe" href="' + upiAppLink('phonepe', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN PHONEPE</a>' +
             '<a class="pg-appbtn pg-appbtn-paytm" href="' + upiAppLink('paytm', booking, 'COD booking ' + co.pendingId) + '">📱 OPEN PAYTM</a>' +
+            '<a class="pg-appbtn pg-appbtn-upi" href="' + upiLink(booking, 'COD booking ' + co.pendingId) + '">📱 OPEN ANY UPI APP</a>' +
           '</div>' +
+          '<p class="pg-apptip">' + loc('GPay / PhonePe திறக்கலையா? "OPEN ANY UPI APP" அழுத்தி UPI ID-ஐ காப்பி செய்யுங்கள் — அல்லது QR ஸ்கேன் செய்யுங்கள்.', 'GPay / PhonePe తెరవలేదా? "OPEN ANY UPI APP" నొక్కి UPI ID కాపీ చేయండి — లేదా QR స్కాన్ చేయండి.', 'GPay / PhonePe ತೆರೆಯಲಿಲ್ಲವೇ? "OPEN ANY UPI APP" ಒತ್ತಿ UPI ID ಕಾಪಿ ಮಾಡಿ — ಅಥವಾ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.', 'GPay / PhonePe not opening? Tap "OPEN ANY UPI APP" and copy the UPI ID — or scan the QR code.', 'GPay / PhonePe തുറന്നില്ലേ? "OPEN ANY UPI APP" അമർത്തി UPI ID കോപ്പി ചെയ്യൂ — അല്ലെങ്കിൽ QR സ്കാൻ ചെയ്യൂ.') + '</p>' +
+
           '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' COD charge, tap below to place your order.</div>' +
           '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid the COD Charge — Place Order →</button></div>') +
       '<button type="button" class="btn btn-ghost" data-back>← ' + loc('விவரங்களை மாற்ற திரும்பி செல்', 'వివరాలు మార్చడానికి వెనకకు', 'ವಿವರಗಳನ್ನು ಬದಲಾಯಿಸಲು ಹಿಂತಿರುಗಿ', 'Back to edit details', 'വിവരങ്ങൾ മാറ്റാൻ മടങ്ങൂ') + '</button>' +
@@ -5716,6 +5781,9 @@ document.addEventListener('click', function(e){
     return;
   }
 
+  /* 💰 V45: share panel → reseller / commission box */
+  const ej = e.target.closest && e.target.closest('[data-earnjoin]');
+  if (ej){ e.preventDefault(); try{ reelEarnModal(); }catch(err2){} return; }
   /* 📞 call-click tracking */
   const tel = e.target.closest && e.target.closest('a[href^="tel:"]');
   if (tel){ track('call_click', {}); }
@@ -5728,3 +5796,383 @@ document.addEventListener('click', function(e){
     if (e.target && e.target.closest && e.target.closest('a[href*="wa.me"]')) fbqSafe('whatsapp_click');
   }catch(err){}
 });
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V46 — PAY PAGE (pay.html?o=ORDER&d=SNAPSHOT)
+   The shop creates the order manually (WhatsApp order) in Admin → 📝 Manual
+   Order and sends this link. The customer sees the exact items, courier and
+   total, pays by UPI (QR / GPay / PhonePe / Paytm), then taps "I've Paid" —
+   which marks the order and messages the shop on WhatsApp for verification.
+   ══════════════════════════════════════════════════════════════════════════ */
+var __payOrder = null;          /* the order currently on screen */
+var __payLive = false;          /* true once Firestore answered */
+var __payDone = false;          /* customer already tapped "I've paid" */
+
+function payParseOrder(){
+  try{
+    const sp = safeParams();
+    const oid = sp.get('o') || '';
+    const snap = PayLink.dec(sp.get('d') || '');
+    return PayLink.fromPayload(oid, snap);
+  }catch(e){ return null; }
+}
+/* pull the LIVE copy (one Firestore read — free quota friendly) */
+function paySyncLive(id){
+  return new Promise(resolve => {
+    try{
+      if (!id || typeof FS === 'undefined' || !FS.enabled()) return resolve(null);
+      FS.getOrder(id).then(o => resolve(o || null)).catch(() => resolve(null));
+      setTimeout(() => resolve(null), 6000);      /* never let the page hang */
+    }catch(e){ resolve(null); }
+  });
+}
+function payMerge(live){
+  try{
+    if (!live) return;
+    const base = __payOrder || {};
+    const merged = Object.assign({}, base, live);
+    merged.customer = Object.assign({}, base.customer || {}, live.customer || {});
+    merged.totals = Object.assign({}, base.totals || {}, live.totals || {});
+    if (!(merged.items && merged.items.length)) merged.items = base.items || [];
+    __payOrder = merged;
+    window.__payOrder = merged;
+  }catch(e){}
+}
+function payIsPaid(o){
+  try{
+    const st = String((o && o.status) || '');
+    return !!(o && (o.paidConfirmed === true || /confirm|packed|ship|deliver|complete/i.test(st)) && st !== 'pending' && st !== 'cancelled');
+  }catch(e){ return false; }
+}
+function payIsClaimed(o){
+  try{
+    if (__payDone) return true;
+    return !!(o && (o.paidClaimed === true || o.paymentClaimed === true));
+  }catch(e){ return false; }
+}
+function renderPayPage(){
+  const app = document.getElementById('app'); if (!app) return;
+  let o = payParseOrder();
+  if (!o || (!o.id && !(o.items || []).length)){
+    app.innerHTML =
+      '<div class="wrap py-wrap"><div class="py-card py-empty">' +
+        '<div class="py-empty-ic">🔗</div>' +
+        '<h1>' + loc('லிங்க் வேலை செய்யல', 'లింక్ పనిచేయడం లేదు', 'ಲಿಂಕ್ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ', 'This payment link is not valid', 'ലിങ്ക് പ്രവർത്തിക്കുന്നില്ല') + '</h1>' +
+        '<p class="py-muted">' + loc('லிங்க் முழுவதையும் copy பண்ணி மறுபடியும் திறக்கவும். இல்லைனா நேரடியா WhatsApp-ல கேளுங்க.', 'లింక్ మొత్తం కాపీ చేసి మళ్ళీ తెరవండి. లేదా WhatsApp లో అడగండి.', 'ಲಿಂಕ್ ಪೂರ್ಣ ಕಾಪీ ಮಾಡಿ ಮತ್ತೆ ತೆರೆಯಿರಿ. ಅಥವಾ WhatsApp ನಲ್ಲಿ ಕೇಳಿ.', 'Please open the full link again — or just ask us on WhatsApp.', 'ലിങ്ക് മുഴുവൻ പകർത്തി വീണ്ടും തുറക്കൂ. അല്ലെങ്കിൽ WhatsApp-ൽ ചോദിക്കൂ.') + '</p>' +
+        '<a class="btn btn-wa" style="width:100%;min-height:50px" href="' + waLink('Hi SK Sarees! My payment link is not opening. Please resend it. 🙏') + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் கேளுங்கள்', 'WhatsApp లో అడగండి', 'WhatsApp ನಲ್ಲಿ ಕೇಳಿ', 'Ask on WhatsApp', 'WhatsApp-ൽ ചോദിക്കൂ') + '</a>' +
+      '</div></div>';
+    return;
+  }
+  __payOrder = o; window.__payOrder = o;
+  payPaint();
+  /* live status — one read, silent, never blocks */
+  paySyncLive(o.id).then(live => {
+    if (!live) return;
+    __payLive = true;
+    payMerge(live);
+    try{ payRememberLocal(__payOrder); }catch(e){}
+    payPaint();
+  });
+}
+/* keep the order on the customer's own device so "My Orders" shows it too */
+function payRememberLocal(o){
+  try{
+    if (!o || !o.id) return;
+    if (!Store.orders) Store.orders = [];
+    const ex = Store.orders.find(x => x && x.id === o.id);
+    const copy = {
+      id: o.id, date: o.date || new Date().toISOString(), items: (o.items || []).map(i => ({ id: i.id, name: i.name, price: +i.price || 0, qty: +i.qty || 1, colour: i.colour || '' })),
+      customer: { name: (o.customer || {}).name || '', phone: (o.customer || {}).phone || '', address: (o.customer || {}).address || '', pincode: (o.customer || {}).pincode || '' },
+      payment: o.payment || 'upi', totals: o.totals || {}, status: o.status || 'pending',
+      paidConfirmed: !!o.paidConfirmed, paidClaimed: !!(o.paidClaimed || __payDone),
+      source: o.source || 'manual', device: deviceId()
+    };
+    if (ex) Object.assign(ex, copy); else Store.orders.push(copy);
+    Store.saveOrders();
+  }catch(e){}
+}
+function payPaint(){
+  const app = document.getElementById('app'); if (!app || !__payOrder) return;
+  const o = __payOrder;
+  const t = o.totals || {};
+  const items = (o.items || []);
+  const qty = items.reduce((s, i) => s + (+i.qty || 1), 0);
+  const paid = payIsPaid(o);
+  const claimed = payIsClaimed(o);
+  const isCod = o.payment === 'cod';
+  const due = PayLink.amountDue(o);
+  const grand = PayLink.grand(o);
+  const balance = Math.max(0, grand - due);
+  const note = 'Order ' + o.id + ' SK Sarees';
+  const dateTxt = (function(){
+    try{
+      const d = new Date(o.date || Date.now());
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }catch(e){ return ''; }
+  })();
+
+  const itemRows = items.map(i => {
+    const price = (+i.price || 0), q = (+i.qty || 1);
+    return '<div class="py-item"><span class="py-item-n">' + esc(i.name || 'Saree') + '</span>' +
+      '<span class="py-item-q">×' + q + '</span>' +
+      '<b class="py-item-p">' + money(price * q) + '</b></div>';
+  }).join('') || '<div class="py-item"><span class="py-item-n">' + loc('சேலை', 'చీర', 'ಸೀರೆ', 'Saree', 'സാരി') + '</span><b class="py-item-p">' + money(grand) + '</b></div>';
+
+  app.innerHTML =
+  '<div class="wrap py-wrap">' +
+    '<div class="py-top">' +
+      '<span class="py-badge">🩷 SK SAREES</span>' +
+      '<h1 class="py-h1">' + (paid ? loc('பணம் பெறப்பட்டது ✅', 'చెల్లింపు అందింది ✅', 'ಪಾವತಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ ✅', 'Payment received ✅', 'പേയ്മെന്റ് ലഭിച്ചു ✅')
+                                     : loc('உங்க ஆர்டருக்கு பணம் செலுத்துங்கள்', 'మీ ఆర్డర్ చెల్లింపు', 'ನಿಮ್ಮ ಆರ್ಡರ್ ಪಾವತಿ', 'Pay for your order', 'നിങ്ങളുടെ ഓർഡർ പേയ്മെന്റ്')) + '</h1>' +
+      '<p class="py-sub">Order <b>#' + esc(o.id) + '</b>' + (dateTxt ? ' · ' + esc(dateTxt) : '') + (qty ? ' · ' + qty + ' ' + loc('சேலை', 'చీర', 'ಸೀರೆ', 'saree', 'സാരി') + (qty > 1 ? 's' : '') : '') + '</p>' +
+      (o.customer && o.customer.name ? '<p class="py-sub2">' + loc('பெயர்', 'పేరు', 'ಹೆಸರು', 'Name', 'പേര്') + ': <b>' + esc(o.customer.name) + '</b></p>' : '') +
+    '</div>' +
+
+    '<div class="py-card">' +
+      '<b class="py-card-h">🧾 ' + loc('ஆர்டர் விவரம்', 'ఆర్డర్ వివరాలు', 'ಆರ್ಡರ್ ವಿವರ', 'Order summary', 'ഓർഡർ വിവരം') + '</b>' +
+      itemRows +
+      '<div class="py-rows">' +
+        '<div><span>' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Sarees', 'സാരി തുക') + '</span><b>' + money(+t.itemsTotal || 0) + '</b></div>' +
+        ((+t.discount || 0) > 0 ? '<div class="py-save"><span>🎁 ' + loc('தள்ளுபடி', 'డిస్కౌంట్', 'ರಿಯಾಯಿತಿ', 'Discount', 'ഡിസ്കൗണ്ട്') + '</span><b>−' + money(t.discount) + '</b></div>' : '') +
+        '<div><span>🚚 ' + (isCod ? loc('COD charge (கூரியர் உட்பட)', 'COD ఛార్జ్ (కొరియర్‌తో)', 'COD ಶುಲ್ಕ (ಕೊರಿಯರ್ ಸೇರಿ)', 'COD charge (incl. courier)', 'COD ചാർജ് (കൊറിയർ ഉൾപ്പെടെ)') : loc('கூரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ')) + '</span><b>' + money(+t.shipping || 0) + '</b></div>' +
+        ((+t.codFee || 0) > 0 && (+t.codFee !== +t.shipping) ? '<div><span>💵 COD booking</span><b>' + money(t.codFee) + '</b></div>' : '') +
+      '</div>' +
+      '<div class="py-grand"><span>' + loc('மொத்தம்', 'మొత్తం', 'ಒಟ್ಟು', 'Order total', 'ആകെ') + '</span><b>' + money(grand) + '</b></div>' +
+    '</div>' +
+
+    (paid
+      ? '<div class="py-card py-paid">' +
+          '<div class="py-paid-ic">✅</div>' +
+          '<b>' + loc('பணம் கிடைத்தது — ஆர்டர் confirm ஆகிவிட்டது', 'చెల్లింపు అందింది — ఆర్డర్ నిర్ధారించబడింది', 'ಪಾವತಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ — ಆರ್ಡರ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ', 'Payment received — your order is confirmed', 'പേയ്മെന്റ് ലഭിച്ചു — ഓർഡർ സ്ഥിരീകരിച്ചു') + '</b>' +
+          '<p class="py-muted">' + loc('டிஸ்பேட்ச் ஆனதும் tracking விவரம் WhatsApp-ல் அனுப்புவோம்.', 'డిస్పాచ్ అయిన తర్వాత ట్రాకింగ్ WhatsApp లో పంపుతాము.', 'ಡಿಸ್ಪಾಚ್ ಆದ ನಂತರ ಟ್ರ್ಯಾಕಿಂಗ್ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸುತ್ತೇವೆ.', 'We will send the tracking details on WhatsApp after dispatch.', 'ഡിസ്പാച്ച് ആയശേഷം ട്രാക്കിംഗ് WhatsApp-ൽ അയയ്ക്കും.') + '</p>' +
+        '</div>'
+      : claimed
+        ? '<div class="py-card py-claimed">' +
+            '<div class="py-paid-ic">⏳</div>' +
+            '<b>' + loc('நீங்கள் "பணம் செலுத்திட்டேன்" சொன்னீர்கள்', 'మీరు "చెల్లించాను" చెప్పారు', 'ನೀವು "ಪಾವತಿಸಿದ್ದೇನೆ" ಹೇಳಿದ್ದೀರಿ', 'You told us you have paid', 'നിങ്ങൾ "പേയ്ച്ചു" എന്ന് പറഞ്ഞു') + '</b>' +
+            '<p class="py-muted">' + loc('SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க (9 AM – 9 PM, பொதுவா 1 மணி நேரத்துல).', 'SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు (9 AM – 9 PM, సాధారణంగా 1 గంటలో).', 'SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ (9 AM – 9 PM, ಸಾಮಾನ್ಯವಾಗಿ 1 ಗಂಟೆಯಲ್ಲಿ).', 'SK Sarees will verify and confirm on WhatsApp (9 AM – 9 PM, usually within 1 hour).', 'SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും (9 AM – 9 PM, സാധാരണ 1 മണിക്കൂറിൽ).') + '</p>' +
+            '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:6px" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் screenshot அனுப்புங்கள்', 'WhatsApp లో స్క్రీన్‌షాట్ పంపండి', 'WhatsApp ನಲ್ಲಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಕಳುಹಿಸಿ', 'Send the screenshot on WhatsApp', 'WhatsApp-ൽ സ്ക്രീൻഷോട്ട് അയയ്ക്കൂ') + '</a>' +
+          '</div>'
+        : '<div class="py-card py-paycard">' +
+            '<div class="py-amt"><small>' + (isCod ? loc('இப்போது செலுத்த வேண்டியது (COD booking)', 'ఇప్పుడు చెల్లించాల్సినది (COD బుకింగ్)', 'ಈಗ ಪಾವತಿಸಬೇಕಾದದ್ದು (COD ಬುಕಿಂಗ್)', 'Pay now (COD booking)', 'ഇപ്പോൾ അടയ്ക്കേണ്ടത് (COD ബുക്കിംഗ്)') : loc('செலுத்த வேண்டிய தொகை', 'చెల్లించవలసిన మొత్తం', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount to pay', 'അടയ്ക്കേണ്ട തുക')) + '</small><b>' + money(due) + '</b></div>' +
+            (isCod && balance > 0 ? '<p class="py-codnote">💵 ' + loc('மீதி', 'మిగిలిన', 'ಉಳಿದ', 'Balance', 'ബാക്കി') + ' <b>' + money(balance) + '</b> ' + loc('டெலிவரி சமயத்துல பணமா கொடுக்கணும்.', 'డెలివరీ సమయంలో నగదుగా ఇవ్వాలి.', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಬೇಕು.', 'to be paid in cash at delivery.', 'ഡെലിവറി സമയത്ത് പണമായി നൽകണം.') + '</p>' : '') +
+            /* QR — hidden until tapped (same pattern as checkout) */
+            '<div class="py-qrwrap">' +
+              '<div class="pg-qrblur" id="payQrBlur"><div class="pg-qrfake" aria-hidden="true"></div>' +
+                '<button type="button" class="pg-qrreveal" id="payQrToggle">👁 ' + loc('QR பார்க்க தட்டுங்கள்', 'QR చూడటానికి నొక్కండి', 'QR ನೋಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ', 'Tap to show QR code', 'QR കാണാൻ ടാപ്പ് ചെയ്യൂ') + '</button></div>' +
+              '<div class="py-qrbox" id="payQrBox" style="display:none"><div id="payQr"></div></div>' +
+            '</div>' +
+            '<div class="py-upirow"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b><button type="button" class="py-copy" data-copy="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
+            '<div class="py-payee">🔐 ' + loc('பணம் போவது', 'డబ్బు వెళ్లేది', 'ಹಣ ಹೋಗುವುದು', 'Money goes to', 'പണം പോകുന്നത്') + ' <b>SK SAREES</b> (' + esc(CONFIG.upiId) + ') ' + loc('— வேற யாருக்கும் இல்லை', '— వేరే ఎవరికీ కాదు', '— ಬೇರೆ ಯಾರಿಗೂ ಅಲ್ಲ', '— nobody else', '— മറ്റാർക്കുമല്ല') + '</div>' +
+            '<a class="py-paybtn" href="' + upiLink(due, note) + '">📲 ' + loc('UPI ஆப்பில் செலுத்து', 'UPI యాప్‌లో చెల్లించండి', 'UPI ಆ್ಯಪ್‌ನಲ್ಲಿ ಪಾವತಿಸಿ', 'PAY WITH UPI APP', 'UPI ആപ്പിൽ അടയ്ക്കൂ') + ' · ' + money(due) + ' →</a>' +
+            '<div class="pg-appbtns">' +
+              '<a class="pg-appbtn pg-appbtn-gpay" href="' + upiAppLink('gpay', due, note) + '">📱 OPEN GOOGLE PAY</a>' +
+              '<a class="pg-appbtn pg-appbtn-phonepe" href="' + upiAppLink('phonepe', due, note) + '">📱 OPEN PHONEPE</a>' +
+              '<a class="pg-appbtn pg-appbtn-paytm" href="' + upiAppLink('paytm', due, note) + '">📱 OPEN PAYTM</a>' +
+            '</div>' +
+            '<p class="pg-apptip">' + loc('GPay / PhonePe திறக்கலையா? மேலே QR ஸ்கேன் செய்யுங்கள் அல்லது UPI ID-ஐ copy செய்யுங்கள்.', 'GPay / PhonePe తెరవలేదా? QR స్కాన్ చేయండి లేదా UPI ID కాపీ చేయండి.', 'GPay / PhonePe ತೆರೆಯಲಿಲ್ಲವೇ? QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಅಥವಾ UPI ID ಕಾಪಿ ಮಾಡಿ.', 'GPay / PhonePe not opening? Scan the QR above or copy the UPI ID.', 'GPay / PhonePe തുറന്നില്ലേ? QR സ്കാൻ ചെയ്യൂ അല്ലെങ്കിൽ UPI ID കോപ്പി ചെയ്യൂ.') + '</p>' +
+            '<button type="button" class="py-paidbtn" id="payPaidBtn">✅ ' + loc('I\'ve Paid — SK Sarees-க்கு தெரியப்படுத்து', 'నేను చెల్లించాను — SK Sarees కి తెలియజేయండి', 'ನಾನು ಪಾವತಿಸಿದ್ದೇನೆ — SK Sarees ಗೆ ತಿಳಿಸಿ', "I've Paid — tell SK Sarees", 'ഞാൻ പേയ്ച്ചു — SK Sarees-നെ അറിയിക്കൂ') + '</button>' +
+            '<p class="py-note">ℹ️ ' + loc('பணம் செலுத்தியதும் இந்த பட்டனை அழுத்துங்கள் — SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க.', 'చెల్లించిన తర్వాత ఈ బటన్ నొక్కండి — SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు.', 'ಪಾವತಿಸಿದ ನಂತರ ಈ ಬಟನ್ ಒತ್ತಿ — SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ.', 'After paying, tap this button — SK Sarees will verify and confirm on WhatsApp.', 'പേയ്ച്ചശേഷം ഈ ബട്ടൺ അമർത്തൂ — SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും.') + '</p>' +
+          '</div>') +
+
+    '<div class="py-trust">' +
+      '<div>🏪 ' + loc('சேலம் எடங்கணசாலையில் உண்மையான கடை', 'సేలంలో నిజమైన షాప్', 'ಸೇಲಂನಲ್ಲಿ ನಿಜವಾದ ಅಂಗಡಿ', 'A real shop in Salem', 'സേലത്ത് യഥാർത്ഥ കട') + '</div>' +
+      '<div>📞 +91 ' + esc(CONFIG.waDisplay) + ' · 9 AM – 9 PM</div>' +
+      '<div>💬 ' + loc('எந்த கேள்வியும் WhatsApp-ல் கேளுங்கள்', 'ఏ ప్రశ్న అయినా WhatsApp లో అడగండి', 'ಯಾವುದೇ ಪ್ರಶ್ನೆ WhatsApp ನಲ್ಲಿ ಕೇಳಿ', 'Any question? Ask on WhatsApp', 'ഏത് ചോദ്യവും WhatsApp-ൽ ചോദിക്കൂ') + '</div>' +
+    '</div>' +
+    '<a class="btn btn-wa py-help" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் உதவி கேளுங்கள்', 'WhatsApp లో సహాయం', 'WhatsApp ನಲ್ಲಿ ಸಹಾಯ', 'Need help on WhatsApp', 'WhatsApp-ൽ സഹായം') + '</a>' +
+  '</div>';
+
+  bindPayPage(o, due, note);
+}
+function payWaMessage(){
+  try{
+    const o = __payOrder || {};
+    const t = o.totals || {};
+    return 'Hi SK Sarees! 🙏\n\nOrder #' + (o.id || '') + (o.customer && o.customer.name ? '\nName: ' + o.customer.name : '') +
+      '\nAmount: ₹' + (PayLink.grand(o) || 0) +
+      '\n\nI need help with this payment.';
+  }catch(e){ return 'Hi SK Sarees!'; }
+}
+function bindPayPage(o, due, note){
+  try{
+    const tg = document.getElementById('payQrToggle');
+    if (tg) tg.addEventListener('click', () => {
+      const blur = document.getElementById('payQrBlur');
+      const box = document.getElementById('payQrBox');
+      if (blur) blur.style.display = 'none';
+      if (box) box.style.display = 'flex';
+      setTimeout(() => { try{ drawPayQR(due, note); }catch(e){} }, 40);
+    });
+    const pb = document.getElementById('payPaidBtn');
+    if (pb) pb.addEventListener('click', () => payClaimPaid(o, due));
+  }catch(e){}
+}
+/* the QR for THIS order (never the cart) */
+function drawPayQR(amount, note){
+  const box = document.getElementById('payQr'); if (!box) return;
+  const go = () => {
+    const lib = (typeof qrcode !== 'undefined') ? qrcode : (window.qrcode || null);
+    if (!lib) return false;
+    try{
+      const qr = lib(0, 'M');
+      qr.addData(upiLink(amount, note));
+      qr.make();
+      box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    }catch(e){ box.innerHTML = '<p class="small muted">Use the UPI buttons below or copy the UPI ID.</p>'; }
+    return true;
+  };
+  if (go()) return;
+  try{
+    if (typeof ensureQrLib === 'function'){
+      ensureQrLib().then(ok => { if (ok) go(); else box.innerHTML = '<p class="small muted">Use the UPI buttons below or copy the UPI ID.</p>'; });
+    }
+  }catch(e){}
+}
+function payClaimPaid(o, due){
+  try{
+    __payDone = true;
+    const stamp = new Date().toISOString();
+    /* 1) mark the order (best effort — customer device write, same rules as a normal order) */
+    try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.updateStatus(o.id, o.status || 'pending', { paidClaimed: true, paidClaimedAt: stamp, paidClaimAmount: due }); }catch(e){}
+    /* 2) keep it on this device */
+    try{ payRememberLocal(Object.assign({}, o, { paidClaimed: true })); }catch(e){}
+    /* 3) tell the shop on WhatsApp — the owner verifies the UPI credit */
+    const msg = '✅ Payment done — Order #' + o.id +
+      '\n\n' + (o.customer && o.customer.name ? 'Name: ' + o.customer.name + '\n' : '') +
+      'Paid: ₹' + due +
+      '\nOrder total: ₹' + PayLink.grand(o) +
+      '\nUPI: ' + CONFIG.upiId + ' (SK SAREES)' +
+      '\n\nScreenshot kooda anuppuren. Please verify and confirm my order. 🙏';
+    try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
+    try{ track('pay_claimed', { order: o.id }); }catch(e){}
+    try{ fbqSafe('AddPaymentInfo', { content_ids: [o.id], value: due, currency: 'INR' }); }catch(e){}
+  }catch(e){}
+  payPaint();
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V45 — REELS STORY BAR (reels.html)
+   ▓▓▓░░  •  5 seconds per reel → the next reel opens by itself
+            •  tap the RIGHT half of the photo = next, LEFT half = previous
+            •  ⏸ chip pauses it, any touch gives a fresh 5 seconds
+   The photo + kavithai/thathuvam stay exactly as they are — only a thin
+   progress bar and the tap zones are added.
+   ══════════════════════════════════════════════════════════════════════════ */
+var __rpMs = 5000, __rpTimer = null, __rpPaused = false, __rpLockUntil = 0, __rpIdx = 0, __rpAuto = 0;
+var __rpAutoMax = 24;   /* after ~2 min of nobody touching the screen it pauses itself */
+function rpIndex(){
+  try{
+    var wrap = document.getElementById('rpWrap'); if (!wrap) return 0;
+    var h = wrap.clientHeight || 1;
+    var n = wrap.querySelectorAll('.rp-reel').length || 1;
+    return Math.max(0, Math.min(n - 1, Math.round(wrap.scrollTop / h)));
+  }catch(e){ return 0; }
+}
+function rpPaintAt(idx){
+  try{
+    var segs = document.querySelectorAll('#rpBar .rp-seg');
+    if (!segs.length) return;
+    __rpIdx = Math.max(0, idx || 0);
+    var pos = __rpIdx % segs.length;
+    for (var i = 0; i < segs.length; i++){
+      var sg = segs[i], bar = sg.querySelector('i'); if (!bar) continue;
+      if (i < pos){ sg.className = 'rp-seg done'; bar.style.transition = 'none'; bar.style.width = '100%'; }
+      else if (i === pos){
+        bar.style.transition = 'none'; bar.style.width = '0';
+        try{ void bar.offsetWidth; }catch(e){}
+        bar.style.transition = __rpPaused ? 'none' : ('width ' + __rpMs + 'ms linear');
+        bar.style.width = '100%';
+        sg.className = 'rp-seg on';
+      } else { sg.className = 'rp-seg'; bar.style.transition = 'none'; bar.style.width = '0'; }
+    }
+  }catch(e){}
+}
+function rpSchedule(){
+  try{ if (__rpTimer){ clearTimeout(__rpTimer); __rpTimer = null; } }catch(e){}
+  if (__rpPaused) return;
+  if (!document.body || document.body.dataset.page !== 'reels') return;
+  __rpTimer = setTimeout(function(){
+    __rpTimer = null;
+    try{
+      if (!document.body || document.body.dataset.page !== 'reels') return;
+      if (document.hidden) { rpSchedule(); return; }
+      if (document.querySelector('#modalRoot .modal.show')) { rpSchedule(); return; }  /* never jump behind a popup */
+      if (__rpAuto >= __rpAutoMax){                      /* idle for long → stop (no quota burn, no surprise) */
+        __rpPaused = true;
+        try{ var chip = document.getElementById('rpPause'); if (chip){ chip.textContent = '▶'; chip.className = 'rp-pause paused'; } }catch(e){}
+        return;
+      }
+      __rpAuto++;
+      rpGo(1);
+    }catch(e){}
+  }, __rpMs);
+}
+function rpGo(delta){
+  try{
+    var wrap = document.getElementById('rpWrap'); if (!wrap) return;
+    var h = wrap.clientHeight || 1;
+    var cur = rpIndex();
+    var next = Math.max(0, cur + delta);
+    __rpLockUntil = Date.now() + 700;          /* ignore the scroll events we cause */
+    if (wrap.scrollTo) wrap.scrollTo({ top: next * h, behavior: 'smooth' });
+    else wrap.scrollTop = next * h;
+    rpPaintAt(next);
+    rpSchedule();
+  }catch(e){}
+}
+function rpStoryInit(){
+  try{
+    var wrap = document.getElementById('rpWrap'); if (!wrap) return;
+    var bar = document.getElementById('rpBar');
+    if (!bar){
+      bar = document.createElement('div');
+      bar.id = 'rpBar'; bar.className = 'rp-bar';
+      var segs = '';
+      for (var i = 0; i < 10; i++) segs += '<span class="rp-seg"><i></i></span>';
+      bar.innerHTML = '<div class="rp-segs">' + segs + '</div>' +
+        '<button type="button" class="rp-pause" id="rpPause" aria-label="Pause">⏸</button>';
+      document.body.appendChild(bar);
+      var pb = document.getElementById('rpPause');
+      if (pb) pb.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        __rpPaused = !__rpPaused;
+        __rpAuto = 0;
+        this.textContent = __rpPaused ? '▶' : '⏸';
+        this.className = 'rp-pause' + (__rpPaused ? ' paused' : '');
+        rpPaintAt(rpIndex());
+        rpSchedule();
+        try{ toast(__rpPaused ? '⏸ ' + rloc('நிறுத்தப்பட்டது', 'నిలిపివేయబడింది', 'ನಿಲ್ಲಿಸಲಾಗಿದೆ', 'Paused') : '▶ ' + rloc('தொடர்கிறது', 'కొనసాగుతోంది', 'ಮುಂದುವರಿಯುತ್ತಿದೆ', 'Resumed')); }catch(e){}
+      });
+    }
+    if (!wrap.dataset.rpTaps){
+      wrap.dataset.rpTaps = '1';
+      /* 👆 tap zones — right half = next, left half = previous */
+      var down = null;
+      wrap.addEventListener('pointerdown', function(ev){ down = { x: ev.clientX, y: ev.clientY, t: Date.now() }; }, { passive: true });
+      wrap.addEventListener('pointerup', function(ev){
+        if (!down) return;
+        var dx = ev.clientX - down.x, dy = ev.clientY - down.y, dt = Date.now() - down.t;
+        down = null;
+        if (Math.abs(dx) > 14 || Math.abs(dy) > 14 || dt > 700) return;    /* a real swipe, not a tap */
+        try{ if (ev.target.closest('a,button,input,textarea,select,.rp-actions,.rp-bottom,.rp-card,.rp-lang,.rp-quote')) return; }catch(e){}
+        var r = wrap.getBoundingClientRect();
+        if (!r || !r.width) return;
+        __rpAuto = 0;
+        rpGo(ev.clientX - r.left > r.width * 0.5 ? 1 : -1);
+      }, { passive: true });
+      /* manual scroll → repaint + fresh 5 seconds */
+      wrap.addEventListener('scroll', function(){
+        if (Date.now() < __rpLockUntil) return;
+        __rpAuto = 0;                     /* a real swipe = fresh start */
+        rpPaintAt(rpIndex());
+        rpSchedule();
+      }, { passive: true });
+      /* back from another tab → fresh 5 seconds */
+      document.addEventListener('visibilitychange', function(){ if (!document.hidden && !__rpTimer) rpSchedule(); });
+    }
+    rpPaintAt(rpIndex());
+    rpSchedule();
+  }catch(e){}
+}
