@@ -563,11 +563,52 @@ function orderCard(o){
       '<a class="btn btn-wa btn-sm" href="' + waLink(TPL_CONFIRM(o), c.phone) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Send Confirmation</a>' +
       '<a class="btn btn-outline btn-sm" href="' + waLink(TPL_DELIVERY(o), c.phone) + '" target="_blank" rel="noopener">🚚 Send Delivery Reminder</a>' +
       (o.paidConfirmed ? '' : '<button type="button" class="btn btn-outline btn-sm" data-paylink="' + esc(o.id) + '" style="width:auto">🔗 Payment Link</button>') +
+      (o.paidConfirmed || (o.payment || '') === 'cod' ? '' :
+        '<button type="button" class="btn btn-buy btn-sm" data-markpaid="' + esc(o.id) + '" style="width:auto">✅ Payment Received</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-markunpaid="' + esc(o.id) + '" style="width:auto;color:var(--red)">❌ Not Received</button>') +
       '<button type="button" class="btn btn-buy btn-sm" data-label="' + esc(o.id) + '" style="width:auto">🧾 Courier Label</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" data-delorder="' + esc(o.id) + '" style="width:auto;color:var(--red)">🗑️ Delete Order</button>' +
     '</div></div>';
 }
 
+/* ✅/❌ mark an order's payment as received / not received (writes Firestore so
+   the customer's payment page can show the real result by itself) */
+function markPaid(id, paid){
+  try{
+    const fi = (fsOrders || []).findIndex(x => x && x.id === id);
+    const o = fi >= 0 ? fsOrders[fi] : (Store.orders || []).find(x => x && x.id === id);
+    if (!o){ toast('⚠️ Order not found'); return; }
+    if (paid){
+      o.paidConfirmed = true;
+      o.paidClaimed = true;
+      o.paymentRejected = false;
+      o.paidAt = new Date().toISOString();
+      o.status = 'confirmed';
+      o.confirmedAt = o.confirmedAt || o.paidAt;
+      /* ✅ real Purchase only now — the owner has seen the money */
+      try{
+        if (!o.__purchaseTracked){
+          o.__purchaseTracked = true;
+          try{ fbqSafe('Purchase', { value: (o.totals || {}).grand || 0, currency: 'INR', content_ids: (o.items || []).map(i => String(i.id)), content_name: 'Payment received' }); }catch(e){}
+          try{ gtag && gtag('event', 'purchase', { value: (o.totals || {}).grand || 0, currency: 'INR', transaction_id: o.id }); }catch(e){}
+        }
+      }catch(e){}
+    } else {
+      o.paidConfirmed = false;
+      o.paidClaimed = false;
+      o.paymentRejected = true;
+      o.paymentRejectedAt = new Date().toISOString();
+      if (String(o.status || '') === 'confirmed') o.status = 'pending';
+    }
+    if (fi >= 0) fsOrders[fi] = o;
+    try{ Store.saveOrders(); }catch(e){}
+    /* cloud write — this is what the customer's page reads */
+    try{ if (typeof FS !== 'undefined' && FS.enabled()) FS.saveOrder(o); }catch(e){}
+    toast(paid ? '✅ Payment received — customer-க்கு SUCCESS காட்டும்' : '❌ Not received — customer-க்கு FAILED + retry காட்டும்');
+    if (adminTab === 'orders'){ renderFilters(); renderOrderList(); }
+    else if (adminTab === 'manual'){ try{ moPaintRecent(); }catch(e){} }
+  }catch(e){ toast('⚠️ Could not update'); }
+}
 function updateStatus(id, status){
   /* find in cloud orders (fsOrders) OR device orders (Store.orders) */
   const fi = (fsOrders || []).findIndex(x => x.id === id);
@@ -575,6 +616,12 @@ function updateStatus(id, status){
   if (!o) return;
   const prevStatus = o.status;
   o.status = status;
+  /* 🔗 V47: status and payment result stay in sync for UPI orders */
+  try{
+    if (status === 'confirmed' && o.payment === 'upi'){ o.paidConfirmed = true; o.paymentRejected = false; if (!o.paidAt) o.paidAt = new Date().toISOString(); }
+    if (status === 'cancelled' && o.payment === 'upi' && !o.paidConfirmed){ o.paymentRejected = true; }
+    if (status === 'pending'){ o.paymentRejected = false; }
+  }catch(e){}
   /* ✅ V37 HONEST TRACKING: this is the ONLY place a real Purchase is fired —
      the owner has verified the order (payment received / COD accepted).
      Fires once per order (order.__purchaseTracked guard). */
@@ -596,14 +643,28 @@ function updateStatus(id, status){
   }
   if (status === 'delivered') o.deliveredAt = o.deliveredAt || new Date().toISOString();
   if (status === 'cancelled'){ try{ cancelResellerMargin(id); }catch(e){} }
+  /* 🔗 V47: the payment result must travel to Firestore with the status, so the
+     customer's pay page can show SUCCESS / FAILED by itself */
+  const payExtra = {};
+  try{
+    if ((o.payment || '') === 'upi'){
+      if (status === 'confirmed'){ payExtra.paidConfirmed = true; payExtra.paymentRejected = false; payExtra.paidAt = o.paidAt || new Date().toISOString(); }
+      else if (status === 'cancelled' && !o.paidConfirmed){ payExtra.paymentRejected = true; }
+      else if (status === 'pending'){ payExtra.paymentRejected = false; }
+    }
+  }catch(e){}
+  const extra = Object.assign({},
+    status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : {},
+    status === 'delivered' ? { deliveredAt: o.deliveredAt } : {},
+    payExtra);
   if (fi >= 0){
     /* cloud order → update Firestore ONLY (never pollute sk_orders) */
     fsOrders[fi] = o;
-    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+    if (FS.enabled()) FS.updateStatus(id, status, extra).catch(() => {});
   } else {
     /* device order → local + Firestore */
     Store.saveOrders();
-    if (FS.enabled()) FS.updateStatus(id, status, status === 'shipped' ? { dispatchedAt: o.dispatchedAt, deliverBy: o.deliverBy } : (status === 'delivered' ? { deliveredAt: o.deliveredAt } : {})).catch(() => {});
+    if (FS.enabled()) FS.updateStatus(id, status, extra).catch(() => {});
   }
   toast('✅ ' + id + ' → ' + status);
   /* 💬 auto-offer: open WhatsApp to the customer with the status update + track link */
@@ -2103,6 +2164,12 @@ document.addEventListener('click', e => {
     prodPage = 1; renderProdBody(); toast('🗑️ Deleted from Admin + Firestore. Download and upload catalog.json to remove it for customers too.');
     return;
   }
+  /* ✅ V47: owner confirms (or rejects) a UPI payment → the customer's pay page
+     flips to ✅ SUCCESS / ❌ FAILED automatically (it re-checks every 10 s) */
+  const mp = e.target.closest('[data-markpaid]');
+  if (mp){ e.preventDefault(); markPaid(mp.dataset.markpaid, true); return; }
+  const mu = e.target.closest('[data-markunpaid]');
+  if (mu){ e.preventDefault(); markPaid(mu.dataset.markunpaid, false); return; }
   /* 🔗 V46: resend the customer payment link for ANY order */
   const plk = e.target.closest('[data-paylink]');
   if (plk){
@@ -2216,8 +2283,8 @@ function moTotals(){
   /* 💵 same pricing model as the website checkout:
        UPI  = sarees + courier (zone × qty) — all paid now
        COD  = sarees + ₹100 COD charge — ₹100 paid now, saree amount in CASH */
-  const codFee = pay === 'cod' ? (CONFIG.codFee || 100) : 0;
-  const shipping = pay === 'cod' ? codFee : courier;
+  const codFee = 0;                       /* 🚚 V48: no separate COD fee */
+  const shipping = courier;               /* one courier rate for UPI and COD */
   const grand = Math.max(0, sub - disc + shipping);
   return { itemsTotal: sub, shipping: shipping, discount: disc, codFee: codFee, grand: grand, pay: pay };
 }
@@ -2261,7 +2328,7 @@ function renderManualOrder(){
       '<div class="mo-grid">' +
         '<label>கூரியர் ₹<input id="moCourier" inputmode="numeric" value="30"></label>' +
         '<label>தள்ளுபடி ₹<input id="moDisc" inputmode="numeric" value="0"></label>' +
-        '<label class="mo-wide">பணம் எப்படி?<select id="moPay"><option value="upi">UPI — முழு தொகை இப்போவே</option><option value="cod">COD — ₹' + (CONFIG.codFee || 100) + ' advance மட்டும்</option></select></label>' +
+        '<label class="mo-wide">பணம் எப்படி?<select id="moPay"><option value="upi">UPI — முழு தொகை இப்போவே</option><option value="cod">COD — கூரியர் சார்ஜ் மட்டும் advance</option></select></label>' +
       '</div>' +
       '<div class="mo-hint" id="moZoneHint"></div>' +
       '<div class="mo-totals" id="moTotals"></div>' +
@@ -2405,10 +2472,10 @@ function moPaintTotals(){
   box.innerHTML =
     '<div><span>சேலை தொகை (' + moQty() + ')</span><b>' + money(t.itemsTotal) + '</b></div>' +
     (t.discount ? '<div class="mo-save"><span>தள்ளுபடி</span><b>−' + money(t.discount) + '</b></div>' : '') +
-    '<div><span>' + (t.pay === 'cod' ? 'COD charge (கூரியர்-க்கு பதிலா)' : 'கூரியர்') + '</span><b>' + money(t.shipping) + '</b></div>' +
+    '<div><span>கூரியர்' + (t.pay === 'cod' ? ' (இப்போ செலுத்துவது)' : '') + '</span><b>' + money(t.shipping) + '</b></div>' +
     '<div class="mo-grand"><span>மொத்தம்</span><b>' + money(t.grand) + '</b></div>' +
     (t.pay === 'cod'
-      ? '<div class="mo-cod">💵 COD: இப்போ <b>' + money(t.codFee) + '</b> மட்டும் advance + டெலிவரியில் <b>' + money(t.grand - t.codFee) + '</b> cash</div>'
+      ? '<div class="mo-cod">🚚 COD: கூரியர் சார்ஜ் <b>' + money(t.shipping) + '</b> மட்டும் இப்போ advance + டெலிவரியில் <b>' + money(t.grand - t.shipping) + '</b> cash</div>'
       : '<div class="mo-cod" style="background:#F7FDF9;color:#0e7d46">💳 UPI: இப்போவே <b>' + money(t.grand) + '</b> முழுசா pay</div>');
 }
 function moCreate(){
@@ -2494,6 +2561,7 @@ function moPaintRecent(){
         (paid ? '<span class="mo-chip ok">✅ Paid / confirmed</span>' : '') +
       '</div>' +
       '<div class="mo-recent-a">' +
+        (o.payment === 'cod' || paid ? '' : (claimed ? '<button type="button" class="mo-mini mo-mini-ok" data-markpaid="' + esc(o.id) + '">✅ Paid</button>' : '<button type="button" class="mo-mini" data-markpaid="' + esc(o.id) + '">✅ Paid?</button>')) +
         '<button type="button" class="mo-mini" data-molink="' + esc(o.id) + '">🔗 Link</button>' +
         '<a class="mo-mini" href="' + esc(waLink('🌸 SK Sarees — Order #' + o.id + ' payment link 👉 ' + PayLink.url(o), (o.customer || {}).phone)) + '" target="_blank" rel="noopener">💬</a>' +
       '</div></div>';

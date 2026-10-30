@@ -1527,7 +1527,7 @@ const TRUST_ITEMS = [
     t: () => loc('100% உண்மையான சேலை போட்டோ', '100% నిజమైన చీర ఫోటోలు', '100% ನಿಜವಾದ ಸೀರೆ ಫೋಟೋ', '100% real saree photos', '100% യഥാർത്ഥ സാരി ഫോട്ടോ'),
     s: () => loc('AI படம் இல்லை — WhatsApp-ல் நேரடி வீடியோ கேட்கலாம்', 'AI చిత్రాలు లేవు — WhatsApp లో లైవ్ వీడియో అడగండి', 'AI ಚಿತ್ರಗಳಿಲ್ಲ — WhatsApp ನಲ್ಲಿ ಲೈವ್ ವೀಡಿಯೊ ಕೇಳಿ', 'No AI images — ask for a live video on WhatsApp', 'AI ചിത്രങ്ങളില്ല — WhatsApp-ൽ ലൈവ് വീഡിയോ ചോദിക്കൂ') },
   { ic: '💵',
-    t: () => loc('COD — ₹100 மட்டும் முன்பணம்', 'COD — ₹100 మాత్రమే అడ్వాన్స్', 'COD — ₹100 ಮಾತ್ರ ಮುಂಗಡ', 'COD — only ₹100 advance', 'COD — ₹100 മാത്രം അഡ്വാൻസ്'),
+    t: () => loc('COD — கூரியர் சார்ஜ் மட்டும் முன்பணம்', 'COD — కొరియర్ ఛార్జ్ మాత్రమే అడ్వాన్స్', 'COD — ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಮುಂಗಡ', 'COD — courier charge only in advance', 'COD — കൊറിയർ ചാർജ് മാത്രം അഡ്വാൻസ്'),
     s: () => loc('மீதி சேலை தொகை டெலிவரியில் பணமாக', 'మిగిలిన చీర మొత్తం డెలివరీలో నగదు', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'rest of the saree amount in cash at delivery', 'ബാക്കി സാരി തുക ഡെലിവറിയിൽ പണമായി') },
   { ic: '🔐',
     t: () => loc('பாதுகாப்பான UPI — SK SAREES பெயருக்கு', 'సురక్షిత UPI — SK SAREES పేరుకు', 'ಸುರಕ್ಷಿತ UPI — SK SAREES ಹೆಸರಿಗೆ', 'Secure UPI to verified name SK SAREES', 'സുരക്ഷിത UPI — SK SAREES പേരിലേക്ക്'),
@@ -1556,13 +1556,101 @@ function productTrustCard(p){
   const rows = [
     ['🏪', loc('சேலம், தமிழ்நாட்டில் இருந்து அனுப்பப்படுகிறது', 'సేలం, తమిళనాడు నుండి పంపబడుతుంది', 'ಸೇಲಂ, ತಮಿಳುನಾಡಿನಿಂದ ಕಳುಹಿಸಲಾಗುತ್ತದೆ', 'Ships from Salem, Tamil Nadu', 'സേലം, തമിഴ്നാട്ടിൽ നിന്ന് അയയ്ക്കുന്നു')],
     ['📸', loc('உண்மையான போட்டோ — WhatsApp-ல் வீடியோ கேட்கலாம்', 'నిజమైన ఫోటో — WhatsApp లో వీడియో అడగండి', 'ನಿಜವಾದ ಫೋಟೋ — WhatsApp ನಲ್ಲಿ ವೀಡಿಯೊ ಕೇಳಿ', 'Real photos — ask for video on WhatsApp', 'യഥാർത്ഥ ഫോട്ടോ — WhatsApp-ൽ വീഡിയോ ചോദിക്കൂ')],
-    ['💵', loc('COD: ₹100 முன்பணம் மட்டும் · மீதி டெலிவரியில்', 'COD: ₹100 అడ్వాన్స్ మాత్రమే · మిగిలినది డెలివరీలో', 'COD: ₹100 ಮುಂಗಡ ಮಾತ್ರ · ಉಳಿದದ್ದು ಡೆಲಿವರಿಯಲ್ಲಿ', 'COD: only ₹100 advance · rest at delivery', 'COD: ₹100 അഡ്വാൻസ് മാത്രം · ബാക്കി ഡെലിവറിയിൽ')],
+    ['💵', loc('COD: கூரியர் சார்ஜ் மட்டும் · சேலை தொகை டெலிவரியில்', 'COD: కొరియర్ ఛార్జ్ మాత్రమే · చీర మొత్తం డెలివరీలో', 'COD: ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ · ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ', 'COD: courier charge only · saree amount at delivery', 'COD: കൊറിയർ ചാർജ് മാത്രം · സാരി തുക ഡെലിവറിയിൽ')],
     ['🔐', loc('UPI — SK SAREES பெயருக்கு மட்டும்', 'UPI — SK SAREES పేరుకు మాత్రమే', 'UPI — SK SAREES ಹೆಸರಿಗೆ ಮಾತ್ರ', 'UPI — paid only to SK SAREES', 'UPI — SK SAREES പേരിലേക്ക് മാത്രം')],
     ['🔄', loc('7 நாள் எளிதான மாற்று உண்டு', '7 రోజుల సులభ రీప్లేస్‌మెంట్ ఉంది', '7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ ಇದೆ', '7-day easy replacement', '7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ്')],
   ];
   return '<div class="pd-trust-card"><b>🛡️ ' + loc('நம்பிக்கையுடன் ஆர்டர் செய்யுங்கள்', 'నమ్మకంగా ఆర్డర్ చేయండి', 'ನಂಬಿಕೆಯಿಂದ ಆರ್ಡರ್ ಮಾಡಿ', 'Order with confidence', 'വിശ്വാസത്തോടെ ഓർഡർ ചെയ്യൂ') + '</b>' +
     rows.map(r => '<div class="ptc-row"><span>' + r[0] + '</span><small>' + r[1] + '</small></div>').join('') +
     '<a class="ptc-call" href="tel:+91' + CONFIG.waNumber.slice(2) + '">📞 ' + loc('இப்போதே கேளுங்கள்', 'ఇప్పుడే అడగండి', 'ಈಗಲೇ ಕೇಳಿ', 'Call us now', 'ഇപ്പോൾ തന്നെ വിളിക്കൂ') + ' · +91 ' + CONFIG.waDisplay + '</a></div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V48 — TRUST & SECURITY (only facts we can actually prove)
+   Shown on cart, checkout and the payment page so a first-time customer —
+   who has never heard of us — can check everything herself.
+   ══════════════════════════════════════════════════════════════════════════ */
+function trustSecHTML(opts){
+  const o = opts || {};
+  const tel = 'tel:+91' + String(CONFIG.waNumber || '').slice(2);
+  const rows = [
+    ['🔒', loc('HTTPS பாதுகாப்பான பக்கம்', 'HTTPS సురక్షిత పేజీ', 'HTTPS ಸುರಕ್ಷಿತ ಪುಟ', 'HTTPS secure page', 'HTTPS സുരക്ഷിത പേജ്'),
+      loc('உங்க எண், முகவரி encrypted-ஆ தான் அனுப்பப்படும்', 'మీ నంబర్, చిరునామా ఎన్క్రిప్టెడ్‌గా పంపబడుతుంది', 'ನಿಮ್ಮ ಸಂಖ್ಯೆ, ವಿಳಾಸ ಎನ್‌ಕ್ರಿಪ್ಟ್ ಆಗಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ', 'your number and address are sent encrypted', 'നിങ്ങളുടെ നമ്പറും വിലാസവും എൻക്രിപ്റ്റ് ചെയ്ത് അയയ്ക്കും')],
+    ['🏦', loc('பணம் போவது SK SAREES-க்கு மட்டும்', 'డబ్బు SK SAREES కి మాత్రమే', 'ಹಣ SK SAREES ಗೆ ಮಾತ್ರ', 'money goes to SK SAREES only', 'പണം SK SAREES-ന് മാത്രം'),
+      esc(CONFIG.upiId) + ' · ' + loc('பெயரை சரிபாத்து pay பண்ணுங்க', 'పేరు చెక్ చేసి చెల్లించండి', 'ಹೆಸರು ಪರಿಶೀಲಿಸಿ ಪಾವತಿಸಿ', 'check the name before paying', 'പേര് പരിശോധിച്ച് അടയ്ക്കൂ')],
+    ['🔐', loc('UPI PIN யாருக்கும் சொல்ல வேண்டாம்', 'UPI పిన్ ఎవరికీ చెప్పకండి', 'UPI ಪಿನ್ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ', 'we never ask for your UPI PIN', 'UPI പിൻ ആരോടും പറയരുത്'),
+      loc('pay பண்ணுவது உங்க UPI ஆப்-ல தான் நடக்கும்', 'చెల్లింపు మీ UPI యాప్‌లోనే జరుగుతుంది', 'ಪಾವತಿ ನಿಮ್ಮ UPI ಆ್ಯಪ್‌ನಲ್ಲೇ ನಡೆಯುತ್ತದೆ', 'payment happens inside your own UPI app', 'പേയ്മെന്റ് നിങ്ങളുടെ UPI ആപ്പിൽ തന്നെ')],
+    ['🏪', loc('சேலம் எடங்கணசாலையில் உண்மையான கடை', 'సేలంలో నిజమైన షాప్', 'ಸೇಲಂನಲ್ಲಿ ನಿಜವಾದ ಅಂಗಡಿ', 'a real shop in Salem you can visit', 'സേലത്ത് യഥാർത്ഥ കട'),
+      '2/130, Thoothanoor, Edanganasalai, Salem 637502'],
+    ['↩️', '<a href="return-policy.html">' + loc('மாற்று விதிமுறை படிக்க', 'రీప్లేస్ పాలసీ చదవండి', 'ಬದಲಿ ನೀತಿ ಓದಿ', 'Read the replacement policy', 'റീപ്ലേസ്മെന്റ് പോളിസി വായിക്കൂ') + '</a>',
+      loc('சேதம் / தவறான சேலை — 7 நாள் மாற்று', 'పాడైన / తప్పు చీర — 7 రోజుల మార్పు', 'ಹಾನಿ / ತಪ್ಪು ಸೀರೆ — 7 ದಿನ ಬದಲಿ', 'damaged or wrong saree — 7-day replacement', 'കേടായ / തെറ്റായ സാരി — 7 ദിവസം മാറ്റം')]
+  ];
+  return '<div class="ts-sec">' +
+    '<b class="ts-h">🛡️ ' + loc('நம்பிக்கையா ஆர்டர் செய்யுங்கள்', 'నమ్మకంగా ఆర్డర్ చేయండి', 'ನಂಬಿಕೆಯಿಂದ ಆರ್ಡರ್ ಮಾಡಿ', 'Order with confidence', 'വിശ്വാസത്തോടെ ഓർഡർ ചെയ്യൂ') + '</b>' +
+    rows.map(r => '<div class="ts-row"><span>' + r[0] + '</span><div><b>' + r[1] + '</b><small>' + r[2] + '</small></div></div>').join('') +
+    /* 📞 customer care — a human, with real hours */
+    '<div class="ts-care">' +
+      '<b>📞 ' + loc('கஸ்டமர் கேர்', 'కస్టమర్ కేర్', 'ಕಸ್ಟಮರ್ ಕೇರ್', 'Customer care', 'കസ്റ്റമർ കെയർ') + ' · 9 AM – 9 PM</b>' +
+      '<small>' + loc('தினமும் — பேசுங்க, WhatsApp-ல எழுதுங்க, இல்லைனா கடைக்கு நேரில் வாங்க.', 'రోజూ — మాట్లాడండి, WhatsApp లో రాయండి, లేదా షాప్‌కి నేరుగా రండి.', 'ಪ್ರತಿದಿನ — ಮಾತನಾಡಿ, WhatsApp ನಲ್ಲಿ ಬರೆಯಿರಿ, ಅಥವಾ ಅಂಗಡಿಗೆ ಬನ್ನಿ.', 'every day — call, WhatsApp, or just walk into the shop.', 'എല്ലാ ദിവസവും — വിളിക്കൂ, WhatsApp-ൽ എഴുതൂ, അല്ലെങ്കിൽ കടയിൽ വരൂ.') + '</small>' +
+      '<div class="ts-care-btns">' +
+        '<a href="' + tel + '">📞 ' + loc('கால்', 'కాల్', 'ಕಾಲ್', 'Call', 'വിളിക്കൂ') + '</a>' +
+        '<a href="' + waLink('Hi SK Sarees! I have a question before ordering.') + '" target="_blank" rel="noopener">💬 WhatsApp</a>' +
+        '<a href="https://maps.google.com/?q=SK+Sarees+Edanganasalai+Salem" target="_blank" rel="noopener">📍 ' + loc('கடை', 'షాప్', 'ಅಂಗಡಿ', 'Shop', 'കട') + '</a>' +
+      '</div>' +
+    '</div>' +
+    (o.note ? '<p class="ts-note">' + o.note + '</p>' : '') +
+  '</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V48 — VIRAL KIT (honest, one small row — no fake urgency, no clutter)
+   1. today's saree → WhatsApp Status image (and ₹5 off that saree)
+   2. send that saree's link to family / friends (₹5 more off per real share)
+   3. join the WhatsApp group
+   ══════════════════════════════════════════════════════════════════════════ */
+function viralTodayPick(){
+  try{
+    const pool = PRODUCTS.filter(p => !p.hidden && (p.stock == null || p.stock > 0) && p.img);
+    if (!pool.length) return null;
+    const now = new Date();
+    const day = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
+    /* prefer a discounted saree, rotate every day so it feels fresh */
+    const deals = pool.filter(p => p.mrp && p.mrp > p.price);
+    const list = deals.length ? deals : pool;
+    return list[day % list.length] || pool[0];
+  }catch(e){ return null; }
+}
+function viralKitHTML(){
+  const p = viralTodayPick();
+  const name = p ? String(smartTitle(p)).split(' | ')[0] : '';
+  return '<section class="vk">' +
+    '<div class="vk-head"><b>💚 ' + loc('இந்த சேலையை share பண்ணுங்க', 'ఈ చీరను షేర్ చేయండి', 'ಈ ಸೀರೆ ಶೇರ್ ಮಾಡಿ', 'Share this saree', 'ഈ സാരി ഷെയർ ചെയ്യൂ') + '</b>' +
+      '<small>' + loc('ஒரு share = ₹5 off (₹50 வரை) · நண்பர் order = 5% commission', 'ఒక షేర్ = ₹5 ఆఫ్ (₹50 వరకు) · ఫ్రెండ్ ఆర్డర్ = 5% కమిషన్', 'ಒಂದು ಶೇರ್ = ₹5 ಆಫ್ (₹50 ವರೆಗೆ) · ಸ್ನೇಹಿತ ಆರ್ಡರ್ = 5% ಕಮಿಷನ್', 'one share = ₹5 off (up to ₹50) · friend order = 5% commission', 'ഒരു ഷെയർ = ₹5 ഓഫ് (₹50 വരെ) · സുഹൃത്ത് ഓർഡർ = 5% കമ്മീഷൻ') + '</small></div>' +
+    '<div class="vk-grid">' +
+      '<button type="button" class="vk-t" data-vkstatus="' + esc(p ? p.id : '') + '">' +
+        '<span class="vk-ic">📲</span><b>' + loc('இன்றைய ஸ்டேட்டஸ்', 'నేటి స్టేటస్', 'ಇಂದಿನ ಸ್ಟೇಟಸ್', "Today's Status", 'ഇന്നത്തെ സ്റ്റാറ്റസ്') + '</b>' +
+        '<small>' + (name ? esc(name).slice(0, 22) : '') + '</small></button>' +
+      '<button type="button" class="vk-t" data-vkshare="' + esc(p ? p.id : '') + '">' +
+        '<span class="vk-ic">💬</span><b>' + loc('நண்பருக்கு அனுப்பு', 'ఫ్రెండ్‌కు పంపు', 'ಸ್ನೇಹಿತರಿಗೆ ಕಳುಹಿಸಿ', 'Send to a friend', 'സുഹൃത്തിന് അയയ്ക്കൂ') + '</b>' +
+        '<small>' + loc('லிங்க் மட்டும் — வேகமா', 'లింక్ మాత్రమే — వేగంగా', 'ಲಿಂಕ್ ಮಾತ್ರ — ಬೇಗ', 'link only — instant', 'ലിങ്ക് മാത്രം — വേഗം') + '</small></button>' +
+      '<button type="button" class="vk-t" data-vkjoin="1">' +
+        '<span class="vk-ic">📢</span><b>' + loc('குரூப் சேர்', 'గ్రూప్ చేరండి', 'ಗ್ರೂಪ್ ಸೇರಿ', 'Join group', 'ഗ്രൂപ്പിൽ ചേരൂ') + '</b>' +
+        '<small>' + loc('புது சேலை முதலில்', 'కొత్త చీరలు మొదట', 'ಹೊಸ ಸೀರೆ ಮೊದಲು', 'new sarees first', 'പുതിയ സാരികൾ ആദ്യം') + '</small></button>' +
+    '</div>' +
+  '</section>';
+}
+function viralStatus(pid){
+  try{
+    const p = byId(pid); if (!p){ toast('⚠️ Saree not found'); return; }
+    let q = ''; try{ q = (typeof reelQuoteFor === 'function') ? reelQuoteFor(p, 0) : ''; }catch(e){}
+    saveReelStatus(p, q);           /* builds the 1080×1920 status card + shares it */
+  }catch(e){ toast('⚠️ Could not prepare the status'); }
+}
+function viralShare(pid){
+  try{
+    const p = byId(pid); if (!p){ window.open('https://wa.me/?text=' + encodeURIComponent('🌸 SK Sarees — ' + (CONFIG.siteUrl || '')), '_blank', 'noopener'); return; }
+    shareEarnProduct(p);            /* verified share → ₹5 off that saree */
+  }catch(e){}
 }
 
 function renderHome(){
@@ -1588,7 +1676,7 @@ function renderHome(){
     fq.id = 'homeFaqLd'; fq.type = 'application/ld+json';
     const faqData = [
       ['How can I order a saree?', 'Tap BUY NOW on any saree, enter your mobile number and complete checkout — or simply order on WhatsApp.'],
-      ['Is COD (Cash on Delivery) available?', 'Yes — COD is available across India with a ₹' + (CONFIG.codFee || 100) + ' booking + courier amount; the balance is paid at delivery.'],
+      ['Is COD (Cash on Delivery) available?', 'Yes — COD is available across India. You pay only the courier charge now to book (₹30 in Tamil Nadu) and the full saree amount in cash at delivery — no extra COD fee.'],
       ['How long does delivery take?', 'Tamil Nadu ' + (ZONES.tn.days[0]) + '-' + (ZONES.tn.days[1]) + ' days, Andhra/Karnataka ' + (ZONES.apka ? ZONES.apka.days[0] : 3) + '-' + (ZONES.apka ? ZONES.apka.days[1] : 4) + ' days, other states ' + (ZONES.other.days[0]) + '-' + (ZONES.other.days[1]) + ' days. Dispatch within ' + (CONFIG.dispatchHours || 12) + '-' + ((CONFIG.dispatchHours || 12) * 2) + ' hours.'],
       ['Do you deliver across South India?', 'Yes — we deliver to Tamil Nadu, Karnataka, Andhra Pradesh, Telangana, Kerala, Puducherry and all of India.'],
       ['Can I order through WhatsApp?', 'Yes! Every saree has a WhatsApp Order button — we confirm availability instantly.'],
@@ -1700,12 +1788,16 @@ function renderHome(){
     secHead('❓ ' + loc('அடிக்கடி கேட்கும் கேள்விகள்', 'సాధారణ ప్రశ్నలు', 'ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳು', 'Frequently Asked Questions', 'സാധാരണ ചോദ്യങ്ങൾ')) + '<div class="pd-faq" style="border:0;padding:0">' +
       [
         [loc('எப்படி ஆர்டர் செய்வது?', 'ఆర్డర్ ఎలా చేయాలి?', 'ಆರ್ಡರ್ ಹೇಗೆ ಮಾಡಬೇಕೆ?', 'How can I order?', 'എങ്ങനെ ഓർഡർ ചെയ്യാം?'), loc('Tap BUY NOW, enter your mobile number — checkout opens. Or order on WhatsApp.', 'BUY NOW నొక్కి mobile number ఇవ్వండి — checkout ఓపెన్ అవుతుంది. లేదా WhatsApp లో ఆర్డర్ చేయండి.', 'BUY NOW ಒತ್ತಿ mobile number ಕೊಡಿ — checkout ತೆರೆಯುತ್ತದೆ. ಅಥವಾ WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ.', 'Tap BUY NOW, enter your mobile number — checkout opens. Or order on WhatsApp.', 'BUY NOW അമർത്തി mobile number നൽകൂ — checkout തുറക്കും.')],
-        [loc('COD கிடைக்குமா?', 'COD ఉందా?', 'COD ಇದೆಯೇ?', 'Is COD available?', 'COD ഉണ്ടോ?'), loc('Yes — ₹' + (CONFIG.codFee || 100) + ' booking + courier; the balance is paid at delivery.', 'అవును! ₹100 booking + courier — మిగిలినది డెలివరీ సమయంలో చెల్లించండి.', 'ಹೌದು! ₹100 booking + courier — ಉಳಿದದ್ದನ್ನು ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನೀಡಿ.', 'Yes — ₹100 booking + courier; the balance is paid at delivery.', 'ഉവ്വ്! ₹100 booking + courier — ബാക്കി ഡെലിവറി സമയത്ത് നൽകാം.')],
+        [loc('COD கிடைக்குமா?', 'COD ఉందా?', 'COD ಇದೆಯೇ?', 'Is COD available?', 'COD ഉണ്ടോ?'), loc('ஆமா! கூரியர் சார்ஜ் மட்டும் இப்போ, சேலை தொகை டெலிவரியில் cash.', 'అవును! కొరియర్ ఛార్జ్ మాత్రమే ఇప్పుడు, చీర మొత్తం డెలివరీలో నగదు.', 'ಹೌದು! ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಈಗ, ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು.', 'Yes — courier charge now, the saree amount in cash at delivery.', 'ഉവ്വ്! കൊറിയർ ചാർജ് മാത്രം ഇപ്പോൾ, സാരി തുക ഡെലിവറിയിൽ പണം.')],
         [loc('டெலிவரி எத்தனை நாள் ஆகும்?', 'డెలివరీ ఎన్ని రోజులు?', 'ಡೆಲಿವರಿ ಎಷ್ಟು ದಿನ?', 'How long does delivery take?', 'എത്ര ദിവസം ഡെലിവറി?'), loc('Tamil Nadu 2–3 days, Andhra/Karnataka 3–4 days, other states 5–7 days.', 'TN 2–3 రోజులు • AP/Karnataka 3–4 రోజులు • ఇతర రాష్ట్రాలు 5–7 రోజులు.', 'TN 2–3 ದಿನ • AP/Karnataka 3–4 ದಿನ • ಇತರ ರಾಜ್ಯಗಳು 5–7 ದಿನ.', 'Tamil Nadu 2–3 days, Andhra/Karnataka 3–4 days, other states 5–7 days.', 'TN 2–3 ദിവസം • AP/Karnataka 3–4 ദിവസം • മറ്റ് സംസ്ഥാനങ്ങൾ 5–7 ദിവസം.')],
         [loc('தென்னிந்தியா முழுவதும் டெலிவரி உண்டா?', 'దక్షిణ భారతదేశం అంతా డెలివరీ ఉందా?', 'ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ ಡೆಲಿವರಿ ಇದೆಯೇ?', 'Do you deliver across South India?', 'ദക്ഷിണേന്ത്യയിലേക്ക് ഡെലിവറി ഉണ്ടോ?'), loc('Yes — all of South India and across India.', 'అవును — దక్షిణ భారతదేశం అంతటా — ఇండియా అంతటా డెలివరీ.', 'ಹೌದು! ದಕ್ಷಿಣ ಭಾರತದಾದ್ಯಂತ — ಇಡೀ ಇಂಡಿಯಾಕ್ಕೆ ಡೆಲಿವರಿ.', 'Yes — all of South India and across India.', 'ഉവ്വ്! ദക്ഷിണേന്ത്യയിലും ഇന്ത്യയിലും എല്ലായിടത്തും ഡെലിവറി.')],
         [loc('சேலையை மாற்றலாமா?', 'చీరను మార్చవచ్చా?', 'ಸೀರೆಯನ್ನು ಬದಲಾಯಿಸಬಹುದೇ?', 'Can I replace the saree?', 'സാരി മാറ്റാമോ?'), loc('சேதம் அல்லது தவறான பொருட்களுக்கு 7 நாள் எளிதான மாற்று.', 'ప్రమాదం / తప్పు ఉత్పత్తికి 7 రోజుల సులభ రీప్లేస్‌మెంట్.', 'ಹಾನಿ / ತಪ್ಪು ಉತ್ಪನ್ನಕ್ಕೆ 7 ದಿನಗಳ ಸುಲಭ ಬದಲಿ.', '7-day easy replacement for damaged or wrong items.', 'കേടായ / തെറ്റായ ഉൽപ്പന്നങ്ങൾക്ക് 7 ദിവസത്തെ എളുപ്പ റീപ്ലേസ്മെന്റ്.')],
       ].map(f => '<details><summary>' + f[0] + '</summary><div>' + f[1] + '</div></details>').join('') +
     '</div></div>' +
+    /* 💚 V48 VIRAL KIT — status / friend / group (one small row) */
+    viralKitHTML() +
+    /* 🛡️ V48 TRUST — verifiable facts only */
+    trustSecHTML({ note: '' }) +
     /* ═══ 43. FINAL CTA ═══ */
     '<div class="sk-finalcta"><b>' + loc('உங்கள் சேலையை கண்டுபிடிக்க தயாரா?', 'మీ చీర కనుగొనడానికి సిద్ధమా?', 'ನಿಮ್ಮ ಸೀರೆ ಹುಡುಕಲು ಸಿದ್ಧರಾ?', 'READY TO FIND YOUR SAREE?', 'നിങ്ങളുടെ സാരി കണ്ടെത്താൻ തയ്യാറാ?') + '</b>' +
       '<span>' + loc('இன்றே SK Sarees-ல் வாங்குங்கள்', 'ఈరోజే SK Sarees లో షాప్ చేయండి', 'ಇಂದೆ SK Sarees ನಲ್ಲಿ ಶಾಪ್ ಮಾಡಿ', 'Shop SK Sarees Today', 'ഇന്നുതന്നെ SK Sarees-ൽ ഷോപ്പ്') + '</span>' +
@@ -3350,7 +3442,7 @@ function renderProduct(){
         '<div class="pd-assure">' +
           '<b class="pa-title">🛡️ ' + loc('நம்பிக்கையுடன் ஆர்டர் செய்யுங்கள்', 'నమ్మకంగా ఆర్డర్ చేయండి', 'ನಂಬಿಕೆಯಿಂದ ಆರ್ಡರ್ ಮಾಡಿ', 'Order with confidence', 'വിശ്വാസത്തോടെ ഓർഡർ ചെയ്യൂ') + '</b>' +
           '<div class="pa-grid">' +
-            '<div class="pa-item"><span>💵</span><div><b>' + loc('COD உண்டு', 'COD ఉంది', 'COD ಇದೆ', 'COD available', 'COD ലഭ്യം') + '</b><small>' + loc('₹100 முன்பணம் மட்டும் · மீதி டெலிவரியில்', '₹100 అడ్వాన్స్ మాత్రమే · మిగిలినది డెలివరీలో', '₹100 ಮುಂಗಡ ಮಾತ್ರ · ಉಳಿದದ್ದು ಡೆಲಿವರಿಯಲ್ಲಿ', 'only ₹100 advance · rest at delivery', '₹100 അഡ്വാൻസ് മാത്രം · ബാക്കി ഡെലിവറിയിൽ') + '</small></div></div>' +
+            '<div class="pa-item"><span>💵</span><div><b>' + loc('COD உண்டு', 'COD ఉంది', 'COD ಇದೆ', 'COD available', 'COD ലഭ്യം') + '</b><small>' + loc('கூரியர் சார்ஜ் மட்டும் இப்போ · சேலை தொகை டெலிவரியில்', 'కొరియర్ ఛార్జ్ మాత్రమే ఇప్పుడు · చీర మొత్తం డెలివరీలో', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಈಗ · ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ', 'courier charge only now · saree amount at delivery', 'കൊറിയർ ചാർജ് മാത്രം ഇപ്പോൾ · സാരി തുക ഡെലിവറിയിൽ') + '</small></div></div>' +
             '<div class="pa-item"><span>↩️</span><div><b>' + loc('7 நாள் மாற்று', '7 రోజుల రీప్లేస్‌మెంట్', '7 ದಿನಗಳ ಬದಲಿ', '7-day replacement', '7 ദിവസത്തെ റീപ്ലേസ്മെന്റ്') + '</b><small>' + loc('சேதம் / தவறான சேலை — இலவசம்', 'పాడైన / తప్పు చీర — ఉచితం', 'ಹಾನಿ / ತಪ್ಪು ಸೀರೆ — ಉಚಿತ', 'damaged or wrong saree — free', 'കേടായ / തെറ്റായ സാരി — സൗജന്യം') + '</small></div></div>' +
             '<div class="pa-item"><span>📸</span><div><b>' + loc('உண்மையான போட்டோ', 'నిజమైన ఫోటోలు', 'ನಿಜವಾದ ಫೋಟೋ', 'Real photos', 'യഥാർത്ഥ ഫോട്ടോ') + '</b><small>' + loc('WhatsApp-ல் நேரடி வீடியோ கேட்கலாம்', 'WhatsApp లో లైవ్ వీడియో అడగండి', 'WhatsApp ನಲ್ಲಿ ಲೈವ್ ವೀಡಿಯೊ ಕೇಳಿ', 'ask for a live video on WhatsApp', 'WhatsApp-ൽ ലൈവ് വീഡിയോ ചോദിക്കൂ') + '</small></div></div>' +
             '<div class="pa-item"><span>📞</span><div><b>' + loc('நேரடி உதவி', 'ప్రత్యక్ష సహాయం', 'ನೇರ ಸಹಾಯ', 'Human help', 'നേരിട്ട് സഹായം') + '</b><small>+91 ' + CONFIG.waDisplay + ' · 9 AM – 9 PM</small></div></div>' +
@@ -3386,7 +3478,7 @@ function renderProduct(){
         '<details class="pd-acc pd-pay" open><summary>💳 ' + loc('பணம் செலுத்தும் வழிகள்', 'చెల్లింపు విధానాలు', 'ಪಾವತಿ ಆಯ್ಕೆಗಳು', 'PAYMENT OPTIONS', 'പേയ്മെന്റ് ഓപ്ഷനുകൾ') + '</summary>' +
           '<div class="pdl-rows"><span>💳 UPI</span><b>GPay • PhonePe • Paytm</b></div>' +
           '<div class="pdl-rows"><span>⚖️ ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + '</span><b>₹' + (CONFIG.shipPerKg || 30) + '/kg • ' + loc('சேலை ≈ 800g', 'చీర ≈ 800g', 'ಸೀರೆ ≈ 800g', 'saree ≈ 800g', 'സാരി ≈ 800g') + '</b></div>' +
-          '<div class="pdl-rows"><span>💵 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'Cash on Delivery', 'കാഷ് ഓൺ ഡെലിവറി') + '</span><b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் WhatsApp-ல்', 'అడ్వాన్స్ WhatsApp లో', 'ಅಡ್ವಾನ್ಸ್ WhatsApp ನಲ್ಲಿ', 'advance on WhatsApp', 'അഡ്വാൻസ് WhatsApp-ൽ') + '</b></div>' +
+          '<div class="pdl-rows"><span>💵 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'Cash on Delivery', 'കാഷ് ഓൺ ഡെലിവറി') + '</span><b>' + loc('கூரியர் சார்ஜ் மட்டும் முன்பணம்', 'కొరియర్ ఛార్జ్ మాత్రమే అడ్వాన్స్', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಅಡ್ವಾನ್ಸ್', 'courier charge only in advance', 'കൊറിയർ ചാർജ് മാത്രം അഡ്വാൻസ്') + '</b></div>' +
         '</details>' +
         /* ❓ compact FAQ — real policies only */
         '<div class="pd-faq"><b>❓ ' + loc('சிறிய கேள்விகள்', 'త్వరిత ప్రశ్నలు', 'ತ್ವರಿತ ಪ್ರಶ್ನೆಗಳು', 'QUICK QUESTIONS', 'ചെറിയ ചോദ്യങ്ങൾ') + '</b>' +
@@ -3502,7 +3594,7 @@ function renderProduct(){
       if (!/^\d{6}$/.test(pin)){ r.innerHTML = '<span style="color:#B00020">⚠️ Enter a valid 6-digit pincode</span>'; return; }
       const est = deliveryEstimate(pin, 'cod');
       const zone = ZONES[deliveryZone(pin)] || ZONES.tn;
-      r.innerHTML = '🚚 <b>' + esc(zone.name) + '</b> — Delivery by <b>' + (est.to ? est.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '') + '</b><br>🚚 Courier ₹' + (CONFIG.shipPerKg || 30) + '/kg (weight based) • 💵 COD ₹' + (CONFIG.codFee || 100) + ' advance on WhatsApp';
+      r.innerHTML = '🚚 <b>' + esc(zone.name) + '</b> — Delivery by <b>' + (est.to ? est.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '') + '</b><br>🚚 Courier ₹' + shipForWeight(800, pin) + ' (zone × qty) • 💵 COD — courier charge only';
     };
     pdlBtn.addEventListener('click', pdlGo);
     const pdlPinEl = document.getElementById('pdlPin');
@@ -3914,17 +4006,19 @@ function renderCartPage(){
       '<div class="row"><span>🚚 ' + loc('கொரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + ' (' + shipKg(cartWeightGrams()) + 'kg × ₹' + (CONFIG.shipPerKg || 30) + ')</span><b>' + (sh ? money(sh) : 'FREE 🎉') + '</b></div>' +
       '<div class="row total"><span>' + loc('மொத்தம் (ஆன்லைன்)', 'మొత్తం (ఆన్‌లైన్)', 'ಒಟ್ಟು (ಆನ್‌ಲೈನ್)', 'Total (Pay Online)', 'ആകെ (ഓൺലൈൻ)') + '</span><b>' + money(Math.max(0, t - disc - bundle - (co.data.usePoints ? (function(){ try{ return coTotals().pts; }catch(e){ return 0; } })() : 0)) + sh) + '</b></div>' +
 
-      '<div class="cod-note">💵 COD — ' + loc('charge', 'ఛార్జ్', 'ಶುಲ್ಕ', 'charge', 'ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b>, ' + loc('இப்போது செலுத்தி புக் செய்யுங்கள்', 'ఇప్పుడే చెల్లించి బుక్ చేయండి', 'ಈಗಲೇ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'pay now & book', 'ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + ' • ' + loc('மீதி சேலை தொகை டெலிவரியின் போது பணம்', 'మిగిలిన చీర మొత్తం డెలివరీ సమయంలో నగదు', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'balance saree amount cash at delivery', 'ബാക്കി സാരി തുക ഡെലിവറി സമയത്ത് പണം') + '</div>' +
+      '<div class="cod-note">🚚 ' + loc('COD — கூரியர் சார்ஜ்', 'COD — కొరియర్ ఛార్జ్', 'COD — ಕೊರಿಯರ್ ಶುಲ್ಕ', 'COD — courier charge', 'COD — കൊറിയർ ചാർജ്') + ' <b>' + money(t.shipping || 0) + '</b> ' + loc('மட்டும் இப்போது செலுத்தி புக் செய்யுங்கள்', 'మాత్రమే ఇప్పుడు చెల్లించి బుక్ చేయండి', 'ಮಾತ್ರ ಈಗ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'only, pay now & book', 'മാത്രം ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + ' • ' + loc('சேலை தொகை முழுவதும் டெலிவரியில் பணம்', 'చీర మొత్తం మొత్తం డెలివరీలో నగదు', 'ಸೀರೆ ಮೊತ್ತ ಪೂರ್ಣ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'full saree amount cash at delivery', 'സാരി തുക മുഴുവൻ ഡെലിവറിയിൽ പണം') + '</div>' +
 
       (n < (CONFIG.bundleCount || 2)
         ? '<div class="bundle-note">🎁 Buy ' + (CONFIG.bundleCount || 2) + ' sarees — get <b>₹' + (CONFIG.bundleOff || 0) + ' off</b> automatically!</div>'
         : '<div class="bundle-note" style="color:var(--green);border-color:#bfe6cf;background:#e9f7ef">🎉 Bundle deal applied! You saved <b>₹' + (CONFIG.bundleOff || 0) + '</b></div>') +
-      '<p class="small muted" style="margin-top:8px">🚚 Courier <b>₹' + (CONFIG.shipPerKg || 30) + '/kg</b> (' + loc('எடை அடிப்படையில்', 'బరువు ప్రకారం', 'ತೂಕದ ಆಧಾರದಲ್ಲಿ', 'weight based', 'തൂക്കം അനുസരിച്ച്') + ' • 1 ' + loc('சேலை ≈ 800g', 'చీర ≈ 800g', 'ಸೀರೆ ≈ 800g', 'saree ≈ 800g', 'സാരി ≈ 800g') + ') • 💵 COD — <b>₹' + (CONFIG.codFee || 100) + ' ' + loc('முன்பணம் WhatsApp-ல்', 'అడ్వాన్స్ WhatsApp లో', 'ಅಡ್ವಾನ್ಸ್ WhatsApp ನಲ್ಲಿ', 'advance on WhatsApp', 'അഡ്വാൻസ് WhatsApp-ൽ') + '</b> + ' + loc('சேலை தொகை முழுவதும் டெலிவரியில் பணம்', 'చీర మొత్తం డెలివరీలో నగదు', 'ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'full saree amount cash at delivery', 'സാരി തുക പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '.</p>' +
+      '<p class="small muted" style="margin-top:8px">🚚 ' + loc('கூரியர் — zone × சேலை எண்ணிக்கை (TN ₹30/₹60/₹90)', 'కొరియర్ — జోన్ × చీరల సంఖ్య (TN ₹30/₹60/₹90)', 'ಕೊರಿಯರ್ — ವಲಯ × ಸೀರೆ ಸಂಖ್ಯೆ (TN ₹30/₹60/₹90)', 'Courier — zone × saree count (TN ₹30/₹60/₹90)', 'കൊറിയർ — സോൺ × എണ്ണം (TN ₹30/₹60/₹90)') + ' • 💵 COD — <b>' + loc('கூரியர் சார்ஜ் மட்டும் இப்போ', 'కొరియర్ ఛార్జ్ మాత్రమే ఇప్పుడు', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಈಗ', 'courier charge only now', 'കൊറിയർ ചാർജ് മാത്രം ഇപ്പോൾ') + '</b> + ' + loc('சேலை தொகை முழுவதும் டெலிவரியில் பணம்', 'చీర మొత్తం డెలివరీలో నగదు', 'ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'full saree amount cash at delivery', 'സാരി തുക മുഴുവൻ ഡെലിവറിയിൽ പണം') + '.</p>' +
       '<div style="display:grid;gap:10px;margin-top:14px">' +
         '<a class="btn btn-maroon btn-xl" href="checkout.html">' + loc('செக்அவுட் செல்லுங்கள் →', 'చెక్అవుట్‌కు వెళ్ళండి →', 'ಚೆಕ್ಔಟ್‌ಗೆ ಹೋಗಿ →', 'Proceed to Checkout →', 'ചെക്ക്ഔട്ടിലേക്ക് പോകൂ →') + '</a>' +
         '<a class="btn btn-wa" href="' + waLink(waCartMsg()) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' + loc('அல்லது WhatsApp-ல் ஆர்டர் செய்யுங்கள்', 'లేదా WhatsApp లో ఆర్డర్ చేయండి', 'ಅಥವಾ WhatsApp ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ', 'Order on WhatsApp Instead', 'അല്ലെങ്കിൽ WhatsApp-ൽ ഓർഡർ ചെയ്യൂ') + '</a>' +
       '</div>' +
-    '</div>' + '</div>';
+    '</div>' +
+    trustSecHTML({}) +
+    '</div>';
 }
 
 /* ============================ CHECKOUT ============================ */
@@ -4004,11 +4098,14 @@ function coTotals(){
   const itemsTotal = coCartTotal();
   /* 💵 V30 PRICING (owner's model): saree ₹500 →
      • UPI / GPay / PhonePe  = ₹500 + ₹30 courier = ₹530 pay now
-     • COD                   = ₹100 courier booking paid NOW + ₹500 saree CASH at delivery
+     • COD                   = courier charge paid NOW + ₹500 saree CASH at delivery
      FLAT courier always — no free-shipping rule. */
   const codFee = 0;
-  /* ⚖️ V32: ONLINE = ₹30/kg weight slab • COD (WhatsApp orders) = ₹100 flat advance */
-  const shipping = co.data.payment === 'cod' ? (CONFIG.codFee || 100) : shipForWeight(orderWeightGrams(), co.data.pincode);   /* ✅ V41: zone × qty */
+  /* 🚚 V48 PRICING — ONE courier rate (zone × quantity) for BOTH payment modes.
+       UPI = sarees + courier, all paid now.
+       COD = sarees + courier → only the COURIER CHARGE is paid now to book,
+             the saree amount is cash at delivery. No extra COD fee. */
+  const shipping = shipForWeight(orderWeightGrams(), co.data.pincode);
   const discount = couponDiscount(co.data.coupon, itemsTotal);
   const bundle = co.buyOnly ? 0 : bundleDiscount();   /* single-product order → NO bundle offer */
   const pts = co.data.usePoints ? Math.min(pointsRedeemable(), itemsTotal - discount - bundle) : 0;
@@ -4044,7 +4141,7 @@ function coSummaryHTML(){
         '</span><b>' + money(Math.max(1, p.price - off) * i.qty) + '</b></div>';
     }).join('');
     const courier = pin
-      ? '📦 Courier: <b>' + esc(zn.name) + '</b> • ' + (co.data.payment === 'cod' ? 'COD — ₹' + (CONFIG.codFee || 100) + ' booking + courier' : (t.shipping ? 'Courier <b>₹' + (CONFIG.shipFee || 30) + '</b>' : 'Courier <b>FREE</b> 🎉')) + ' • ' + t.eta
+      ? '📦 Courier: <b>' + esc(zn.name) + '</b> • ' + (co.data.payment === 'cod' ? 'COD — courier <b>' + money(t.shipping || 0) + '</b> now, saree amount cash' : 'Courier <b>' + money(t.shipping || 0) + '</b>') + ' • ' + t.eta
       : '📦 Enter your <b>PIN code</b> to see courier + delivery date';
     /* 🎉 savings + 🚚 FREE-delivery nudge (grows the order value) */
     const saved = orderSavings(t);
@@ -4140,6 +4237,8 @@ function drawCo(){
       /* 💳 PAYMENT METHOD — premium cards: UPI primary (maroon) + COD secondary (green) */
       '<div class="pm-wrap">' +
       '<h3 class="pm-head">💳 ' + loc('பணம் செலுத்தும் முறை', 'చెల్లింపు విధానం', 'ಪಾವತಿ ವಿಧಾನ', 'PAYMENT METHOD', 'പേയ്മെന്റ് രീതി') + '</h3>' +
+        /* 🛡️ V48: verifiable trust + customer care, right where she decides */
+        trustSecHTML({ note: '' }) +
         '<div class="pm-card pm-upi">' +
           '<div class="pm-title">🔒 ' + loc('UPI PAYMENT — FAST &amp; SECURE', 'UPI చెల్లింపు — వేగంగా &amp; సురక్షితం', 'UPI ಪಾವತಿ — ವೇಗದ &amp; ಸುರಕ್ಷಿತ', 'UPI PAYMENT — FAST &amp; SECURE', 'UPI പേയ്മെന്റ് — വേഗതയുള്ള &amp; സുരക്ഷിതം') + '</div>' +
           '<div class="pm-amt">' + money(t.grand) + '</div>' +
@@ -4151,10 +4250,11 @@ function drawCo(){
         '</div>' +
         '<div class="pm-card pm-cod">' +
           '<div class="pm-title">📦 ' + loc('கேஷ் ஆன் டெலிவரி', 'క్యాష్ ఆన్ డెలివరీ', 'ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ', 'CASH ON DELIVERY', 'ക്യാഷ് ഓൺ ഡെലിവറി') + '</div>' +
-          '<div class="pm-codrows"><span>' + loc('COD charge', 'COD ఛార్జ్', 'COD ಶುಲ್ಕ', 'COD charge', 'COD ചാർജ്') + ' <b>₹' + (CONFIG.codFee || 100) + '</b> — ' + loc('WhatsApp-ல் முன்பணம்', 'WhatsApp లో అడ్వాన్స్', 'WhatsApp ನಲ್ಲಿ ಅಡ್ವಾನ್ಸ್', 'advance pay on WhatsApp', 'WhatsApp-ൽ അഡ്വാൻസ്') + '</span>' +
+          '<div class="pm-codrows"><span>🚚 ' + loc('கூரியர் சார்ஜ்', 'కొరియర్ ఛార్జ్', 'ಕೊರಿಯರ್ ಶುಲ್ಕ', 'Courier charge', 'കൊറിയർ ചാർജ്') + ' <b>' + money(t.shipping || 0) + '</b> ' + loc('இப்போ செலுத்துங்கள் — சேலை தொகை டெலிவரியில் cash', 'ఇప్పుడు చెల్లించండి — చీర మొత్తం డెలివరీలో నగదు', 'ಈಗ ಪಾವತಿಸಿ — ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'now — saree amount cash at delivery', 'ഇപ്പോൾ അടയ്ക്കൂ — സാരി തുക ഡെലിവറിയിൽ പണം') + '</span>' +
             '<span>' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Saree amount', 'സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - t.shipping)) + '</b> — ' + loc('முழுவதும் டெலிவரியில் பணம்', 'పూర్తిగా డెలివరీలో నగదు', 'ಪೂರ್ಣವಾಗಿ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'FULL cash at delivery', 'പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '</span></div>' +
-          '<button type="button" class="pm-cta-wa" data-codwa>📦 ORDER COD ON WHATSAPP →</button>' +
-          '<small class="pm-note">' + loc('WhatsApp-ல் ₹100 முன்பணம் செலுத்தி COD ஆர்டர் போடுங்கள் • சேலை தொகை முழுவதும் டெலிவரியின் போது பணம்', 'WhatsApp లో ₹100 అడ్వాన్స్ చెల్లించి COD ఆర్డర్ చేయండి • చీర మొత్తం డెలివరీలో నగదు', 'WhatsApp ನಲ್ಲಿ ₹100 ಅಡ್ವಾನ್ಸ್ ಪಾವತಿಸಿ COD ಆರ್ಡರ್ ಮಾಡಿ • ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'Pay ₹100 advance on WhatsApp to book your COD order • full saree amount in cash at delivery', 'WhatsApp-ൽ ₹100 അഡ്വാൻസ് അടച്ച് COD ഓർഡർ ചെയ്യൂ • സാരി തുക പൂർണ്ണമായി ഡെലിവറിയിൽ പണം') + '</small>' +
+          '<button type="button" class="pm-cta-cod" data-codpay>🔒 ' + loc('கூரியர் சார்ஜ்', 'కొరియర్ ఛార్జ్', 'ಕೊರಿಯರ್ ಶುಲ್ಕ', 'PAY COURIER', 'കൊറിയർ ചാർജ്') + ' ' + money(t.shipping || 0) + ' ' + loc('செலுத்தி COD புக் செய்யுங்கள்', 'చెల్లించి COD బుక్ చేయండి', 'ಪಾವತಿಸಿ COD ಬುಕ್ ಮಾಡಿ', '&amp; BOOK COD', 'അടച്ച് COD ബുക്ക് ചെയ്യൂ') + ' →</button>' +
+          '<button type="button" class="pm-cta-wa" data-codwa>💬 ' + loc('WhatsApp-ல் COD ஆர்டர்', 'WhatsApp లో COD ఆర్డర్', 'WhatsApp ನಲ್ಲಿ COD ಆರ್ಡರ್', 'COD order on WhatsApp', 'WhatsApp-ൽ COD ഓർഡർ') + ' →</button>' +
+          '<small class="pm-note">' + loc(loc('கூரியர் சார்ஜ் ₹' + money(t.shipping || 0) + ' மட்டும் இப்போ செலுத்தி COD ஆர்டர் புக் பண்ணுங்கள் • சேலை தொகை முழுவதும் டெலிவரியின் போது பணம்', 'కొరియర్ ఛార్జ్ ₹' + money(t.shipping || 0) + ' మాత్రమే ఇప్పుడు చెల్లించి COD ఆర్డర్ బుక్ చేయండి • చీర మొత్తం డెలివరీలో నగదు', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ₹' + money(t.shipping || 0) + ' ಮಾತ್ರ ಈಗ ಪಾವತಿಸಿ COD ಆರ್ಡರ್ ಬುಕ್ ಮಾಡಿ • ಸೀರೆ ಮೊತ್ತ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದು', 'pay the courier charge (₹' + money(t.shipping || 0) + ') now to book • full saree amount in cash at delivery', 'കൊറിയർ ചാർജ് ₹' + money(t.shipping || 0) + ' മാത്രം ഇപ്പോൾ അടച്ച് COD ഓർഡർ ബുക്ക് ചെയ്യൂ • സാരി തുക ഡെലിവറിയിൽ പണം')) + '</small>' +
         '</div>' +
         /* 🛡️ V34: verified payee + what happens next */
         /* 🛡️ V42: payee + next steps — rebuilt so it reads like a real receipt */
@@ -4206,7 +4306,7 @@ function drawCo(){
     /* reserve an order id now so the UPI payment note can carry it */
     if (!co.pendingId) co.pendingId = genOrderId();
     const note = 'Order ' + co.pendingId + ' SK Sarees';
-    const booking = CONFIG.codFee || 100;               /* COD: ₹100 booking paid now */
+    const booking = upiPay ? t.grand : (t.shipping || 0);   /* 🚚 V48 COD: courier charge only */
     app.innerHTML = '<div class="wrap page"><h1>🔒 ' + loc('பாதுகாப்பான செக்அவுட்', 'సురక్షిత చెక్అవుట్', 'ಸುರಕ್ಷಿತ ಚೆಕ್ಔಟ್', 'Secure Checkout', 'സുരക്ഷിത ചെക്ക്ഔട്ട്') + '</h1>' + steps +
       '<div class="form-card rvw-card"><h3>🧾 ' + loc('உங்கள் ஆர்டரை சரிபார்க்கவும்', 'మీ ఆర్డర్ సరిచూడండి', 'ನಿಮ್ಮ ಆರ್ಡರ್ ಪರಿಶೀಲಿಸಿ', 'Review Your Order', 'നിങ്ങളുടെ ഓർഡർ പരിശോധിക്കൂ') + '</h3>' + itemLines +
         '<div class="row"><span>🧺 ' + loc('பொருட்கள் மொத்தம்', 'వస్తువుల మొత్తం', 'ವಸ್ತುಗಳ ಒಟ್ಟು', 'Items total', 'ഇനങ്ങளുടെ തുക') + '</span><b>' + money(t.itemsTotal) + '</b></div>' +
@@ -4214,12 +4314,11 @@ function drawCo(){
         (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b class="rvw-save">−' + money(t.bundle) + '</b></div>' : '') +
         (t.online > 0 ? '<div class="row"><span>💳 Online payment ' + (CONFIG.onlineDiscount||1) + '% off</span><b class="rvw-save">−' + money(t.online) + '</b></div>' : '') +
         '<div class="row"><span>🚚 Courier</span><b class="' + (t.shipping ? '' : 'rvw-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
-        (t.codFee ? '<div class="row"><span>💵 COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
         '<div class="rvw-meta">' +
           '<span>👤 ' + esc(d.name) + ' • ' + esc(d.phone) + '</span>' +
           '<span>📍 ' + esc(d.address) + ' — ' + esc(d.pincode) + '</span>' +
           '<span>⏱ ' + t.eta + '</span>' +
-          '<span>' + (upiPay ? '📱 UPI — Pay Online' : '💵 COD — ₹' + (CONFIG.codFee || 100) + ' booking paid') + '</span>' +
+          '<span>' + (upiPay ? '📱 UPI — Pay Online' : '🚚 COD — courier charge paid') + '</span>' +
         '</div>' +
         (orderSavings(t) > 0 ? '<p class="co-saved" style="margin:0">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + orderSavings(t).toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
         '<div class="rvw-total"><span>' + (upiPay ? 'Total payable' : 'Total — ₹' + booking + ' now + ' + money(Math.max(0, t.grand - booking)) + ' at delivery') + '</span><b>' + money(t.grand) + '</b></div>' +
@@ -4265,8 +4364,8 @@ function drawCo(){
           '<button type="button" class="pg-paid" data-place="upi">✅ ' + loc("I've Paid — Confirm Order", "నేను చెల్లించాను — ఆర్డర్ నిర్ధారించండి", "ನಾನು ಪಾವತಿಸಿದೆನೆ — ಆರ್ಡರ್ ದೃಢೀಕರಿಸಿ", "I've Paid — Confirm Order", 'ഞാൻ പേയ്ച്ചു — ഓർഡർ സ്ഥിരീകരിക്കൂ') + '</button>' +
         '</div>'
         : '<div class="form-card"><h3>💵 Cash on Delivery</h3>' +
-          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> ' + loc('COD charge — இப்போது செலுத்துங்கள் (UPI)', 'COD ఛార్జ్ — ఇప్పుడే చెల్లించండి (UPI)', 'COD ಶುಲ್ಕ — ಈಗಲೇ ಪಾವತಿಸಿ (UPI)', 'COD charge — pay now (UPI)', 'COD ചാർജ് — ഇപ്പോൾ തന്നെ അടയ്ക്കൂ (UPI)') + '</span></div>' +
-          '<div class="cod-note">💵 COD — charge <b>₹' + booking + '</b>, pay now &amp; book.<br>' + loc('மீதி சேலை தொகை', 'మిగిలిన చీర మొత్తం', 'ಉಳಿದ ಸೀರೆ ಮೊತ್ತ', 'Balance saree amount', 'ബാക്കി സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - booking)) + '</b> — ' + loc('டெலிவரியின் போது பணம்', 'డెలివరీ సమయంలో నగదు', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದು', 'cash at delivery', 'ഡെലിവറി സമയത്ത് പണം') + '.</div>' +
+          '<div style="text-align:center"><b style="font-size:1.9rem;color:var(--maroon)">' + money(booking) + '</b><span class="muted small"> ' + loc('கூரியர் சார்ஜ் — இப்போது செலுத்தி புக் செய்யுங்கள்', 'కొరియర్ ఛార్జ్ — ఇప్పుడే చెల్లించి బుక్ చేయండి', 'ಕೊರಿಯರ್ ಶುಲ್ಕ — ಈಗಲೇ ಪಾವತಿಸಿ ಬುಕ್ ಮಾಡಿ', 'Courier charge — pay now &amp; book', 'കൊറിയർ ചാർജ് — ഇപ്പോൾ അടച്ച് ബുക്ക് ചെയ്യൂ') + '</span></div>' +
+          '<div class="cod-note">🚚 ' + loc('கூரியர் சார்ஜ்', 'కొరియర్ ఛార్జ్', 'ಕೊರಿಯರ್ ಶುಲ್ಕ', 'Courier charge', 'കൊറിയർ ചാർജ്') + ' <b>' + money(booking) + '</b> ' + loc('மட்டும் இப்போ செலுத்துங்கள். சேலை தொகை', 'మాత్రమే ఇప్పుడు చెల్లించండి. చీర మొత్తం', 'ಮಾತ್ರ ಈಗ ಪಾವತಿಸಿ. ಸೀರೆ ಮೊತ್ತ', 'only, pay now. Saree amount', 'മാത്രം ഇപ്പോൾ അടയ്ക്കൂ. സാരി തുക') + ' <b>' + money(Math.max(0, t.grand - booking)) + '</b> ' + loc('முழுவதும் டெலிவரியில் பணமா கொடுங்கள்.', 'మొత్తం డెలివరీలో నగదుగా ఇవ్వండి.', 'ಪೂರ್ಣ ಡೆಲಿವರಿಯಲ್ಲಿ ನಗದಾಗಿ ನೀಡಿ.', 'in FULL cash at delivery.', 'മുഴുവൻ ഡെലിവറിയിൽ പണമായി നൽകൂ.') + '</div>' +
           '<div class="pg-qrwrap" style="margin-top:10px">' +
             '<div class="pg-qrblur" id="pgQrBlur">' +
               '<div class="pg-qrfake" aria-hidden="true"></div>' +
@@ -4282,13 +4381,13 @@ function drawCo(){
           '</div>' +
           '<p class="pg-apptip">' + loc('GPay / PhonePe திறக்கலையா? "OPEN ANY UPI APP" அழுத்தி UPI ID-ஐ காப்பி செய்யுங்கள் — அல்லது QR ஸ்கேன் செய்யுங்கள்.', 'GPay / PhonePe తెరవలేదా? "OPEN ANY UPI APP" నొక్కి UPI ID కాపీ చేయండి — లేదా QR స్కాన్ చేయండి.', 'GPay / PhonePe ತೆರೆಯಲಿಲ್ಲವೇ? "OPEN ANY UPI APP" ಒತ್ತಿ UPI ID ಕಾಪಿ ಮಾಡಿ — ಅಥವಾ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.', 'GPay / PhonePe not opening? Tap "OPEN ANY UPI APP" and copy the UPI ID — or scan the QR code.', 'GPay / PhonePe തുറന്നില്ലേ? "OPEN ANY UPI APP" അമർത്തി UPI ID കോപ്പി ചെയ്യൂ — അല്ലെങ്കിൽ QR സ്കാൻ ചെയ്യൂ.') + '</p>' +
 
-          '<div class="verify-note" style="margin-top:8px">✅ After paying the ₹' + booking + ' COD charge, tap below to place your order.</div>' +
+          '<div class="verify-note" style="margin-top:8px">✅ ' + loc('கூரியர் சார்ஜ் ₹' + booking + ' செலுத்தியதும் கீழே அழுத்துங்கள் — ஆர்டர் புக் ஆகும்.', 'కొరియర్ ఛార్జ్ ₹' + booking + ' చెల్లించిన తర్వాత కింద నొక్కండి — ఆర్డర్ బుక్ అవుతుంది.', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ₹' + booking + ' ಪಾವತಿಸಿದ ನಂತರ ಕೆಳಗೆ ಒತ್ತಿ — ಆರ್ಡರ್ ಬುಕ್ ಆಗುತ್ತದೆ.', 'After paying the ₹' + booking + ' courier charge, tap below to place your order.', 'കൊറിയർ ചാർജ് ₹' + booking + ' അടച്ചശേഷം താഴെ അമർത്തൂ — ഓർഡർ ബുക്ക് ആകും.') + '</div>' +
           '<button type="button" class="btn btn-maroon btn-xl" data-place="cod">✅ I\'ve Paid the COD Charge — Place Order →</button></div>') +
       '<button type="button" class="btn btn-ghost" data-back>← ' + loc('விவரங்களை மாற்ற திரும்பி செல்', 'వివరాలు మార్చడానికి వెనకకు', 'ವಿವರಗಳನ್ನು ಬದಲಾಯಿಸಲು ಹಿಂತಿರುಗಿ', 'Back to edit details', 'വിവരങ്ങൾ മാറ്റാൻ മടങ്ങൂ') + '</button>' +
     '</div>';
     /* ✅ V41: QR is drawn only when the customer taps "Show QR code"
-       COD page → ₹100 booking • UPI page → full payable amount */
-    window.__pgAmt = upiPay ? t.grand : (CONFIG.codFee || 100);
+       COD page → courier charge • UPI page → full payable amount */
+    window.__pgAmt = upiPay ? t.grand : (t.shipping || 0);   /* 🚚 COD QR = courier charge */
   }
   /* (2026-09-28) liked/viewed saree strips REMOVED from checkout — clean,
      distraction-free payment page */
@@ -4311,7 +4410,7 @@ function drawUpiQR(){
   const note = 'Order ' + (co.pendingId || genOrderId()) + ' SK Sarees';
   try{
     const qr = qrLib(0, 'M');
-    qr.addData(upiLink((window.__pgAmt != null ? window.__pgAmt : t.grand), note));   /* 💵 V26: COD page = ₹100, UPI page = grand */
+    qr.addData(upiLink((window.__pgAmt != null ? window.__pgAmt : t.grand), note));   /* 🚚 V48: COD page = courier charge, UPI page = grand */
     qr.make();
     box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   }catch(e){ box.innerHTML = '<p class="small muted">Use the UPI app buttons below, “Pay Now” or the UPI ID.</p>'; }
@@ -4425,11 +4524,11 @@ function doPlaceOrder(payment){
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
       margin: 0,
       /* UPI: customer tapped "I've Paid" → paidConfirmed=true, awaiting admin
-         confirmation; COD: ₹100 booking paid now */
+         confirmation; COD: courier charge paid now */
       status: payment === 'upi' ? 'pending' : 'placed',
       attr: getAttribution(),                    /* ✅ V37: which ad brought her */
       paidConfirmed: payment === 'upi',          /* ✅ customer says they paid */
-      bookingPaid: payment === 'cod' ? CONFIG.codFee : (payment === 'upi' ? t.grand : 0),
+      bookingPaid: payment === 'cod' ? (t.shipping || 0) : (payment === 'upi' ? t.grand : 0),
       device: deviceId(),
     };
     order.margin = myReseller ? resellerMarginFor(order) : 0;   /* 💰 5% of grand */
@@ -4477,7 +4576,7 @@ function doWaOrder(){
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim(), city: '', state: '' },
       payment: 'cod', totals: t, status: 'placed',
       attr: getAttribution(),                     /* ✅ V37: which ad brought her */
-      bookingPaid: CONFIG.codFee || 100,          /* ₹100 booking paid now */
+      bookingPaid: t.shipping || 0,               /* 🚚 V48 courier charge paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
       margin: 0,
       device: deviceId(),
@@ -4509,7 +4608,7 @@ function doWaOrder(){
       '\n👤 Name: ' + order.customer.name + '\n📱 Phone: ' + order.customer.phone +
       '\n🏠 Address: ' + order.customer.address + ', ' + order.customer.pincode + '\n\nItems:\n' +
       order.items.map(i => '• ' + i.name + ' ×' + i.qty + ' — ' + money(i.price * i.qty)).join('\n') +
-      '\n\n💰 COD — courier charge ₹' + (CONFIG.codFee || 100) + ' advance. I will pay ₹' + (CONFIG.codFee || 100) + ' now on WhatsApp to book.\nSaree amount ' + money(Math.max(0, t.grand - (CONFIG.codFee || 100))) + ' (FULL) — cash at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
+      '\n\n🚚 COD — courier charge ₹' + (t.shipping || 0) + ' only, I will pay it now to book.\nSaree amount ' + money(Math.max(0, t.grand - (t.shipping || 0))) + ' (FULL) — cash at delivery.\n\nTotal: ' + money(t.grand) + '\nETA: ' + t.eta + '\nPlease confirm my order. Thank you!';
     try{ window.open(waLink(msg), '_blank', 'noopener'); }catch(e){}
     if (couponUsed) useCoupon(couponUsed);   /* count coupon usage (before co reset) */
     try{ earnPoints(order); }catch(e){}   /* ⭐ loyalty points */
@@ -4525,7 +4624,7 @@ function renderOrderComplete(o, viaWa){
   const app = document.getElementById('app'); if (!app) return;
   const t = o.totals || { itemsTotal: 0, shipping: 0, codFee: 0, discount: 0, grand: 0, eta: '' };
   const isUpi = (o.payment || '') === 'upi' || String(o.payment || '').indexOf('upi') === 0;
-  const booking = CONFIG.codFee || 100;
+  const booking = isUpi ? t.grand : (t.shipping || 0);          /* 🚚 V48 COD = courier charge */
   const paidNow = isUpi ? t.grand : booking;                    /* truthful: paid at this moment */
   const later = isUpi ? 0 : Math.max(0, t.grand - booking);     /* COD balance — cash at delivery */
   try{ const old = document.querySelector('.os-ov'); if (old) old.remove(); }catch(e){}
@@ -4548,7 +4647,7 @@ function renderOrderComplete(o, viaWa){
       '</div>' +
       (isUpi
         ? '<p class="os-note">⏳ Payment verification pending — we confirm on WhatsApp once received.</p>'
-        : '<p class="os-note">💵 COD charge ₹' + booking + ' paid • saree amount ' + money(later) + ' — FULL cash at delivery.</p>') +
+        : '<p class="os-note">🚚 Courier charge ₹' + booking + ' paid • saree amount ' + money(later) + ' — FULL cash at delivery.</p>') +
       '<div class="os-next"><b>' + loc('அடுத்து என்ன?', 'తర్వాత ఏమి?', 'ಮುಂದೆ ಏನು?', 'What next?', 'അടുത്തത് എന്ത്?') + '</b>' +
         '<span>1️⃣ ' + loc('ஆர்டர் பெறப்பட்டது', 'ఆర్డర్ అందింది', 'ಆರ್ಡರ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ', 'Order received', 'ഓർഡർ ലഭിച്ചു') + '</span>' +
         '<span>2️⃣ ' + loc('WhatsApp-ல் உறுதி', 'WhatsApp లో నిర్ధారణ', 'WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಣ', 'WhatsApp confirmation', 'WhatsApp സ്ഥിരീകരണം') + '</span>' +
@@ -4865,7 +4964,7 @@ function showDetail(o){
     '<div style="margin-top:6px">' +
       '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">Items total</span><b>' + money(t.itemsTotal) + '</b></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-      (t.codFee ? '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">COD booking charge</span><b>+' + money(t.codFee) + '</b></div>' : '') +
+
       '<div style="display:flex;justify-content:space-between;font-weight:800;font-size:.95rem;padding:6px 0;border-top:2px dashed var(--line);margin-top:4px"><span>Total</span><b style="color:var(--maroon)">' + money(t.grand) + '</b></div>' +
     '</div>' +
     '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
@@ -5384,7 +5483,10 @@ document.addEventListener('click', function(e){
   if (eab){ e.preventDefault(); co.editAddr = true; try{ drawCo(); }catch(e2){} return; }
   const pon = e.target.closest('[data-payonline]');
   if (pon){ e.preventDefault(); co.data.payment = 'upi'; if (coValid()){ createPendingPaymentOrder(); co.step = 2; drawCo(); } return; }
-  /* 💵 V26 — direct COD: ₹100 booking payment page (UPI), balance cash at delivery */
+  /* 🚚 V48: COD → pay ONLY the courier charge online to book (saree amount stays cash) */
+  const cpay2 = e.target.closest('[data-codpay]');
+  if (cpay2){ e.preventDefault(); co.data.payment = 'cod'; if (coValid()){ createPendingPaymentOrder(); co.step = 2; drawCo(); } return; }
+  /* 🚚 V48 — COD: pay the COURIER CHARGE online to book, saree amount cash at delivery */
   /* COD - Order on WhatsApp button (checkout) */
   const codwa = e.target.closest('[data-codwa]');
   if (codwa){ e.preventDefault(); co.data.payment = 'cod'; doWaOrder(); return; }
@@ -5612,7 +5714,7 @@ document.addEventListener('click', function(e){
     const delBy = eUpi.to ? eUpi.to.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) : '';
     if (r) r.innerHTML = '📍 <b>' + esc(zone.name) + '</b><br>' +
       '📦 <b>Delivery by ' + esc(delBy) + '</b> (UPI) • ' + esc(eCod.to ? eCod.to.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '') + ' (COD)<br>' +
-      '🚚 Courier: <b>₹' + (CONFIG.shipPerKg || 30) + '/kg</b> (weight based) • 💵 COD: <b>₹' + (CONFIG.codFee || 100) + '</b> advance on WhatsApp<br>' +
+      '🚚 Courier: <b>₹' + shipForWeight(800, pin) + '</b> ' + loc('முதல் சேலைக்கு (zone × சேலை எண்ணிக்கை)', 'మొదటి చీరకు (జోన్ × చీరల సంఖ్య)', 'ಮೊದಲ ಸೀರೆಗೆ (ವಲಯ × ಸೀರೆ ಸಂಖ್ಯೆ)', 'for the first saree (zone × qty)', 'ആദ്യ സാരിക്ക് (സോൺ × എണ്ണം)') + ' • 💵 COD: <b>' + loc('கூரியர் சார்ஜ் மட்டும்', 'కొరియర్ ఛార్జ్ మాత్రమే', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ', 'courier charge only', 'കൊറിയർ ചാർജ് മാത്രം') + '</b><br>' +
       '✅ Fulfilled by <b>SK SAREES COLLECTION</b>';
     return;
   }
@@ -5781,6 +5883,13 @@ document.addEventListener('click', function(e){
     return;
   }
 
+  /* 💚 V48: viral kit tiles */
+  const vks = e.target.closest && e.target.closest('[data-vkstatus]');
+  if (vks){ e.preventDefault(); viralStatus(vks.dataset.vkstatus); return; }
+  const vkf = e.target.closest && e.target.closest('[data-vkshare]');
+  if (vkf){ e.preventDefault(); viralShare(vkf.dataset.vkshare); return; }
+  const vkj = e.target.closest && e.target.closest('[data-vkjoin]');
+  if (vkj){ e.preventDefault(); openWaGroupPopup(); return; }
   /* 💰 V45: share panel → reseller / commission box */
   const ej = e.target.closest && e.target.closest('[data-earnjoin]');
   if (ej){ e.preventDefault(); try{ reelEarnModal(); }catch(err2){} return; }
@@ -5798,6 +5907,93 @@ document.addEventListener('click', function(e){
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
+   V47 — AUTOMATIC SUCCESS / FAILED ON THE PAY PAGE
+   A UPI app never tells a website "paid" (no gateway), so the honest way is:
+     • the customer taps "I've Paid"      → ⏳ Verifying
+     • the shop taps "✅ Payment received" → the page flips to ✅ SUCCESS
+     • the shop taps "❌ Not received"     → the page shows ❌ FAILED + Try again
+   While the pay page is open it re-checks the order every 10 s (one small
+   Firestore doc read, max 30 checks ≈ 5 min, stops itself when done).
+   ══════════════════════════════════════════════════════════════════════════ */
+function payIsRejected(o){
+  try{
+    if (!o) return false;
+    if (o.paymentRejected === true) return true;
+    return (String(o.status || '') === 'cancelled' && o.payment === 'upi' && !o.paidConfirmed);
+  }catch(e){ return false; }
+}
+function payStateKey(o){
+  try{
+    return [String((o && o.status) || ''), !!(o && o.paidConfirmed), !!(o && o.paidClaimed), !!(o && o.paymentRejected)].join('|');
+  }catch(e){ return ''; }
+}
+function payPollStop(){ try{ if (__payPollTimer){ clearTimeout(__payPollTimer); __payPollTimer = null; } }catch(e){} }
+function payPollStart(){
+  payPollStop();
+  __payPollN = 0;
+  __payNulls = 0;
+  payPollTick();
+}
+function payPollTick(){
+  payPollStop();
+  try{
+    if (!__payOrder || !__payOrder.id) return;
+    if (payIsPaid(__payOrder) || payIsRejected(__payOrder)) return;       /* done — stop */
+    if (typeof FS === 'undefined' || !FS.enabled()) return;               /* offline page — manual refresh only */
+    if (__payPollN >= __payPollMax) return;                               /* ~5 min then stop (quota) */
+    if (document.hidden){ __payPollTimer = setTimeout(payPollTick, __payPollMs); return; }
+    __payPollN++;
+    paySyncLive(__payOrder.id).then(live => {
+      try{
+        if (!live){
+          __payNulls = (__payNulls || 0) + 1;
+          if (__payNulls >= 3) return;      /* cloud not answering → stop (quota + battery) */
+        } else {
+          __payNulls = 0;
+          const before = payStateKey(__payOrder);
+          payMerge(live);
+          if (payStateKey(__payOrder) !== before){        /* owner confirmed / rejected */
+            try{ payRememberLocal(__payOrder); }catch(e){}
+            payPaint();                                   /* ✅ SUCCESS or ❌ FAILED appears here */
+          } else {
+            const lab = document.getElementById('payPollLbl');
+            if (lab) lab.textContent = loc('சரிபார்த்துக்கிட்டே இருக்கோம்…', 'తనిఖీ చేస్తున్నాము…', 'ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ…', 'Checking…', 'പരിശോധിക്കുന്നു…');
+          }
+        }
+      }catch(e){}
+      try{
+        if (payIsPaid(__payOrder) || payIsRejected(__payOrder)){ payPollStop(); return; }   /* finished — stop */
+        __payPollTimer = setTimeout(payPollTick, __payPollMs);
+      }catch(e){}
+    });
+  }catch(e){}
+}
+/* manual "check now" (also used when the tab comes back to the front) */
+function payCheckNow(){
+  try{
+    if (!__payOrder || !__payOrder.id) return;
+    if (typeof FS === 'undefined' || !FS.enabled()){
+      toast(loc('இந்த லிங்க் offline-ல திறந்திருக்கு — WhatsApp-ல confirm பண்ணுவோம்', 'ఆఫ్లైన్ లింక్ — WhatsApp లో నిర్ధారిస్తాము', 'ಆಫ್ಲೈನ್ ಲಿಂಕ್ — WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತೇವೆ', 'This link is offline — we will confirm on WhatsApp', 'ഓഫ്ലൈൻ ലിങ്ക് — WhatsApp-ൽ സ്ഥിരീകരിക്കും'));
+      return;
+    }
+    const lab = document.getElementById('payPollLbl');
+    if (lab) lab.textContent = loc('சரிபார்த்துக்கிட்டே இருக்கோம்…', 'తనిఖీ చేస్తున్నాము…', 'ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ…', 'Checking…', 'പരിശോധിക്കുന്നു…');
+    paySyncLive(__payOrder.id).then(live => {
+      if (live){
+        payMerge(live);
+        try{ payRememberLocal(__payOrder); }catch(e){}
+        payPaint();
+        if (!payIsPaid(__payOrder) && !payIsRejected(__payOrder)){
+          toast(loc('⏳ இன்னும் confirm ஆகல — கொஞ்சம் நேரம் கழித்து பாருங்கள்', '⏳ ఇంకా నిర్ధారణ కాలేదు — కొంతసేపటి తర్వాత చూడండి', '⏳ ಇನ್ನೂ ದೃಢೀಕರಣವಾಗಿಲ್ಲ — ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ನೋಡಿ', '⏳ Not confirmed yet — please check again in a little while', '⏳ ഇനിയും സ്ഥിരീകരിച്ചിട്ടില്ല — കുറച്ചു കഴിഞ്ഞ് നോക്കൂ'));
+        }
+      } else {
+        payPollTick();
+      }
+    });
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    V46 — PAY PAGE (pay.html?o=ORDER&d=SNAPSHOT)
    The shop creates the order manually (WhatsApp order) in Admin → 📝 Manual
    Order and sends this link. The customer sees the exact items, courier and
@@ -5805,6 +6001,7 @@ document.addEventListener('click', function(e){
    which marks the order and messages the shop on WhatsApp for verification.
    ══════════════════════════════════════════════════════════════════════════ */
 var __payOrder = null;          /* the order currently on screen */
+var __payPollTimer = null, __payPollN = 0, __payPollMax = 30, __payPollMs = 10000, __payForce = false;
 var __payLive = false;          /* true once Firestore answered */
 var __payDone = false;          /* customer already tapped "I've paid" */
 
@@ -5865,6 +6062,7 @@ function renderPayPage(){
   }
   __payOrder = o; window.__payOrder = o;
   payPaint();
+  payPollStart();                       /* 🔄 auto success / failed while the page stays open */
   /* live status — one read, silent, never blocks */
   paySyncLive(o.id).then(live => {
     if (!live) return;
@@ -5872,6 +6070,7 @@ function renderPayPage(){
     payMerge(live);
     try{ payRememberLocal(__payOrder); }catch(e){}
     payPaint();
+    payPollTick();
   });
 }
 /* keep the order on the customer's own device so "My Orders" shows it too */
@@ -5898,7 +6097,8 @@ function payPaint(){
   const items = (o.items || []);
   const qty = items.reduce((s, i) => s + (+i.qty || 1), 0);
   const paid = payIsPaid(o);
-  const claimed = payIsClaimed(o);
+  const rejected = !paid && payIsRejected(o) && !__payForce;
+  const claimed = !rejected && !__payForce && payIsClaimed(o);
   const isCod = o.payment === 'cod';
   const due = PayLink.amountDue(o);
   const grand = PayLink.grand(o);
@@ -5935,28 +6135,43 @@ function payPaint(){
       '<div class="py-rows">' +
         '<div><span>' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Sarees', 'സാരി തുക') + '</span><b>' + money(+t.itemsTotal || 0) + '</b></div>' +
         ((+t.discount || 0) > 0 ? '<div class="py-save"><span>🎁 ' + loc('தள்ளுபடி', 'డిస్కౌంట్', 'ರಿಯಾಯಿತಿ', 'Discount', 'ഡിസ്കൗണ്ട്') + '</span><b>−' + money(t.discount) + '</b></div>' : '') +
-        '<div><span>🚚 ' + (isCod ? loc('COD charge (கூரியர் உட்பட)', 'COD ఛార్జ్ (కొరియర్‌తో)', 'COD ಶುಲ್ಕ (ಕೊರಿಯರ್ ಸೇರಿ)', 'COD charge (incl. courier)', 'COD ചാർജ് (കൊറിയർ ഉൾപ്പെടെ)') : loc('கூரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ')) + '</span><b>' + money(+t.shipping || 0) + '</b></div>' +
+        '<div><span>🚚 ' + loc('கூரியர்', 'కొరియర్', 'ಕೊರಿಯರ್', 'Courier', 'കൊറിയർ') + (isCod ? ' ' + loc('(இப்போ செலுத்துவது)', '(ఇప్పుడు చెల్లించేది)', '(ಈಗ ಪಾವತಿಸುವುದು)', '(pay now)', '(ഇപ്പോൾ അടയ്ക്കുന്നത്)') : '') + '</span><b>' + money(+t.shipping || 0) + '</b></div>' +
         ((+t.codFee || 0) > 0 && (+t.codFee !== +t.shipping) ? '<div><span>💵 COD booking</span><b>' + money(t.codFee) + '</b></div>' : '') +
       '</div>' +
       '<div class="py-grand"><span>' + loc('மொத்தம்', 'మొత్తం', 'ಒಟ್ಟು', 'Order total', 'ആകെ') + '</span><b>' + money(grand) + '</b></div>' +
     '</div>' +
 
     (paid
-      ? '<div class="py-card py-paid">' +
-          '<div class="py-paid-ic">✅</div>' +
-          '<b>' + loc('பணம் கிடைத்தது — ஆர்டர் confirm ஆகிவிட்டது', 'చెల్లింపు అందింది — ఆర్డర్ నిర్ధారించబడింది', 'ಪಾವತಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ — ಆರ್ಡರ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ', 'Payment received — your order is confirmed', 'പേയ്മെന്റ് ലഭിച്ചു — ഓർഡർ സ്ഥിരീകരിച്ചു') + '</b>' +
+      ? '<div class="py-card py-paid py-big">' +
+          '<div class="py-tick" aria-hidden="true"><svg viewBox="0 0 52 52" width="64" height="64"><circle cx="26" cy="26" r="24" fill="none" stroke="#0e7d46" stroke-width="3"/><path d="M14 27l8 8 16-17" fill="none" stroke="#0e7d46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+          '<b class="py-big-t">' + loc('பணம் வெற்றிகரமா வந்துச்சு ✅', 'చెల్లింపు విజయవంతం ✅', 'ಪಾವತಿ ಯಶಸ್ವಿ ✅', 'Payment successful ✅', 'പേയ്മെന്റ് വിജയിച്ചു ✅') + '</b>' +
+          '<p class="py-amt2">' + money(due) + ' ' + loc('SK Sarees-க்கு கிடைத்தது', 'SK Sarees కి అందింది', 'SK Sarees ಗೆ ಸ್ವೀಕರಿಸಲಾಗಿದೆ', 'received by SK Sarees', 'SK Sarees-ന് ലഭിച്ചു') + '</p>' +
+          '<div class="py-stamp">✅ ' + loc('ஆர்டர் confirm ஆகிவிட்டது', 'ఆర్డర్ నిర్ధారించబడింది', 'ಆರ್ಡರ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ', 'Order confirmed', 'ഓർഡർ സ്ഥിരീകരിച്ചു') + ' · #' + esc(o.id) + '</div>' +
           '<p class="py-muted">' + loc('டிஸ்பேட்ச் ஆனதும் tracking விவரம் WhatsApp-ல் அனுப்புவோம்.', 'డిస్పాచ్ అయిన తర్వాత ట్రాకింగ్ WhatsApp లో పంపుతాము.', 'ಡಿಸ್ಪಾಚ್ ಆದ ನಂತರ ಟ್ರ್ಯಾಕಿಂಗ್ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸುತ್ತೇವೆ.', 'We will send the tracking details on WhatsApp after dispatch.', 'ഡിസ്പാച്ച് ആയശേഷം ട്രാക്കിംഗ് WhatsApp-ൽ അയയ്ക്കും.') + '</p>' +
+          '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:10px" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் பேசுங்கள்', 'WhatsApp లో మాట్లాడండి', 'WhatsApp ನಲ್ಲಿ ಮಾತನಾಡಿ', 'Talk to us on WhatsApp', 'WhatsApp-ൽ സംസാരിക്കൂ') + '</a>' +
         '</div>'
-      : claimed
+      : rejected
+        ? '<div class="py-card py-fail py-big">' +
+            '<div class="py-fail-ic">❌</div>' +
+            '<b class="py-big-t">' + loc('பணம் எங்களுக்கு வரல', 'చెల్లింపు మాకు చేరలేదు', 'ಪಾವತಿ ನಮಗೆ ತಲುಪಿಲ್ಲ', 'Payment not received', 'പേയ്മെന്റ് ഞങ്ങൾക്ക് ലഭിച്ചില്ല') + '</b>' +
+            '<p class="py-muted">' + loc('SK Sarees-க்கு இந்த தொகை இன்னும் வரல. பணம் உங்க account-ல இருந்து போயிட்டா? கவலைப்படாதீங்க — WhatsApp-ல சொல்லுங்க, உடனே பாத்து தர்றோம்.', 'SK Sarees కి ఈ మొత్తం ఇంకా రాలేదు. మీ ఖాతా నుండి డబ్బు పోయిందా? కంగారు పడకండి — WhatsApp లో చెప్పండి, వెంటనే చూస్తాము.', 'SK Sarees ಗೆ ಈ ಮೊತ್ತ ಇನ್ನೂ ಬಂದಿಲ್ಲ. ನಿಮ್ಮ ಖಾತೆಯಿಂದ ಹಣ ಹೋಗಿದೆಯಾ? ಚಿಂತಿಸಬೇಡಿ — WhatsApp ನಲ್ಲಿ ಹೇಳಿ, ತಕ್ಷಣ ನೋಡುತ್ತೇವೆ.', 'This amount has not reached SK Sarees yet. If money left your account, don\'t worry — tell us on WhatsApp and we will check right away.', 'SK Sarees-ന് ഈ തുക ഇനിയും ലഭിച്ചിട്ടില്ല. പണം നിങ്ങളുടെ അക്കൗണ്ടിൽ നിന്ന് പോയിട്ടുണ്ടെങ്കിൽ വിഷമിക്കേണ്ട — WhatsApp-ൽ പറയൂ, ഉടൻ നോക്കാം.') + '</p>' +
+            '<button type="button" class="py-retry" id="payRetry">🔄 ' + loc('மறுபடியும் pay பண்ணு', 'మళ్ళీ చెల్లించండి', 'ಮತ್ತೆ ಪಾವತಿಸಿ', 'Try payment again', 'വീണ്ടും അടയ്ക്കൂ') + '</button>' +
+            '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:8px" href="' + waLink(payFailMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் சொல்லுங்கள்', 'WhatsApp లో చెప్పండి', 'WhatsApp ನಲ್ಲಿ ಹೇಳಿ', 'Tell us on WhatsApp', 'WhatsApp-ൽ പറയൂ') + '</a>' +
+          '</div>'
+        : claimed
         ? '<div class="py-card py-claimed">' +
             '<div class="py-paid-ic">⏳</div>' +
             '<b>' + loc('நீங்கள் "பணம் செலுத்திட்டேன்" சொன்னீர்கள்', 'మీరు "చెల్లించాను" చెప్పారు', 'ನೀವು "ಪಾವತಿಸಿದ್ದೇನೆ" ಹೇಳಿದ್ದೀರಿ', 'You told us you have paid', 'നിങ്ങൾ "പേയ്ച്ചു" എന്ന് പറഞ്ഞു') + '</b>' +
             '<p class="py-muted">' + loc('SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க (9 AM – 9 PM, பொதுவா 1 மணி நேரத்துல).', 'SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు (9 AM – 9 PM, సాధారణంగా 1 గంటలో).', 'SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ (9 AM – 9 PM, ಸಾಮಾನ್ಯವಾಗಿ 1 ಗಂಟೆಯಲ್ಲಿ).', 'SK Sarees will verify and confirm on WhatsApp (9 AM – 9 PM, usually within 1 hour).', 'SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും (9 AM – 9 PM, സാധാരണ 1 മണിക്കൂറിൽ).') + '</p>' +
+            '<div class="py-live"><span class="py-spin"></span><span id="payPollLbl">' + loc('பணம் வந்ததா தானா check பண்ணிட்டே இருக்கோம்…', 'చెల్లింపు వచ్చిందా స్వయంగా తనిఖీ చేస్తున్నాము…', 'ಪಾವತಿ ಬಂದಿದೆಯೇ ಎಂದು ಸ್ವಯಂ ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ…', 'Checking automatically for your payment…', 'പേയ്മെന്റ് വന്നുവോ എന്ന് സ്വയം പരിശോധിക്കുന്നു…') + '</span></div>' +
             '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:6px" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் screenshot அனுப்புங்கள்', 'WhatsApp లో స్క్రీన్‌షాట్ పంపండి', 'WhatsApp ನಲ್ಲಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಕಳುಹಿಸಿ', 'Send the screenshot on WhatsApp', 'WhatsApp-ൽ സ്ക്രീൻഷോട്ട് അയയ്ക്കൂ') + '</a>' +
+            '<button type="button" class="py-refresh" id="payCheck">🔄 ' + loc('இப்போவே check பண்ணு', 'ఇప్పుడే తనిఖీ చేయి', 'ಈಗಲೇ ಪರಿಶೀಲಿಸಿ', 'Check status now', 'ഇപ്പോൾ പരിശോധിക്കൂ') + '</button>' +
+            '<p class="py-note">✅ ' + loc('SK Sarees confirm பண்ணதும் இந்த பேஜ் தானா மாறும் — நீங்க எதுவும் பண்ண வேண்டாம்.', 'SK Sarees నిర్ధారించిన వెంటనే ఈ పేజీ స్వయంగా మారుతుంది — మీరు ఏమీ చేయాల్సిన అవసరం లేదు.', 'SK Sarees ದೃಢೀಕರಿಸಿದ ಕೂಡಲೇ ಈ ಪುಟ ತಾನಾಗಿಯೇ ಬದಲಾಗುತ್ತದೆ — ನೀವು ಏನೂ ಮಾಡಬೇಕಿಲ್ಲ.', 'The moment SK Sarees confirms, this page changes by itself — you do not have to do anything.', 'SK Sarees സ്ഥിരീകരിച്ച ഉടൻ ഈ പേജ് സ്വയം മാറും — നിങ്ങൾ ഒന്നും ചെയ്യേണ്ടതില്ല.') + '</p>' +
           '</div>'
         : '<div class="py-card py-paycard">' +
-            '<div class="py-amt"><small>' + (isCod ? loc('இப்போது செலுத்த வேண்டியது (COD booking)', 'ఇప్పుడు చెల్లించాల్సినది (COD బుకింగ్)', 'ಈಗ ಪಾವತಿಸಬೇಕಾದದ್ದು (COD ಬುಕಿಂಗ್)', 'Pay now (COD booking)', 'ഇപ്പോൾ അടയ്ക്കേണ്ടത് (COD ബുക്കിംഗ്)') : loc('செலுத்த வேண்டிய தொகை', 'చెల్లించవలసిన మొత్తం', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount to pay', 'അടയ്ക്കേണ്ട തുക')) + '</small><b>' + money(due) + '</b></div>' +
-            (isCod && balance > 0 ? '<p class="py-codnote">💵 ' + loc('மீதி', 'మిగిలిన', 'ಉಳಿದ', 'Balance', 'ബാക്കി') + ' <b>' + money(balance) + '</b> ' + loc('டெலிவரி சமயத்துல பணமா கொடுக்கணும்.', 'డెలివరీ సమయంలో నగదుగా ఇవ్వాలి.', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಬೇಕು.', 'to be paid in cash at delivery.', 'ഡെലിവറി സമയത്ത് പണമായി നൽകണം.') + '</p>' : '') +
+            (__payForce ? '<p class="py-retryn">🔁 ' + loc('மறுபடியும் try பண்றீங்க — முந்தைய பணம் போனதா? WhatsApp-ல சொல்லுங்க, நாங்க பாத்து refund / adjust பண்றோம்.', 'మళ్ళీ ప్రయత్నిస్తున్నారు — ముందు డబ్బు పోయిందా? WhatsApp లో చెప్పండి, చూసి సరిచేస్తాము.', 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುತ್ತಿದ್ದೀರಿ — ಹಿಂದೆ ಹಣ ಹೋಗಿದೆಯಾ? WhatsApp ನಲ್ಲಿ ಹೇಳಿ, ನೋಡಿ ಸರಿಪಡಿಸುತ್ತೇವೆ.', 'Trying again — did the earlier payment leave your account? Tell us on WhatsApp and we will fix it (refund / adjust).', 'വീണ്ടും ശ്രമിക്കുന്നു — മുൻപ് പണം പോയിട്ടുണ്ടോ? WhatsApp-ൽ പറയൂ, ഞങ്ങൾ നോക്കി ശരിയാക്കാം.') + '</p>' : '') +
+            '<div class="py-amt"><small>' + (isCod ? loc('இப்போது செலுத்த வேண்டியது — கூரியர் சார்ஜ் மட்டும்', 'ఇప్పుడు చెల్లించాల్సినది — కొరియర్ ఛార్జ్ మాత్రమే', 'ಈಗ ಪಾವತಿಸಬೇಕಾದದ್ದು — ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ', 'Pay now — courier charge only', 'ഇപ്പോൾ അടയ്ക്കേണ്ടത് — കൊറിയർ ചാർജ് മാത്രം') : loc('செலுத்த வேண்டிய தொகை', 'చెల్లించవలసిన మొత్తం', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount to pay', 'അടയ്ക്കേണ്ട തുക')) + '</small><b>' + money(due) + '</b></div>' +
+            (isCod && balance > 0 ? '<p class="py-codnote">💵 ' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Saree amount', 'സാരി തുക') + ' <b>' + money(balance) + '</b> — ' + loc('டெலிவரி சமயத்துல பணமா கொடுக்கணும். இப்போ கூரியர் சார்ஜ் மட்டும் pay பண்றீங்க.', 'డెలివరీ సమయంలో నగదుగా ఇవ్వాలి. ఇప్పుడు కొరియర్ ఛార్జ్ మాత్రమే చెల్లిస్తున్నారు.', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಬೇಕು. ಈಗ ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಪಾವತಿಸುತ್ತಿದ್ದೀರಿ.', 'cash at delivery. Right now you pay the courier charge only.', 'ഡെലിവറി സമയത്ത് പണമായി നൽകണം. ഇപ്പോൾ കൊറിയർ ചാർജ് മാത്രം അടയ്ക്കുന്നു.') + '</p>' : '') +
             /* QR — hidden until tapped (same pattern as checkout) */
             '<div class="py-qrwrap">' +
               '<div class="pg-qrblur" id="payQrBlur"><div class="pg-qrfake" aria-hidden="true"></div>' +
@@ -5976,11 +6191,7 @@ function payPaint(){
             '<p class="py-note">ℹ️ ' + loc('பணம் செலுத்தியதும் இந்த பட்டனை அழுத்துங்கள் — SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க.', 'చెల్లించిన తర్వాత ఈ బటన్ నొక్కండి — SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు.', 'ಪಾವತಿಸಿದ ನಂತರ ಈ ಬಟನ್ ಒತ್ತಿ — SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ.', 'After paying, tap this button — SK Sarees will verify and confirm on WhatsApp.', 'പേയ്ച്ചശേഷം ഈ ബട്ടൺ അമർത്തൂ — SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും.') + '</p>' +
           '</div>') +
 
-    '<div class="py-trust">' +
-      '<div>🏪 ' + loc('சேலம் எடங்கணசாலையில் உண்மையான கடை', 'సేలంలో నిజమైన షాప్', 'ಸೇಲಂನಲ್ಲಿ ನಿಜವಾದ ಅಂಗಡಿ', 'A real shop in Salem', 'സേലത്ത് യഥാർത്ഥ കട') + '</div>' +
-      '<div>📞 +91 ' + esc(CONFIG.waDisplay) + ' · 9 AM – 9 PM</div>' +
-      '<div>💬 ' + loc('எந்த கேள்வியும் WhatsApp-ல் கேளுங்கள்', 'ఏ ప్రశ్న అయినా WhatsApp లో అడగండి', 'ಯಾವುದೇ ಪ್ರಶ್ನೆ WhatsApp ನಲ್ಲಿ ಕೇಳಿ', 'Any question? Ask on WhatsApp', 'ഏത് ചോദ്യവും WhatsApp-ൽ ചോദിക്കൂ') + '</div>' +
-    '</div>' +
+    trustSecHTML({ note: '🔐 ' + loc('பணம் SK SAREES UPI-க்கு தான் போகும் — payment எப்போதும் உங்க UPI ஆப்-ல. நாங்க UPI PIN, OTP, ATM கார்டு எதுவும் கேட்க மாட்டோம்.', 'డబ్బు SK SAREES UPI కి మాత్రమే — చెల్లింపు మీ UPI యాప్‌లోనే. మేము UPI పిన్, OTP, ATM కార్డ్ ఏదీ అడగము.', 'ಹಣ SK SAREES UPI ಗೆ ಮಾತ್ರ — ಪಾವತಿ ನಿಮ್ಮ UPI ಆ್ಯಪ್‌ನಲ್ಲೇ. ನಾವು UPI ಪಿನ್, OTP, ATM ಕಾರ್ಡ್ ಏನೂ ಕೇಳುವುದಿಲ್ಲ.', 'your money goes to the SK SAREES UPI only — the payment always happens inside your own UPI app. We never ask for a UPI PIN, OTP or card.', 'പണം SK SAREES UPI-ക്ക് മാത്രം — പേയ്മെന്റ് നിങ്ങളുടെ UPI ആപ്പിൽ തന്നെ. ഞങ്ങൾ UPI പിൻ, OTP, കാർഡ് ഒന്നും ചോദിക്കില്ല.') }) +
     '<a class="btn btn-wa py-help" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் உதவி கேளுங்கள்', 'WhatsApp లో సహాయం', 'WhatsApp ನಲ್ಲಿ ಸಹಾಯ', 'Need help on WhatsApp', 'WhatsApp-ൽ സഹായം') + '</a>' +
   '</div>';
 
@@ -6007,6 +6218,10 @@ function bindPayPage(o, due, note){
     });
     const pb = document.getElementById('payPaidBtn');
     if (pb) pb.addEventListener('click', () => payClaimPaid(o, due));
+    const ck = document.getElementById('payCheck');
+    if (ck) ck.addEventListener('click', payCheckNow);
+    const rt = document.getElementById('payRetry');
+    if (rt) rt.addEventListener('click', () => { __payForce = true; payPaint(); payPollStart(); });
   }catch(e){}
 }
 /* the QR for THIS order (never the cart) */
@@ -6030,6 +6245,13 @@ function drawPayQR(amount, note){
     }
   }catch(e){}
 }
+function payFailMessage(){
+  try{
+    const o = __payOrder || {};
+    return 'Hi SK Sarees! 🙏\n\nOrder #' + (o.id || '') + ' payment-la problem.\nAmount: ₹' + (PayLink.amountDue(o) || 0) +
+      '\n\nPayment page says NOT RECEIVED. Please check and help me.';
+  }catch(e){ return 'Hi SK Sarees!'; }
+}
 function payClaimPaid(o, due){
   try{
     __payDone = true;
@@ -6050,6 +6272,7 @@ function payClaimPaid(o, due){
     try{ fbqSafe('AddPaymentInfo', { content_ids: [o.id], value: due, currency: 'INR' }); }catch(e){}
   }catch(e){}
   payPaint();
+  payPollStart();          /* 🔄 now wait for the shop's confirmation */
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -6176,3 +6399,15 @@ function rpStoryInit(){
     rpSchedule();
   }catch(e){}
 }
+/* 🔄 pay page: re-check the moment the customer returns to this tab */
+try{
+  document.addEventListener('visibilitychange', function(){
+    try{
+      if (document.hidden) return;
+      if (!document.body || document.body.dataset.page !== 'pay') return;
+      if (!__payOrder) return;
+      if (payIsPaid(__payOrder) || payIsRejected(__payOrder)) return;
+      payPollTick();
+    }catch(e){}
+  });
+}catch(e){}

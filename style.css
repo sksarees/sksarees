@@ -4185,3 +4185,103 @@ body[data-page="pay"]{ background:#FFF7FA }
 @media(max-width:420px){
   .mo-grid{ grid-template-columns:1fr }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V47 — pay page: automatic SUCCESS / FAILED + live checking
+   ══════════════════════════════════════════════════════════════════════════ */
+.py-big{ text-align:center; padding:22px 16px }
+.py-tick{ display:flex; justify-content:center; margin-bottom:8px }
+.py-tick circle{ stroke-dasharray:160; stroke-dashoffset:160; animation:pyCircle .55s ease forwards }
+.py-tick path{ stroke-dasharray:60; stroke-dashoffset:60; animation:pyTick .45s .45s ease forwards }
+@keyframes pyCircle{ to{ stroke-dashoffset:0 } }
+@keyframes pyTick{ to{ stroke-dashoffset:0 } }
+.py-big-t{ display:block; font-size:1.06rem; font-weight:900; color:#0e7d46; line-height:1.35; margin:2px 0 0 }
+.py-amt2{ margin:6px 0 0; font-size:1.5rem; font-weight:900; color:#2A0A16 }
+.py-stamp{
+  display:inline-block; margin:10px 0 2px; font-size:.74rem; font-weight:900;
+  color:#0e7d46; background:#F2FBF5; border:1px dashed #9FD9B8; border-radius:20px; padding:6px 14px;
+}
+.py-fail-ic{ font-size:2.4rem; line-height:1; margin-bottom:4px }
+.py-fail .py-big-t{ color:#C2185B }
+.py-fail .py-muted{ color:#7B4A5C }
+.py-retry{
+  width:100%; min-height:50px; margin-top:12px; border:2px solid var(--maroon);
+  border-radius:13px; background:#fff; color:var(--maroon); font-weight:900; font-size:.88rem; cursor:pointer;
+}
+.py-retry:active{ transform:scale(.985) }
+.py-retryn{
+  font-size:.75rem; color:#8a5a00; background:#FFF4E8; border-radius:11px;
+  padding:9px 11px; margin:0 0 12px; line-height:1.5;
+}
+.py-live{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin:12px 0 2px; font-size:.75rem; font-weight:800; color:#8A4560;
+  background:#FFF6FA; border:1px dashed #EBC9D6; border-radius:12px; padding:10px;
+}
+.py-spin{
+  width:14px; height:14px; flex:0 0 auto; border-radius:50%;
+  border:2px solid #EBC9D6; border-top-color:var(--maroon);
+  animation:pySpin .8s linear infinite; display:inline-block;
+}
+@keyframes pySpin{ to{ transform:rotate(360deg) } }
+.py-refresh{
+  width:100%; min-height:44px; margin-top:8px; border:1px solid #EBC9D6;
+  border-radius:12px; background:#fff; color:#8A4560; font-weight:800; font-size:.8rem; cursor:pointer;
+}
+.mo-mini-ok{ background:#F2FBF5; border-color:#9FD9B8; color:#0e7d46 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V48 — TRUST / SECURITY CARD + VIRAL KIT + COD courier-only prices
+   ══════════════════════════════════════════════════════════════════════════ */
+/* 🛡️ trust card (cart · checkout · payment page · home) */
+.ts-sec{
+  background:#fff; border:1px solid #F0E2E8; border-radius:16px;
+  padding:14px; margin:14px 0; box-shadow:0 2px 12px rgba(216,27,96,.05);
+}
+.ts-h{ display:block; font-size:.9rem; font-weight:900; color:#2A0A16; margin-bottom:10px }
+.ts-row{ display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-bottom:1px dashed #F6E9EE }
+.ts-row:last-of-type{ border-bottom:0 }
+.ts-row > span{ flex:0 0 auto; width:22px; font-size:1rem; line-height:1.4; text-align:center }
+.ts-row b{ display:block; font-size:.79rem; font-weight:800; color:#3A1220; line-height:1.35 }
+.ts-row small{ display:block; font-size:.71rem; color:#8A7580; line-height:1.45; margin-top:2px }
+.ts-row a{ color:var(--maroon); font-weight:800; text-decoration:none }
+.ts-care{
+  margin-top:10px; background:#F7FDF9; border:1px dashed #B9E3CB; border-radius:12px; padding:10px 12px;
+}
+.ts-care b{ display:block; font-size:.79rem; font-weight:900; color:#0e7d46 }
+.ts-care small{ display:block; font-size:.71rem; color:#4B6B58; line-height:1.45; margin-top:3px }
+.ts-care-btns{ display:flex; gap:6px; margin-top:9px }
+.ts-care-btns a{
+  flex:1; display:flex; align-items:center; justify-content:center; gap:4px;
+  min-height:38px; border-radius:10px; background:#fff; border:1.5px solid #B9E3CB;
+  color:#0e7d46; font-size:.74rem; font-weight:900; text-decoration:none;
+}
+.ts-care-btns a:active{ transform:scale(.98) }
+.ts-note{ font-size:.71rem; color:#7B6470; line-height:1.5; margin:10px 0 0; background:#FFF7FA; border-radius:10px; padding:9px 11px }
+
+/* 💚 viral kit — one calm row of three tiles */
+.vk{ margin:18px 0 6px; background:#fff; border:1px solid #F0E2E8; border-radius:16px; padding:13px 13px 11px; box-shadow:0 2px 12px rgba(216,27,96,.05) }
+.vk-head b{ display:block; font-size:.9rem; font-weight:900; color:#2A0A16 }
+.vk-head small{ display:block; font-size:.71rem; color:#8A7580; margin-top:3px; line-height:1.4 }
+.vk-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:11px }
+.vk-t{
+  display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
+  background:#FFF7FA; border:1.5px solid #F3DEE6; border-radius:13px; padding:11px 6px 9px;
+  font-family:inherit; text-align:center; min-height:84px;
+}
+.vk-t:active{ transform:scale(.97) }
+.vk-ic{ font-size:1.3rem; line-height:1 }
+.vk-t b{ font-size:.72rem; font-weight:900; color:#3A1220; line-height:1.25 }
+.vk-t small{ font-size:.62rem; color:#9A7F8B; line-height:1.2 }
+@media(min-width:900px){ .vk-t b{ font-size:.76rem } .vk-t small{ font-size:.66rem } }
+
+/* 🚚 COD = courier only — a calm, honest money line */
+.mo-cod, .cod-note, .py-codnote{ background:#FFF6EC; border:1px solid #F3DCC2; color:#7A4A12 }
+.py-codnote b{ color:#0e7d46 }
+/* 🚚 COD primary button (pay courier charge online) */
+.pm-cta-cod{
+  width:100%; min-height:50px; border:0; border-radius:13px; cursor:pointer;
+  background:var(--maroon); color:#fff; font-weight:900; font-size:.86rem;
+  box-shadow:0 4px 14px rgba(216,27,96,.26); margin-bottom:8px;
+}
+.pm-cta-cod:active{ transform:scale(.985) }

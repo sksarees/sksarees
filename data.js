@@ -12,7 +12,8 @@ const CONFIG = {
   waDisplay : '78679 15699',
   upiId     : 'sk7867915699-1@oksbi',
   upiName   : 'SK SAREES',
-  codFee    : 100,
+  codFee    : 100,                   /* legacy — kept for old order records only */
+  codMode   : 'courier',             /* 🚚 V48: COD advance = courier charge (zone × qty) */
   shipFreeAbove : 1999,                /* 🎉 FREE courier above ₹1,999 */
   /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
      1 saree TN ₹30 · 2 sarees ₹60 · 3 sarees ₹90 (per unit × qty). */
@@ -888,8 +889,8 @@ const REVIEWS = [
   { name:'Anitha V.', place:'Salem', avatar:'#7a4fb0', rating:5, text:'Local pickup saved me delivery time. The owner patiently showed options on a video call. Highly recommended!' },
 ];
 const FAQ = [
-  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery (booking ₹100–₹150 by state). UPI is 100% secure — we never see your card details.' },
-  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Courier ₹' + (CONFIG.shipPerKg || 30) + ' per kg (1 saree ≈ 800 g). COD orders are taken on WhatsApp: pay ₹' + (CONFIG.codFee || 100) + ' advance, then the full saree amount in cash at delivery.' },
+  { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery — you pay only the courier charge now and the saree amount in cash at delivery. UPI is 100% secure — we never see your card details.' },
+  { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Courier ₹' + (CONFIG.shipPerKg || 30) + ' per kg (1 saree ≈ 800 g). COD: pay only the courier charge now to book, then the full saree amount in cash at delivery — no extra COD fee.' },
   { q:'What if my order is late?', a:'We promise on-time delivery. If your saree arrives after the promised date, message us with your Order ID and get 5% off your next order (code LATE50).' },
   { q:'Can I exchange or return?', a:'Yes — 7-day easy replacement for damaged or wrong items. Message us on WhatsApp with your order ID and a photo.' },
   { q:'Will the colour match the photo?', a:'We photograph in natural light. Colours may vary slightly with screen settings — ask us on WhatsApp for real photos before dispatch.' },
@@ -1171,7 +1172,7 @@ function waCartMsg(){
   let m = '🛍️ Hi! I love these sarees from SK Sarees and want to order:\n';
   Store.cart.forEach(i => { const p = byId(i.id); if (p) m += `\n✨ ${p.name} ×${i.qty} — ${money(p.price * i.qty)}\n   👉 ${location.origin}/product.html?id=${encodeURIComponent(p.id)}`; });
   const t = cartTotal();
-  m += `\n\n🚚 Courier ₹${CONFIG.shipPerKg || 30}/kg (weight based — 1 saree ≈ 800g)\n💵 COD — ₹${CONFIG.codFee || 100} advance on WhatsApp + saree amount cash at delivery\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
+  m += `\n\n🚚 Courier ₹${CONFIG.shipPerKg || 30}/kg (weight based — 1 saree ≈ 800g)\n💵 COD — courier charge only now (to book) + full saree amount cash at delivery\n🧺 Sarees total: ${money(t)}\nPlease confirm availability & delivery.`;
   return m;
 }
 /* 💬 WhatsApp templates — fully defensive: any order (even with missing
@@ -1186,7 +1187,7 @@ const TPL_DELIVERY = o => {
 };
 const TPL_NOTIFY = o => {
   const c = (o && o.customer) || {}, t = (o && o.totals) || {}, items = (o && o.items) || [];
-  return `🆕 New Order — please confirm!\n\nOrder ID: ${(o && o.id) || ''}\nCustomer: ${c.name || 'Customer'}\nPhone: ${c.phone || ''}\nAddress: ${c.address || ''}, ${c.pincode || ''}\nPayment: ${(o && o.payment) === 'upi' ? 'UPI' : 'COD (+₹' + CONFIG.codFee + ')'}\nTotal: ${money(t.grand || 0)}\nETA: ${t.eta || 'Dispatch 12-24h'}\n\nItems:\n${items.map(i => `• ${(i && i.name) || 'Saree'} ×${(i && i.qty) || 1} — ${money(((i && i.price) || 0) * ((i && i.qty) || 1))}`).join('\n')}`;
+  return `🆕 New Order — please confirm!\n\nOrder ID: ${(o && o.id) || ''}\nCustomer: ${c.name || 'Customer'}\nPhone: ${c.phone || ''}\nAddress: ${c.address || ''}, ${c.pincode || ''}\nPayment: ${(o && o.payment) === 'upi' ? 'UPI' : 'COD (courier charge paid)'}\nTotal: ${money(t.grand || 0)}\nETA: ${t.eta || 'Dispatch 12-24h'}\n\nItems:\n${items.map(i => `• ${(i && i.name) || 'Saree'} ×${(i && i.qty) || 1} — ${money(((i && i.price) || 0) * ((i && i.qty) || 1))}`).join('\n')}`;
 };
 
 /* ============================ 9. UPI ============================ */
@@ -1393,11 +1394,23 @@ const PayLink = {
       _fromLink: true
     };
   },
-  /* what the customer has to pay RIGHT NOW */
+  /* what the customer has to pay RIGHT NOW
+     🚚 V48 COD = COURIER CHARGE ONLY (zone × qty). The saree amount is cash at
+     delivery — the same courier rate the website charges for UPI. */
   amountDue(order){
     const t = (order && order.totals) || {};
-    if ((order && order.payment) === 'cod') return Math.max(0, +t.codFee || 0);   /* ₹100 booking */
+    if ((order && order.payment) === 'cod'){
+      return Math.max(0, +t.shipping || 0) || Math.max(0, +t.codFee || 0);
+    }
     return Math.max(0, +t.grand || 0);
+  },
+  /* the part paid in cash at delivery (COD only) */
+  balanceDue(order){
+    try{
+      const t = (order && order.totals) || {};
+      if ((order && order.payment) !== 'cod') return 0;
+      return Math.max(0, (+t.grand || 0) - this.amountDue(order));
+    }catch(e){ return 0; }
   },
   /* total the owner will collect */
   grand(order){ try{ return Math.max(0, +(((order || {}).totals || {}).grand) || 0); }catch(e){ return 0; } }
@@ -3357,7 +3370,7 @@ function injectChrome(){
     document.body.appendChild(f);
   }
   /* 🔥 festival banner auto-updates with the season (Aadi/Pongal/Diwali/Wedding) */
-  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span><a href="diwali-sale.html" style="color:inherit;text-decoration:none">🪔 ${festivalName(currentFestival())} Sale — <b style="text-decoration:underline">50% வரை தள்ளுபடி →</b></a> &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipPerKg || 30}/kg &nbsp;•&nbsp; 💵 COD — ₹${CONFIG.codFee || 100} Advance on WhatsApp + Cash on Delivery</span></div>`);
+  document.body.insertAdjacentHTML('afterbegin', `<div class="promo-strip"><span><a href="diwali-sale.html" style="color:inherit;text-decoration:none">🪔 ${festivalName(currentFestival())} Sale — <b style="text-decoration:underline">50% வரை தள்ளுபடி →</b></a> &nbsp;•&nbsp; 🆕 Code WELCOME50 — ₹50 OFF First Order &nbsp;•&nbsp; 💳 UPI / GPay / PhonePe — Courier ₹${CONFIG.shipPerKg || 30}/kg &nbsp;•&nbsp; 💵 COD — Courier Charge மட்டும் முன்பணம் + Cash on Delivery</span></div>`);
   renderHeader(); renderFooter();
   /* 🌐 any [data-setlang] button switches the whole site language */
   document.addEventListener('click', function(e){
