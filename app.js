@@ -2287,6 +2287,14 @@ function initReelCards(){
         return;
       }
       if (e.target.closest('[data-wish]')) return;   /* heart handled elsewhere */
+      /* 🛍️ V55: marketplace shop card → Quick View (or the product page) */
+      const mcard = e.target.closest('.msc-img');
+      if (mcard && !moved){
+        e.preventDefault();
+        try{ if (mcard.dataset.qv && typeof openQuickView === 'function'){ openQuickView(mcard.dataset.qv); return; } }catch(err0){}
+        try{ location.href = mcard.dataset.url || ('product.html?id=' + encodeURIComponent(mcard.dataset.qv || '')); }catch(err){}
+        return;
+      }
       const r = e.target.closest('.reel-imgs');
       if (r && !moved){
         e.preventDefault();
@@ -4449,8 +4457,8 @@ function pmMethodHTML(t){
       '<span class="pmx-main"><b>' + loc('நண்பர் pay பண்ணட்டும்', 'ఫ్రెండ్ చెల్లించనివ్వండి', 'ಸ್ನೇಹಿತ ಪಾವತಿಸಲಿ', 'Ask Friends to Pay', 'സുഹൃത്ത് അടയ്ക്കട്ടെ') + ' 👥</b>' +
         '<small>' + loc('QR scan / லிங்க் அனுப்புங்கள் — அவங்க pay பண்ணுவாங்க', 'QR స్కాన్ / లింక్ పంపండి — వాళ్ళు చెల్లిస్తారు', 'QR ಸ್ಕ್ಯಾನ್ / ಲಿಂಕ್ ಕಳುಹಿಸಿ — ಅವರು ಪಾವತಿಸುತ್ತಾರೆ', 'share the QR / link — they pay for you', 'QR സ്കാൻ / ലിങ്ക് അയയ്ക്കൂ — അവർ അടയ്ക്കും') + '</small></span>' +
       '<span class="pmx-radio"></span></button>' +
-    (pick === 'friends'
-      ? '<div class="pmf-body">' +
+    (true   /* 🐞 V55: the blurred QR shows immediately — no need to select first */
+      ? '<div class="pmf-body' + (pick === 'friends' ? ' on' : '') + '">' +
           '<button type="button" class="pmf-qr pg-qrblur" id="pmfQrBlur" aria-label="Show QR">' +
             '<span class="pg-qrfake" aria-hidden="true"></span>' +
             '<span class="pg-qrreveal" id="pmfQrToggle" aria-hidden="true"></span>' +
@@ -4900,7 +4908,7 @@ function doPlaceOrder(payment){
       margin: 0,
       /* UPI: customer tapped "I've Paid" → paidConfirmed=true, awaiting admin
          confirmation; COD: courier charge paid now */
-      status: payment === 'upi' ? 'pending' : 'placed',
+      status: 'pending',   /* 🔔 V55: UPI and COD both wait for the shop's confirmation */
       attr: getAttribution(),                    /* ✅ V37: which ad brought her */
       paidConfirmed: payment === 'upi',          /* ✅ customer says they paid */
       bookingPaid: payment === 'cod' ? (t.shipping || 0) : (payment === 'upi' ? t.grand : 0),
@@ -4949,7 +4957,7 @@ function doWaOrder(){
       id: co.pendingId || genOrderId(), date: new Date().toISOString(),
       items: coItems().map(safeItem),
       customer: { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim(), pincode: d.pincode.trim(), city: '', state: '' },
-      payment: 'cod', totals: t, status: 'placed',
+      payment: 'cod', totals: t, status: 'pending',   /* 🔔 V55: shop must confirm COD */
       attr: getAttribution(),                     /* ✅ V37: which ad brought her */
       bookingPaid: t.shipping || 0,               /* 🚚 V48 courier charge paid now */
       reseller: myReseller ? { code: myReseller.code, name: myReseller.name, phone: myReseller.phone } : null,
@@ -5136,7 +5144,163 @@ function pointsRedeemable(){ return pointsBalance(); } /* ₹1 per point */
 let orderFilter = 'all';
 let ordersPage = 1;              /* pagination: 10 orders at a time */
 const ORDERS_PAGE_SIZE = 10;
+let msOrdSearch = '';             /* 🔎 My Orders search box (customer side) */
 let openDetailId = null;         /* which order detail is open (fast toggle) */
+/* ══════════════════════════════════════════════════════════════════════════
+   V55 — MY ORDERS + ORDER DETAILS (marketplace layout)
+   · list: search · filters · row = photo + status + delivery line + qty + ›
+   · detail: product card · status · 4-step tracking with real dates ·
+             delivery address · pay block for a pending UPI order
+   Every line comes from the order itself: dates are only shown when the event
+   really happened (no invented dates).
+   ══════════════════════════════════════════════════════════════════════════ */
+function msODate(iso){
+  try{
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }catch(e){ return ''; }
+}
+function msODateLong(iso){
+  try{
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+  }catch(e){ return ''; }
+}
+/* status → the words the customer sees */
+function msOStatus(o){
+  const st = String((o && o.status) || 'pending');
+  const paid = !!(o && o.paidConfirmed);
+  const isCod = (o && o.payment) === 'cod';
+  if (st === 'cancelled') return { key: 'cancelled', title: loc('ஆர்டர் ரத்து', 'ఆర్డర్ రద్దు', 'ಆರ್ಡರ್ ರದ್ದು', 'Order Cancelled', 'ഓർഡർ റദ്ദാക്കി'), sub: loc('டெலிவரி நடக்கல', 'డెలివరీ జరగలేదు', 'ಡೆಲಿವರಿ ನಡೆಯಲಿಲ್ಲ', 'Delivery was unsuccessful', 'ഡെലിവറി നടന്നില്ല'), tone: 'bad' };
+  if (st === 'delivered') return { key: 'delivered', title: loc('டெலிவரி ஆனது', 'డెలివరీ అయింది', 'ಡೆಲಿವರಿ ಆಯಿತು', 'Delivered', 'ഡെലിവറി കഴിഞ്ഞു'), sub: '', tone: 'good' };
+  if (st === 'shipped') return { key: 'shipped', title: loc('வழியில இருக்கு', 'దారిలో ఉంది', 'ದಾರಿಯಲ್ಲಿದೆ', 'On the way', 'വഴിയിലുണ്ട്'), sub: '', tone: 'go' };
+  if (st === 'confirmed') return { key: 'confirmed', title: loc('ஆர்டர் உறுதி', 'ఆర్డర్ నిర్ధారణ', 'ಆರ್ಡರ್ ದೃಢೀಕರಣ', 'Order Confirmed', 'ഓർഡർ സ്ഥിരീകരിച്ചു'), sub: '', tone: 'go' };
+  /* pending */
+  if (isCod) return { key: 'pending', title: loc('கடை உறுதி செய்யணும்', 'షాప్ నిర్ధారించాలి', 'ಅಂಗಡಿ ದೃಢೀಕರಿಸಬೇಕು', 'Waiting for shop confirmation', 'കട സ്ഥിരീകരിക്കണം'), sub: loc('கூரியர் சார்ஜ் செலுத்தி ஆர்டர் பதிவாகியுள்ளது', 'కొరియర్ ఛార్జ్ చెల్లించి ఆర్డర్ నమోదైంది', 'ಕೊರಿಯರ್ ಶುಲ್ಕ ಪಾವತಿಸಿ ಆರ್ಡರ್ ದಾಖಲಾಗಿದೆ', 'courier charge paid — we will confirm shortly', 'കൊറിയർ ചാർജ് അടച്ചു — ഉടൻ സ്ഥിരീകരിക്കും'), tone: 'wait' };
+  if (!paid) return { key: 'paywait', title: loc('பணம் காத்திருக்கு', 'చెల్లింపు పెండింగ్', 'ಪಾವತಿ ಬಾಕಿ', 'Payment Pending', 'പേയ്മെന്റ് ബാക്കി'), sub: loc('UPI பணம் செலுத்தி "I\'ve Paid" அழுத்துங்கள்', 'UPI చెల్లించి "I\'ve Paid" నొక్కండి', 'UPI ಪಾವತಿಸಿ "I\'ve Paid" ಒತ್ತಿ', 'pay by UPI and tap “I\'ve Paid”', 'UPI അടച്ച് "I\'ve Paid" അമർത്തൂ'), tone: 'wait' };
+  return { key: 'pending', title: loc('உறுதி செய்யப்படுகிறது', 'నిర్ధారిస్తున్నాము', 'ದೃಢೀಕರಿಸುತ್ತಿದ್ದೇವೆ', 'Waiting for confirmation', 'സ്ഥിരീകരിക്കുന്നു'), sub: loc('நாங்க WhatsApp-ல் சொல்லுவோம்', 'మేము WhatsApp లో తెలియజేస్తాము', 'ನಾವು WhatsApp ನಲ್ಲಿ ತಿಳಿಸುತ್ತೇವೆ', 'we will confirm on WhatsApp', 'ഞങ്ങൾ WhatsApp-ൽ അറിയിക്കും'), tone: 'wait' };
+}
+function msOHero(o){
+  const it = (o.items || [])[0] || {};
+  const p = byId(it.id) || {};
+  return p.img || it.img || img('printed-cotton.jpg');
+}
+function msOQty(o){ try{ return (o.items || []).reduce((s, i) => s + (+i.qty || 1), 0); }catch(e){ return 1; } }
+function msOAmount(o){
+  try{ return ((o.totals || {}).grand) || (o.items || []).reduce((s, i) => s + (+i.price || 0) * (+i.qty || 1), 0); }catch(e){ return 0; }
+}
+/* one row in the list */
+function msOrderRow(o){
+  const s = msOStatus(o);
+  const when = o.deliveredAt ? msODateLong(o.deliveredAt)
+    : (o.deliverBy ? msODateLong(o.deliverBy)
+      : (o.status === 'shipped' || o.status === 'confirmed' ? msODateLong(o.deliverBy || o.date) : ''));
+  const sub = s.sub || (s.key === 'delivered'
+    ? loc('டெலிவரி ஆனது', 'డెలివరీ అయింది', 'ಡೆಲಿವರಿ ಆಯಿತು', 'Delivered', 'ഡെലിവറി കഴിഞ്ഞു') + (when ? ' · ' + when : '')
+    : (when ? loc('டெலிவரி', 'డెలివరీ', 'ಡೆಲಿವರಿ', 'Delivery by', 'ഡെലിവറി') + ' ' + when : ''));
+  return '<article class="msord" data-odetail="' + esc(o.id) + '">' +
+    '<div class="msord-img"><img src="' + esc(msOHero(o)) + '" alt="" loading="lazy" onerror="imgSafe(this)"></div>' +
+    '<div class="msord-b">' +
+      '<b class="msord-st ' + s.tone + '">' + esc(s.title) + '</b>' +
+      (sub ? '<span class="msord-sub">' + esc(sub) + '</span>' : '') +
+      '<span class="msord-meta">' + loc('சைஸ்', 'సైజ్', 'ಸೈಜ್', 'Size', 'സൈസ്') + ': ' + loc('ஃப்ரீ', 'ఫ్రీ', 'ಫ್ರೀ', 'Free', 'ഫ്രീ') + ' · ' + loc('எண்', 'క్యూ', 'ಕ್ವಾ', 'Qty', 'എണ്ണം') + ': ' + msOQty(o) + '</span>' +
+      (s.key === 'delivered' ? '<button type="button" class="msord-fb" data-feedback="' + esc(o.id) + '">' + loc('கருத்து சொல்லுங்க', 'ఫీడ్‌బ్యాక్ ఇవ్వండి', 'ಫೀಡ್‌ಬ್ಯಾಕ್ ನೀಡಿ', 'ADD FEEDBACK', 'ഫീഡ്ബാക്ക് നൽകൂ') + '</button>' : '') +
+    '</div>' +
+    '<span class="msord-go">›</span>' +
+  '</article>';
+}
+/* the 4-step tracking (real dates only) */
+function msTrack(o){
+  const st = String(o.status || 'pending');
+  const orderD = msODate(o.date);
+  const shipD = msODate(o.dispatchedAt);
+  const delD = msODate(o.deliveredAt || o.deliverBy);
+  const idx = st === 'delivered' ? 3 : st === 'shipped' ? 2 : (st === 'confirmed' ? 1 : 0);
+  const steps = [
+    { ic: '✓', lb: loc('ஆர்டர்', 'ఆర్డర్', 'ಆರ್ಡರ್', 'Ordered', 'ഓർഡർ'), dt: orderD },
+    { ic: '✓', lb: loc('அனுப்பியது', 'పంపినది', 'ಕಳುಹಿಸಿದ್ದು', 'Shipped', 'അയച്ചു'), dt: shipD },
+    { ic: '🚚', lb: loc('வழியில்', 'దారిలో', 'ದಾರಿಯಲ್ಲಿ', 'Out for Delivery', 'വഴിയിൽ'), dt: (st === 'delivered' ? delD : '') },
+    { ic: '✓', lb: loc('டெலிவரி', 'డెలివరీ', 'ಡೆಲಿವರಿ', 'Delivery', 'ഡെലിവറി'), dt: delD }
+  ];
+  return '<div class="mstrack">' + steps.map((s, i) => {
+    const cls = i < idx ? 'done' : i === idx ? 'now' : '';
+    return '<div class="mst ' + cls + '">' +
+      '<span class="mst-dot">' + (i <= idx ? s.ic : '') + '</span>' +
+      (i < steps.length - 1 ? '<span class="mst-ln' + (i < idx ? ' fill' : '') + '"></span>' : '') +
+      '<span class="mst-lb">' + s.lb + '</span>' +
+      (s.dt ? '<span class="mst-dt">' + s.dt + '</span>' : '') +
+    '</div>';
+  }).join('') + '</div>';
+}
+/* the full ORDER DETAILS panel */
+function msOrderDetail(o){
+  if (!o) return '<div class="empty"><div class="e-ic">🔍</div><b>' + loc('ஆர்டர் கிடைக்கல', 'ఆర్డర్ దొరకలేదు', 'ಆರ್ಡರ್ ಸಿಗಲಿಲ್ಲ', 'Order not found', 'ഓർഡർ കണ്ടെത്തിയില്ല') + '</b></div>';
+  const s = msOStatus(o);
+  const t = o.totals || {};
+  const it = (o.items || [])[0] || {};
+  const p = byId(it.id) || {};
+  const c = o.customer || {};
+  const payWaiting = o.payment === 'upi' && !o.paidConfirmed;
+  const dBy = msODateLong(o.deliverBy || o.dispatchedAt || o.date);
+  return '<div class="msdet">' +
+    '<div class="msdet-top"><button type="button" class="msdet-back" data-close-detail aria-label="Back">‹</button>' +
+      '<b>' + loc('ஆர்டர் விவரம்', 'ఆర్డర్ వివరాలు', 'ಆರ್ಡರ್ ವಿವರ', 'ORDER DETAILS', 'ഓർഡർ വിവരം') + '</b>' +
+      '<a class="msdet-help" href="' + waLink('Hi SK Sarees! I need help with order ' + o.id) + '" target="_blank" rel="noopener">📞 ' + loc('உதவி', 'సహాయం', 'ಸಹಾಯ', 'HELP', 'സഹായം') + '</a></div>' +
+
+    /* product card */
+    '<div class="msdet-item">' +
+      '<div class="msdet-img"><img src="' + esc(msOHero(o)) + '" alt="" onerror="imgSafe(this)"></div>' +
+      '<div class="msdet-ib">' +
+        '<b>' + loc('ஆர்டர்', 'ఆర్డర్', 'ಆರ್ಡರ್', 'Order', 'ഓർഡർ') + ' #' + esc(o.id) + '</b>' +
+        '<span>' + esc(String((p.name || it.name || 'Saree')).slice(0, 40)) + '</span>' +
+        '<small>' + loc('ஃப்ரீ சைஸ்', 'ఫ్రీ సైజ్', 'ಫ್ರೀ ಸೈಜ್', 'Free Size', 'ഫ്രീ സൈസ്') + ' · ' + (o.payment === 'cod' ? loc('கேஷ்', 'క్యాష్', 'ನಗದು', 'Cash', 'ക്യാഷ്') : 'UPI') + ' ' + money(msOAmount(o)) + '</small>' +
+        '<small class="msdet-ret">↩️ ' + loc('எந்த பிரச்சனையும் இருந்தா எளிதா மாற்றலாம்', 'ఏ సమస్య ఉన్నా సులభంగా మార్చుకోవచ్చు', 'ಏನೇ ಸಮಸ್ಯೆ ಇದ್ದರೂ ಸುಲಭವಾಗಿ ಬದಲಿಸಬಹುದು', 'All issue easy returns', 'എന്ത് പ്രശ്നവും എളുപ്പം മാറ്റാം') + '</small>' +
+      '</div>' +
+    '</div>' +
+
+    /* status + tracking */
+    '<div class="msdet-status">' +
+      '<div class="msdet-srow"><span class="msdet-sic">' + (s.tone === 'bad' ? '✕' : s.tone === 'wait' ? '⏳' : '📦') + '</span>' +
+        '<div><b>' + esc(s.title) + '</b>' + (dBy && s.key !== 'cancelled' ? '<small>' + loc('டெலிவரி', 'డెలివరీ', 'ಡೆಲಿವರಿ', 'Delivery by', 'ഡെലിവറി') + ' ' + esc(dBy) + '</small>' : '') + '</div></div>' +
+      (s.key === 'cancelled' ? '' : msTrack(o)) +
+    '</div>' +
+
+    /* pay block for a pending UPI order */
+    (payWaiting ? '<div class="msdet-pay">' + pendingPaymentHTML(o) + '</div>' : '') +
+
+    /* order info rows */
+    '<div class="msdet-rows">' +
+      '<div class="msdet-row"><span>' + loc('ஆர்டர் தேதி', 'ఆర్డర్ తేదీ', 'ಆರ್ಡರ್ ದಿನಾಂಕ', 'Ordered on', 'ഓർഡർ തീയതി') + '</span><b>' + msODateLong(o.date) + '</b></div>' +
+      '<div class="msdet-row"><span>' + loc('பொருட்கள்', 'వస్తువులు', 'ವಸ್ತುಗಳು', 'Items', 'ഇനങ്ങൾ') + '</span><b>' + (o.items || []).length + ' · ' + msOQty(o) + ' ' + loc('சேலை', 'చీర', 'ಸೀರೆ', 'saree', 'സാരി') + '</b></div>' +
+      (t.discount > 0 ? '<div class="msdet-row"><span>🎫 Coupon</span><b>−' + money(t.discount) + '</b></div>' : '') +
+      (t.online > 0 ? '<div class="msdet-row"><span>💳 ' + loc('ஆன்லைன் தள்ளுபடி', 'ఆన్‌లైన్ డిస్కౌంట్', 'ಆನ್‌ಲೈನ್ ರಿಯಾಯಿತಿ', 'Online discount', 'ഓൺലൈൻ ഡിസ്കൗണ്ട്') + '</span><b>−' + money(t.online) + '</b></div>' : '') +
+      '<div class="msdet-row tot"><span>' + loc('மொத்தம்', 'మొత్తం', 'ಒಟ್ಟು', 'Order total', 'ആകെ') + '</span><b>' + money(msOAmount(o)) + '</b></div>' +
+    '</div>' +
+
+    /* note */
+    '<div class="msdet-note">' + (s.key === 'shipped'
+      ? loc('ஆர்டர் அனுப்பப்பட்டுவிட்டது — இனி ரத்து செய்ய முடியாது.', 'ఆర్డర్ పంపబడింది — ఇక రద్దు చేయలేరు.', 'ಆರ್ಡರ್ ಕಳುಹಿಸಲಾಗಿದೆ — ಇನ್ನು ರದ್ದು ಸಾಧ್ಯವಿಲ್ಲ.', 'Order shipped, cancel unavailable.', 'ഓർഡർ അയച്ചു — ഇനി റദ്ദാക്കാനാകില്ല.')
+        : s.key === 'delivered' ? loc('ஆர்டர் டெலிவரி ஆனது. ஏதாவது பிரச்சனைனா WhatsApp-ல் சொல்லுங்க.', 'ఆర్డర్ డెలివరీ అయింది. ఏ సమస్య ఉన్నా WhatsApp లో చెప్పండి.', 'ಆರ್ಡರ್ ಡೆಲಿವರಿ ಆಯಿತು. ಸಮಸ್ಯೆ ಇದ್ದರೆ WhatsApp ನಲ್ಲಿ ಹೇಳಿ.', 'Delivered. Anything wrong? Tell us on WhatsApp.', 'ഡെലിവറി കഴിഞ്ഞു. പ്രശ്നമുണ്ടെങ്കിൽ WhatsApp-ൽ പറയൂ.')
+        : loc('ரத்து செய்யணும்னா WhatsApp-ல் சொல்லுங்க.', 'రద్దు చేయాలంటే WhatsApp లో చెప్పండి.', 'ರದ್ದು ಮಾಡಬೇಕಾದರೆ WhatsApp ನಲ್ಲಿ ಹೇಳಿ.', 'Need to cancel? Tell us on WhatsApp.', 'റദ്ദാക്കണോ? WhatsApp-ൽ പറയൂ.')) + '</div>' +
+
+    /* delivery address */
+    '<div class="msdet-addr"><b>📍 ' + loc('டெலிவரி முகவரி', 'డెలివరీ చిరునామా', 'ಡೆಲಿವರಿ ವಿಳಾಸ', 'Delivery Address', 'ഡെലിവറി വിലാസം') + '</b>' +
+      '<p><b>' + esc(c.name || '') + '</b>' + (c.phone ? '<br>' + esc(c.phone) : '') + '<br>' + esc(c.address || '') + (c.pincode ? ', ' + esc(c.pincode) : '') + '</p>' +
+      '<div class="msdet-note">' + loc('முகவரி மாற்றம் இப்போ முடியாது — WhatsApp-ல் சொல்லுங்க.', 'చిరునామా మార్పు ఇప్పుడు సాధ్యం కాదు — WhatsApp లో చెప్పండి.', 'ವಿಳಾಸ ಬದಲಾವಣೆ ಈಗ ಸಾಧ್ಯವಿಲ್ಲ — WhatsApp ನಲ್ಲಿ ಹೇಳಿ.', 'Address change unavailable! Tell us on WhatsApp.', 'വിലാസം മാറ്റം ഇപ്പോൾ സാധ്യമല്ല — WhatsApp-ൽ പറയൂ.') + '</div>' +
+    '</div>' +
+
+    /* actions */
+    '<div class="msdet-acts">' +
+      '<button type="button" class="msdet-rb" data-reorder="' + esc(o.id) + '">🔁 ' + loc('மறுபடி ஆர்டர்', 'మళ్ళీ ఆర్డర్', 'ಮತ್ತೆ ಆರ್ಡರ್', 'Order Again', 'വീണ്ടും ഓർഡർ') + '</button>' +
+      (payWaiting ? '<button type="button" class="msdet-pb" data-contpay="' + esc(o.id) + '">💳 ' + loc('பணம் செலுத்து', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'Pay Now', 'അടയ്ക്കൂ') + '</button>' : '') +
+    '</div>' +
+  '</div>';
+}
+
 function renderOrdersPage(){
   const app = document.getElementById('app'); if (!app) return;
   const q = safeParams();
@@ -5167,8 +5331,9 @@ function renderOrdersPage(){
       Store.saveOrders();
     }catch(e){}
   }
-  app.innerHTML = '<div class="wrap page">' +
-    '<h1>📦 My Orders</h1>' +
+  app.innerHTML = '<div class="wrap page msord-page">' +
+    '<div class="msord-head"><b>' + loc('எனது ஆர்டர்கள்', 'నా ఆర్డర్లు', 'ನನ್ನ ಆರ್ಡర్లు', 'MY ORDERS', 'എന്റെ ഓർഡറുകൾ') + '</b></div>' +
+    '<div class="msord-search"><span>🔍</span><input id="ordSearch" type="search" placeholder="' + loc('ஆர்டர் தேடுங்கள்', 'ఆర్డర్ వెతకండి', 'ಆರ್ಡರ್ ಹುಡುಕಿ', 'Search orders', 'ഓർഡർ തിരയൂ') + '"><button type="button" class="msord-fb2" id="ordFilterBtn">≡ ' + loc('பில்டர்', 'ఫిల్టర్', 'ಫಿಲ್ಟರ್', 'Filters', 'ഫിൽട്ടർ') + '</button></div>' +
     '<div class="cat-chips" id="orderChips">' +
       '<button type="button" class="chip on" data-of="all">All</button>' +
       '<button type="button" class="chip" data-of="placed">🆕 New</button>' +
@@ -5185,6 +5350,16 @@ function renderOrdersPage(){
       '<button type="button" class="btn btn-maroon" id="trackBtn">Track Order</button></div>' +
       likedSareesHTML(4) + recentViewHTML() +
   '</div>';
+  const osIn = document.getElementById('ordSearch');
+  if (osIn) osIn.addEventListener('input', e => {
+    msOrdSearch = e.target.value.trim().toLowerCase();
+    ordersPage = 1; renderOrderList();
+  });
+  const ofB = document.getElementById('ordFilterBtn');
+  if (ofB) ofB.addEventListener('click', () => {
+    const chips = document.getElementById('orderChips');
+    if (chips) chips.classList.toggle('open');
+  });
   document.getElementById('orderChips').addEventListener('click', e => {
     const b = e.target.closest('[data-of]'); if (!b) return;
     orderFilter = b.dataset.of;
@@ -5314,46 +5489,20 @@ function orderCard(o){
 function showDetail(o){
   const wrap = document.getElementById('trackDetail');
   if (!wrap) return;
-  if (!o){
-    openDetailId = null;
-    wrap.innerHTML = '<div class="empty"><div class="e-ic">🔍</div><b>Order not found</b>Check the order ID. ' +
-      '<a class="btn btn-wa btn-sm" style="max-width:280px;margin:8px auto" href="' + waLink('Hi! I cannot find my order. Please help.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Ask us on WhatsApp</a></div>';
-    return;
-  }
-  const t = o.totals || { itemsTotal:0, shipping:0, codFee:0, grand:0 };
-  const items = (o.items || []).map(i => {
-    const p = byId(i.id);
-    return '<div style="display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:11px;padding:10px;margin-bottom:8px">' +
-      '<a href="product.html?id=' + encodeURIComponent(i.id) + '"><img src="' + (p ? esc(p.img) : img('printed-cotton.jpg')) + '" alt="' + esc(i.name) + '" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex:0 0 auto" onerror="imgSafe(this)" onload="imgLoaded(this)"></a>' +
-      '<div style="flex:1;min-width:0"><a href="product.html?id=' + encodeURIComponent(i.id) + '" style="font-size:.85rem;font-weight:800;display:block">' + esc(i.name) + '</a>' +
-      (i.colour ? '<small class="muted">🎨 ' + esc(i.colour) + '</small><br>' : '') +
-      '<small class="muted">' + money(i.price) + ' × ' + i.qty + '</small></div><b>' + money(i.price * i.qty) + '</b></div>';
-  }).join('');
-  wrap.innerHTML = '<div class="form-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
-    '<h3 style="margin:0">📦 Order #' + esc(o.id) + '</h3>' +
-    '<button type="button" class="btn btn-ghost btn-sm" data-close-detail style="min-height:32px">✕ Close</button></div>' +
-    '<div class="oc-items" style="margin:4px 0">' + fmtDT(o.date) + ' • ' + esc((o.customer || {}).name || '') + ' • ' + money(t.grand) + ' (' + (o.payment || '').toUpperCase() + ')</div>' +
-    '<span class="status-pill status-' + o.status + '">' + esc((o.status || 'placed').replace('_', ' ')) + '</span>' +
-    statusTrack(o) +
-    '<div style="margin-top:12px">' + items + '</div>' +
-    '<div style="margin-top:6px">' +
-      '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">Items total</span><b>' + money(t.itemsTotal) + '</b></div>' +
-      '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0"><span class="muted">Shipping</span><b style="color:' + (t.shipping ? 'inherit' : 'var(--green)') + '">' + (t.shipping ? money(t.shipping) : 'FREE') + '</b></div>' +
-
-      '<div style="display:flex;justify-content:space-between;font-weight:800;font-size:.95rem;padding:6px 0;border-top:2px dashed var(--line);margin-top:4px"><span>Total</span><b style="color:var(--maroon)">' + money(t.grand) + '</b></div>' +
-    '</div>' +
-    '<div class="oc-items" style="margin-top:8px">⏱ ' + esc(t.eta || 'Dispatch 12–24h') + '<br>Deliver to: <b>' + esc((o.customer || {}).name || '') + '</b> • ' + esc((o.customer || {}).phone || '') + '<br>' + esc((o.customer || {}).address || '') + ' — ' + esc((o.customer || {}).pincode || '') + '</div>' +
-    pendingPaymentHTML(o) +
-    '<div style="display:grid;gap:8px;margin-top:12px;grid-template-columns:1fr 1fr">' +
-      '<a class="btn btn-wa btn-sm" href="' + waLink('Hi! I want to track my order ' + o.id + '.') + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Ask on WhatsApp</a>' +
-      '<button type="button" class="btn btn-maroon btn-sm" data-reorder="' + esc(o.id) + '">🔁 Order Again</button>' +
-      '<a class="btn btn-outline btn-sm" href="shop.html">🛍️ Shop More</a>' +
-    '</div></div>';
-  setTimeout(drawPendingQrs, 60);
+  /* 🧾 V55: marketplace ORDER DETAILS + 4-step tracking */
+  if (!o){ openDetailId = null; wrap.innerHTML = msOrderDetail(null); return; }
+  openDetailId = o.id;
+  wrap.innerHTML = msOrderDetail(o);
+  try{ drawPendingQrs(); }catch(e){}
+  try{ wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){ try{ wrap.scrollIntoView(); }catch(e2){} }
 }
 function renderOrderList(){
   const wrap = document.getElementById('orderList'); if (!wrap) return;
-  const mine = myOrders();
+  let mine = myOrders();
+  if (msOrdSearch){
+    const qq = msOrdSearch;
+    mine = mine.filter(o => String((o.id || '') + ' ' + ((o.customer || {}).name || '') + ' ' + ((o.items || []).map(i => i.name).join(' '))).toLowerCase().includes(qq));
+  }
   const list = orderFilter === 'all' ? mine : mine.filter(o => (o.status || 'placed') === orderFilter);
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="e-ic">📦</div><b>No orders yet</b>Place your first saree order and track it here!<br><br><a class="btn btn-maroon" style="max-width:240px;margin:0 auto" href="shop.html">🛍️ ' + loc('சேலைகள் வாங்குங்கள்', 'చీరలు కొనండి', 'ಸೀರೆಗಳನ್ನು ಖರೀದಿಸಿ', 'Shop Sarees', 'സാരികൾ വാങ്ങൂ') + '</a></div>';
@@ -5361,7 +5510,7 @@ function renderOrderList(){
     return;
   }
   const visible = list.slice(0, ordersPage * ORDERS_PAGE_SIZE);
-  wrap.innerHTML = visible.map(orderCard).join('');
+  wrap.innerHTML = visible.map(msOrderRow).join('');
   try{ drawPendingQrs(); }catch(e){}   /* 💳 QR codes for payment-waiting orders */
   const mo = document.getElementById('moreOrders');
   if (mo){
@@ -6249,6 +6398,15 @@ document.addEventListener('click', function(e){
     renderShop();
     return;
   }
+  /* ⭐ feedback button on a delivered order */
+  const fbk = e.target.closest && e.target.closest('[data-feedback]');
+  if (fbk){
+    e.preventDefault();
+    const o = (Store.orders || []).find(x => x && x.id === fbk.dataset.feedback) || {};
+    const it = (o.items || [])[0] || {};
+    window.open(waLink('⭐ Hi SK Sarees! Feedback for order ' + (o.id || '') + ' — ' + (it.name || 'saree') + ': '), '_blank', 'noopener');
+    return;
+  }
   const rvwC = e.target.closest && e.target.closest('#rvwContinue');
   if (rvwC){
     e.preventDefault();
@@ -6308,9 +6466,16 @@ document.addEventListener('click', function(e){
     }
     try{ createPendingPaymentOrder(); }catch(e2){}
     co.step = 3; drawCo();
-    /* 📱 V54: the order is saved as “Payment Waiting” — open the UPI app now so
-       the customer pays immediately (and the shop can track it in Orders). */
-    setTimeout(function(){ try{ payNowOpenUpi(); }catch(e3){} }, 250);
+    /* 📱 V55: show the real QR straight away + keep the app link ready.
+       The order is already saved as “Payment Waiting” for the shop. */
+    setTimeout(function(){
+      try{
+        const blur = document.getElementById('pgQrBlur'), box = document.getElementById('pgQrBox');
+        if (blur) blur.style.display = 'none';
+        if (box) box.style.display = 'flex';
+        try{ drawUpiQR(); }catch(e4){}
+      }catch(e3){}
+    }, 200);
     return;
   }
   /* 📱 V52: tapping a UPI app — if we are still on the page 1.6 s later, the app

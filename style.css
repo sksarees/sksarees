@@ -5026,3 +5026,113 @@ body[data-page="reels"] .lang-bar{ display:none !important }
 .shop-filters > summary::-webkit-details-marker{ display:none }
 .shop-filters[open] > summary{ border-radius:10px 10px 0 0 }
 .shop-filters > div{ padding:12px 0 4px }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V55 — MY ORDERS list + ORDER DETAILS with 4-step tracking (marketplace)
+   ══════════════════════════════════════════════════════════════════════════ */
+.msord-page{ background:#fff; padding-bottom:24px }
+.msord-head{ padding:14px 0 10px; border-bottom:1px solid var(--mc-line) }
+.msord-head b{ font-size:.92rem; font-weight:900; letter-spacing:.6px; color:var(--ink) }
+.msord-search{ display:flex; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid var(--mc-line) }
+.msord-search span{ font-size:1rem; color:#A99CAD }
+.msord-search input{
+  flex:1; min-width:0; border:1.4px solid #E4D9EA; border-radius:10px; padding:11px 12px;
+  font-size:16px; font-family:inherit; outline:none; color:var(--ink);
+}
+.msord-search input:focus{ border-color:var(--mc-mag) }
+.msord-fb2{
+  border:0; background:none; color:var(--mc-mag); font-family:inherit;
+  font-size:.84rem; font-weight:900; display:flex; align-items:center; gap:5px; cursor:pointer;
+}
+/* status chips are hidden until Filters is tapped */
+.msord-page #orderChips{ display:none; flex-wrap:wrap; gap:6px; padding:10px 0; border-bottom:1px solid var(--mc-line) }
+.msord-page #orderChips.open{ display:flex }
+.msord-page #orderChips .chip{ font-size:.72rem; font-weight:800; border:1px solid var(--mc-line); background:#fff; color:#5C4A63; border-radius:999px; padding:6px 12px }
+.msord-page #orderChips .chip.on{ background:var(--mc-mag); color:#fff; border-color:var(--mc-mag) }
+
+/* one order row */
+.msord{
+  display:flex; align-items:flex-start; gap:12px; padding:14px 0;
+  border-bottom:1px solid var(--mc-line); cursor:pointer; background:#fff;
+}
+.msord:active{ background:#FCFAFC }
+.msord-img{ flex:0 0 auto; width:84px; height:100px; border-radius:10px; overflow:hidden; border:1px solid var(--mc-line); background:#F7F3FA }
+.msord-img img{ width:100%; height:100%; object-fit:cover; display:block }
+.msord-b{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px }
+.msord-st{ font-size:.92rem; font-weight:900; line-height:1.3 }
+.msord-st.go{ color:var(--mc-green) }
+.msord-st.good{ color:#0B7A44 }
+.msord-st.wait{ color:#B26B00 }
+.msord-st.bad{ color:#C2185B }
+.msord-sub{ font-size:.8rem; color:#6E5A75; font-weight:700; line-height:1.35 }
+.msord-meta{ font-size:.76rem; color:#8B7C8F; font-weight:700; margin-top:2px }
+.msord-fb{
+  align-self:flex-start; margin-top:6px; background:none; border:0; padding:0; cursor:pointer;
+  font-family:inherit; font-size:.76rem; font-weight:900; color:var(--mc-mag);
+  letter-spacing:.3px; text-transform:uppercase;
+}
+.msord-go{ flex:0 0 auto; color:#8B7C8F; font-size:1.5rem; line-height:1; padding-top:2px }
+
+/* ── ORDER DETAILS ───────────────────────────────────────────────────── */
+.msdet{ background:#fff }
+.msdet-top{
+  display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--mc-line);
+  position:sticky; top:0; background:#fff; z-index:5;
+}
+.msdet-back{ background:none; border:0; font-size:1.5rem; line-height:1; color:var(--ink); cursor:pointer; padding:0 2px 0 0; font-family:inherit }
+.msdet-top b{ flex:1; font-size:.9rem; font-weight:900; letter-spacing:.5px }
+.msdet-help{
+  text-decoration:none; color:var(--mc-mag); font-size:.8rem; font-weight:900;
+  display:flex; align-items:center; gap:4px;
+}
+.msdet-item{ display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--mc-line) }
+.msdet-img{ flex:0 0 auto; width:84px; height:100px; border-radius:10px; overflow:hidden; border:1px solid var(--mc-line) }
+.msdet-img img{ width:100%; height:100%; object-fit:cover }
+.msdet-ib{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px }
+.msdet-ib b{ font-size:.88rem; font-weight:900; color:var(--ink); line-height:1.3 }
+.msdet-ib span{ font-size:.8rem; color:#4A3550; font-weight:700 }
+.msdet-ib small{ font-size:.76rem; color:#8B7C8F; font-weight:700 }
+.msdet-ret{ color:#0B7A44 !important }
+
+/* status + tracking */
+.msdet-status{ padding:14px 0; border-bottom:1px solid var(--mc-line) }
+.msdet-srow{ display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.msdet-sic{
+  flex:0 0 auto; width:36px; height:36px; border-radius:10px; background:#E7FBF1; color:#0B7A44;
+  display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+}
+.msdet-srow b{ display:block; font-size:.92rem; font-weight:900; color:var(--ink) }
+.msdet-srow small{ display:block; font-size:.76rem; color:#6E5A75; font-weight:700; margin-top:2px }
+.mstrack{ display:flex; align-items:flex-start; position:relative }
+.mst{ flex:1; display:flex; flex-direction:column; align-items:center; position:relative; text-align:center }
+.mst-dot{
+  width:24px; height:24px; border-radius:50%; background:#EDE4F2; color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:900; z-index:2;
+}
+.mst.done .mst-dot, .mst.now .mst-dot{ background:var(--mc-green) }
+.mst.now .mst-dot{ box-shadow:0 0 0 4px #DCF3E6 }
+.mst-ln{
+  position:absolute; top:11px; left:50%; width:100%; height:3px; background:#EDE4F2; z-index:1;
+}
+.mst-ln.fill{ background:var(--mc-green) }
+.mst-lb{ font-size:.68rem; font-weight:800; color:#8B7C8F; margin-top:7px; line-height:1.25; max-width:74px }
+.mst.done .mst-lb, .mst.now .mst-lb{ color:var(--ink) }
+.mst-dt{ font-size:.66rem; color:#8B7C8F; font-weight:700; margin-top:1px }
+.msdet-pay{ padding:12px 0; border-bottom:1px solid var(--mc-line) }
+.msdet-rows{ padding:12px 0; border-bottom:1px solid var(--mc-line) }
+.msdet-row{ display:flex; justify-content:space-between; gap:10px; font-size:.8rem; color:#6E5A75; padding:5px 0 }
+.msdet-row b{ color:var(--ink) }
+.msdet-row.tot{ border-top:1px solid var(--mc-line); margin-top:6px; padding-top:9px; font-weight:900; font-size:.88rem }
+.msdet-note{ font-size:.74rem; color:#6E5A75; padding:10px 0; line-height:1.5 }
+.msdet-addr{ border-top:1px solid var(--mc-line); padding:12px 0 }
+.msdet-addr > b{ font-size:.86rem; font-weight:900; color:var(--ink) }
+.msdet-addr p{ margin:8px 0 0; font-size:.8rem; color:#4A3550; line-height:1.55 }
+.msdet-acts{ display:grid; gap:8px; padding:6px 0 18px }
+.msdet-rb, .msdet-pb{
+  min-height:48px; border-radius:11px; font-family:inherit; font-size:.88rem; font-weight:900; cursor:pointer;
+}
+.msdet-rb{ background:#fff; color:var(--mc-mag); border:1.5px solid var(--mc-mag) }
+.msdet-pb{ background:var(--mc-mag); color:#fff; border:1.5px solid var(--mc-mag) }
+
+/* friends-QR block is always visible now */
+.pmf-body{ display:block }
