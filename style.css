@@ -4935,3 +4935,94 @@ body[data-page="reels"] .topbar{
   background:linear-gradient(180deg,rgba(12,5,9,.88) 0%,rgba(12,5,9,.55) 70%,rgba(12,5,9,0) 100%) !important;
 }
 body[data-page="reels"] .lang-bar{ display:none !important }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V54 — marketplace shop grid (screenshot style) · no buy-button animation
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 🚫 Buy Now animation removed (pulse + glow ring) */
+.btn-buy, .btn-pd-buy{ animation:none !important }
+.btn-pd-buy::after, .btn-buy::before{ display:none !important; animation:none !important; content:none !important }
+.btn-pd-buy:active, .btn-buy:active{ transform:scale(.985) }
+
+/* 🛍️ shop filter bar — Sort · Category · Gender · Filters */
+.mshop-bar{
+  display:grid; grid-template-columns:repeat(4,1fr); background:#fff;
+  border-top:1px solid #E5600A00; border-top:1px solid var(--mc-line);
+  border-bottom:1px solid var(--mc-line); margin:10px -16px 0;
+  position:sticky; top:0; z-index:40;
+}
+.mshop-b{
+  display:flex; align-items:center; justify-content:center; gap:5px;
+  background:#fff; border:0; border-right:1px solid var(--mc-line);
+  padding:13px 4px; font-family:inherit; font-size:.82rem; font-weight:800;
+  color:var(--ink); cursor:pointer; white-space:nowrap; overflow:hidden;
+}
+.mshop-b:last-child{ border-right:0 }
+.mshop-b .mshop-ic{ font-size:.92rem; color:#4A3550 }
+.mshop-b .mshop-t{ max-width:86px; overflow:hidden; text-overflow:ellipsis }
+.mshop-b .mshop-c{ font-size:.66rem; color:#8B7C8F }
+.mshop-b:active{ background:#FBF7FD }
+
+/* bottom sheet used by the bar */
+.msheet{ display:flex; flex-direction:column }
+.msheet-h{ font-size:.92rem; font-weight:900; margin:2px 0 10px; color:var(--ink) }
+.msheet-sub{ font-size:.74rem; color:var(--muted); margin:-6px 0 10px }
+.msheet-r{
+  width:100%; text-align:left; background:#fff; border:0; border-bottom:1px solid #F4EEF7;
+  padding:13px 4px; font-family:inherit; font-size:.86rem; font-weight:700; color:var(--ink);
+  display:flex; justify-content:space-between; cursor:pointer;
+}
+.msheet-r:last-child{ border-bottom:0 }
+.msheet-r.on{ color:var(--mc-mag); font-weight:900 }
+
+/* 🧱 the grid itself — plain white cells with hair-line separators */
+.mshop-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:0;
+  border-top:1px solid var(--mc-line); margin:0 -16px;
+}
+.msc{ position:relative; background:#fff; border-bottom:1px solid var(--mc-line); border-right:1px solid var(--mc-line) }
+.msc:nth-child(2n){ border-right:0 }
+.msc-img{ position:relative; display:block; aspect-ratio:1/1; overflow:hidden; background:#F7F3FA }
+.msc-img img{ width:100%; height:100%; object-fit:cover; display:block }
+.msc-img .card-heart{
+  position:absolute; top:8px; right:8px; width:34px; height:34px; border-radius:50%;
+  background:rgba(255,255,255,.96); box-shadow:0 1px 6px rgba(0,0,0,.14);
+  font-size:.98rem; display:flex; align-items:center; justify-content:center;
+}
+.msc-out{
+  position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,.62); color:#fff;
+  font-size:.62rem; font-weight:800; text-align:center; padding:5px;
+}
+.msc-b{ padding:9px 10px 12px }
+.msc-brand{ display:block; font-size:.7rem; color:#9A8CA0; font-weight:700; line-height:1.3 }
+.msc-price{ display:flex; align-items:baseline; gap:6px; margin-top:5px; flex-wrap:wrap }
+.msc-price b{ font-size:1.02rem; font-weight:900; color:var(--ink) }
+.msc-price s{ font-size:.74rem; color:#A99CAD }
+.msc-price em{ font-size:.74rem; font-weight:900; color:var(--mc-green); font-style:normal }
+.msc-offer{ font-size:.72rem; font-weight:800; color:#0B7A44; margin-top:4px }
+.msc-foot{ display:flex; align-items:center; gap:5px; margin-top:8px }
+.msc-rate{
+  display:inline-flex; align-items:center; gap:2px; background:var(--mc-green); color:#fff;
+  font-size:.68rem; font-weight:900; border-radius:4px; padding:2px 6px; line-height:1.3;
+}
+.msc-cnt{ font-size:.68rem; color:#8B7C8F; font-weight:700 }
+.msc-new{ font-size:.68rem; font-weight:800; color:#8B7C8F }
+.msc-trust{
+  margin-left:auto; font-size:.6rem; font-weight:800; color:#6E5A75;
+  background:#F5F0F8; border-radius:4px; padding:2px 6px;
+}
+@media(min-width:900px){
+  .mshop-grid{ grid-template-columns:repeat(3,1fr); margin:0 }
+  .msc:nth-child(2n){ border-right:1px solid var(--mc-line) }
+  .msc:nth-child(3n){ border-right:0 }
+  .mshop-bar{ margin:10px 0 0; border-radius:10px 10px 0 0 }
+}
+/* the old filter panel is now a collapsible <details> */
+.shop-filters > summary{
+  cursor:pointer; list-style:none; font-size:.8rem; font-weight:900; color:#4A3550;
+  padding:12px; border-radius:10px; background:#FBF7FD; border:1px solid var(--mc-line);
+}
+.shop-filters > summary::-webkit-details-marker{ display:none }
+.shop-filters[open] > summary{ border-radius:10px 10px 0 0 }
+.shop-filters > div{ padding:12px 0 4px }

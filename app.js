@@ -38,7 +38,8 @@ async function init(){
   }catch(e){ console.warn('page render error', e); }
   try{ renderStatsText(); }catch(e){}   /* fill hero visitor/order counters after render */
   try{ startActiveEngine(); }catch(e){} /* ⏱️ counts REAL browsing seconds (visible tab only) */
-  try{ maybeAskName(); }catch(e){}      /* 👤 1st visit: ask her name after 1 min of REAL browsing */
+  /* 🚫 V54: the “what is your name?” popup is removed (owner request) */
+  try{ LS.set('sk_name_asked', 1); }catch(e){}
   try{ initDwellTracking(); }catch(e){} /* ⏱️ how long she studies each saree → taste engine */
   try{ startOfferTimers(); }catch(e){}  /* ⏰ Meesho-style "offer ends in" countdowns */
   try{ initReelCards(); }catch(e){}     /* 🎞️ swipeable shop cards */
@@ -190,6 +191,8 @@ function aiRespond(q){
    (Amazon-style "You may also like") → bigger cart → more orders.
    Shows once per 60s so it never feels spammy. */
 function maybeShowUpsell(id){
+  /* 🚫 V54: disabled — no “choose a saree” popup after Add to Cart */
+  return;
   try{
     const page = document.body.dataset.page;
     if (page === 'cart' || page === 'checkout' || page === 'orders') return;   /* those pages already upsell */
@@ -1966,6 +1969,92 @@ function catHeroImage(slug){
     return inCat ? inCat.img : 'share-banner.jpg';
   }catch(e){ return 'share-banner.jpg'; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   V54 — SHOP PAGE in the marketplace grid style (Sort · Category · Gender ·
+   Filters bar + clean 2-column cards).  Only REAL data is shown:
+     • price / strike / % off      → the product itself
+     • “₹X with 1 Special Offer”   → the price after the real 5% online discount
+     • rating + count              → ONLY reviews customers actually wrote
+     • 🏪 Salem badge              → the real shop
+   ══════════════════════════════════════════════════════════════════════════ */
+function mscOfferPrice(p){
+  try{
+    const off = Math.min(CONFIG.onlineDiscountCap || 999999, Math.round((+p.price || 0) * (CONFIG.onlineDiscount || 0) / 100));
+    return Math.max(1, (+p.price || 0) - off);
+  }catch(e){ return +p.price || 0; }
+}
+function mscCardHTML(p){
+  const price = +p.price || 0;
+  const mrp = +p.mrp || 0;
+  const pct = mrp > price ? Math.round((mrp - price) / mrp * 100) : 0;
+  const offer = mscOfferPrice(p);
+  const revs = realRevCount(p);
+  const avg = realAvgRating(p);
+  const out = p.stock != null && +p.stock <= 0;
+  const wish = Store.wish.includes(p.id);
+  return '<article class="msc' + (out ? ' out' : '') + '">' +
+    '<div class="msc-img" data-qv="' + esc(p.id) + '" data-url="' + esc(productUrl(p)) + '">' +
+      '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
+      '<span class="card-heart' + (wish ? ' on' : '') + '" data-wish="' + esc(p.id) + '" role="button" aria-label="Wishlist">' + (wish ? '❤️' : '🤍') + '</span>' +
+      (out ? '<span class="msc-out">' + loc('இருப்பு இல்லை', 'స్టాక్ లేదు', 'ಸ್ಟಾಕ್ ಇಲ್ಲ', 'Out of stock', 'സ്റ്റോക്ക് ഇല്ല') + '</span>' : '') +
+    '</div>' +
+    '<div class="msc-b">' +
+      '<span class="msc-brand">SK Sarees</span>' +
+      '<div class="msc-price"><b>' + money(price) + '</b>' +
+        (pct > 0 ? '<s>' + money(mrp) + '</s><em>' + pct + '% off</em>' : '') + '</div>' +
+      (offer < price ? '<div class="msc-offer">' + money(offer) + ' ' + loc('1 ஆஃபருடன்', '1 ఆఫర్‌తో', '1 ಆಫರ್ ಜೊತೆ', 'with 1 Special Offer', '1 ഓഫറോടെ') + '</div>' : '') +
+      '<div class="msc-foot">' +
+        (revs > 0 && avg > 0
+          ? '<span class="msc-rate">' + avg.toFixed(1) + ' ★</span><span class="msc-cnt">(' + revs + ')</span>'
+          : '<span class="msc-new">✨ ' + loc('புதியது', 'కొత్తది', 'ಹೊಸದು', 'New', 'പുതിയത്') + '</span>') +
+        '<span class="msc-trust">🏪 Salem</span>' +
+      '</div>' +
+    '</div>' +
+  '</article>';
+}
+/* the Sort / Category / Gender / Filters bar */
+function mshopBarHTML(){
+  const cat = CATEGORIES.find(c => c.slug === shopState.cat);
+  return '<div class="mshop-bar">' +
+    '<button type="button" class="mshop-b" data-msbtn="sort"><span class="mshop-ic">⇅</span>' + loc('வரிசை', 'క్రమం', 'ಕ್ರಮ', 'Sort', 'ക്രമം') + '</button>' +
+    '<button type="button" class="mshop-b" data-msbtn="cat"><span class="mshop-t">' + (cat ? esc(cat.name) : loc('வகை', 'వర్గం', 'ವರ್ಗ', 'Category', 'വിഭാഗം')) + '</span><span class="mshop-c">▾</span></button>' +
+    '<button type="button" class="mshop-b" data-msbtn="gender"><span class="mshop-t">' + loc('யாருக்கு', 'ఎవరికి', 'ಯಾರಿಗೆ', 'Gender', 'ആർക്ക്') + '</span><span class="mshop-c">▾</span></button>' +
+    '<button type="button" class="mshop-b" data-msbtn="filters"><span class="mshop-ic">⚙</span>' + loc('பில்டர்', 'ఫిల్టర్', 'ಫಿಲ್ಟರ್', 'Filters', 'ഫിൽട്ടർ') + '</button>' +
+  '</div>';
+}
+function mshopSheet(kind){
+  try{
+    if (kind === 'sort'){
+      const opts = [['viewed', '🔥 ' + loc('அதிகம் பார்த்தது', 'ఎక్కువ చూసినవి', 'ಹೆಚ್ಚು ನೋಡಿದ', 'Most viewed', 'കൂടുതൽ കണ്ടത്')],
+                    ['price-asc', '₹ ' + loc('குறைவு → அதிகம்', 'తక్కువ → ఎక్కువ', 'ಕಡಿಮೆ → ಹೆಚ್ಚು', 'Price: Low → High', 'കുറവ് → കൂടുതൽ')],
+                    ['price-desc', '₹ ' + loc('அதிகம் → குறைவு', 'ఎక్కువ → తక్కువ', 'ಹೆಚ್ಚು → ಕಡಿಮೆ', 'Price: High → Low', 'കൂടുതൽ → കുറവ്')],
+                    ['discount', '🔥 ' + loc('அதிக தள்ளுபடி', 'ఎక్కువ డిస్కౌంట్', 'ಹೆಚ್ಚು ರಿಯಾಯಿತಿ', 'Biggest discount', 'കൂടുതൽ ഡിസ്കൗണ്ട്')]];
+      openModal('<div class="msheet"><b class="msheet-h">' + loc('வரிசைப்படுத்து', 'క్రమబద్ధీకరించు', 'ಕ್ರಮಗೊಳಿಸಿ', 'Sort by', 'ക്രമീകരിക്കൂ') + '</b>' +
+        opts.map(o => '<button type="button" class="msheet-r' + (shopState.sort === o[0] ? ' on' : '') + '" data-mssort="' + o[0] + '">' + o[1] + (shopState.sort === o[0] ? ' ✓' : '') + '</button>').join('') +
+        '</div>');
+      return;
+    }
+    if (kind === 'cat' || kind === 'gender'){
+      let list = CATEGORIES.filter(c => PRODUCTS.some(p => !p.hidden && p.cat === c.slug));
+      if (kind === 'gender'){
+        /* every saree we sell is for women — say it honestly and show the
+           women/kids groups only */
+        list = list.filter(c => !/men|dhoti/i.test(c.slug));
+      }
+      openModal('<div class="msheet"><b class="msheet-h">' + (kind === 'cat' ? loc('வகை', 'వర్గం', 'ವರ್ಗ', 'Category', 'വിഭാഗം') : loc('யாருக்கு', 'ఎవరికి', 'ಯಾರಿಗೆ', 'Gender', 'ആർക്ക്')) + '</b>' +
+        (kind === 'gender' ? '<p class="msheet-sub">' + loc('எங்க சேலைகள் எல்லாமே பெண்களுக்கானது 🩷', 'మా చీరలు అన్నీ మహిళల కోసమే 🩷', 'ನಮ್ಮ ಸೀರೆಗಳೆಲ್ಲಾ ಮಹಿಳೆಯರಿಗಾಗಿ 🩷', 'All our sarees are for women 🩷', 'ഞങ്ങളുടെ സാരികളെല്ലാം സ്ത്രീകൾക്കുള്ളതാണ് 🩷') + '</p>' : '') +
+        '<button type="button" class="msheet-r' + (!shopState.cat ? ' on' : '') + '" data-mscat="">' + loc('எல்லாம்', 'అన్నీ', 'ಎಲ್ಲಾ', 'All', 'എല്ലാം') + '</button>' +
+        list.map(c => '<button type="button" class="msheet-r' + (shopState.cat === c.slug ? ' on' : '') + '" data-mscat="' + esc(c.slug) + '">' + c.emoji + ' ' + esc(c.name) + '</button>').join('') +
+        '</div>');
+      return;
+    }
+    /* filters → open the existing filter panel and scroll to it */
+    const det = document.querySelector('.shop-filters');
+    if (det){ det.open = true; try{ det.scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){ det.scrollIntoView(); } }
+    else toast('⚙ ' + loc('பில்டர் கீழே இருக்கு', 'ఫిల్టర్ కింద ఉంది', 'ಫಿಲ್ಟರ್ ಕೆಳಗಿದೆ', 'Filters are below', 'ഫിൽട്ടർ താഴെയുണ്ട്'));
+  }catch(e){}
+}
+
 function renderShop(){
   const app = document.getElementById('app'); if (!app) return;
   const params = safeParams();
@@ -2013,8 +2102,9 @@ function renderShop(){
         '<input id="shopSearch" list="searchSuggest" type="search" placeholder="🔍 Search sarees, fabric, colour… (suggestions as you type)" style="flex:1;width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;outline:none">' +
       '</div>' + datalist +
       '<div class="cat-chips" id="catChips" style="margin-top:12px"></div>' +
+      mshopBarHTML() +
       (presetCat ? '' :
-      '<div class="pd-block shop-tools" style="margin-top:10px"><div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
+      '<details class="pd-block shop-tools shop-filters" style="margin-top:10px"><summary>⚙ ' + loc('துணி · நிறம் · விலை · வகை', 'ఫ్యాబ్రిక్ · రంగు · ధర · రకం', 'ಬಟ್ಟೆ · ಬಣ್ಣ · ಬೆಲೆ · ವಿಧ', 'Fabric · Colour · Price · Type', 'തുണി · നിറം · വില · തരം') + '</summary><div><div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">Fabric</label>' +
         '<select id="fFilter" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff"><option value="">All fabrics</option><option>Silk</option><option>Cotton</option><option>Georgette</option><option>Linen</option><option>Organza</option><option>Net</option></select></div>' +
         '<div><label class="small muted" style="font-weight:800;display:block;margin-bottom:4px">🎨 Colour</label>' +
@@ -2036,9 +2126,10 @@ function renderShop(){
         '<option value="newest">Newest</option><option value="bestselling">Best Selling</option><option value="popular">Popularity</option>' +
         '<option value="price-asc">Price: Low → High</option><option value="price-desc">Price: High → Low</option><option value="discount">Biggest Discount</option></select></div>' +
       '</div></div>' +
+      '</div></details>' +
       '<div style="display:flex;justify-content:flex-end;margin-top:6px"><button type="button" class="btn btn-outline btn-sm" id="clearFilters" style="width:auto;min-height:38px;padding:6px 16px;font-size:.78rem">✕ Clear Filters</button></div>')) +
       '<p class="small muted" id="countLbl" style="margin:12px 0 6px">⏳ Loading sarees…</p>' +
-      '<div class="reel-grid" id="grid"></div>' +
+      '<div class="mshop-grid" id="grid"></div>' +
       '<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-outline" id="loadMore" style="width:auto;min-width:200px">Load More ↓</button></div>' +
       '<div id="shopSentinel" style="height:1px"></div>' +
       '<div class="empty" id="empty" style="display:none"><div class="e-ic">🪡</div><b>No sarees found</b>Try clearing filters.</div>' +
@@ -2239,7 +2330,8 @@ function updateShopList(){
     if (lm) lm.style.display = 'none';
     return;
   }
-  grid.innerHTML = visible.map(cardReelHTML).join('');   /* 🎞️ reels-style cards */
+  /* 🛍️ V54: marketplace grid card on the shop page (reels stay on the home page) */
+  grid.innerHTML = visible.map(mscCardHTML).join('');
   if (cl) cl.textContent = shopState.list.length + ' sarees';
   if (empty) empty.style.display = 'none';
   if (lm) lm.style.display = shopState.shown < shopState.list.length ? 'inline-flex' : 'none';
@@ -2773,6 +2865,8 @@ function startActiveEngine(){
   }catch(e){}
 }
 function maybeAskName(){
+  /* 🚫 V54: disabled — no name popup for customers any more */
+  return;
   try{
     if (userName() || LS.get('sk_name_asked', 0)) return;
     const chk = setInterval(() => {
@@ -4555,6 +4649,15 @@ function rvwPageHTML(){
   '</div>';
 }
 
+/* 📱 open the customer's UPI app with this order's amount (called by Pay Now) */
+function payNowOpenUpi(){
+  try{
+    const amt = coTotals().grand;
+    const note = 'Order ' + (co.pendingId || '') + ' SK Sarees';
+    window.__payNowLink = upiLink(amt, note);          /* test / debug hook */
+    location.href = window.__payNowLink;
+  }catch(e){}
+}
 function drawCo(){
   const app = document.getElementById('app'); if (!app) return;
   const d = co.data;
@@ -6126,6 +6229,26 @@ document.addEventListener('click', function(e){
     return;
   }
   /* ═══ 💳 V50 — PAYMENT METHOD screen handlers ═══════════════════════ */
+  /* 🛍️ V54: Sort · Category · Gender · Filters bar on the shop page */
+  const msb = e.target.closest && e.target.closest('[data-msbtn]');
+  if (msb){ e.preventDefault(); try{ mshopSheet(msb.dataset.msbtn); }catch(err){ } return; }
+  const mss = e.target.closest && e.target.closest('[data-mssort]');
+  if (mss){
+    e.preventDefault();
+    shopState.sort = mss.dataset.mssort; shopState.shown = 12;
+    try{ closeModal(); }catch(err){}
+    const sel = document.getElementById('sFilter'); if (sel) sel.value = shopState.sort;
+    updateShopList();
+    return;
+  }
+  const msc2 = e.target.closest && e.target.closest('[data-mscat]');
+  if (msc2){
+    e.preventDefault();
+    shopState.cat = msc2.dataset.mscat || ''; shopState.shown = 12;
+    try{ closeModal(); }catch(err){}
+    renderShop();
+    return;
+  }
   const rvwC = e.target.closest && e.target.closest('#rvwContinue');
   if (rvwC){
     e.preventDefault();
@@ -6185,6 +6308,9 @@ document.addEventListener('click', function(e){
     }
     try{ createPendingPaymentOrder(); }catch(e2){}
     co.step = 3; drawCo();
+    /* 📱 V54: the order is saved as “Payment Waiting” — open the UPI app now so
+       the customer pays immediately (and the shop can track it in Orders). */
+    setTimeout(function(){ try{ payNowOpenUpi(); }catch(e3){} }, 250);
     return;
   }
   /* 📱 V52: tapping a UPI app — if we are still on the page 1.6 s later, the app

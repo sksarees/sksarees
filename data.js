@@ -3370,7 +3370,9 @@ function injectBottomNav(){
   try{
     if (document.getElementById('botNav')) return;
     const page = (document.body && document.body.dataset.page) || 'home';
-    if (/^(admin|pay|reels|checkout|product)$/.test(page)) return;   /* those pages have their own bar */
+    /* 🚫 V54: no bottom bar on home / shop (owner request), nor on the pages
+       that already have their own sticky bar */
+    if (/^(admin|pay|reels|checkout|product|home|shop)$/.test(page)) return;
     const n = (typeof Store !== 'undefined' && Store.cart) ? Store.cart.reduce((a, i) => a + (i.qty || 1), 0) : 0;
     const el = document.createElement('nav');
     el.id = 'botNav'; el.className = 'bot-nav';
