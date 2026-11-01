@@ -1217,12 +1217,23 @@ function upiLink(amount, note){
 /* Deep links that open a SPECIFIC UPI app directly (GPay / PhonePe / Paytm).
    Works on Android when the app is installed; otherwise the generic
    "Pay Now" (upi://) button and the QR code are the fallbacks. */
+/* 📱 in-app browsers (Instagram / Facebook / WhatsApp) BLOCK intent:// links.
+   There we must send the generic upi:// link and tell her to open Chrome. */
+function isInAppBrowser(){
+  try{
+    const ua = navigator.userAgent || '';
+    return /FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Twitter/i.test(ua);
+  }catch(e){ return false; }
+}
 function upiAppLink(app, amount, note){
   const base = 'pa=' + CONFIG.upiId + '&pn=' + encodeURIComponent(CONFIG.upiName) +
     '&am=' + Number(amount).toFixed(2) + '&cu=INR&tn=' + encodeURIComponent(note || 'SK Sarees order');
   const generic = 'upi://pay?' + base + '&mode=02';
   let ios = false;
   try{ ios = /iPad|iPhone|iPod/.test(navigator.userAgent || ''); }catch(e){}
+  /* 🐞 V52: inside Instagram / Facebook / WhatsApp the intent:// link is blocked
+     and looks like a dead button → hand over the plain UPI link instead. */
+  if (!ios && isInAppBrowser()) return generic;
   /* ✅ V45: REAL app packages so the tap actually opens the app.
      Android → intent:// with the correct package + a UPI fallback if the app
      is not installed.  iOS → the app's own scheme.  Desktop → generic UPI. */

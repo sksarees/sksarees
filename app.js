@@ -6156,8 +6156,27 @@ document.addEventListener('click', function(e){
     co.step = 2; drawCo();
     return;
   }
+  /* 🤝 Ask Friends to Pay — blurred QR → real QR, SHARE sends our pay link
+     (checked BEFORE the card, otherwise the card swallows these taps) */
+  const pmfT = e.target.closest && e.target.closest('#pmfQrToggle');
+  if (pmfT){
+    e.preventDefault();
+    const blur = document.getElementById('pmfQrBlur'), box = document.getElementById('pmfQrBox');
+    if (blur) blur.style.display = 'none';
+    if (box) box.style.display = 'flex';
+    setTimeout(() => { try{ drawFriendQR(); }catch(e2){} }, 40);
+    return;
+  }
+  const pmfS = e.target.closest && e.target.closest('#pmfShare');
+  if (pmfS){ e.preventDefault(); shareFriendPayLink(); return; }
+
   const pmp = e.target.closest && e.target.closest('[data-pmpick]');
   if (pmp){
+    /* 🐞 V52 FIX: the GPay / PhonePe / Paytm links (and any <a>) live INSIDE the
+       option card. Without this guard the card's handler ran first,
+       preventDefault()ed the tap and re-drew the card — so the UPI apps never
+       opened. Links and inner action buttons are now left alone. */
+    if (e.target.closest('a, #pmContinue, #pmfShare, #pmfQrToggle, .pmx-approw')) return;
     e.preventDefault();
     const kind = pmp.dataset.pmpick;
     co.data.payment = (kind === 'cod') ? 'cod' : 'upi';
@@ -6184,18 +6203,26 @@ document.addEventListener('click', function(e){
     co.step = 3; drawCo();
     return;
   }
-  /* 🤝 Ask Friends to Pay — blurred QR → real QR, SHARE sends our pay link */
-  const pmfT = e.target.closest && e.target.closest('#pmfQrToggle');
-  if (pmfT){
-    e.preventDefault();
-    const blur = document.getElementById('pmfQrBlur'), box = document.getElementById('pmfQrBox');
-    if (blur) blur.style.display = 'none';
-    if (box) box.style.display = 'flex';
-    setTimeout(() => { try{ drawFriendQR(); }catch(e2){} }, 40);
-    return;
+  /* 📱 V52: tapping a UPI app — if we are still on the page 1.6 s later, the app
+     probably did not open. Say so and point to the QR / any-UPI link. */
+  const appTap = e.target.closest && e.target.closest('.pmx-approw, .pg-appbtn, .pm-pay-cta, .py-paybtn');
+  if (appTap){
+    try{
+      setTimeout(function(){
+        try{
+          if (document.hidden) return;                 /* we left → the app opened */
+          if (!document.body || document.body.dataset.page !== 'checkout') return;
+          if (isInAppBrowser()){
+            toast('📱 Instagram/Facebook browser-ல UPI app திறக்காது — Chrome-ல திறந்து pay பண்ணுங்க அல்லது QR ஸ்கேன் பண்ணுங்க', 6000);
+            return;
+          }
+          toast('📱 App திறக்கலையா? QR ஸ்கேன் பண்ணுங்க அல்லது "வேற எந்த UPI ஆப்பும்" அழுத்துங்கள்', 4200);
+          const qr = document.getElementById('pmfQrBlur');
+          if (qr && qr.style.display !== 'none'){ try{ qr.scrollIntoView({ behavior: 'smooth', block: 'center' }); }catch(e3){} }
+        }catch(e2){}
+      }, 1600);
+    }catch(e){}
   }
-  const pmfS = e.target.closest && e.target.closest('#pmfShare');
-  if (pmfS){ e.preventDefault(); shareFriendPayLink(); return; }
   /* 📷 V41: show the UPI QR only on demand */
   const qrt = e.target.closest && e.target.closest('#pgQrToggle');
   if (qrt){
