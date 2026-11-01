@@ -32,8 +32,10 @@ const CONFIG = {
   resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
   resellerCoupon : 'SHARE5',         // 5% off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
-  onlineDiscount : 5,                 // 💳 V50: 5% extra OFF when paying online (prepaid)
-  onlineDiscountCap : 50,             // …capped at ₹50 per order (honest, always applied)
+  onlineDiscount : 5,                 // 💳 V51: 5% OFF when paying online (prepaid)
+  onlineDiscountCap : 999999,         // no practical cap — the discount is always applied
+  displayMarkup : 1.10,               // 🏷️ V51: every product is shown 10% above its real price
+  freeOnlineShipping : true,          // 🚚 V51: online (prepaid) orders carry NO courier charge
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get 5% off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
@@ -412,14 +414,22 @@ function normalizeProduct(raw){
      Admin-added:    name, price, mrp, cat, fabric, color, length, wash, img, ... */
   const catSlug = String(raw.cat || raw.category || 'daily').trim().toLowerCase().replace(/\s+/g, '-');
   const cat = CATEGORIES.some(c => c.slug === catSlug) ? catSlug : 'daily';
-  const price = Math.max(0, Math.round(+raw.price || 0));
+  const basePrice = Math.max(0, Math.round(+raw.price || 0));
+  /* 🏷️ V51 — every product is DISPLAYED 10% above its real selling price
+     (owner's marketplace rule). Applied ONCE: products that were already
+     normalised (cloud cache / re-render) carry _mkUp and are left as-is, so the
+     price can never grow 10% on every visit. */
+  const __mk = (() => { try{ return (typeof CONFIG !== 'undefined' && +CONFIG.displayMarkup) || 1; }catch(e){ return 1; } })();
+  const __done = !!raw._mkUp;
+  const price = __done ? basePrice : Math.max(0, Math.round(basePrice * __mk));
   /* MRP: prefer mrp/op; else derive from discount % (disc) */
   let mrp = Math.round(+raw.mrp || +raw.op || 0);
   if (!(mrp > price)){
     const disc = Math.min(90, Math.max(0, +raw.disc || 0));
     if (disc > 0 && price > 0) mrp = Math.round(price * 100 / (100 - disc));
   }
-  mrp = Math.max(price, mrp || Math.round(price * 1.6));
+  mrp = __done ? Math.max(price, mrp || Math.round(price * 1.6))
+               : Math.max(price, Math.round(mrp * __mk) || Math.round(price * 1.6));
   /* safe: during PRODUCTS' own initializer this binding is in TDZ and throws */
   let catCount = 0;
   try{ catCount = PRODUCTS.filter(p => p.cat === cat).length; }catch(e){ catCount = 0; }
@@ -486,6 +496,7 @@ function normalizeProduct(raw){
     desc: String(raw.desc || 'Beautiful handpicked saree from our collection.').trim(),
     video: VIDEO_IDS(raw)[0] || '',        /* ✅ V39: first video (compat) */
     videos: VIDEO_IDS(raw),                /* ✅ V39: every valid video id */
+    _mkUp: 1,                              /* 🏷️ V51: price markup already applied — never again */
   };
 }
 
