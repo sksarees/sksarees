@@ -2921,6 +2921,9 @@ const L_7DAY     = () => loc('7 நாள் மாற்றுத்திட�
 const L_QUALITY  = () => loc('தரச் சோதனை முடிந்தது', 'క్వాలిటీ చెక్ ముగింది', 'ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ ಮುಗಿದಿದೆ', 'Quality Checked', 'ക്വാളിറ്റി ചെക്ക് ചെയ്തു');
 const L_DISPATCH = () => loc('விரைவு அனுப்புதல்', 'వేగవంతమైన డిస్పాచ్', 'ವೇಗದ ಡಿಸ್ಪಾಚ್', 'Fast Dispatch', 'വേഗമേറിയ ഡിസ്പാച്ച്');
 const L_SECURE   = () => loc('பாதுகாப்பான பணப்பட்டுதல்', 'సురక్షిత చెల్లింపు', 'ಸುರಕ್ಷಿತ ಪಾವತಿ', 'Secure Payment', 'സുരക്ഷിത പേയ്മെന്റ്');
+/* 🛒 / ▶▶ icons for the product-page buttons (screenshot style) */
+const SVG_CART2 = '<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.2l2.3 11.2a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.5L21 7H6"/></svg>';
+const SVG_FF2 = '<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" aria-hidden="true"><path d="M3 5.5v13l9.5-6.5z"/><path d="M11.5 5.5v13L21 12z"/></svg>';
 const L_BUYNOW   = () => loc('இப்போதே வாங்க', 'ఇప్పుడే కొనండి', 'ಈಗಲೇ ಖರೀದಿಸಿ', 'BUY NOW', 'ഇപ്പോൾ തന്നെ വാങ്ങൂ');
 const L_ADDCART  = () => loc('வண்டியில் சேர்', 'కార్ట్‌లో చేర్చండి', 'ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ', 'ADD TO CART', 'കാർട്ടിലേക്ക് ചേർക്കൂ');
 const L_YOUSAVE  = () => loc('நீங்கள் மிச்சம் செய்கிறீர்கள்', 'మీరు ఆదా చేస్తారు', 'ನೀವು ಉಳಿಸುತ್ತೀರಿ', 'You Save', 'നിങ്ങൾ ലാഭിക്കുന്നു');
@@ -3488,8 +3491,8 @@ function renderProduct(){
         '<div class="pd-btns">' +
           (out
             ? '<button type="button" class="btn btn-xl" data-notify="' + p.id + '">🔔 Notify Me When Back in Stock</button>'
-            : '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + '</button>' +
-              '<button type="button" class="btn btn-atc btn-xl" data-add="' + esc(p.id) + '">🛍️ ' + L_ADDCART() + '</button>' +
+            : '<button type="button" class="btn btn-atc btn-xl" data-add="' + esc(p.id) + '">' + SVG_CART2 + '<span>' + L_ADDCART() + '</span></button>' +
+              '<button type="button" class="btn btn-pd-buy btn-xl" id="pdBuyBtn" data-buynow="' + esc(p.id) + '" data-qty="1">' + SVG_FF2 + '<span>' + L_BUYNOW() + '</span></button>' +
               '<a class="btn btn-wa btn-xl pd-wa-big pd-wa-outline" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + loc('WHATSAPP-ல் ஆர்டர் செய்யுங்கள்', 'WHATSAPP లో ఆర్డర్', 'WHATSAPP ನಲ್ಲಿ ಆರ್ಡರ್', 'ORDER ON WHATSAPP', 'WHATSAPP-ൽ ഓർഡർ') + '</a>') +
         '</div>' +
         '<input type="hidden" id="pdSelColour" value="' + esc((p.colors || [])[0] || '') + '">' +
@@ -3564,7 +3567,7 @@ function renderProduct(){
     /* 📌 sticky mobile purchase bar — WHATSAPP + BUY NOW (spec) */
     '<div class="sticky-bar sb2">' +
       '<a class="btn sb-wa-lbl" id="sbWa" href="' + waLink(waProductMsg(p)) + '" target="_blank" rel="noopener">' + SVG_WA + 'WHATSAPP</a>' +
-      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">🛒 ' + L_BUYNOW() + '</button>' +
+      '<button type="button" class="btn btn-pd-buy" id="sbBuy" data-buynow="' + esc(p.id) + '" data-qty="1">' + SVG_FF2 + '<span>' + L_BUYNOW() + '</span></button>' +
     '</div>';
   document.title = p.name + ' — SK Sarees';
   try{ trackRecentView(p); }catch(e){}
@@ -3607,13 +3610,13 @@ function renderProduct(){
     const sbPrice = document.getElementById('sbPrice');
     if (sbPrice){ const b = sbPrice.querySelector('b'); if (b) b.textContent = money(p.price * n); }
     const sbBuy = document.getElementById('sbBuy');
-    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.textContent = '🛒 ' + L_BUYNOW(); }
+    if (sbBuy){ sbBuy.dataset.qty = n; sbBuy.innerHTML = SVG_FF2 + '<span>' + L_BUYNOW() + '</span>'; }
     const addB = document.querySelector('.pd-btns [data-add]');
-    if (addB) addB.textContent = '🛍️ ' + L_ADDCART() + ' ×' + n;
+    if (addB) addB.innerHTML = SVG_CART2 + '<span>' + L_ADDCART() + ' ×' + n + '</span>';
     const pdBuy = document.getElementById('pdBuyBtn');
-    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.textContent = '🛒 ' + L_BUYNOW(); }
+    if (pdBuy){ pdBuy.dataset.qty = n; pdBuy.innerHTML = SVG_FF2 + '<span>' + L_BUYNOW() + '</span>'; }
     const pdBot = document.getElementById('pdBuyBottom');
-    if (pdBot){ pdBot.dataset.qty = n; pdBot.textContent = '🛒 ' + L_BUYNOW(); }
+    if (pdBot){ pdBot.dataset.qty = n; pdBot.innerHTML = SVG_FF2 + '<span>' + L_BUYNOW() + '</span>'; }
   };
   document.querySelectorAll('[data-qp]').forEach(b => b.addEventListener('click', () => { const v = document.getElementById('qtyVal'); v.textContent = Math.min(10, +v.textContent + 1); qtyRefresh(); }));
   /* 🚚 delivery form — pincode → ETA + pre-fills checkout */
@@ -4354,10 +4357,13 @@ function pmMethodHTML(t){
       '<span class="pmx-radio"></span></button>' +
     (pick === 'friends'
       ? '<div class="pmf-body">' +
-          '<div class="pg-qrblur pmf-qr" id="pmfQrBlur"><div class="pg-qrfake" aria-hidden="true"></div>' +
-            '<button type="button" class="pg-qrreveal" id="pmfQrToggle">👁 ' + loc('QR பார்க்க தட்டுங்கள்', 'QR చూడటానికి నొక్కండి', 'QR ನೋಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ', 'Tap to show QR', 'QR കാണാൻ ടാപ്പ് ചെയ്യൂ') + '</button></div>' +
+          '<button type="button" class="pmf-qr pg-qrblur" id="pmfQrBlur" aria-label="Show QR">' +
+            '<span class="pg-qrfake" aria-hidden="true"></span>' +
+            '<span class="pg-qrreveal" id="pmfQrToggle" aria-hidden="true"></span>' +
+          '</button>' +
           '<div class="pmf-qrbox" id="pmfQrBox" style="display:none"><div id="pmfQr"></div></div>' +
-          '<button type="button" class="pmf-share" id="pmfShare">' + loc('ஷேர்', 'షేర్', 'ಶೇರ್', 'SHARE', 'ഷെയർ') + ' <span>🔗</span></button>' +
+          '<p class="pmf-cap">' + loc('QR பார்க்க தட்டுங்கள்', 'QR చూడటానికి నొక్కండి', 'QR ನೋಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ', 'tap the QR to enlarge', 'QR കാണാൻ ടാപ്പ് ചെയ്യൂ') + '</p>' +
+          '<button type="button" class="pmf-share" id="pmfShare">' + loc('ஷேர்', 'షేర్', 'ಶೇರ್', 'SHARE', 'ഷെയർ') + ' <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.3M8.3 13.3l7.4 4.3"/></svg></button>' +
           '<p class="pmf-note">' + loc('நண்பர் pay பண்ணதும் உங்களுக்கு WhatsApp-ல தகவல் வரும்.', 'ఫ్రెండ్ చెల్లించిన తర్వాత మీకు WhatsApp లో తెలియజేస్తాము.', 'ಸ್ನೇಹಿತ ಪಾವತಿಸಿದ ನಂತರ ನಿಮಗೆ WhatsApp ನಲ್ಲಿ ತಿಳಿಸುತ್ತೇವೆ.', 'We tell you on WhatsApp as soon as your friend pays.', 'സുഹൃത്ത് അടച്ചശേഷം നിങ്ങൾക്ക് WhatsApp-ൽ അറിയിക്കും.') + '</p>' +
         '</div>'
       : '');
@@ -4366,7 +4372,7 @@ function pmMethodHTML(t){
     '<a class="pmx-approw" href="' + upiAppLink(key, grandOnline, 'Order SK Sarees') + '">' +
       '<i class="pmx-appic ' + cls + '"></i>' +
       '<span><b>' + name + '</b>' + (extra ? '<small>' + extra + '</small>' : '') + '</span>' +
-      '<span class="pmx-radio"></span></a>';
+      '</a>';
 
   const onlineCard =
     '<div class="pmx-card' + (pick === 'online' ? ' on' : '') + '" data-pmpick="online">' +
@@ -4382,7 +4388,7 @@ function pmMethodHTML(t){
             appRow('g', 'Google Pay', '', 'gpay') +
             appRow('p', 'PhonePe', '', 'phonepe') +
             appRow('t', 'Paytm', '', 'paytm') +
-            '<a class="pmx-approw" href="' + upiLink(grandOnline, 'Order SK Sarees') + '"><i class="pmx-appic u"></i><span><b>' + loc('வேற எந்த UPI ஆப்பும்', 'ఏ ఇతర UPI యాప్', 'ಬೇರೆ ಯಾವುದೇ UPI ಆ್ಯಪ್', 'Any other UPI app', 'മറ്റേതെങ്കിലും UPI ആപ്പ്') + '</b><small>BHIM · Cred · Bank app</small></span><span class="pmx-radio"></span></a>' +
+            '<a class="pmx-approw" href="' + upiLink(grandOnline, 'Order SK Sarees') + '"><i class="pmx-appic u"></i><span><b>' + loc('வேற எந்த UPI ஆப்பும்', 'ఏ ఇతర UPI యాప్', 'ಬೇರೆ ಯಾವುದೇ UPI ಆ್ಯಪ್', 'Any other UPI app', 'മറ്റേതെങ്കിലും UPI ആപ്പ്') + '</b><small>BHIM · Cred · Bank app</small></span></a>' +
           '</span>'
         : '') +
     '</div>';
@@ -4561,13 +4567,6 @@ function drawCo(){
     '<div class="step-line ' + (co.step > 2 ? 'on' : '') + '"></div>' +
     '<div class="step-dot ' + (co.step === 3 ? 'on' : '') + '"><span class="dot">3</span><span class="lbl">' + loc('பணம் செலுத்துதல்', 'చెల్లింపు', 'ಪಾವತಿ', 'Payment', 'പേയ്മെന്റ്') + '</span></div></div>';
   /* 🖼️ fresh item lines with product thumbnails */
-  const itemLines = coItems().map(i => {
-    const p = byId(i.id); if (!p) return '';
-    const off = Math.min(SHARE_MAX, Math.max(0, +(i.off || 0)));
-    return '<div class="rvw-item"><img src="' + esc(p.img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span>' + esc(p.name) + (i.colour ? ' <small class="muted">(' + esc(i.colour) + ')</small>' : '') + ' ×' + i.qty +
-      (off > 0 ? ' <small style="color:#0e7d46;font-weight:800">🎁 −' + money(off) + '</small>' : '') +
-      '</span><b>' + money(Math.max(1, p.price - off) * i.qty) + '</b></div>';
-  }).join('');
   if (co.step === 1){
     /* 🧾 V51 — REVIEW YOUR ORDER (marketplace layout, step 1 of 2) */
     app.innerHTML = rvwPageHTML();
@@ -4583,21 +4582,6 @@ function drawCo(){
     const booking = upiPay ? t.grand : (t.shipping || 0);   /* 🚚 V48 COD: courier charge only */
     app.innerHTML = '<div class="wrap page">' +
       '<div class="mh-top"><span class="mh-title">' + loc('பணம் செலுத்துங்கள்', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'PAYMENT', 'അടയ്ക്കൂ') + '</span><span class="mh-pill">STEP 2/2</span></div>' +
-      '<div class="form-card rvw-card"><h3>🧾 ' + loc('உங்கள் ஆர்டரை சரிபார்க்கவும்', 'మీ ఆర్డర్ సరిచూడండి', 'ನಿಮ್ಮ ಆರ್ಡರ್ ಪರಿಶೀಲಿಸಿ', 'Review Your Order', 'നിങ്ങളുടെ ഓർഡർ പരിശോധിക്കൂ') + '</h3>' + itemLines +
-        '<div class="row"><span>🧺 ' + loc('பொருட்கள் மொத்தம்', 'వస్తువుల మొత్తం', 'ವಸ್ತುಗಳ ಒಟ್ಟು', 'Items total', 'ഇനങ്ങளുടെ തുക') + '</span><b>' + money(t.itemsTotal) + '</b></div>' +
-        (t.discount > 0 ? '<div class="row"><span>🎫 Coupon discount (' + esc(co.data.coupon) + ')</span><b class="rvw-save">−' + money(t.discount) + '</b></div>' : '') +
-        (t.bundle > 0 ? '<div class="row"><span>🎁 Bundle deal (2+ sarees)</span><b class="rvw-save">−' + money(t.bundle) + '</b></div>' : '') +
-        (t.online > 0 ? '<div class="row"><span>💳 ' + loc('ஆன்லைன் பேமென்ட் தள்ளுபடி', 'ఆన్‌లైన్ పేమెంట్ డిస్కౌంట్', 'ಆನ್‌ಲೈನ್ ಪೇಮೆಂಟ್ ರಿಯಾಯಿತಿ', 'Online payment discount', 'ഓൺലൈൻ പേമെന്റ് ഡിസ്കൗണ്ട്') + '</span><b class="rvw-save">−' + money(t.online) + '</b></div>' : '') +
-        '<div class="row"><span>🚚 Courier</span><b class="' + (t.shipping ? '' : 'rvw-save') + '">' + (t.shipping ? money(t.shipping) : 'FREE 🎉') + '</b></div>' +
-        '<div class="rvw-meta">' +
-          '<span>👤 ' + esc(d.name) + ' • ' + esc(d.phone) + '</span>' +
-          '<span>📍 ' + esc(d.address) + ' — ' + esc(d.pincode) + '</span>' +
-          '<span>⏱ ' + t.eta + '</span>' +
-          '<span>' + (upiPay ? '📱 UPI — Pay Online' : '🚚 COD — courier charge paid') + '</span>' +
-        '</div>' +
-        (orderSavings(t) > 0 ? '<p class="co-saved" style="margin:0">🎉 ' + loc('இந்த ஆர்டரில் நீங்கள்', 'ఈ ఆర్డర్‌లో మీరు', 'ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನೀವು', 'You saved') + ' <b>₹' + orderSavings(t).toLocaleString('en-IN') + '</b> ' + loc('மிச்சம் பண்ணிட்டீங்க!', 'ఆదా చేసారు!', 'ಉಳಿಸಿದ್ದೀರಿ!', 'on this order!') + '</p>' : '') +
-        '<div class="rvw-total"><span>' + (upiPay ? 'Total payable' : 'Total — ₹' + booking + ' now + ' + money(Math.max(0, t.grand - booking)) + ' at delivery') + '</span><b>' + money(t.grand) + '</b></div>' +
-      '</div>' +
       (upiPay
         /* 💳 premium UPI payment experience (Razorpay-inspired, original SK design) */
         ?
@@ -6158,7 +6142,7 @@ document.addEventListener('click', function(e){
   }
   /* 🤝 Ask Friends to Pay — blurred QR → real QR, SHARE sends our pay link
      (checked BEFORE the card, otherwise the card swallows these taps) */
-  const pmfT = e.target.closest && e.target.closest('#pmfQrToggle');
+  const pmfT = e.target.closest && e.target.closest('#pmfQrToggle, #pmfQrBlur');
   if (pmfT){
     e.preventDefault();
     const blur = document.getElementById('pmfQrBlur'), box = document.getElementById('pmfQrBox');
@@ -6176,7 +6160,7 @@ document.addEventListener('click', function(e){
        option card. Without this guard the card's handler ran first,
        preventDefault()ed the tap and re-drew the card — so the UPI apps never
        opened. Links and inner action buttons are now left alone. */
-    if (e.target.closest('a, #pmContinue, #pmfShare, #pmfQrToggle, .pmx-approw')) return;
+    if (e.target.closest('a, #pmContinue, #pmfShare, #pmfQrToggle, #pmfQrBlur, .pmx-approw')) return;
     e.preventDefault();
     const kind = pmp.dataset.pmpick;
     co.data.payment = (kind === 'cod') ? 'cod' : 'upi';
