@@ -32,7 +32,8 @@ const CONFIG = {
   resellerMinPayout : 100,           // 💵 payout only when confirmed commission reaches ₹100
   resellerCoupon : 'SHARE5',         // 5% off coupon shown on the index banner
   couponCap      : 5,                 // 🔒 ALL % coupons capped at 5% (low-profit → more buying)
-  onlineDiscount : 0,                 // 1% online discount REMOVED (2026-09-05)
+  onlineDiscount : 5,                 // 💳 V50: 5% extra OFF when paying online (prepaid)
+  onlineDiscountCap : 50,             // …capped at ₹50 per order (honest, always applied)
   latePromise   : 'If your saree arrives after the promised date, reply LATE with your Order ID on WhatsApp and get 5% off your next order (code LATE50).',
   googleReview : 'https://g.page/r/CSQ5w7DqPWbXEAE/review',
   /* 🎬 Video catalog (YouTube embeds on the home page) — replace IDs with your
@@ -1120,9 +1121,16 @@ function removeFromCart(id, colour){
   Store.saveCart(); syncCartReservation(); toast('🗑️ Removed');
 }
 function renderCartBadge(){
-  const b = document.getElementById('cartBadge'); if (!b) return;
+  const b = document.getElementById('cartBadge');
   const n = Store.cart.reduce((s,i) => s + i.qty, 0);
-  b.hidden = n === 0; b.textContent = n;
+  if (b){ b.hidden = n === 0; b.textContent = n; }
+  /* 📱 Meesho-style bottom nav cart counter */
+  try{
+    const nb = document.getElementById('bnCartN');
+    if (nb){ nb.textContent = n; nb.hidden = n === 0; }
+    const nc = document.getElementById('bnCart');
+    if (nc) nc.classList.toggle('has', n > 0);
+  }catch(e){}
 }
 function renderCartBar(){ /* 🚿 floating cart bar removed by request */ }
 
@@ -1368,6 +1376,7 @@ const PayLink = {
         sh: Math.max(0, +t.shipping || 0),
         f: Math.max(0, +t.codFee || 0),
         di: Math.max(0, +t.discount || 0),
+        on: Math.max(0, +t.online || 0),
         g: Math.max(0, +t.grand || 0)
       }
     };
@@ -1389,7 +1398,7 @@ const PayLink = {
       items: items,
       totals: {
         itemsTotal: +t.s || 0, shipping: +t.sh || 0, codFee: +t.f || 0,
-        discount: +t.di || 0, grand: +t.g || 0
+        discount: +t.di || 0, online: +t.on || 0, grand: +t.g || 0
       },
       _fromLink: true
     };
@@ -3332,6 +3341,32 @@ function showInstallBanner(){
   }catch(e){}
 }
 
+/* 📱 V49 — MEESHO-STYLE BOTTOM NAV (mobile only)
+   Home · Shop · Reels · Orders · Cart — the app shell a marketplace customer
+   already knows. Desktop keeps the normal header nav. */
+function injectBottomNav(){
+  try{
+    if (document.getElementById('botNav')) return;
+    const page = (document.body && document.body.dataset.page) || 'home';
+    if (/^(admin|pay|reels|checkout|product)$/.test(page)) return;   /* those pages have their own bar */
+    const n = (typeof Store !== 'undefined' && Store.cart) ? Store.cart.reduce((a, i) => a + (i.qty || 1), 0) : 0;
+    const el = document.createElement('nav');
+    el.id = 'botNav'; el.className = 'bot-nav';
+    el.setAttribute('aria-label', 'Main');
+    const item = (href, ic, label, on, extra) =>
+      '<a class="bn-i' + (on ? ' on' : '') + '" href="' + href + '"' + (extra || '') + '>' +
+        '<span class="bn-ic">' + ic + '</span><small>' + label + '</small></a>';
+    el.innerHTML =
+      item('index.html', '🏠', 'Home', page === 'home') +
+      item('shop.html', '🛍️', 'Shop', page === 'shop') +
+      item('reels.html', '🎬', 'Reels', page === 'reels') +
+      item('orders.html', '📦', 'Orders', page === 'orders') +
+      '<a class="bn-i' + (page === 'cart' ? ' on' : '') + '" id="bnCart" href="cart.html">' +
+        '<span class="bn-ic">🛒<b class="bn-n" id="bnCartN"' + (n ? '' : ' hidden') + '>' + n + '</b></span><small>Cart</small></a>';
+    document.body.appendChild(el);
+    document.body.classList.add('has-botnav');
+  }catch(e){}
+}
 function injectChrome(){
   try{ seoInject(); }catch(e){}
   try{ Stats.init(); renderStatsText(); }catch(e){}
@@ -3386,6 +3421,7 @@ function injectChrome(){
     <div class="toast" id="toast"></div>
     <div id="modalRoot"></div>`);
   try{ abandonedCartBanner(); }catch(e){}
+  try{ injectBottomNav(); }catch(e){}
 
   document.addEventListener('click', e => { const c = e.target.closest('[data-close]'); if (c) closeModal(); });
 }

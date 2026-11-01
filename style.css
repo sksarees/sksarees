@@ -4285,3 +4285,480 @@ body[data-page="pay"]{ background:#FFF7FA }
   box-shadow:0 4px 14px rgba(216,27,96,.26); margin-bottom:8px;
 }
 .pm-cta-cod:active{ transform:scale(.985) }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   🛍️ V49 — MEESHO-STYLE THEME
+   Red header + magenta actions + yellow deals + green ratings.
+   Only colours / shapes / spacing change — every feature stays exactly as is.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* brand */
+  --mc-red:#C1191F; --mc-red-d:#9E1016;
+  --mc-mag:#A61E8C; --mc-mag-d:#8A1472; --mc-mag-s:#FBEFF8;
+  --mc-yel:#FFD84D; --mc-yel-s:#FFF6D6;
+  --mc-green:#1B9C55; --mc-lav:#F7F3FA; --mc-line:#EDE4F2;
+  /* remap the old rose-pink system so every existing component follows */
+  --maroon:#A61E8C; --maroon-d:#8A1472; --maroon-deep:#6E0F5C; --maroon-soft:#FBEFF8;
+  --gold:#E8A200; --gold-l:#FFD84D; --gold-soft:#FFF6D6;
+  --line:#EDE4F2; --ink:#241022; --muted:#8B7C8F;
+  --r:14px; --r-sm:10px;
+  --sh:0 6px 20px rgba(36,16,34,.08); --sh-sm:0 2px 8px rgba(36,16,34,.06);
+}
+body{ background:#fff; color:var(--ink) }
+
+/* ── HEADER: red app bar ─────────────────────────────────────────────── */
+.topbar{
+  background:linear-gradient(180deg,var(--mc-red) 0%,var(--mc-red-d) 100%) !important;
+  box-shadow:0 1px 10px rgba(158,16,22,.28) !important; border-bottom:0 !important;
+  padding:6px 0 !important; height:auto !important;
+}
+.topbar-in{ height:52px !important; gap:8px !important }
+.topbar .logo{ color:#fff !important }
+.topbar .logo small{ color:#FFE3E4 !important; opacity:.95 }
+.topbar .logo-badge{ background:#fff !important; color:var(--mc-red) !important; border-radius:10px !important }
+.topbar .icon-btn, .topbar .burger{ color:#fff !important; background:transparent !important }
+.topbar .desk-nav a{ color:#fff !important; opacity:.92 }
+.topbar .desk-nav a.on{ color:#fff !important; font-weight:900; opacity:1; border-bottom:2px solid var(--mc-yel) }
+.topbar #cartBadge{ background:var(--mc-yel) !important; color:#5A1A00 !important; font-weight:900 }
+.topbar .icon-btn:hover{ background:rgba(255,255,255,.14) !important; border-radius:10px }
+
+/* language bar → clean white strip with magenta active */
+.lang-bar{ background:#fff !important; border-bottom:1px solid var(--mc-line) !important }
+.lang-bar .lb-btn{ color:#6E5A75 !important; font-weight:800 }
+.lang-bar .lb-btn.on{ background:var(--mc-mag-s) !important; color:var(--mc-mag) !important; border-color:#E7CBE2 !important }
+
+/* promo strip → red ticker with yellow emphasis */
+.promo-strip{
+  background:var(--mc-red-d) !important; color:#FFE9A8 !important;
+  border-bottom:1px solid rgba(0,0,0,.12) !important; padding:6px 0 !important;
+}
+.promo-strip b{ color:var(--mc-yel) !important }
+.promo-strip a{ color:#fff !important }
+
+/* ── HOME: sale banner ──────────────────────────────────────────────── */
+.ms-top{ padding-top:12px !important }
+.ms-hero{
+  position:relative; overflow:hidden; border-radius:16px; padding:16px 16px 18px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255,216,77,.28) 0%, rgba(255,216,77,0) 55%),
+    linear-gradient(135deg,#C1191F 0%,#8E0D12 100%);
+  color:#fff; box-shadow:0 8px 22px rgba(158,16,22,.24);
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.ms-hero::before{
+  content:''; position:absolute; inset:0;
+  background-image:radial-gradient(rgba(255,216,77,.5) 1.2px, transparent 1.3px);
+  background-size:18px 18px; opacity:.35; pointer-events:none;
+}
+.ms-hero-txt{ position:relative; z-index:1; min-width:0 }
+.ms-kick{
+  display:inline-block; background:rgba(255,216,77,.18); border:1px solid rgba(255,216,77,.6);
+  color:var(--mc-yel); font-size:.66rem; font-weight:900; letter-spacing:.6px;
+  border-radius:20px; padding:4px 11px; text-transform:uppercase;
+}
+.ms-big{
+  display:block; font-size:2rem; line-height:1.05; font-weight:900; letter-spacing:-.5px;
+  margin:8px 0 4px; color:var(--mc-yel); text-shadow:0 2px 0 rgba(0,0,0,.18);
+}
+.ms-sub{ display:block; font-size:.78rem; color:#FFE3E4; font-weight:700 }
+.ms-cta{
+  display:inline-flex; align-items:center; margin-top:12px;
+  background:#fff; color:var(--mc-mag); font-size:.8rem; font-weight:900;
+  border-radius:22px; padding:9px 18px; text-decoration:none;
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+}
+.ms-cta:active{ transform:scale(.97) }
+.ms-hero-badge{
+  position:relative; z-index:1; flex:0 0 auto; width:78px; height:78px; border-radius:50%;
+  background:var(--mc-yel); color:#7A1200; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-weight:900; line-height:1;
+  box-shadow:0 0 0 6px rgba(255,216,77,.22), 0 6px 16px rgba(0,0,0,.18);
+  transform:rotate(-8deg);
+}
+.ms-hero-badge span{ font-size:.62rem; letter-spacing:1px }
+.ms-hero-badge b{ font-size:1.16rem; margin-top:2px }
+
+/* delivery PIN pill */
+.ms-pin{
+  width:100%; display:flex; align-items:center; gap:9px; margin:12px 0 0; cursor:pointer;
+  background:#fff; border:1px solid var(--mc-line); border-radius:12px; padding:10px 12px;
+  font-family:inherit; text-align:left; box-shadow:var(--sh-sm);
+}
+.ms-pin-ic{ font-size:1rem; line-height:1 }
+.ms-pin-t{ flex:1; min-width:0 }
+.ms-pin-t small{ display:block; font-size:.62rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px }
+.ms-pin-t b{ display:block; font-size:.8rem; font-weight:900; color:var(--ink); margin-top:1px }
+.ms-pin-arrow{ color:var(--mc-mag); font-size:1.1rem; font-weight:900 }
+
+/* today's deal timer — yellow bar, red boxes (Meesho look) */
+.ms-timer{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin:12px 0 2px; padding:9px 12px; border-radius:12px;
+  background:linear-gradient(90deg,#FFF3C9 0%,#FFE59A 100%);
+  border:1px solid #F3D68A;
+}
+.ms-timer-l{ font-size:.74rem; font-weight:900; color:#7A4A00 }
+.offer-timer{ display:inline-flex; gap:4px; align-items:center }
+.offer-timer .ot-t{
+  background:var(--mc-red); color:#fff; border-radius:7px; padding:3px 9px !important;
+  font-size:.84rem !important; font-weight:900; letter-spacing:.5px;
+  box-shadow:0 2px 0 rgba(0,0,0,.12);
+}
+
+/* ── SEARCH: white pill like the app ─────────────────────────────────── */
+.im-search{
+  display:flex; align-items:center; gap:8px; background:#fff;
+  border:1.5px solid var(--mc-line) !important; border-radius:999px !important;
+  padding:6px 6px 6px 16px !important; box-shadow:var(--sh-sm); margin:0 !important;
+}
+.im-search input{
+  flex:1; min-width:0; border:0 !important; outline:none; background:transparent;
+  font-size:.9rem; padding:8px 0 !important; color:var(--ink);
+}
+.im-search input::placeholder{ color:#A99CAD }
+.im-search-btn{
+  border:0; border-radius:999px; background:var(--mc-mag); color:#fff;
+  font-size:.76rem; font-weight:900; padding:10px 16px; cursor:pointer; white-space:nowrap;
+}
+.im-search-btn:active{ transform:scale(.97) }
+.sk-chips{ gap:7px !important }
+.sk-chip{
+  background:#fff !important; border:1px solid var(--mc-line) !important;
+  border-radius:999px !important; padding:6px 13px !important;
+  font-size:.72rem !important; font-weight:800 !important; color:#5C4A63 !important;
+}
+
+/* ── CATEGORY ARCHES (Meesho circles) ────────────────────────────────── */
+.sk-cattile{
+  border:1px solid var(--mc-line) !important; border-radius:999px 999px 12px 12px !important;
+  overflow:hidden !important; background:#fff !important; box-shadow:var(--sh-sm);
+  display:flex !important; flex-direction:column; align-items:stretch;
+  text-align:center; text-decoration:none;
+}
+.sk-cattile img{
+  width:100% !important; aspect-ratio:1/1 !important; object-fit:cover !important;
+  border-radius:999px 999px 0 0 !important; display:block; margin:0 !important;
+}
+.sk-cattile span, .sk-cattile b, .sk-cattile small{
+  font-size:.7rem !important; font-weight:800 !important; color:#3A2A40 !important;
+  padding:7px 4px !important; line-height:1.25;
+}
+.sk-cattile:active{ transform:scale(.97) }
+
+/* ── SECTION HEADS + VIEW ALL pill ───────────────────────────────────── */
+.sk-sec h2{
+  font-size:1.06rem !important; font-weight:900 !important; letter-spacing:-.2px;
+  color:var(--ink) !important; text-transform:none;
+}
+.sk-sec h2 a{
+  display:inline-flex; align-items:center; gap:4px;
+  background:#fff; border:1.5px solid var(--mc-mag); color:var(--mc-mag);
+  border-radius:999px; padding:5px 13px; font-size:.7rem !important; font-weight:900 !important;
+  text-decoration:none;
+}
+
+/* ── PRODUCT CARDS ───────────────────────────────────────────────────── */
+.hc{
+  border:1px solid var(--mc-line) !important; border-radius:12px !important;
+  overflow:hidden; background:#fff; box-shadow:var(--sh-sm);
+  transition:box-shadow .15s ease, transform .15s ease;
+}
+.hc:active{ transform:scale(.985) }
+.hc:hover{ box-shadow:0 8px 20px rgba(36,16,34,.12) }
+.hc-img{ position:relative; display:block; aspect-ratio:1/1; background:#F7F3FA; overflow:hidden }
+.hc-img img{ width:100%; height:100%; object-fit:cover }
+/* red SALE ribbon (only rendered when the saree really has a discount) */
+.hc-img .hc-off{
+  position:absolute; top:0; left:0; z-index:2;
+  background:var(--mc-red); color:#fff; font-size:.62rem; font-weight:900;
+  padding:4px 9px 4px 8px; border-radius:0 0 8px 0; letter-spacing:.3px;
+  box-shadow:0 2px 6px rgba(193,25,31,.35);
+}
+.hc-b{ padding:9px 10px 11px !important }
+.hc-t{ font-size:.8rem !important; font-weight:800 !important; color:var(--ink) !important; line-height:1.3 }
+/* green rating pill */
+.hc-rate{
+  display:inline-flex; align-items:center; gap:3px; margin:5px 0 0;
+  background:var(--mc-green); color:#fff !important; font-size:.64rem !important;
+  font-weight:900; border-radius:5px; padding:2px 6px; line-height:1.2;
+}
+.hc-rate:empty{ display:none }
+/* yellow price strip */
+.hc-price{
+  display:inline-flex; align-items:baseline; gap:6px; margin:7px 0 0;
+  background:var(--mc-yel-s); border-radius:6px; padding:3px 7px;
+}
+.hc-price b{ font-size:1rem !important; font-weight:900; color:#4A2A00 !important }
+.hc-price s{ font-size:.72rem !important; color:#9A8B7A !important }
+.hc-save{ display:block; font-size:.68rem !important; color:var(--mc-green) !important; font-weight:800; margin-top:3px }
+.hc-meta{ display:block; font-size:.66rem !important; color:#8B7C8F !important; margin-top:4px }
+.hc-btns{ margin-top:8px !important; gap:6px !important }
+.hc-buy{
+  border-radius:8px !important; background:var(--mc-mag) !important; color:#fff !important;
+  font-size:.72rem !important; font-weight:900; min-height:34px; border:0; cursor:pointer;
+}
+.hc-wa{
+  border-radius:8px !important; background:#fff !important; color:#0E7D46 !important;
+  border:1.5px solid #BFE6D0 !important; font-size:.68rem !important; font-weight:800;
+}
+
+/* ── PRODUCT PAGE: lavender canvas + white cards ─────────────────────── */
+body[data-page="product"]{ background:var(--mc-lav) !important }
+body[data-page="product"] .pd-gal{ background:#fff; border:1px solid var(--mc-line) !important; border-radius:14px !important }
+body[data-page="product"] .pd-cat{
+  background:var(--mc-mag); color:#fff !important; border:0 !important;
+  border-radius:999px !important; padding:4px 12px !important;
+  font-size:.68rem !important; font-weight:900;
+}
+body[data-page="product"] .pd-info > h1{ font-size:1.14rem !important; font-weight:900; color:var(--ink) }
+body[data-page="product"] .pd-price b{ font-size:1.9rem !important; color:var(--ink) !important; font-weight:900 }
+body[data-page="product"] .pd-price s{ color:#9A8B9F !important }
+body[data-page="product"] .pd-price .off,
+body[data-page="product"] .off{
+  background:var(--mc-red) !important; color:#fff !important; border:0 !important;
+  border-radius:5px !important; padding:2px 7px !important; font-size:.72rem !important; font-weight:900;
+}
+body[data-page="product"] .pd-save{ color:var(--mc-green) !important }
+body[data-page="product"] .btn-pd-buy{
+  background:var(--mc-mag) !important; border-color:var(--mc-mag) !important;
+  border-radius:12px !important; box-shadow:0 4px 14px rgba(166,30,140,.25);
+}
+body[data-page="product"] .btn-atc{
+  background:#fff !important; color:var(--mc-mag) !important;
+  border:1.6px solid var(--mc-mag) !important; border-radius:12px !important;
+}
+body[data-page="product"] .pd-thumb.on{ border-color:var(--mc-mag) !important }
+body[data-page="product"] .instock{ background:#F0FBF4; border-color:#BFE6D0; color:#0E7D46 }
+
+/* sticky buy bar (mobile) */
+.sticky-bar.sb2{ background:#fff !important; border-top:1px solid var(--mc-line) !important; box-shadow:0 -4px 16px rgba(36,16,34,.10) !important }
+.sticky-bar.sb2 .btn-buy, .sticky-bar .btn-pd-buy{ background:var(--mc-mag) !important; border-radius:11px !important }
+
+/* ── CHECKOUT / PAYMENT ──────────────────────────────────────────────── */
+body[data-page="checkout"]{ background:var(--mc-lav) }
+.pm-card, .form-card, .co-trust, .co-trust2, .ts-sec{
+  border-radius:14px !important; border:1px solid var(--mc-line) !important; box-shadow:var(--sh-sm);
+}
+.pm-card.pm-upi{ border:1.6px solid #E7CBE2; box-shadow:0 4px 16px rgba(166,30,140,.08) }
+.pm-cta-upi, .pm-cta-cod, .pg-paid, .co-continue{
+  background:var(--mc-mag) !important; border-radius:12px !important;
+  box-shadow:0 4px 14px rgba(166,30,140,.24) !important;
+}
+.steps-ui .step-dot.on .dot{ background:var(--mc-mag) !important }
+.steps-ui .step-dot.done .dot{ background:var(--mc-green) !important }
+.steps-ui .step-line.on{ background:var(--mc-mag) !important }
+
+/* green "you saved" ribbon — Meesho's extra-offer strip */
+.co-save, .co-saved, .co-trust2 .cot-save{
+  color:#0E7D46 !important; font-weight:900;
+}
+.os-savings, .py-stamp{ border-radius:10px }
+
+/* ── PAY PAGE ────────────────────────────────────────────────────────── */
+body[data-page="pay"]{ background:var(--mc-lav) }
+.py-card{ border-radius:14px !important; border:1px solid var(--mc-line) !important }
+.py-paybtn{ background:var(--mc-mag) !important; border-radius:12px !important; box-shadow:0 4px 14px rgba(166,30,140,.26) !important }
+.py-amt b{ color:var(--mc-mag) !important }
+.py-badge{ background:var(--mc-red) !important }
+
+/* ── BUTTONS (global) ────────────────────────────────────────────────── */
+.btn-maroon{ background:var(--mc-mag) !important; border-color:var(--mc-mag) !important; border-radius:11px !important }
+.btn-maroon:active{ background:var(--mc-mag-d) !important }
+.btn-buy{ background:var(--mc-mag) !important; border-color:var(--mc-mag) !important; border-radius:11px !important }
+.btn-gold{ background:var(--mc-yel) !important; color:#5A1A00 !important; border-color:#EFC63A !important; border-radius:11px !important }
+.btn-outline{ border-color:#D9C9DE !important; color:#4A3550 !important; border-radius:11px !important }
+.btn-wa{ background:#25D366 !important; border-radius:11px !important }
+
+/* ── BOTTOM NAV (app shell) ──────────────────────────────────────────── */
+.bot-nav{
+  position:fixed; left:0; right:0; bottom:0; z-index:120;
+  display:none; align-items:stretch; justify-content:space-around;
+  background:#fff; border-top:1px solid var(--mc-line);
+  box-shadow:0 -2px 14px rgba(36,16,34,.10);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+@media(max-width:899px){ body.has-botnav .bot-nav{ display:flex } }
+.bn-i{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  text-decoration:none; color:#8B7C8F; padding:3px 2px; border-radius:10px; position:relative;
+}
+.bn-ic{ font-size:1.2rem; line-height:1; position:relative }
+.bn-i small{ font-size:.62rem; font-weight:800; letter-spacing:.1px }
+.bn-i.on{ color:var(--mc-mag) }
+.bn-i.on small{ font-weight:900 }
+.bn-i.on::after{
+  content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+  width:22px; height:3px; border-radius:0 0 3px 3px; background:var(--mc-mag);
+}
+.bn-n{
+  position:absolute; top:-5px; right:-9px; min-width:15px; height:15px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--mc-red); color:#fff; font-size:.58rem; font-weight:900;
+  border-radius:99px; padding:0 4px;
+}
+@media(max-width:899px){
+  body.has-botnav{ padding-bottom:64px !important }
+  /* the WhatsApp float must sit above the new nav */
+  .wa-float{ bottom:calc(74px + env(safe-area-inset-bottom)) !important }
+  .im-wa-bar{ display:none !important }
+  .promo-strip{ font-size:.68rem }
+}
+/* desktop keeps the classic look for the nav */
+@media(min-width:900px){ .bot-nav{ display:none !important } }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V50 — MEESHO-STYLE PAYMENT METHOD SCREEN (checkout step 2)
+   ══════════════════════════════════════════════════════════════════════════ */
+.mh-page{ padding-bottom:96px !important; background:#fff }
+.mh-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0 10px }
+.mh-title{ font-size:.92rem; font-weight:900; letter-spacing:.4px; color:var(--ink) }
+.mh-pill{
+  font-size:.66rem; font-weight:900; color:#4A6BD6; letter-spacing:.5px;
+  border:1px solid #C9D6F7; background:#EEF3FE; border-radius:999px; padding:4px 11px;
+}
+.mh-items{ display:flex; gap:8px; overflow-x:auto; padding:2px 0 10px; scrollbar-width:none }
+.mh-items::-webkit-scrollbar{ display:none }
+.mh-item{
+  flex:0 0 auto; display:flex; align-items:center; gap:7px; max-width:240px;
+  border:1px solid var(--mc-line); border-radius:11px; padding:6px 9px 6px 6px; background:#fff;
+}
+.mh-item img{ width:38px; height:44px; object-fit:cover; border-radius:7px; flex:0 0 auto }
+.mh-item span{ min-width:0 }
+.mh-item b{ display:block; font-size:.72rem; font-weight:800; color:var(--ink); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.mh-item small{ display:block; font-size:.66rem; color:var(--muted); margin-top:2px }
+
+/* green savings banner with a wavy bottom */
+.mh-banner{
+  position:relative; display:flex; align-items:center; gap:8px; justify-content:center;
+  background:linear-gradient(90deg,#E7FBF1 0%,#DDF7EA 100%);
+  border-top:1px solid #C9EEDB; border-bottom:1px dashed #A9E3C4;
+  color:#0B7A44; font-size:.86rem; font-weight:800; padding:11px 12px; margin:0 -16px 14px;
+}
+.mh-banner b{ color:#0B7A44; font-size:1rem; font-weight:900 }
+.mh-conf{ font-size:1rem }
+.mh-h{ font-size:.95rem; font-weight:900; color:var(--ink); margin:0 0 10px }
+
+/* option cards */
+.pmx-card{
+  position:relative; display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+  border:1.5px solid var(--mc-line); border-radius:12px; background:#fff;
+  padding:14px 12px; margin-bottom:10px; cursor:pointer; font-family:inherit;
+  transition:border-color .12s ease, box-shadow .12s ease;
+}
+.pmx-card.on{ border-color:var(--mc-mag); box-shadow:0 2px 12px rgba(166,30,140,.12) }
+.pmx-card .pmx-apps, .pmx-card .pmx-extra{ grid-column:1/-1 }
+.pmx-card[data-pmpick="online"]{ display:grid; grid-template-columns:auto 1fr auto; align-items:center }
+.pmx-card[data-pmpick="online"] .pmx-apps{ margin-top:6px }
+.pmx-pc{
+  flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; gap:1px;
+  min-width:72px; padding-right:10px; border-right:1px dashed #DCCDE2;
+}
+.pmx-pc s{ font-size:.66rem; color:#A99CAD }
+.pmx-pc b{ font-size:1.02rem; font-weight:900; color:var(--ink) }
+.pm-savechip{
+  font-style:normal; font-size:.62rem; font-weight:900; color:#0B7A44;
+  background:#E7FBF1; border-radius:5px; padding:2px 6px; margin-top:3px;
+}
+.pmx-main{ flex:1; min-width:0 }
+.pmx-main b{ display:block; font-size:.86rem; font-weight:800; color:var(--ink) }
+.pmx-main small{ display:block; font-size:.68rem; color:var(--muted); margin-top:3px; line-height:1.35 }
+.pmx-radio{
+  flex:0 0 auto; width:20px; height:20px; border-radius:50%;
+  border:2px solid #C9BCCE; background:#fff; display:inline-block;
+}
+.pmx-card.on > .pmx-radio{ border-color:var(--mc-mag); box-shadow:inset 0 0 0 3px #fff; background:var(--mc-mag) }
+/* green "EXTRA ₹X off" ribbon */
+.pmx-extra{
+  display:block; margin-top:10px; padding:9px 11px; border-radius:9px;
+  background:#0B7A44; color:#fff; font-size:.74rem; font-weight:900; text-align:center;
+}
+/* app rows */
+.pmx-apps{ display:block; border-top:1px solid var(--mc-line); margin-top:10px; padding-top:4px }
+.pmx-approw{
+  display:flex; align-items:center; gap:10px; padding:11px 4px; text-decoration:none;
+  border-bottom:1px solid #F4EEF7;
+}
+.pmx-approw:last-child{ border-bottom:0 }
+.pmx-approw span{ flex:1; min-width:0 }
+.pmx-approw b{ font-size:.82rem; font-weight:800; color:var(--ink); display:block }
+.pmx-approw small{ font-size:.66rem; color:var(--muted) }
+.pmx-appic{ width:22px; height:22px; border-radius:6px; flex:0 0 auto; display:inline-block }
+.pmx-appic.g{ background:conic-gradient(#ea4335 0 25%,#fbbc04 0 50%,#34a853 0 75%,#4285f4 0) }
+.pmx-appic.p{ background:#5f259f }
+.pmx-appic.t{ background:#002970 }
+.pmx-appic.u{ background:var(--mc-mag) }
+
+/* friends-pay QR block */
+.pmf-body{ margin:-4px 0 12px; text-align:center }
+.pmf-qr{ margin:0 auto }
+.pmf-qrbox{
+  display:none; width:220px; height:220px; margin:0 auto; align-items:center; justify-content:center;
+  background:#fff; border:1px solid var(--mc-line); border-radius:14px; padding:10px;
+}
+.pmf-qrbox svg{ width:200px; height:200px }
+.pmf-share{
+  display:inline-flex; align-items:center; gap:6px; margin-top:10px;
+  background:none; border:0; color:var(--mc-mag); font-size:.86rem; font-weight:900;
+  letter-spacing:1px; cursor:pointer; font-family:inherit;
+}
+.pmf-note{ font-size:.68rem; color:var(--muted); margin:6px 0 0; line-height:1.45 }
+
+/* reseller + price details rows */
+.mhrowse{
+  display:flex; align-items:center; gap:10px; padding:14px 12px; margin:12px 0 10px;
+  background:#FBF7FD; border:1px solid var(--mc-line); border-radius:12px;
+  text-decoration:none; color:var(--ink);
+}
+.mhrowse span{ flex:1; font-size:.84rem; font-weight:800 }
+.mhrowse small{ font-size:.68rem; color:var(--muted); font-weight:700 }
+.mhrowse i{ font-style:normal; color:var(--mc-mag); font-size:1.1rem; font-weight:900 }
+.mh-pricedet{ border:1px solid var(--mc-line); border-radius:12px; background:#fff; overflow:hidden }
+.mh-pricedet summary{
+  list-style:none; cursor:pointer; padding:13px 12px; font-size:.84rem; font-weight:800; color:var(--ink);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.mh-pricedet summary::-webkit-details-marker{ display:none }
+.mh-pricedet summary::after{ content:'⌄'; color:var(--muted); font-weight:900 }
+.mh-pricedet[open] summary::after{ content:'⌃' }
+.pd-body{ padding:0 12px 12px }
+.pd-row{ display:flex; justify-content:space-between; gap:10px; font-size:.78rem; color:#6E5A75; padding:5px 0 }
+.pd-row b{ color:var(--ink) }
+.pd-row .pd-save{ color:#0B7A44 }
+.pd-row.pd-total{ border-top:1px solid var(--mc-line); margin-top:6px; padding-top:9px; font-weight:900; font-size:.88rem }
+.mh-space{ height:8px }
+
+/* sticky bottom bar */
+.mh-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:130;
+  display:flex; align-items:center; gap:10px; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  background:#fff; border-top:1px solid var(--mc-line); box-shadow:0 -3px 14px rgba(36,16,34,.10);
+  max-width:560px; margin:0 auto;
+}
+.mh-bar-l{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px }
+.mh-bar-l b{ font-size:1.06rem; font-weight:900; color:var(--ink) }
+.mh-bar-save{ font-style:normal; font-size:.66rem; font-weight:900; color:#0B7A44 }
+.mh-bar-pd{
+  align-self:flex-start; background:none; border:0; padding:0; cursor:pointer; font-family:inherit;
+  font-size:.66rem; font-weight:900; color:var(--mc-mag); text-decoration:underline; letter-spacing:.3px;
+}
+.mh-bar-go{
+  flex:0 0 auto; min-width:150px; min-height:48px; border:0; border-radius:10px; cursor:pointer;
+  background:var(--mc-mag); color:#fff; font-size:.92rem; font-weight:900;
+  box-shadow:0 4px 14px rgba(166,30,140,.26);
+}
+.mh-bar-go:active{ transform:scale(.985) }
+@media(min-width:900px){ .mh-bar{ border-radius:14px 14px 0 0 } }
+/* V50 — checkout step 1 extras */
+.co-salebar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:linear-gradient(90deg,#FFF3C9,#FFE59A); border:1px solid #F3D68A;
+  border-radius:10px; padding:8px 12px; margin:4px 0 10px;
+}
+.co-salebar span:first-child{ font-size:.72rem; font-weight:900; color:#7A4A00 }
+.co-salebar .ot-t{ background:#C1191F; color:#fff; border-radius:6px; padding:2px 8px; font-size:.8rem; font-weight:900 }
+.co-soldby{
+  display:flex; flex-wrap:wrap; gap:8px 16px; justify-content:space-between;
+  font-size:.72rem; color:#6E5A75; border:1px dashed var(--mc-line);
+  border-radius:10px; padding:9px 12px; margin:10px 0 6px; background:#FBF7FD;
+}
+.co-soldby b{ color:var(--ink) }
