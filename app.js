@@ -21,7 +21,11 @@ async function init(){
      Firestore product pages appear immediately — no "Loading product…".
      🔥 Never blocks first paint: if catalog.json is slow/unreachable, the page
      renders after 1.2s max (product pages already have their own fast path). */
-  try{ await Promise.race([preloadCatalog(), new Promise(r => setTimeout(r, 1200))]); }catch(e){}
+  /* ⚡ V56: a pre-rendered product page already carries its product in
+     window.__PRODUCT_DATA — skip the catalogue fetch entirely (0 network,
+     0 Firestore reads, instant paint). */
+  const __pre = !!(window.__PRODUCT_DATA && window.__PRODUCT_DATA.id && document.body.dataset.page === 'product');
+  if (!__pre) { try{ await Promise.race([preloadCatalog(), new Promise(r => setTimeout(r, 1200))]); }catch(e){} }
   const page = document.body.dataset.page;
   try{
     if (page === 'home') renderHome();
@@ -1832,10 +1836,11 @@ function renderHome(){
     secHead('🤝 ' + loc('ஏன் SK Sarees-ல் வாங்க வேண்டும்?', 'SK Sarees లో ఎందుకు కొనాలి?', 'SK Sarees ನಲ್ಲಿ ಏಕೆ ಖರೀದಿಸಬೇಕೆ?', 'Why Shop From SK Sarees?', 'എന്തുകൊണ്ട് SK Sarees?')) + '<div class="sk-why">' +
       ['💵 COD Available', '⚡ Fast Dispatch', '🔒 Secure Payments', '↩️ 7-Day Replacement', '💬 WhatsApp Support'].map(x => '<span>' + x + '</span>').join('') +
       '</div></div>' +
-    /* ═══ 11. REAL CUSTOMER REVIEWS ═══ */
-    secHead('💬 ' + loc('உண்மையான வாடிக்கையாளர் கருத்துகள்', 'నిజమైన కస్టమర్ రివ్యూలు', 'ನಿಜವಾದ ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು', 'Real Customer Reviews', 'യഥാർത്ഥ ഉപഭോക്തൃ അവലോകനങ്ങൾ')) +
-      '<div class="hc-grid" style="grid-template-columns:repeat(2,1fr)">' + REVIEWS.slice(0, 4).map(r =>
-        '<div class="sk-rev"><b>' + esc(r.name) + '</b> <small>📍 ' + esc(r.place) + '</small><div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div><p>' + esc(r.text) + '</p></div>').join('') + '</div></div>' +
+    /* ═══ 11. CUSTOMER REVIEWS — genuine UGC only ═══
+       🚫 No hand-written testimonials. This section renders ONLY reviews that
+       real customers submitted (Firestore `reviews`, admin-approved). While the
+       store is new it shows an honest invitation instead of invented praise. */
+    homeReviewsHTML(secHead) +
     /* ═══ 12. SAREE VIDEOS / REELS ═══ */
     '<div class="sk-south"><h3>🎬 ' + loc('வாங்கும் முன் பாருங்கள்', 'కొనే ముందు చూడండి', 'ಖರೀದಿಸುವ ಮೊದಲು ನೋಡಿ', 'WATCH BEFORE YOU BUY', 'വാങ്ങും മുമ്പ് കാണൂ') + '</h3>' +
       '<p>' + loc('See every saree in real video — then order with confidence.', 'ప్రతి చీరను real video లో చూడండి — ఆపై ఆర్డర్ చేయండి.', 'ಪ್ರತಿ ಸೀರೆಯನ್ನು real video ನಲ್ಲಿ ನೋಡಿ — ನಂತರ ಆರ್ಡರ್ ಮಾಡಿ.', 'See every saree in real video — then order with confidence.', 'ഓരോ സാരിയും real video യിൽ കാണൂ.') + '</p>' +
@@ -2986,9 +2991,13 @@ function smartTitle(p){
   try{
     const raw = String((p && p.name) || '').trim();
     const bare = raw.replace(/[\s_-]+/g, '');
+    /* ✅ V56: ONLY a real SKU-looking name (e.g. "SK75319", "SK08122264") is
+       replaced. A human-written name like "Bridal Semi Silk" or "Fancy saree"
+       is the owner's own product name and is NEVER overwritten — rewriting it
+       confused customers and cost Google/EAN matching. */
     const skuLike = !raw || raw.length < 5 ||
-      /^[a-z0-9]{5,16}$/i.test(bare) ||
-      /^(sk|sks|sk4|sk9)/i.test(bare) ||
+      /^[a-z]{0,4}[0-9]{4,16}$/i.test(bare) ||      /* SK75319 · 1006310727 */
+      /^[0-9a-f]{10,}$/i.test(bare) ||               /* long id/hash */
       /^\d+$/.test(bare);
     /* ✨ real name → still append Category + Occasion (name + category + vocation) */
     const occOf = (cat) => /wedding|bridal|kanchipuram/.test(cat || '') ? 'Wedding & Festive Wear' :
@@ -3411,11 +3420,18 @@ function renderProduct(){
         try{ PRODUCTS.unshift(prod); Sync.saveLocal(); }catch(e){ try{ PRODUCTS.unshift(prod); }catch(e2){} }
         renderProduct();
       } else {
-        app.innerHTML = '<div class="wrap"><div class="empty"><div class="e-ic">🪡</div><b>Product not found</b>' +
-          '<span class="muted small" style="max-width:40ch">' + esc(msg || 'We could not find this saree in our collection.') + '</span>' +
+        app.innerHTML = '<div class="wrap page"><div class="empty"><div class="e-ic">🪡</div><b>' +
+          loc('இந்த சேலை கிடைக்கவில்லை', 'ఈ చీర దొరకలేదు', 'ಈ ಸೀರೆ ಸಿಗಲಿಲ್ಲ', 'We couldn\'t find that saree', 'ഈ സാരി കണ്ടെത്തിയില്ല') + '</b>' +
+          '<span class="muted small" style="max-width:44ch">' + esc(msg || 'This saree may have been sold or the link is old — browse the full collection below.') + '</span>' +
+          '<form class="pd-search404" onsubmit="event.preventDefault();location.href=\'shop.html?q=\'+encodeURIComponent(this.q.value)">' +
+            '<input name="q" type="search" placeholder="' + esc(loc('சேலை தேடுங்கள்…', 'చీర వెతకండి…', 'ಸೀರೆ ಹುಡುಕಿ…', 'Search sarees…', 'സാരി തിരയൂ…')) + '">' +
+            '<button type="submit">🔍</button></form>' +
+          '<div class="nf-404-cats">' + ['silk', 'cotton', 'soft-silk', 'combo'].map(c => {
+            const k = catOf(c); return k ? '<a href="shop.html?cat=' + esc(c) + '">' + esc(k.name || c) + '</a>' : '';
+          }).join('') + '</div>' +
           '<div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;max-width:340px;margin:14px auto 0">' +
-          '<a class="btn btn-maroon" href="shop.html">⭐ Shop Best Sellers</a>' +
-          '<button type="button" class="btn btn-outline" onclick="renderProduct()">🔄 Try Again</button></div></div></div>';
+          '<a class="btn btn-maroon" href="shop.html">🛍️ ' + esc(loc('எல்லா சேலைகள்', 'అన్ని చీరలు', 'ಎಲ್ಲಾ ಸೀರೆಗಳು', 'All Sarees', 'എല്ലാ സാരികളും')) + '</a>' +
+          '<a class="btn btn-outline" href="' + waLink('Hi SK Sarees! I am looking for a saree that is not on the site.') + '" target="_blank" rel="noopener">💬 WhatsApp</a></div></div></div>';
       }
     };
     /* quick spinner while we fetch (usually <1s) */
@@ -3494,8 +3510,11 @@ function renderProduct(){
          an unchecked admin field — showing "132 customers loved this" from it would
          be fake social proof. Real reviews arrive from Firestore (remoteRevs). */
       const written = realRevCount(p);
+      /* ✅ V56 HONESTY: star average is computed from written reviews only —
+         the catalogue `rating` field is never shown (it was fabricated). */
+      const avg = realAvgRating(p);
       return written > 0
-        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (p.rating > 0 ? p.rating + '/5 — ' : '') + written + ' ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು', 'customer reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ') + '</p>'
+        ? '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">⭐ ' + (avg > 0 ? avg + '/5 — ' : '') + written + ' ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು', 'customer reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ') + '</p>'
         : '<p class="small" style="font-weight:800;color:var(--green);margin:2px 0">🌱 ' + loc('இன்னும் எழுத்துப்பூர்வ கருத்து இல்லை — நீங்கள் முதல் ஆளாகலாம்!', 'ఇంకా వ్రాసిన రివ్యూ లేదు — మీరు మొదటి వ్యక్తి కావచ్చు!', 'ಇನ್ನೂ ಬರೆದ ವಿಮರ್ಶೆ ಇಲ್ಲ — ನೀವು ಮೊದಲಿಗರಾಗಬಹುದು!', 'No written reviews yet — you could be the first!', 'ഇനിയും എഴുതിയ അവലോകനം ഇല്ല — നിങ്ങൾക്ക് ആദ്യത്തെയാളാകാം!') + '</p>';
     })());
   /* gallery: main image (big) + thumbnails (from Firestore images/imgs + main img) */
@@ -7083,3 +7102,51 @@ try{
     }catch(e){}
   });
 }catch(e){}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   V56 — HOME REVIEWS: genuine UGC only (owner rule: zero fake marketing)
+   Renders reviews real customers submitted on product pages (Firestore
+   `reviews`, status = approved). No invented names, no invented stars.
+   While the store is new it shows a truthful invitation instead of praise.
+   NOTE: secHead is LOCAL to renderHome(), so it is passed in as an argument. */
+function homeReviewsHTML(secHead){
+  secHead = secHead || function(title){ return '<div class="sk-sec"><h2>' + title + '</h2>'; };
+  const head = secHead('💬 ' + loc('வாடிக்கையாளர் கருத்துகள்', 'కస్టమర్ రివ్యూలు', 'ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು', 'Customer Reviews', 'ഉപഭോക്തൃ അവലോകനങ്ങൾ'));
+  /* real reviews collected on this device (written by a customer who bought) */
+  let list = [];
+  try{
+    const seen = {};
+    (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []).forEach(p => {
+      const revs = LS.get('sk_reviews_' + p.id, []) || [];
+      revs.forEach(r => {
+        if (!r || !r.text) return;
+        const k = String(r.ts || '') + '|' + String(r.text).slice(0, 20);
+        if (seen[k]) return; seen[k] = 1;
+        list.push(Object.assign({ pid: p.id, pname: p.name, pimg: p.img }, r));
+      });
+    });
+    list.sort((a, b) => (+b.ts || 0) - (+a.ts || 0));
+    list = list.slice(0, 4);
+  }catch(e){ list = []; }
+
+  if (!list.length){
+    /* honest empty state — an invitation, never invented praise */
+    return head +
+      '<div class="sk-rev-empty">' +
+        '<div class="sk-rev-empty-ic">💬</div>' +
+        '<b>' + loc('இன்னும் எழுத்துப்பூர்வ கருத்துகள் இல்லை', 'ఇంకా వ్రాసిన రివ్యూలు లేవు', 'ಇನ್ನೂ ಬರೆದ ವಿಮರ್ಶೆಗಳಿಲ್ಲ', 'No written reviews yet', 'ഇനിയും എഴുതിയ അവലോകനങ്ങൾ ഇല്ല') + '</b>' +
+        '<span>' + loc('நீங்கள் வாங்கிய சேலையைப் பற்றி எழுதுங்கள் — உங்கள் கருத்து இங்கே வெளியாகும்.', 'మీరు కొన్న చీర గురించి రాయండి — మీ రివ్యూ ఇక్కడ కనిపిస్తుంది.', 'ನೀವು ಖರೀದಿಸಿದ ಸೀರೆ ಬಗ್ಗೆ ಬರೆಯಿರಿ — ನಿಮ್ಮ ವಿಮರ್ಶೆ ಇಲ್ಲಿ ಕಾಣುತ್ತದೆ.', 'Bought a saree? Write about it — your words will appear here.', 'സാരി വാങ്ങിയോ? അതിനെപ്പറ്റി എഴുതൂ — നിങ്ങളുടെ അഭിപ്രായം ഇവിടെ കാണാം.') + '</span>' +
+        '<a class="btn btn-outline btn-sm" style="max-width:230px;margin:10px auto 0" href="orders.html">📝 ' + loc('என் ஆர்டரில் கருத்து எழுது', 'నా ఆర్డర్లో రివ్యూ రాయండి', 'ನನ್ನ ಆರ್ಡರ್ನಲ್ಲಿ ವಿಮರ್ಶೆ ಬರೆಯಿರಿ', 'Write a review from My Orders', 'എന്റെ ഓർഡറിൽ അവലോകനം എഴുതൂ') + '</a>' +
+      '</div></div>';
+  }
+  return head +
+    '<div class="hc-grid" style="grid-template-columns:repeat(2,1fr)">' + list.map(r => {
+      const stars = Math.min(5, Math.max(1, +r.rating || 0));
+      return '<div class="sk-rev">' +
+        '<b>' + esc(String(r.name || 'Customer').slice(0, 30)) + '</b> <small>✅ ' + loc('வாங்கியவர்', 'కొన్నవారు', 'ಖರೀದಿಸಿದವರು', 'Verified buyer', 'വാങ്ങിയത്') + '</small>' +
+        '<div class="stars">' + '★'.repeat(stars) + '☆'.repeat(5 - stars) + '</div>' +
+        '<p>' + esc(String(r.text).slice(0, 180)) + '</p>' +
+        '<a class="sk-rev-link" href="product.html?id=' + encodeURIComponent(r.pid) + '">' + esc(String(r.pname || '').slice(0, 34)) + ' →</a>' +
+        '</div>';
+    }).join('') + '</div></div>';
+}

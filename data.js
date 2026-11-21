@@ -478,7 +478,7 @@ function normalizeProduct(raw){
     name: String((typeof lang !== 'undefined' && lang !== 'en' && raw['name_' + lang]) || raw.name || 'Untitled Saree').trim(),
     price, mrp, cat,
     hidden: !!(raw.hidden === true || raw.hidden === 1 || raw.hidden === 'true' || raw.hidden === '1'),
-    rating: Math.min(5, Math.max(0, +raw.rating || +raw.rat || 0)),
+    rating: 0,   /* 🚫 V56: catalogue ratings removed — real average comes from written reviews (realAvgRating) */
     weight: Math.max(50, Math.round(+raw.weight || CONFIG.sareeWeight || 800)),   /* ⚖️ grams */   /* ✅ V25: 0 = no rating (never invent 4.5) */
     reviews: Math.max(0, +raw.reviews || +raw.rev || 0),
     badge,
@@ -510,6 +510,11 @@ function normalizeProduct(raw){
 async function preloadCatalog(wantId){
   const have = id => { try{ return !id || PRODUCTS.some(p => String(p.id) === String(id)); }catch(e){ return false; } };
   try{ if (wantId && have(wantId)) return true; }catch(e){}
+  /* ⚡ V56: a pre-rendered product page already has everything it needs in
+     window.__PRODUCT_DATA — never download the 500 KB catalogue there.
+     NOTE: preloadCatalog(wantId) is also called by the "product not found"
+     path, so this shortcut only applies when THAT product was embedded. */
+  if (wantId && window.__PRODUCT_DATA && String(window.__PRODUCT_DATA.id) === String(wantId) && have(wantId)) return true;
   /* 1) raw cloud cache (device copy of Firestore products) — silent merge */
   try{
     const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
@@ -557,7 +562,13 @@ async function preloadCatalog(wantId){
 /* ⚡ FIRST-VISIT SPEED: start fetching the static catalog as soon as this
    script parses (not waiting for DOMContentLoaded) — by the time the page
    renders, the products are usually already in memory. */
-try{ if (document.readyState !== 'complete'){ setTimeout(() => { try{ preloadCatalog(); }catch(e){} }, 0); } }catch(e){}
+try{
+  /* ⚡ V56: pre-rendered product pages embed their own product record
+     (window.__PRODUCT_DATA) — no catalogue download needed there at all. */
+  const __inline = !!(window.__PRODUCT_DATA && window.__PRODUCT_DATA.id);
+  const __hasInline = __inline && (function(){ try{ return PRODUCTS.some(p => String(p.id) === String(window.__PRODUCT_DATA.id)); }catch(e){ return false; } })();
+  if (!__hasInline && document.readyState !== 'complete'){ setTimeout(() => { try{ preloadCatalog(); }catch(e){} }, 0); }
+}catch(e){}
 
 /* ============================ 5. UTILITIES ============================ */
 const money = n => '₹' + Number(n).toLocaleString('en-IN');
@@ -892,14 +903,9 @@ const LS = {
 };
 
 /* ============================ 6. REVIEWS / FAQ / PROCESS ============================ */
-const REVIEWS = [
-  { name:'Lakshmi S.', place:'Salem', avatar:'#D81B60', rating:5, text:'Ordered the Kanchipuram silk for my daughter’s wedding — pure quality, just like the photos. Delivery was fast and the WhatsApp confirmation made it so easy!' },
-  { name:'Priya R.', place:'Chennai', avatar:'#2f7d5b', rating:5, text:'The cotton sarees are so soft and comfortable. Loved the COD option. Will definitely order again this Aadi season!' },
-  { name:'Meenakshi K.', place:'Coimbatore', avatar:'#5a3d8f', rating:5, text:'Best place to buy sarees online. Paid through UPI — instant and safe. The owner personally confirmed my order on WhatsApp.' },
-  { name:'Kavitha M.', place:'Erode', avatar:'#b57f1f', rating:4, text:'Beautiful handloom saree, exact colours as shown. Fits the budget too. Thank you SK Sarees!' },
-  { name:'Divya B.', place:'Bangalore', avatar:'#0e8f8f', rating:5, text:'Ordered on WhatsApp at 10pm, confirmed by 10:30pm. Such personal service. The georgette saree is gorgeous!' },
-  { name:'Anitha V.', place:'Salem', avatar:'#7a4fb0', rating:5, text:'Local pickup saved me delivery time. The owner patiently showed options on a video call. Highly recommended!' },
-];
+/* 🚫 V56: the hand-written REVIEWS array was DELETED (owner's no-fake-marketing
+   rule). Customer reviews now come only from real submissions — see app.js
+   homeReviewsHTML() and the Firestore `reviews` collection (admin-approved). */
 const FAQ = [
   { q:'How do I pay? Is UPI safe?', a:'Pay online via UPI (GPay / PhonePe / Paytm) by scanning the QR or tapping Pay Now, or choose Cash on Delivery — you pay only the courier charge now and the saree amount in cash at delivery. UPI is 100% secure — we never see your card details.' },
   { q:'How long does delivery take?', a:'We dispatch within ' + (CONFIG.dispatchHours || 12) + '–' + ((CONFIG.dispatchHours || 12) * 2) + ' hours (COD: 24–48 hours). Delivery: 2–3 days Tamil Nadu, 3–4 days Andhra & Karnataka, 5–7 days other states. Courier ₹' + (CONFIG.shipPerKg || 30) + ' per kg (1 saree ≈ 800 g). COD: pay only the courier charge now to book, then the full saree amount in cash at delivery — no extra COD fee.' },
@@ -1166,9 +1172,14 @@ function productUrl(p){
    links like ?id=SK75250?ref=SHA9088) */
 function currentProductId(){
   try{
-    if (window.__PRODUCT_ID) return String(window.__PRODUCT_ID).trim();   /* leftover safety */
+    if (window.__PRODUCT_ID) return String(window.__PRODUCT_ID).trim();
     const m = location.pathname.match(/\/([^/]+)\.html$/);
-    if (m && /^SK\d+$/i.test(m[1])) return m[1];                          /* leftover safety */
+    if (m && /^SK[A-Za-z0-9_-]+$/i.test(m[1]) && !/^(product|index|shop|cart|checkout|orders|profile|reels|combo|blog|feed|admin|pay|share-earn|return-policy|diwali-sale)$/i.test(m[1])) return m[1];
+  }catch(e){}
+  /* ⚡ V56: pre-rendered page /product/<ID>.html embeds its own record */
+  try{
+    if (document.body && document.body.dataset && document.body.dataset.page === 'product'
+        && window.__PRODUCT_DATA && window.__PRODUCT_DATA.id) return String(window.__PRODUCT_DATA.id);
   }catch(e){}
   return String(safeParams().get('id') || '').split('?')[0].trim();
 }
@@ -3449,3 +3460,17 @@ function injectChrome(){
 
   document.addEventListener('click', e => { const c = e.target.closest('[data-close]'); if (c) closeModal(); });
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   V56 — EMBEDDED PRODUCT BOOTSTRAP
+   The PRODUCTS initializer runs before some constants exist, so its own
+   __PRODUCT_DATA merge can be a no-op. Here — at the very end of the file,
+   when everything is initialised — the pre-rendered product is added for real,
+   so /product/<ID>.html renders instantly with ZERO network requests.
+   ═══════════════════════════════════════════════════════════════════════════ */
+try{
+  if (window.__PRODUCT_DATA && window.__PRODUCT_DATA.id){
+    const __np = normalizeProduct(window.__PRODUCT_DATA);
+    if (!PRODUCTS.some(p => String(p.id) === String(__np.id))) PRODUCTS.unshift(__np);
+  }
+}catch(e){}

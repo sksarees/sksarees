@@ -5136,3 +5136,21 @@ body[data-page="reels"] .lang-bar{ display:none !important }
 
 /* friends-QR block is always visible now */
 .pmf-body{ display:block }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V56 — honest reviews + 404/search polish + admin login (append only)
+   ══════════════════════════════════════════════════════════════════════════ */
+.sk-rev-empty{background:#fff;border:1.5px dashed var(--line,#e4e0d8);border-radius:16px;padding:20px 16px;text-align:center;display:grid;gap:6px}
+.sk-rev-empty-ic{font-size:2rem}
+.sk-rev-empty b{font-size:1rem}
+.sk-rev-empty span{color:#6b6b6b;font-size:.86rem;line-height:1.45;max-width:38ch;margin:0 auto}
+.sk-rev-link{display:inline-block;margin-top:6px;font-size:.76rem;font-weight:700;color:var(--maroon,#8c1c1c);text-decoration:none}
+.pd-search404{display:flex;gap:8px;max-width:340px;margin:14px auto 0}
+.pd-search404 input{flex:1;border:1.5px solid var(--line,#e4e0d8);border-radius:12px;padding:12px 14px;font-size:.95rem;background:#fff;outline:none}
+.pd-search404 button{border:0;border-radius:12px;background:var(--maroon,#8c1c1c);color:#fff;font-size:1rem;padding:0 16px;cursor:pointer}
+.nf-404-cats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.nf-404-cats a{background:#fff;border:1.5px solid var(--line,#e4e0d8);border-radius:999px;padding:7px 14px;font-size:.82rem;font-weight:700;color:#222;text-decoration:none}
+.sk-rev{background:#fff;border:1px solid var(--line,#eee);border-radius:14px;padding:12px}
+.sk-rev .stars{color:#e6a817;letter-spacing:1px;font-size:.9rem}
+.sk-rev p{margin:6px 0 0;font-size:.84rem;line-height:1.45;color:#333}
+.sk-rev small{color:#777;font-size:.72rem}

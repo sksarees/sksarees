@@ -4,7 +4,63 @@
    Reviews (delete) · Dashboard
    ========================================================================== */
 'use strict';
-const ADMIN_PIN = '1600'; /* 👉 change before going live */
+/* 🔐 V56 SECURITY — the old 4-digit PIN ('1600', printed in this public file)
+   is GONE. Admin access now requires a real Firebase Auth session whose token
+   carries the custom claim `admin: true`. Nobody can log in by reading the
+   source. Firebase SDK is loaded on demand by adminAuth() below. */
+
+/* ── Firebase Auth (compat SDK, loaded only on /admin.html) ─────────────── */
+const ADMIN_AUTH = {
+  _mod: null,
+  async ready(){
+    if (this._mod) return this._mod;
+    if (typeof FIREBASE_CONFIG === 'undefined') return null;
+    const bases = ['https://www.gstatic.com/firebasejs/10.12.2/'];   /* official CDN; 4s cap below */
+    /* ⏱️ every script gets 6s; if the CDN is blocked the login screen still
+       appears (with a clear message) instead of hanging on a blank page. */
+    const load = src => new Promise((res, rej) => {
+      const t = document.createElement('script');
+      const timer = setTimeout(() => rej(new Error('timeout ' + src)), 4000);
+      t.src = src;
+      t.onload = () => { clearTimeout(timer); res(); };
+      t.onerror = () => { clearTimeout(timer); rej(new Error('blocked ' + src)); };
+      document.head.appendChild(t);
+    });
+    for (const b of bases){
+      try{
+        if (!(window.firebase && window.firebase.app)) await load(b + 'firebase-app-compat.js');
+        if (!(window.firebase && window.firebase.auth)) await load(b + 'firebase-auth-compat.js');
+        if (window.firebase && window.firebase.auth) break;
+      }catch(e){ /* try the next CDN */ }
+    }
+    if (!(window.firebase && window.firebase.auth)){ this._failed = true; return null; }
+    if (!window.firebase.apps.length) window.firebase.initializeApp(FIREBASE_CONFIG);
+    this._mod = window.firebase;
+    return this._mod;
+  },
+  async signIn(email, pass){
+    const fb = await this.ready();
+    if (!fb) throw new Error('Auth SDK unavailable — check your internet.');
+    const cred = await fb.auth().signInWithEmailAndPassword(email, pass);
+    const tok = await cred.user.getIdTokenResult();
+    if (tok.claims && tok.claims.admin === true) return cred.user;
+    await fb.auth().signOut();
+    throw new Error('This account is not an admin.');
+  },
+  async signOut(){ try{ const fb = await this.ready(); if (fb) await fb.auth().signOut(); }catch(e){} },
+  async current(){
+    const fb = await this.ready();
+    if (!fb) return null;
+    return new Promise(res => {
+      const un = fb.auth().onAuthStateChanged(async u => {
+        un();
+        if (!u) return res(null);
+        try{ const t = await u.getIdTokenResult(); res((t.claims && t.claims.admin === true) ? u : null); }
+        catch(e){ res(null); }
+      });
+    });
+  },
+};
 
 /* ============================ 🔔 NEW-ORDER ALERTS ============================
    When a NEW order (or lead) arrives on the admin page, show a browser
@@ -136,7 +192,7 @@ function refreshAdminTab(){
     else if (adminTab === 'feed') renderFeed();
   }catch(e){}
 }
-function adminInit(){
+async function adminInit(){
   /* 🔧 standalone admin: openModal needs #modalRoot + close wiring */
   try{
     if (!document.getElementById('modalRoot')) document.body.insertAdjacentHTML('beforeend', '<div id="modalRoot"></div><div class="toast" id="toast"></div>');
@@ -150,7 +206,14 @@ function adminInit(){
   try{ Sync.run(); }catch(e){}
   /* Admin Products: Firestore is the only source. Never merge GitHub catalog or local product cache. */
   if (document.body && document.body.dataset.page === 'admin'){ try{ PRODUCTS = []; localStorage.removeItem('sk_products'); localStorage.removeItem('sk_products_cloud'); Sync.pullProducts(); }catch(e){} }
-  if (String(LS.get('sk_admin', '0')) === '1'){
+  /* the login screen must appear fast even if the auth CDN is slow/blocked */
+  const who = await Promise.race([
+    ADMIN_AUTH.current().catch(() => null),
+    new Promise(res => setTimeout(() => res(null), 4000)),
+  ]);
+  if (who){
+    try{ LS.set('sk_admin', '1'); }catch(e){}   /* keep old helpers happy (device hint only — never the gate) */
+    window.__adminUser = who;
     renderAdmin();
     /* ensure Firestore collections exist (admins, cart, categories, ...) */
     try{ seedFirestoreCollections(); }catch(e){}
@@ -165,19 +228,36 @@ function adminInit(){
 
 function renderLogin(){
   const app = document.getElementById('adminApp'); if (!app) return;
-  app.innerHTML = '<div style="max-width:360px;margin:40px auto;text-align:center">' +
+  app.innerHTML = '<div style="max-width:380px;margin:40px auto;text-align:center">' +
     '<div style="font-size:3rem">🔐</div>' +
     '<h1 style="margin-top:10px">Store Admin</h1>' +
-    '<p class="muted small">Enter the admin PIN to manage orders, products &amp; reviews.</p>' +
-    '<input id="pin" type="password" inputmode="numeric" placeholder="Admin PIN" style="width:100%;border:1.5px solid var(--line);border-radius:12px;padding:14px;text-align:center;font-size:1.2rem;letter-spacing:8px;background:#fff;outline:none;margin-top:18px">' +
-    '<button type="button" class="btn btn-maroon" id="pinBtn" style="margin-top:12px">Login</button></div>';
-  const go = () => {
-    if (document.getElementById('pin').value === ADMIN_PIN){
-      LS.set('sk_admin', '1'); renderAdmin();
-    } else toast('❌ Wrong PIN');
+    '<p class="muted small">Sign in with your admin account (Firebase e-mail &amp; password).</p>' +
+    '<input id="admEmail" type="email" autocomplete="username" placeholder="Admin e-mail" style="width:100%;border:1.5px solid var(--line);border-radius:12px;padding:14px;font-size:1rem;background:#fff;outline:none;margin-top:18px">' +
+    '<input id="admPass" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;border:1.5px solid var(--line);border-radius:12px;padding:14px;font-size:1rem;background:#fff;outline:none;margin-top:10px">' +
+    '<button type="button" class="btn btn-maroon" id="admGo" style="margin-top:12px">Sign in</button>' +
+    '<p class="muted small" id="admErr" style="margin-top:10px;color:#b3261e"></p>' +
+    '<p class="muted small" style="margin-top:14px">Forgot the password? Reset it in the Firebase Console → Authentication.</p>' +
+    (ADMIN_AUTH._failed ? '<p class="muted small" style="margin-top:10px;color:#b3261e">⚠️ Could not reach the login service (network/CDN blocked). Reload the page or check your internet.</p>' : '') +
+    '</div>';
+  const err = m => { const el = document.getElementById('admErr'); if (el) el.textContent = m || ''; };
+  const go = async () => {
+    const email = String(document.getElementById('admEmail').value || '').trim();
+    const pass = String(document.getElementById('admPass').value || '');
+    if (!email || !pass) return err('Enter e-mail and password.');
+    const btn = document.getElementById('admGo');
+    if (btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
+    try{
+      const user = await ADMIN_AUTH.signIn(email, pass);
+      window.__adminUser = user;
+      LS.set('sk_admin', '1');
+      location.reload();                      /* fresh admin page with a real session */
+    }catch(e){
+      err((e && e.message) || 'Sign-in failed.');
+      if (btn){ btn.disabled = false; btn.textContent = 'Sign in'; }
+    }
   };
-  document.getElementById('pinBtn').addEventListener('click', go);
-  document.getElementById('pin').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  document.getElementById('admGo').addEventListener('click', go);
+  document.getElementById('admPass').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
 }
 
 let adminTab = 'orders';
@@ -224,7 +304,7 @@ function renderAdmin(){
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
-  document.getElementById('logoutBtn').addEventListener('click', () => { LS.set('sk_admin', '0'); location.reload(); });
+  document.getElementById('logoutBtn').addEventListener('click', async () => { await ADMIN_AUTH.signOut(); LS.set('sk_admin', '0'); location.reload(); });
   const ab = document.getElementById('btnAlerts');
   if (ab) ab.addEventListener('click', () => enableAdminAlerts());
   /* Firestore: quiet status + live orders/reviews */
