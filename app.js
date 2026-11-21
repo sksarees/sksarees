@@ -1748,6 +1748,8 @@ function renderHome(){
   app.innerHTML =
     /* 🏷️ V57 — CATEGORY STRIP AT THE VERY TOP (first thing a customer sees) */
     homeCatStripHTML(liveCats) +
+    /* ⭐ V58 — BEST SELLERS, right below the language bar / categories */
+    homeTopBestHTML(best) +
     /* 🛍️ V49 MEESHO-STYLE TOP — sale banner, delivery PIN, search, timer */
     '<div class="wrap ms-top">' + msBannerHTML() + '</div>' +
     '<div class="wrap">' + msDeliveryHTML() + '</div>' +
@@ -1828,8 +1830,7 @@ function renderHome(){
         return (c && n > 0) ? '<a class="sk-chip" href="shop.html?cat=' + slug + '">' + c.emoji + ' ' + esc(catName(c)) + ' <small>(' + n + ')</small></a>' : '';
       }).join('') +
     '</div></div>' +
-    /* ═══ 7. ⭐ BEST SELLERS ═══ */
-    secHead('⭐ ' + t('bestSellers'), 'shop.html') + '<div class="hc-grid">' + best.map(homeCardHTML).join('') + '</div></div>' +
+    /* ⭐ BEST SELLERS moved to the TOP of the page (V58) — see homeTopBestHTML() below */
     /* ═══ 8. SAREES UNDER ₹699 (FB/IG traffic converter) ═══ */
     (underShow.length ? secHead('💰 ' + loc('SAREES UNDER ₹699', '₹699 కంటే తక్కువ చీరలు', '₹699 ಗಿಂತ ಕಡಿಮೆ ಸೀರೆಗಳು', 'SAREES UNDER ₹699', '₹699-ൽ താഴെ സാരികൾ') + (underMin ? ' <small class="sk-from">— ' + loc('Starting From ₹', 'నుండి ₹', 'ನಿಂದ ₹', 'Starting From ₹', 'തുടങ്ങുന്നത് ₹') + underMin + '</small>' : ''), 'shop.html?min=0&max=699') + '<div class="hc-grid">' + underShow.map(homeCardHTML).join('') + '</div></div>' : '') +
     /* ═══ 9. NEW ARRIVALS ═══ */
@@ -4681,9 +4682,12 @@ function goToPayPage(){
     const id = co.pendingId;
     const order = (Store.orders || []).find(o => o && o.id === id) || { id, items: coItems().map(safeItem), totals: coTotals(), payment: 'upi' };
     const url = PayLink.url(order);
-    /* clear the draft so the pay page is the only thing on screen */
-    co.step = 2;
-    try{ window.location.href = url; }catch(e){ location.assign(url); }
+    /* 💳 strict: nothing else must render between Step 1 and the pay page */
+    try{
+      const app = document.getElementById('app');
+      if (app) app.innerHTML = '<div class="wrap" style="padding:60px 18px;text-align:center;color:#7b7b7b;font-size:.9rem">💳 Opening secure payment…</div>';
+    }catch(e){}
+    try{ window.location.href = url; }catch(e){ try{ location.assign(url); }catch(e2){ window.open(url, '_self'); } }
     return true;
   }catch(e){
     try{ co.step = 3; drawCo(); }catch(e2){}    /* graceful fallback: inline pay */
@@ -6036,13 +6040,27 @@ document.addEventListener('click', function(e){
   }
   /* checkout */
   const cont = e.target.closest('[data-cont]');
-  if (cont){ e.preventDefault(); if (coValid()){ if (co.data.payment === 'upi') createPendingPaymentOrder(); co.step = 2; drawCo(); } return; }
+  if (cont){
+    e.preventDefault();
+    if (!coValid()) return;
+    co.data.payment = 'upi'; co.data.pmTab = 'online';
+    try{ createPendingPaymentOrder(); }catch(e2){}
+    if (!goToPayPage()){ co.step = 3; drawCo(); }
+    return;
+  }
   /* Pay Online button (checkout) -> UPI payment step */
   /* ✏️ V28: EDIT ADDRESS — open the full pre-filled details form */
   const eab = e.target.closest('#editAddrBtn');
   if (eab){ e.preventDefault(); co.editAddr = true; try{ drawCo(); }catch(e2){} return; }
   const pon = e.target.closest('[data-payonline]');
-  if (pon){ e.preventDefault(); co.data.payment = 'upi'; co.data.pmTab = 'online'; if (coValid()){ createPendingPaymentOrder(); co.step = 2; drawCo(); } return; }
+  if (pon){
+    e.preventDefault();
+    co.data.payment = 'upi'; co.data.pmTab = 'online';
+    if (!coValid()) return;
+    try{ createPendingPaymentOrder(); }catch(e2){}
+    if (!goToPayPage()){ co.step = 3; drawCo(); }
+    return;
+  }
   /* 🚚 V48: COD → pay ONLY the courier charge online to book (saree amount stays cash) */
   const cpay2 = e.target.closest('[data-codpay]');
   if (cpay2){ e.preventDefault(); co.data.payment = 'cod'; if (coValid()){ createPendingPaymentOrder(); co.step = 3; drawCo(); } return; }
@@ -6452,7 +6470,17 @@ document.addEventListener('click', function(e){
     }
     co.editAddr = false;
     try{ saveCoDraft(); }catch(e2){}
-    co.step = 2; drawCo();
+    /* 💳 V58 (owner request): STEP 1 → PAY PAGE, directly.
+       No payment-method screen at all — the store is UPI-only, so the customer
+       reviews the order, taps Continue, and lands on pay.html with the exact
+       amount. The order is saved first, so nothing is lost. */
+    co.data.payment = 'upi';
+    co.data.pmTab = 'online';
+    try{ createPendingPaymentOrder(); }catch(e2){}
+    if (!goToPayPage()){
+      /* offline / blocked navigation → show the inline pay screen as a fallback */
+      co.step = 3; drawCo();
+    }
     return;
   }
   /* 🤝 Ask Friends to Pay — blurred QR → real QR, SHARE sends our pay link
@@ -7165,5 +7193,25 @@ function homeCatStripHTML(liveCats){
       tile({ c: { slug: '', emoji: '🛍️', name: 'All' }, n: PRODUCTS.filter(p => !p.hidden).length }) +
       list.map(tile).join('') +
     '</div></div>';
+  }catch(e){ return ''; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   V58 — BEST SELLERS AT THE TOP OF THE HOME PAGE
+   Sits directly under the language bar + category strip, so a customer sees
+   the shop's best sarees before anything else. Same honest ranking the old
+   (deep) section used: real badges + real review counts, never invented.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function homeTopBestHTML(best){
+  try{
+    const list = (best || []).filter(p => p && !p.hidden).slice(0, 6);
+    if (!list.length) return '';
+    return '<div class="wrap hb-wrap">' +
+      '<div class="hb-head">' +
+        '<h2>⭐ ' + (typeof t === 'function' ? t('bestSellers') : 'Best Sellers') + '</h2>' +
+        '<a href="shop.html">' + (typeof t === 'function' ? t('viewAll') : 'View all') + ' ›</a>' +
+      '</div>' +
+      '<div class="hc-grid">' + list.map(homeCardHTML).join('') + '</div>' +
+    '</div>';
   }catch(e){ return ''; }
 }

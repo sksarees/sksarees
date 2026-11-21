@@ -48,6 +48,30 @@ const ADMIN_AUTH = {
     throw new Error('This account is not an admin.');
   },
   async signOut(){ try{ const fb = await this.ready(); if (fb) await fb.auth().signOut(); }catch(e){} },
+  /* 🔑 change the admin password from the phone — no Firebase Console needed.
+     Firebase asks for a recent login; if the session is old we re-authenticate
+     with the current password first and then retry automatically. */
+  async changePassword(currentPass, newPass){
+    const fb = await this.ready();
+    if (!fb) throw new Error('Login service unavailable — check your internet.');
+    const auth = fb.auth();
+    const user = auth.currentUser;
+    if (!user || !user.email) throw new Error('Please sign in again.');
+    if (String(newPass || '').length < 8) throw new Error('New password must be at least 8 characters.');
+    if (newPass === currentPass) throw new Error('The new password must be different.');
+    try{
+      await user.updatePassword(newPass);
+      return true;
+    }catch(e){
+      if (e && e.code === 'auth/requires-recent-login'){
+        const cred = fb.auth.EmailAuthProvider.credential(user.email, currentPass);
+        await user.reauthenticateWithCredential(cred);
+        await user.updatePassword(newPass);
+        return true;
+      }
+      throw e;
+    }
+  },
   async current(){
     const fb = await this.ready();
     if (!fb) return null;
@@ -291,6 +315,15 @@ function renderAdmin(){
       '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
     '</div>' +
     '<div id="tabBody"></div>' +
+    '<div class="adm-pw">' +
+      '<b>🔑 Change admin password</b>' +
+      '<p class="muted small" style="margin:4px 0 8px">Signed in as <b id="admWho">' + esc((window.__adminUser && window.__adminUser.email) || 'admin') + '</b> — the old 4-digit PIN no longer works.</p>' +
+      '<input id="pwCur" type="password" autocomplete="current-password" placeholder="Current password" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
+      '<input id="pwNew" type="password" autocomplete="new-password" placeholder="New password (min 8 characters)" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
+      '<input id="pwNew2" type="password" autocomplete="new-password" placeholder="Repeat new password" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:8px;outline:none;background:#fff">' +
+      '<button type="button" class="btn btn-maroon btn-sm" id="pwSave" style="width:100%">Save new password</button>' +
+      '<p class="muted small" id="pwMsg" style="margin:8px 0 0"></p>' +
+    '</div>' +
     '<button type="button" class="btn btn-ghost btn-sm" id="logoutBtn" style="margin-top:14px;width:auto;border:1.5px solid var(--line)">Logout</button>';
   /* Pull custom Firestore categories once for admin category manager. */
   try{ if(FS.enabled()) FS._getDb().then(db=>{ if(!db)return; db.collection('categories').get().then(q=>{ q.forEach(d=>{const c=d.data()||{}; if(c.slug && !CATEGORIES.some(x=>x.slug===c.slug)) CATEGORIES.push({slug:c.slug,name:c.name||c.slug,emoji:c.emoji||'🪡',cls:'c-daily',blurb:c.name||c.slug});}); }); }); }catch(e){}
@@ -305,6 +338,29 @@ function renderAdmin(){
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
   document.getElementById('logoutBtn').addEventListener('click', async () => { await ADMIN_AUTH.signOut(); LS.set('sk_admin', '0'); location.reload(); });
+  /* 🔑 change-password wiring */
+  const pwBtn = document.getElementById('pwSave');
+  if (pwBtn) pwBtn.addEventListener('click', async () => {
+    const cur = String((document.getElementById('pwCur') || {}).value || '');
+    const nw = String((document.getElementById('pwNew') || {}).value || '');
+    const nw2 = String((document.getElementById('pwNew2') || {}).value || '');
+    const msg = document.getElementById('pwMsg');
+    const say = (txt, ok) => { if (msg){ msg.textContent = txt; msg.style.color = ok ? '#0e7d46' : '#b3261e'; } };
+    if (!cur || !nw) return say('Fill all three fields.');
+    if (nw !== nw2) return say('The two new passwords do not match.');
+    if (nw.length < 8) return say('Use at least 8 characters.');
+    pwBtn.disabled = true; pwBtn.textContent = 'Saving…';
+    try{
+      await ADMIN_AUTH.changePassword(cur, nw);
+      say('✅ Password changed. Use the new one next time you sign in.', true);
+      ['pwCur', 'pwNew', 'pwNew2'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    }catch(e){
+      const m = String((e && e.message) || e);
+      say(/wrong-password|invalid-credential/i.test(m) ? '❌ Current password is wrong.' : '❌ ' + m.replace(/^Firebase: /, ''));
+    }finally{
+      pwBtn.disabled = false; pwBtn.textContent = 'Save new password';
+    }
+  });
   const ab = document.getElementById('btnAlerts');
   if (ab) ab.addEventListener('click', () => enableAdminAlerts());
   /* Firestore: quiet status + live orders/reviews */

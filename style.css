@@ -5185,3 +5185,17 @@ body[data-page="reels"] .lang-bar{ display:none !important }
 .py-simple .py-note{font-size:.7rem;line-height:1.4;color:#8a8a8a;margin-top:8px}
 .py-safe{text-align:center;font-size:.7rem;color:#8a8a8a;margin:14px 6px 0;line-height:1.4}
 .py-simple .py-top .py-badge{font-size:.66rem}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   V58 — best sellers block at the top of the home page (append only)
+   ══════════════════════════════════════════════════════════════════════════ */
+.hb-wrap{padding-top:6px}
+.hb-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:6px 0 8px}
+.hb-head h2{margin:0;font-size:1rem;font-weight:900;letter-spacing:.2px;display:flex;align-items:center;gap:6px}
+.hb-head a{font-size:.74rem;font-weight:800;color:var(--maroon,#8c1c1c);text-decoration:none;white-space:nowrap}
+.hb-wrap .hc-grid{grid-template-columns:repeat(2,1fr)}
+
+/* V58 — admin change-password card (append only) */
+.adm-pw{margin-top:16px;background:#fff;border:1.5px solid var(--line,#e8e3da);border-radius:14px;padding:14px;max-width:420px}
+.adm-pw b{font-size:.9rem}
+.adm-pw input{font-family:inherit}
