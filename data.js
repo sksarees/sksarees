@@ -13,6 +13,10 @@ const CONFIG = {
   upiId     : 'sk7867915699-1@oksbi',
   upiName   : 'SK SAREES',
   codFee    : 100,                   /* legacy — kept for old order records only */
+  /* 🚫 V57 (owner request, 2026-08-16): CASH ON DELIVERY IS OFF.
+     The store now takes ONLINE (UPI) payments only. Set codEnabled:true below
+     (plus the matching Firestore settings flag) if it should come back. */
+  codEnabled: false,
   codMode   : 'courier',             /* 🚚 V48: COD advance = courier charge (zone × qty) */
   shipFreeAbove : 1999,                /* 🎉 FREE courier above ₹1,999 */
   /* Shipping = ₹zoneFee PER SARE (item), free above ₹999.
