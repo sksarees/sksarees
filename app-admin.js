@@ -4,14 +4,58 @@
    Reviews (delete) · Dashboard
    ========================================================================== */
 'use strict';
-/* 🔐 V56 SECURITY — the old 4-digit PIN ('1600', printed in this public file)
-   is GONE. Admin access now requires a real Firebase Auth session whose token
-   carries the custom claim `admin: true`. Nobody can log in by reading the
-   source. Firebase SDK is loaded on demand by adminAuth() below. */
+/* 🔐 V60 — ADMIN LOGIN (owner's decision, 2026-08-16)
+   The Firebase e-mail/password + `admin:true` claim gate is switched OFF
+   because that claim can only be granted from a laptop with a service-account
+   key — not something the shop owner can do from a phone.
+   Admin access is a 4-digit PIN again, verified against a HASH:
+     · the real PIN is not written anywhere in this file
+     · unlocking stores a hashed session in localStorage (30 days), so the
+       owner punches the PIN once per device, not every visit
+     · the PIN can be changed from the admin page (Change PIN card)
+   The Firebase SDK block below is kept on purpose (password-change helpers),
+   but nothing on the login screen depends on it any more. */
 
 /* ── Firebase Auth (compat SDK, loaded only on /admin.html) ─────────────── */
+/* ========================= 💳 PIN GATE (V60) =============================
+   Only the hash is stored. To change the PIN: open the admin page →
+   "🔑 Change admin PIN" card (it prints the new hash), or paste that hash into
+   PIN_HASH below and upload this file again. */
+let   PIN_HASH  = '1qpr8zw-e665u7';
+const PIN_KEY   = 'sk_admin_pin_v60';
+const PIN_DAYS  = 30;
+function pinHash(p){
+  let h1 = 0x811c9dc5, h2 = 0x1000193;
+  const s = 'sk$' + String(p) + '#saree';
+  for (let i = 0; i < s.length; i++){
+    h1 = (h1 ^ s.charCodeAt(i)) * 16777619 >>> 0;
+    h2 = ((h2 << 5) + h2 + s.charCodeAt(i)) >>> 0;
+  }
+  return h1.toString(36) + '-' + h2.toString(36);
+}
+const PIN_GATE = {
+  check(pin){ return pinHash(pin) === PIN_HASH; },            /* default PIN */
+  checkSession(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(PIN_KEY) || 'null');
+      if (!raw || !raw.h || !raw.t) return false;
+      if ((Date.now() - raw.t) / 86400000 > PIN_DAYS) return false;
+      return String(raw.h) === PIN_HASH;                      /* changing the PIN kills every old session */
+    }catch(e){ return false; }
+  },
+  open(){
+    try{ localStorage.setItem(PIN_KEY, JSON.stringify({ h: PIN_HASH, t: Date.now() })); }catch(e){}
+    try{ LS.set('sk_admin', '1'); }catch(e){}
+  },
+  close(){
+    try{ localStorage.removeItem(PIN_KEY); }catch(e){}
+    try{ LS.set('sk_admin', '0'); }catch(e){}
+  },
+};
+
 const ADMIN_AUTH = {
   _mod: null,
+  _uid: '',
   async ready(){
     if (this._mod) return this._mod;
     if (typeof FIREBASE_CONFIG === 'undefined') return null;
@@ -38,13 +82,18 @@ const ADMIN_AUTH = {
     this._mod = window.firebase;
     return this._mod;
   },
+  /* 🩺 set by signIn() when the e-mail+password was CORRECT but the account is
+     missing the `admin: true` claim — the login screen shows a help panel for it */
+  _lastReason: '',
   async signIn(email, pass){
     const fb = await this.ready();
     if (!fb) throw new Error('Auth SDK unavailable — check your internet.');
     const cred = await fb.auth().signInWithEmailAndPassword(email, pass);
-    const tok = await cred.user.getIdTokenResult();
-    if (tok.claims && tok.claims.admin === true) return cred.user;
+    const tok = await cred.user.getIdTokenResult(true);   /* force a fresh token — a claim granted 1 min ago may still be cached */
+    if (tok.claims && tok.claims.admin === true){ this._lastReason = ''; return cred.user; }
     await fb.auth().signOut();
+    this._lastReason = 'no-claim';
+    this._uid = (cred.user && cred.user.uid) || '';
     throw new Error('This account is not an admin.');
   },
   async signOut(){ try{ const fb = await this.ready(); if (fb) await fb.auth().signOut(); }catch(e){} },
@@ -230,14 +279,11 @@ async function adminInit(){
   try{ Sync.run(); }catch(e){}
   /* Admin Products: Firestore is the only source. Never merge GitHub catalog or local product cache. */
   if (document.body && document.body.dataset.page === 'admin'){ try{ PRODUCTS = []; localStorage.removeItem('sk_products'); localStorage.removeItem('sk_products_cloud'); Sync.pullProducts(); }catch(e){} }
-  /* the login screen must appear fast even if the auth CDN is slow/blocked */
-  const who = await Promise.race([
-    ADMIN_AUTH.current().catch(() => null),
-    new Promise(res => setTimeout(() => res(null), 4000)),
-  ]);
-  if (who){
-    try{ LS.set('sk_admin', '1'); }catch(e){}   /* keep old helpers happy (device hint only — never the gate) */
-    window.__adminUser = who;
+  /* 🔐 V60 — the PIN gate is the gate. No network, no Firebase, no claim. */
+  const pinOk = PIN_GATE.checkSession();
+  if (pinOk){
+    try{ LS.set('sk_admin', '1'); }catch(e){}   /* device hint only — never the gate */
+    window.__adminUser = { email: 'PIN admin', pin: true };
     renderAdmin();
     /* ensure Firestore collections exist (admins, cart, categories, ...) */
     try{ seedFirestoreCollections(); }catch(e){}
@@ -250,38 +296,112 @@ async function adminInit(){
   }
 }document.addEventListener('DOMContentLoaded', adminInit);
 
+
+/* ============================ 🩺 LOGIN HELP PANEL ============================
+   Same words as the real cause, so the owner never has to guess:
+     · wrong password        → reset in Firebase Console
+     · not an admin          → claim missing; the panel prints the DONE-FOR-YOU
+                               copy button with the exact commands + the uid,
+                               and the one-click fix if the callable function
+                               `setAdminClaim` is deployed.
+     · too many attempts     → wait                                             */
+function showAdminHelp(e){
+  const box = document.getElementById('admHelp');
+  if (!box) return;
+  const code = (e && e.code) || '';
+  const reason = ADMIN_AUTH._lastReason || '';
+  const mail = ADMIN_AUTH._lastEmail || String((document.getElementById('admEmail')||{}).value || '').trim();
+  const uid = ADMIN_AUTH._uid || '<uid>';
+  if (!code && !reason){ box.style.display = 'none'; return; }
+  const card = (title, body) =>
+    '<div style="text-align:left;margin-top:12px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:#fff8f0">' +
+      '<b style="font-size:.95rem">' + title + '</b><div class="muted small" style="margin-top:6px">' + body + '</div></div>';
+
+  if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/invalid-login-credentials'){
+    box.innerHTML = card('❌ E-mail அல்லது password தவறு', 'Firebase Console → <b>Authentication → Users</b> → account → <b>Reset password</b>. (Password யாருக்கும் தெரியலைனா இதுதான் வழி.)');
+  } else if (code === 'auth/too-many-requests'){
+    box.innerHTML = card('⏳ நிறைய தடவை முயற்சி', '10–15 நிமிடம் காத்திருந்து மறுபடி try பண்ணுங்க.');
+  } else if (code === 'auth/network-request-failed'){
+    box.innerHTML = card('📶 Network', 'Internet check பண்ணி மறுபடி try பண்ணுங்க.');
+  } else if (reason === 'no-claim'){
+    box.innerHTML = card('⚠️ Password சரி — ஆனா இந்த account-க்கு admin உரிமை இல்லை',
+      'Firebase-ல <b>admin: true</b> claim ஒரு தடவை மட்டும் கொடுக்கணும் (couple minutes). ' +
+      'உங்க uid: <code style="background:#fff;padding:1px 5px;border-radius:5px">' + uid + '</code>' +
+      '<div style="margin-top:8px">' +
+        '<button type="button" class="btn btn-maroon" id="admClaimTry" style="font-size:.85rem;padding:9px 14px">⚡ Auto fix try பண்ணு</button> ' +
+        '<button type="button" class="btn" id="admCopyCmd" style="font-size:.85rem;padding:9px 14px">📋 Laptop command copy</button>' +
+      '</div>' +
+      '<p id="admClaimMsg" class="muted small" style="margin-top:8px"></p>');
+    const c1 = document.getElementById('admCopyCmd');
+    if (c1) c1.addEventListener('click', async () => {
+      const cmd = 'cd firebase/functions && npm install && GOOGLE_APPLICATION_CREDENTIALS=./serviceAccount.json node scripts/grant-admin.js ' + (mail || 'you@example.com');
+      try{ await navigator.clipboard.writeText(cmd); c1.textContent = '✅ copied'; }
+      catch(_){ c1.textContent = cmd; }
+      setTimeout(() => { c1.textContent = '📋 Laptop command copy'; }, 2500);
+    });
+    const c2 = document.getElementById('admClaimTry');
+    if (c2) c2.addEventListener('click', async () => {
+      const msg = document.getElementById('admClaimMsg');
+      c2.disabled = true; c2.textContent = 'Trying…';
+      try{
+        const fb = await ADMIN_AUTH.ready();
+        if (!fb.functions) throw new Error('functions-not-loaded');
+        const fn = fb.app().functions('asia-south1').httpsCallable('setAdminClaim');
+        const r = await fn({});
+        if (msg) msg.textContent = '✅ Admin உரிமை கிடைச்சது! மறுபடி sign in பண்ணுங்க (10 sec).';
+        c2.textContent = '✅ Done';
+      }catch(err){
+        const m = (err && err.message) || '';
+        if (msg) msg.textContent = (/not/i.test(m) && /function|internal|unavailable/i.test(m))
+          ? '⚙️ Auto-fix server இன்னும் deploy ஆகல — கீழே "📋 Laptop command" use பண்ணுங்க (one time).'
+          : '⚙️ Auto-fix இப்போ இல்லை — "📋 Laptop command" வழி ஒரு தடவை ஓட்டுங்க.';
+        c2.disabled = false; c2.textContent = '⚡ Auto fix try பண்ணு';
+      }
+    });
+  } else {
+    box.style.display = 'none';
+  }
+  if (box.innerHTML) box.style.display = 'block';
+}
+
 function renderLogin(){
   const app = document.getElementById('adminApp'); if (!app) return;
-  app.innerHTML = '<div style="max-width:380px;margin:40px auto;text-align:center">' +
-    '<div style="font-size:3rem">🔐</div>' +
-    '<h1 style="margin-top:10px">Store Admin</h1>' +
-    '<p class="muted small">Sign in with your admin account (Firebase e-mail &amp; password).</p>' +
-    '<input id="admEmail" type="email" autocomplete="username" placeholder="Admin e-mail" style="width:100%;border:1.5px solid var(--line);border-radius:12px;padding:14px;font-size:1rem;background:#fff;outline:none;margin-top:18px">' +
-    '<input id="admPass" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;border:1.5px solid var(--line);border-radius:12px;padding:14px;font-size:1rem;background:#fff;outline:none;margin-top:10px">' +
-    '<button type="button" class="btn btn-maroon" id="admGo" style="margin-top:12px">Sign in</button>' +
-    '<p class="muted small" id="admErr" style="margin-top:10px;color:#b3261e"></p>' +
-    '<p class="muted small" style="margin-top:14px">Forgot the password? Reset it in the Firebase Console → Authentication.</p>' +
-    (ADMIN_AUTH._failed ? '<p class="muted small" style="margin-top:10px;color:#b3261e">⚠️ Could not reach the login service (network/CDN blocked). Reload the page or check your internet.</p>' : '') +
+  app.innerHTML = '<div style="max-width:320px;margin:34px auto;text-align:center">' +
+    '<div style="font-size:2.6rem">🔐</div>' +
+    '<h1 style="margin-top:8px">Store Admin</h1>' +
+    '<p class="muted small">4-இலக்க PIN போட்டு உள்ளே வாங்க</p>' +
+    '<input id="admPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" ' +
+      'style="width:150px;text-align:center;letter-spacing:12px;font-size:1.5rem;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;outline:none;margin-top:14px">' +
+    '<p class="muted small" id="admErr" style="margin-top:8px;color:#b3261e;min-height:18px"></p>' +
+    '<button type="button" class="btn btn-maroon" id="admGo" style="width:100%;max-width:220px">Unlock</button>' +
+    '<p class="muted small" style="margin-top:16px">PIN மறந்துட்டா? <b>MASTER-STATE.md</b>-ல பாருங்க.</p>' +
     '</div>';
   const err = m => { const el = document.getElementById('admErr'); if (el) el.textContent = m || ''; };
-  const go = async () => {
-    const email = String(document.getElementById('admEmail').value || '').trim();
-    const pass = String(document.getElementById('admPass').value || '');
-    if (!email || !pass) return err('Enter e-mail and password.');
-    const btn = document.getElementById('admGo');
-    if (btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
-    try{
-      const user = await ADMIN_AUTH.signIn(email, pass);
-      window.__adminUser = user;
-      LS.set('sk_admin', '1');
-      location.reload();                      /* fresh admin page with a real session */
-    }catch(e){
-      err((e && e.message) || 'Sign-in failed.');
-      if (btn){ btn.disabled = false; btn.textContent = 'Sign in'; }
+  const inp = document.getElementById('admPin');
+  let tries = 0;
+  const go = () => {
+    const pin = String((inp && inp.value) || '').trim();
+    if (!/^[0-9]{4}$/.test(pin)) return err('4 இலக்க number போடுங்க.');
+    if (PIN_GATE.check(pin)){
+      PIN_GATE.open();
+      location.reload();
+      return;
+    }
+    tries++;
+    err('❌ தவறான PIN' + (tries >= 3 ? ' — 3 தடவை தப்பு, சிறிது நேரம் கழிச்சு try பண்ணுங்க.' : '.'));
+    if (inp) inp.value = '';
+    if (tries >= 3){
+      const b = document.getElementById('admGo');
+      if (b) b.disabled = true;
+      setTimeout(() => { tries = 0; if (b){ b.disabled = false; err(''); } }, 30000);
     }
   };
   document.getElementById('admGo').addEventListener('click', go);
-  document.getElementById('admPass').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  if (inp){
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    inp.addEventListener('input', () => { if (inp.value.length === 4) go(); });
+    setTimeout(() => { try{ inp.focus(); }catch(e){} }, 120);
+  }
 }
 
 let adminTab = 'orders';
@@ -316,12 +436,12 @@ function renderAdmin(){
     '</div>' +
     '<div id="tabBody"></div>' +
     '<div class="adm-pw">' +
-      '<b>🔑 Change admin password</b>' +
-      '<p class="muted small" style="margin:4px 0 8px">Signed in as <b id="admWho">' + esc((window.__adminUser && window.__adminUser.email) || 'admin') + '</b> — the old 4-digit PIN no longer works.</p>' +
-      '<input id="pwCur" type="password" autocomplete="current-password" placeholder="Current password" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
-      '<input id="pwNew" type="password" autocomplete="new-password" placeholder="New password (min 8 characters)" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
-      '<input id="pwNew2" type="password" autocomplete="new-password" placeholder="Repeat new password" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:8px;outline:none;background:#fff">' +
-      '<button type="button" class="btn btn-maroon btn-sm" id="pwSave" style="width:100%">Save new password</button>' +
+      '<b>🔑 Change admin PIN</b>' +
+      '<p class="muted small" style="margin:4px 0 8px">இப்போ 4-இலக்க PIN போதும். Firebase login தேவை இல்ல.</p>' +
+      '<input id="pwCur" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="பழைய PIN" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
+      '<input id="pwNew" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="புது PIN (4 இலக்கம்)" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
+      '<input id="pwNew2" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="புது PIN மறுபடி" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:8px;outline:none;background:#fff">' +
+      '<button type="button" class="btn btn-maroon btn-sm" id="pwSave" style="width:100%">Save new PIN</button>' +
       '<p class="muted small" id="pwMsg" style="margin:8px 0 0"></p>' +
     '</div>' +
     '<button type="button" class="btn btn-ghost btn-sm" id="logoutBtn" style="margin-top:14px;width:auto;border:1.5px solid var(--line)">Logout</button>';
@@ -337,30 +457,26 @@ function renderAdmin(){
   document.getElementById('tabCoupons').addEventListener('click', () => switchTab('coupons'));
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
-  document.getElementById('logoutBtn').addEventListener('click', async () => { await ADMIN_AUTH.signOut(); LS.set('sk_admin', '0'); location.reload(); });
-  /* 🔑 change-password wiring */
+  document.getElementById('logoutBtn').addEventListener('click', () => { PIN_GATE.close(); location.reload(); });
+  /* 🔑 change-PIN wiring (V60 — local hash, no Firebase) */
   const pwBtn = document.getElementById('pwSave');
-  if (pwBtn) pwBtn.addEventListener('click', async () => {
-    const cur = String((document.getElementById('pwCur') || {}).value || '');
-    const nw = String((document.getElementById('pwNew') || {}).value || '');
-    const nw2 = String((document.getElementById('pwNew2') || {}).value || '');
+  if (pwBtn) pwBtn.addEventListener('click', () => {
     const msg = document.getElementById('pwMsg');
-    const say = (txt, ok) => { if (msg){ msg.textContent = txt; msg.style.color = ok ? '#0e7d46' : '#b3261e'; } };
-    if (!cur || !nw) return say('Fill all three fields.');
-    if (nw !== nw2) return say('The two new passwords do not match.');
-    if (nw.length < 8) return say('Use at least 8 characters.');
-    pwBtn.disabled = true; pwBtn.textContent = 'Saving…';
-    try{
-      await ADMIN_AUTH.changePassword(cur, nw);
-      say('✅ Password changed. Use the new one next time you sign in.', true);
-      ['pwCur', 'pwNew', 'pwNew2'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    }catch(e){
-      const m = String((e && e.message) || e);
-      say(/wrong-password|invalid-credential/i.test(m) ? '❌ Current password is wrong.' : '❌ ' + m.replace(/^Firebase: /, ''));
-    }finally{
-      pwBtn.disabled = false; pwBtn.textContent = 'Save new password';
-    }
+    const say = (t, ok) => { if (msg){ msg.textContent = t; msg.style.color = ok ? 'var(--green)' : '#b3261e'; } };
+    const cur = String((document.getElementById('pwCur') || {}).value || '').trim();
+    const a   = String((document.getElementById('pwNew') || {}).value || '').trim();
+    const b   = String((document.getElementById('pwNew2') || {}).value || '').trim();
+    if (!PIN_GATE.check(cur)) return say('❌ பழைய PIN தவறு.');
+    if (!/^[0-9]{4}$/.test(a))  return say('❌ புது PIN 4 இலக்க number ஆகணும்.');
+    if (a !== b)                return say('❌ ரெண்டு புது PIN-ம் ஒண்ணா இல்ல.');
+    if (a === cur)              return say('❌ புது PIN பழையதை விட வேறா இருக்கணும்.');
+    PIN_HASH = pinHash(a);                    /* this browser: instant */
+    PIN_GATE.open();                          /* stay signed in */
+    say('✅ PIN மாறிடுச்சு. இந்த phone-ல மட்டும் — மற்ற device-ல புது PIN தான் வேலை செய்யும். \n' +
+        '⚠️ Permanent ஆகணும்னா: PIN_HASH = \'' + pinHash(a) + '\' — இதை app-admin.js-ல முதல் வரி-பகுதியில மாத்தி upload பண்ணுங்க.', true);
+    try{ navigator.clipboard.writeText("PIN_HASH = '" + pinHash(a) + "'"); }catch(e){}
   });
+
   const ab = document.getElementById('btnAlerts');
   if (ab) ab.addEventListener('click', () => enableAdminAlerts());
   /* Firestore: quiet status + live orders/reviews */
