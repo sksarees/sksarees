@@ -1077,6 +1077,9 @@ function renderBulkManager(){
   document.getElementById('bmTpl').onclick=e=>{e.preventDefault();const csv='Name,Price,MRP,Image URL,Category,Badge,SKU,Stock,Colours\nSoft Silk Saree,1499,2299,https://example.com/photo.jpg,soft-silk,New,SKS-001,10,Red Gold\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='sk-sarees-products-template.csv';a.click();};
 }
 function renderProducts(){
+  /* 🛍️ V61 — the Advanced Product Management System lives in admin-products.js.
+     If that file is missing (old upload) the classic table below still works. */
+  try{ if (window.SKPM && typeof window.SKPM.render === 'function'){ window.SKPM.render(); return; } }catch(e){}
   if (!__adminProductsLoaded){
     document.getElementById('tabBody').innerHTML = '<div class="form-card" style="text-align:center;padding:28px"><b>⏳ Loading products from Firestore…</b><p class="small muted">Please wait a moment.</p></div>';
     loadAdminProducts(); return;
@@ -1195,7 +1198,9 @@ function renderProdBody(){
   updateDelSelCount();
 }
 function syncSelectedProductsToFirestore(ids){
-  try{ if (!FS.enabled()) return; FS._getDb().then(db => { if (!db) return; (ids || []).forEach(id => { const p=PRODUCTS.find(x=>x.id===id); if(p) db.collection('products').doc(String(p.id)).set(Object.assign({},p,{updatedAt:window.firebase.firestore.FieldValue.serverTimestamp()}),{merge:true}).catch(()=>{}); }); }).catch(()=>{}); }catch(e){}
+  /* 💯 V62 — toStoredProduct() strips the display markup + the _mkUp flag, so an
+     admin edit can never bake the +10% into the database. */
+  try{ if (!FS.enabled()) return; FS._getDb().then(db => { if (!db) return; (ids || []).forEach(id => { const p=PRODUCTS.find(x=>x.id===id); if(p) db.collection('products').doc(String(p.id)).set(Object.assign({},toStoredProduct(p),{updatedAt:window.firebase.firestore.FieldValue.serverTimestamp()}),{merge:true}).catch(()=>{}); }); }).catch(()=>{}); }catch(e){}
 }
 function openCategoryManager(){
   const rows = CATEGORIES.map(c => '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><span>' + esc(c.emoji || '🪡') + ' <b>' + esc(c.name) + '</b><small class="muted"> · ' + esc(c.slug) + '</small></span><button type="button" class="btn btn-ghost btn-sm" data-delcat="' + esc(c.slug) + '" style="width:auto;color:var(--red)">Delete</button></div>').join('');
@@ -1835,8 +1840,13 @@ function setFeedDomain(d){ try{ localStorage.setItem('sk_feed_domain', String(d 
 /* catalog.json content (exact shape the store + Google/Meta can consume) —
    hidden products are NEVER included */
 function feedJson(){
+  /* 💯 V62 — catalog.json is read by the STOREFRONT, which adds the 10% display
+     markup itself. So this file must contain the REAL prices, never the
+     marked-up ones (otherwise the markup is applied twice: 1299 → 1429 → 1572).
+     The Google/Meta feeds below keep the DISPLAY price, because that is what
+     the customer actually pays on the site. */
   return JSON.stringify(PRODUCTS.filter(p => !p.hidden).map(p => ({
-    id: p.id, sku: p.sku, name: p.name, price: p.price, mrp: p.mrp, cat: p.cat,
+    id: p.id, sku: p.sku, name: p.name, price: realPriceOf(p), mrp: realMrpOf(p), cat: p.cat,
     img: feedImg(p, feedBase()), images: p.images ? p.images.map(u => String(u || '').indexOf('data:image/') === 0 ? feedImg(p, feedBase()) : u) : [feedImg(p, feedBase())], stock: p.stock,
     fabric: p.fabric, color: p.color, colors: p.colors || [],
     colourStock: p.colourStock || null,

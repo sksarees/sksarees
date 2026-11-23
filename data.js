@@ -410,6 +410,59 @@ function VIDEO_IDS(raw){
   push(raw.video2); push(raw.video3);
   return out;
 }
+/* ============================ 💯 V62 — THE 10% DISPLAY MARKUP ============================
+   ONE source of truth for money:
+
+     · Firestore / catalog.json / the admin panel ALWAYS hold the REAL price —
+       exactly the rate the owner sets (e.g. 1299).
+     · The CUSTOMER always sees real × CONFIG.displayMarkup (1299 → ₹1,429).
+       normalizeProduct() applies it once, at render time, and stamps the
+       in-memory copy with `_mkUp` so it can never be applied twice.
+
+   `_mkUp` is an in-memory flag only — it must NEVER be written to the database.
+   If it ever was (older admin builds did), realPriceOf() divides it back out so
+   the owner sees the true rate again and the next save repairs the document.
+   ======================================================================================== */
+function markupFactor(){
+  try{ const f = parseFloat(CONFIG && CONFIG.displayMarkup); return Number.isFinite(f) && f >= 1 ? f : 1; }catch(e){ return 1; }
+}
+/* the owner's real selling price, whatever shape the record is in */
+function realPriceOf(p){
+  try{
+    if (!p) return 0;
+    if (Number.isFinite(+p.realPrice) && +p.realPrice > 0) return Math.round(+p.realPrice);
+    const v = Math.round(+p.price || 0);
+    const f = markupFactor();
+    return (p._mkUp && f > 1) ? Math.round(v / f) : v;
+  }catch(e){ return 0; }
+}
+/* the owner's real MRP (0 = none, so no fake strikethrough is invented) */
+function realMrpOf(p){
+  try{
+    if (!p) return 0;
+    if (Number.isFinite(+p.realMrp) && +p.realMrp > 0) return Math.round(+p.realMrp);
+    const v = Math.round(+(p.mrp != null ? p.mrp : p.op) || 0);
+    const f = markupFactor();
+    return (p._mkUp && f > 1) ? Math.round(v / f) : v;
+  }catch(e){ return 0; }
+}
+/* what the customer sees */
+function displayPriceOf(p){
+  try{ return p && p._mkUp ? Math.round(+p.price || 0) : Math.round(realPriceOf(p) * markupFactor()); }catch(e){ return Math.round(+(p && p.price) || 0); }
+}
+/* a copy that is SAFE TO STORE: real prices, real discount, no _mkUp flag */
+function toStoredProduct(p){
+  const o = Object.assign({}, p || {});
+  const rp = realPriceOf(p);
+  let rm = realMrpOf(p);
+  if (rm < rp) rm = rp;                 /* never show a negative discount */
+  o.price = rp;
+  o.mrp = rm;
+  o.disc = rm > rp ? Math.round((1 - rp / rm) * 100) : 0;
+  delete o._mkUp;
+  return o;
+}
+
 function normalizeProduct(raw){
   raw = raw || {};
   /* ---- flexible field mapping: supports BOTH schemas ----
@@ -2841,7 +2894,8 @@ const Sync = {
       FS._getDb().then(db => {
         if (!db) return;
         (PRODUCTS || []).slice(0, 100).forEach(p => {
-          db.collection('products').doc(String(p.id)).set(Object.assign({}, p, { updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }), { merge: true }).catch(() => {});
+          /* 💯 V62 — store the REAL price (never the marked-up display price) */
+          db.collection('products').doc(String(p.id)).set(Object.assign({}, toStoredProduct(p), { updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }), { merge: true }).catch(() => {});
         });
       }).catch(() => {});
     }catch(e){}

@@ -2000,14 +2000,14 @@ function mscCardHTML(p){
   const avg = realAvgRating(p);
   const out = p.stock != null && +p.stock <= 0;
   const wish = Store.wish.includes(p.id);
-  return '<article class="msc' + (out ? ' out' : '') + '">' +
-    '<div class="msc-img" data-qv="' + esc(p.id) + '" data-url="' + esc(productUrl(p)) + '">' +
+  return '<article class="msc' + (out ? ' out' : '') + '" data-purl="' + esc(productUrl(p)) + '">' +
+    '<a class="msc-img" href="' + esc(productUrl(p)) + '" data-qv="' + esc(p.id) + '" data-url="' + esc(productUrl(p)) + '" aria-label="' + esc(p.name) + '">' +
       '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="imgSafe(this)" onload="imgLoaded(this)">' +
       '<span class="card-heart' + (wish ? ' on' : '') + '" data-wish="' + esc(p.id) + '" role="button" aria-label="Wishlist">' + (wish ? '❤️' : '🤍') + '</span>' +
       (out ? '<span class="msc-out">' + loc('இருப்பு இல்லை', 'స్టాక్ లేదు', 'ಸ್ಟಾಕ್ ಇಲ್ಲ', 'Out of stock', 'സ്റ്റോക്ക് ഇല്ല') + '</span>' : '') +
-    '</div>' +
+    '</a>' +
     '<div class="msc-b">' +
-      '<span class="msc-brand">SK Sarees</span>' +
+      '<a class="msc-brand" href="' + esc(productUrl(p)) + '">SK Sarees</a>' +
       '<div class="msc-price"><b>' + money(price) + '</b>' +
         (pct > 0 ? '<s>' + money(mrp) + '</s><em>' + pct + '% off</em>' : '') + '</div>' +
       (offer < price ? '<div class="msc-offer">' + money(offer) + ' ' + loc('1 ஆஃபருடன்', '1 ఆఫర్‌తో', '1 ಆಫರ್ ಜೊತೆ', 'with 1 Special Offer', '1 ഓഫറോടെ') + '</div>' : '') +
@@ -2295,12 +2295,13 @@ function initReelCards(){
         return;
       }
       if (e.target.closest('[data-wish]')) return;   /* heart handled elsewhere */
-      /* 🛍️ V55: marketplace shop card → Quick View (or the product page) */
+      /* 🛍️ V62 (owner request): on the SHOP page, tapping a product image opens
+         the PRODUCT PAGE — no quick-view layer in between. The whole card
+         (image + name + price) is wrapped in a real link for SEO as well. */
       const mcard = e.target.closest('.msc-img');
       if (mcard && !moved){
-        e.preventDefault();
-        try{ if (mcard.dataset.qv && typeof openQuickView === 'function'){ openQuickView(mcard.dataset.qv); return; } }catch(err0){}
-        try{ location.href = mcard.dataset.url || ('product.html?id=' + encodeURIComponent(mcard.dataset.qv || '')); }catch(err){}
+        const url = mcard.dataset.url || ('product.html?id=' + encodeURIComponent(mcard.dataset.qv || ''));
+        if (url) location.href = url;      /* plain navigation — no preventDefault */
         return;
       }
       const r = e.target.closest('.reel-imgs');
@@ -5923,28 +5924,11 @@ setTimeout(function(){ try{ maybeProductSharePrompt(); }catch(e){} }, 20000);
    This turns every visitor into a promoter — her WhatsApp friends see the
    saree photo + link → new visitors → more traffic → more orders.
    Shows ONCE per session (never annoying). */
-function maybeViralShare(){
-  try{
-    if (sessionStorage.getItem('sk_viral_shown')) return;
-    if (document.body.dataset.page === 'reels') return;   /* reels already have share */
-    sessionStorage.setItem('sk_viral_shown', '1');
-    /* 🤝 need-help popup — WhatsApp support in HER language (easy to close) */
-    openModal('<div class="np-card" style="text-align:center">' +
-      '<div class="np-emoji">🤝</div>' +
-      '<h3 class="np-title">' + loc('சேலை தேர்ந்தெடுக்க உதவி வேண்டுமா?', 'చీర ఎంచుకోవడానికి సహాయం కావాలా?', 'ಸೀರೆ ಆರಿಸಲು ಸಹಾಯ ಬೇಕೆ?', 'Need help choosing a saree?', 'സാരി തിരഞ്ഞെടുക്കാൻ സഹായം വേണോ?') + '</h3>' +
-      '<p class="np-sub">' + loc('உங்க மொழியில எங்களுடன் பேசுங்கள் — உடனே பதில் கிடைக்கும்!', 'మీ భాషలో మాతో మాట్లాడండి — వెంటనే స్పందిస్తాము!', 'ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ನಮ್ಮೊಂದಿಗೆ ಮಾತನಾಡಿ — ತಕ್ಷಣ ಉತ್ತರ!', 'Talk to us in your language — we reply right away!', 'നിങ്ങളുടെ ഭാഷയിൽ ഞങ്ങളോട് സംസാരിക്കൂ — ഉടനടി മറുപടി!') + '</p>' +
-      '<div class="pdh-langs" style="justify-content:center">' + [
-        ['ta', 'தமிழ்', 'வணக்கம்! சேலை தேர்ந்தெடுக்க உதவி வேண்டும்.'],
-        ['te', 'తెలుగు', 'నమస్కారం! చీర ఎంచుకోవడానికి సహాయం కావాలి.'],
-        ['kn', 'ಕನ್ನಡ', 'ನಮಸ್ಕಾರ! ಸೀರೆ ಆರಿಸಲು ಸಹಾಯ ಬೇಕು.'],
-        ['ml', 'മലയാളം', 'നമസ്കാരം! സാരി തിരഞ്ഞെടുക്കാൻ സഹായം വേണം.'],
-        ['en', 'English', 'Hi! I need help choosing a saree.']
-      ].map(x => '<a href="' + waLink(x[2]) + '" target="_blank" rel="noopener">' + x[1] + '</a>').join('') + '</div>' +
-      '<button type="button" class="np-skip" data-close>' + loc('பிறகு', 'తర్వాత', 'ನಂತರ', 'Later', 'പിന്നീട്') + '</button>' +
-    '</div>');
-  }catch(e){}
-}
-setTimeout(function(){ try{ maybeViralShare(); }catch(e){} }, 40000);
+/* 🚫 V62 — the 40-second "help choosing a saree" WhatsApp popup is REMOVED
+   (owner request: no popups on the site), together with its timer. WhatsApp
+   help is still one tap away in the drawer and on every product page, so
+   nothing is lost. The function stays as a no-op so cached pages never throw. */
+function maybeViralShare(){ return; }
 
 /* ============================ 📢 WHATSAPP GROUP INVITE ============================
    After 90 seconds (deep engagement), invite her to the WhatsApp group
@@ -6820,7 +6804,6 @@ function payRememberLocal(o){
 function payPaint(){
   const app = document.getElementById('app'); if (!app || !__payOrder) return;
   const o = __payOrder;
-  const t = o.totals || {};
   const items = (o.items || []);
   const qty = items.reduce((s, i) => s + (+i.qty || 1), 0);
   const paid = payIsPaid(o);
@@ -6831,83 +6814,92 @@ function payPaint(){
   const grand = PayLink.grand(o);
   const balance = Math.max(0, grand - due);
   const note = 'Order ' + o.id + ' SK Sarees';
-  const dateTxt = (function(){
-    try{
-      const d = new Date(o.date || Date.now());
-      if (isNaN(d.getTime())) return '';
-      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    }catch(e){ return ''; }
-  })();
+  const amt = n => '<small>\u20B9</small>' + Math.round(+n || 0).toLocaleString('en-IN');
 
+  /* item lines (collapsed by default — the page stays short) */
   const itemRows = items.map(i => {
     const price = (+i.price || 0), q = (+i.qty || 1);
-    return '<div class="py-item"><span class="py-item-n">' + esc(i.name || 'Saree') + '</span>' +
-      '<span class="py-item-q">×' + q + '</span>' +
-      '<b class="py-item-p">' + money(price * q) + '</b></div>';
-  }).join('') || '<div class="py-item"><span class="py-item-n">' + loc('சேலை', 'చీర', 'ಸೀರೆ', 'Saree', 'സാരി') + '</span><b class="py-item-p">' + money(grand) + '</b></div>';
+    return '<div class="pyv-il"><span>' + esc(i.name || 'Saree') + '</span><em>\u00D7' + q + '</em><b>' + money(price * q) + '</b></div>';
+  }).join('');
 
-  app.innerHTML =
-  '<div class="wrap py-wrap py-simple">' +
-    /* ── one small header: shop • amount • order id ── */
-    '<div class="py-top py-top-s">' +
-      '<span class="py-badge">🩷 SK SAREES</span>' +
-      '<h1 class="py-h1 py-h1-s">' + (paid ? loc('பணம் பெறப்பட்டது ✅', 'చెల్లింపు అందింది ✅', 'ಪಾವತಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ ✅', 'Payment received ✅', 'പേയ്മെന്റ് ലഭിച്ചു ✅')
-                                     : loc('பணம் செலுத்துங்கள்', 'చెల్లించండి', 'ಪಾವತಿಸಿ', 'Pay for your order', 'അടയ്ക്കൂ')) + '</h1>' +
-      '<p class="py-sub py-sub-s">#' + esc(o.id) + (qty ? ' · ' + qty + ' ' + loc('சேலை', 'చీర', 'ಸೀರೆ', 'saree', 'സാരി') + (qty > 1 ? 's' : '') : '') + '</p>' +
-    '</div>' +
+  const waBtn = msg => '<a class="pyv-wa" href="' + waLink(msg) + '" target="_blank" rel="noopener">\uD83D\uDCAC ' +
+    loc('WhatsApp-ல் பேசுங்கள்', 'WhatsApp లో మాట్లాడండి', 'WhatsApp ನಲ್ಲಿ ಮಾತನಾಡಿ', 'Talk to us on WhatsApp', 'WhatsApp-ൽ സംസാരിക്കൂ') + '</a>';
 
-    (paid
-      ? '<div class="py-card py-paid py-big">' +
-          '<div class="py-tick" aria-hidden="true"><svg viewBox="0 0 52 52" width="64" height="64"><circle cx="26" cy="26" r="24" fill="none" stroke="#0e7d46" stroke-width="3"/><path d="M14 27l8 8 16-17" fill="none" stroke="#0e7d46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-          '<b class="py-big-t">' + loc('பணம் வெற்றிகரமா வந்துச்சு ✅', 'చెల్లింపు విజయవంతం ✅', 'ಪಾವತಿ ಯಶಸ್ವಿ ✅', 'Payment successful ✅', 'പേയ്മെന്റ് വിജയിച്ചു ✅') + '</b>' +
-          '<p class="py-amt2">' + money(due) + ' ' + loc('SK Sarees-க்கு கிடைத்தது', 'SK Sarees కి అందింది', 'SK Sarees ಗೆ ಸ್ವೀಕರಿಸಲಾಗಿದೆ', 'received by SK Sarees', 'SK Sarees-ന് ലഭിച്ചു') + '</p>' +
-          '<div class="py-stamp">✅ ' + loc('ஆர்டர் confirm ஆகிவிட்டது', 'ఆర్డర్ నిర్ధారించబడింది', 'ಆರ್ಡರ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ', 'Order confirmed', 'ഓർഡർ സ്ഥിരീകരിച്ചു') + ' · #' + esc(o.id) + '</div>' +
-          '<p class="py-muted">' + loc('டிஸ்பேட்ச் ஆனதும் tracking விவரம் WhatsApp-ல் அனுப்புவோம்.', 'డిస్పాచ్ అయిన తర్వాత ట్రాకింగ్ WhatsApp లో పంపుతాము.', 'ಡಿಸ್ಪಾಚ್ ಆದ ನಂತರ ಟ್ರ್ಯಾಕಿಂಗ್ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸುತ್ತೇವೆ.', 'We will send the tracking details on WhatsApp after dispatch.', 'ഡിസ്പാച്ച് ആയശേഷം ട്രാക്കിംഗ് WhatsApp-ൽ അയയ്ക്കും.') + '</p>' +
-          '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:10px" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் பேசுங்கள்', 'WhatsApp లో మాట్లాడండి', 'WhatsApp ನಲ್ಲಿ ಮಾತನಾಡಿ', 'Talk to us on WhatsApp', 'WhatsApp-ൽ സംസാരിക്കൂ') + '</a>' +
-        '</div>'
-      : rejected
-        ? '<div class="py-card py-fail py-big">' +
-            '<div class="py-fail-ic">❌</div>' +
-            '<b class="py-big-t">' + loc('பணம் எங்களுக்கு வரல', 'చెల్లింపు మాకు చేరలేదు', 'ಪಾವತಿ ನಮಗೆ ತಲುಪಿಲ್ಲ', 'Payment not received', 'പേയ്മെന്റ് ഞങ്ങൾക്ക് ലഭിച്ചില്ല') + '</b>' +
-            '<p class="py-muted">' + loc('SK Sarees-க்கு இந்த தொகை இன்னும் வரல. பணம் உங்க account-ல இருந்து போயிட்டா? கவலைப்படாதீங்க — WhatsApp-ல சொல்லுங்க, உடனே பாத்து தர்றோம்.', 'SK Sarees కి ఈ మొత్తం ఇంకా రాలేదు. మీ ఖాతా నుండి డబ్బు పోయిందా? కంగారు పడకండి — WhatsApp లో చెప్పండి, వెంటనే చూస్తాము.', 'SK Sarees ಗೆ ಈ ಮೊತ್ತ ಇನ್ನೂ ಬಂದಿಲ್ಲ. ನಿಮ್ಮ ಖಾತೆಯಿಂದ ಹಣ ಹೋಗಿದೆಯಾ? ಚಿಂತಿಸಬೇಡಿ — WhatsApp ನಲ್ಲಿ ಹೇಳಿ, ತಕ್ಷಣ ನೋಡುತ್ತೇವೆ.', 'This amount has not reached SK Sarees yet. If money left your account, don\'t worry — tell us on WhatsApp and we will check right away.', 'SK Sarees-ന് ഈ തുക ഇനിയും ലഭിച്ചിട്ടില്ല. പണം നിങ്ങളുടെ അക്കൗണ്ടിൽ നിന്ന് പോയിട്ടുണ്ടെങ്കിൽ വിഷമിക്കേണ്ട — WhatsApp-ൽ പറയൂ, ഉടൻ നോക്കാം.') + '</p>' +
-            '<button type="button" class="py-retry" id="payRetry">🔄 ' + loc('மறுபடியும் pay பண்ணு', 'మళ్ళీ చెల్లించండి', 'ಮತ್ತೆ ಪಾವತಿಸಿ', 'Try payment again', 'വീണ്ടും അടയ്ക്കൂ') + '</button>' +
-            '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:8px" href="' + waLink(payFailMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் சொல்லுங்கள்', 'WhatsApp లో చెప్పండి', 'WhatsApp ನಲ್ಲಿ ಹೇಳಿ', 'Tell us on WhatsApp', 'WhatsApp-ൽ പറയൂ') + '</a>' +
-          '</div>'
-        : claimed
-        ? '<div class="py-card py-claimed">' +
-            '<div class="py-paid-ic">⏳</div>' +
-            '<b>' + loc('நீங்கள் "பணம் செலுத்திட்டேன்" சொன்னீர்கள்', 'మీరు "చెల్లించాను" చెప్పారు', 'ನೀವು "ಪಾವತಿಸಿದ್ದೇನೆ" ಹೇಳಿದ್ದೀರಿ', 'You told us you have paid', 'നിങ്ങൾ "പേയ്ച്ചു" എന്ന് പറഞ്ഞു') + '</b>' +
-            '<p class="py-muted">' + loc('SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க (9 AM – 9 PM, பொதுவா 1 மணி நேரத்துல).', 'SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు (9 AM – 9 PM, సాధారణంగా 1 గంటలో).', 'SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ (9 AM – 9 PM, ಸಾಮಾನ್ಯವಾಗಿ 1 ಗಂಟೆಯಲ್ಲಿ).', 'SK Sarees will verify and confirm on WhatsApp (9 AM – 9 PM, usually within 1 hour).', 'SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും (9 AM – 9 PM, സാധാരണ 1 മണിക്കൂറിൽ).') + '</p>' +
-            '<div class="py-live"><span class="py-spin"></span><span id="payPollLbl">' + loc('பணம் வந்ததா தானா check பண்ணிட்டே இருக்கோம்…', 'చెల్లింపు వచ్చిందా స్వయంగా తనిఖీ చేస్తున్నాము…', 'ಪಾವತಿ ಬಂದಿದೆಯೇ ಎಂದು ಸ್ವಯಂ ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ…', 'Checking automatically for your payment…', 'പേയ്മെന്റ് വന്നുവോ എന്ന് സ്വയം പരിശോധിക്കുന്നു…') + '</span></div>' +
-            '<a class="btn btn-wa" style="width:100%;min-height:48px;margin-top:6px" href="' + waLink(payWaMessage()) + '" target="_blank" rel="noopener">💬 ' + loc('WhatsApp-ல் screenshot அனுப்புங்கள்', 'WhatsApp లో స్క్రీన్‌షాట్ పంపండి', 'WhatsApp ನಲ್ಲಿ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಕಳುಹಿಸಿ', 'Send the screenshot on WhatsApp', 'WhatsApp-ൽ സ്ക്രീൻഷോട്ട് അയയ്ക്കൂ') + '</a>' +
-            '<button type="button" class="py-refresh" id="payCheck">🔄 ' + loc('இப்போவே check பண்ணு', 'ఇప్పుడే తనిఖీ చేయి', 'ಈಗಲೇ ಪರಿಶೀಲಿಸಿ', 'Check status now', 'ഇപ്പോൾ പരിശോധിക്കൂ') + '</button>' +
-            '<p class="py-note">✅ ' + loc('SK Sarees confirm பண்ணதும் இந்த பேஜ் தானா மாறும் — நீங்க எதுவும் பண்ண வேண்டாம்.', 'SK Sarees నిర్ధారించిన వెంటనే ఈ పేజీ స్వయంగా మారుతుంది — మీరు ఏమీ చేయాల్సిన అవసరం లేదు.', 'SK Sarees ದೃಢೀಕರಿಸಿದ ಕೂಡಲೇ ಈ ಪುಟ ತಾನಾಗಿಯೇ ಬದಲಾಗುತ್ತದೆ — ನೀವು ಏನೂ ಮಾಡಬೇಕಿಲ್ಲ.', 'The moment SK Sarees confirms, this page changes by itself — you do not have to do anything.', 'SK Sarees സ്ഥിരീകരിച്ച ഉടൻ ഈ പേജ് സ്വയം മാറും — നിങ്ങൾ ഒന്നും ചെയ്യേണ്ടതില്ല.') + '</p>' +
-          '</div>'
-        : '<div class="py-card py-paycard">' +
-            (__payForce ? '<p class="py-retryn">🔁 ' + loc('மறுபடியும் try பண்றீங்க — முந்தைய பணம் போனதா? WhatsApp-ல சொல்லுங்க, நாங்க பாத்து refund / adjust பண்றோம்.', 'మళ్ళీ ప్రయత్నిస్తున్నారు — ముందు డబ్బు పోయిందా? WhatsApp లో చెప్పండి, చూసి సరిచేస్తాము.', 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುತ್ತಿದ್ದೀರಿ — ಹಿಂದೆ ಹಣ ಹೋಗಿದೆಯಾ? WhatsApp ನಲ್ಲಿ ಹೇಳಿ, ನೋಡಿ ಸರಿಪಡಿಸುತ್ತೇವೆ.', 'Trying again — did the earlier payment leave your account? Tell us on WhatsApp and we will fix it (refund / adjust).', 'വീണ്ടും ശ്രമിക്കുന്നു — മുൻപ് പണം പോയിട്ടുണ്ടോ? WhatsApp-ൽ പറയൂ, ഞങ്ങൾ നോക്കി ശരിയാക്കാം.') + '</p>' : '') +
-            '<div class="py-amt"><small>' + (isCod ? loc('இப்போது செலுத்த வேண்டியது — கூரியர் சார்ஜ் மட்டும்', 'ఇప్పుడు చెల్లించాల్సినది — కొరియర్ ఛార్జ్ మాత్రమే', 'ಈಗ ಪಾವತಿಸಬೇಕಾದದ್ದು — ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ', 'Pay now — courier charge only', 'ഇപ്പോൾ അടയ്ക്കേണ്ടത് — കൊറിയർ ചാർജ് മാത്രം') : loc('செலுத்த வேண்டிய தொகை', 'చెల్లించవలసిన మొత్తం', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount to pay', 'അടയ്ക്കേണ്ട തുക')) + '</small><b>' + money(due) + '</b></div>' +
-            (isCod && balance > 0 ? '<p class="py-codnote">💵 ' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Saree amount', 'സാരി തുക') + ' <b>' + money(balance) + '</b> — ' + loc('டெலிவரி சமயத்துல பணமா கொடுக்கணும். இப்போ கூரியர் சார்ஜ் மட்டும் pay பண்றீங்க.', 'డెలివరీ సమయంలో నగదుగా ఇవ్వాలి. ఇప్పుడు కొరియర్ ఛార్జ్ మాత్రమే చెల్లిస్తున్నారు.', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಬೇಕು. ಈಗ ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ ಪಾವತಿಸುತ್ತಿದ್ದೀರಿ.', 'cash at delivery. Right now you pay the courier charge only.', 'ഡെലിവറി സമയത്ത് പണമായി നൽകണം. ഇപ്പോൾ കൊറിയർ ചാർജ് മാത്രം അടയ്ക്കുന്നു.') + '</p>' : '') +
-            /* QR — hidden until tapped (same pattern as checkout) */
-            '<div class="py-qrwrap">' +
-              '<div class="pg-qrblur" id="payQrBlur"><div class="pg-qrfake" aria-hidden="true"></div>' +
-                '<button type="button" class="pg-qrreveal" id="payQrToggle">👁 ' + loc('QR பார்க்க தட்டுங்கள்', 'QR చూడటానికి నొక్కండి', 'QR ನೋಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ', 'Tap to show QR code', 'QR കാണാൻ ടാപ്പ് ചെയ്യൂ') + '</button></div>' +
-              '<div class="py-qrbox" id="payQrBox" style="display:none"><div id="payQr"></div></div>' +
-            '</div>' +
-            '<div class="py-upirow"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b><button type="button" class="py-copy" data-copy="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
-            /* 🚫 V57: one primary button instead of 4 big app buttons */
-            '<a class="py-paybtn" href="' + upiLink(due, note) + '">📲 ' + loc('UPI-ல pay பண்ணு', 'UPI లో చెల్లించండి', 'UPI ನಲ್ಲಿ ಪಾವತಿಸಿ', 'PAY BY UPI', 'UPI-ൽ അടയ്ക്കൂ') + ' · ' + money(due) + ' →</a>' +
-            '<p class="pg-apptip">' + loc('GPay · PhonePe · Paytm எதுவும் திறக்கும். திறக்கலையா? மேலே QR ஸ்கேன் பண்ணுங்க.', 'GPay · PhonePe · Paytm ఏదైనా తెరుచుకుంటుంది. తెరవలేదా? QR స్కాన్ చేయండి.', 'GPay · PhonePe · Paytm ಯಾವುದಾದರೂ ತೆರೆಯುತ್ತದೆ. ತೆರೆಯಲಿಲ್ಲವೇ? QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.', 'Opens GPay, PhonePe, Paytm or any UPI app. Not opening? Scan the QR above.', 'GPay · PhonePe · Paytm ഏതും തുറക്കും. തുറന്നില്ലേ? QR സ്കാൻ ചെയ്യൂ.') + '</p>' +
-            '<button type="button" class="py-paidbtn" id="payPaidBtn">✅ ' + loc('I\'ve Paid — SK Sarees-க்கு தெரியப்படுத்து', 'నేను చెల్లించాను — SK Sarees కి తెలియజేయండి', 'ನಾನು ಪಾವತಿಸಿದ್ದೇನೆ — SK Sarees ಗೆ ತಿಳಿಸಿ', "I've Paid — tell SK Sarees", 'ഞാൻ പേയ്ച്ചു — SK Sarees-നെ അറിയിക്കൂ') + '</button>' +
-            '<p class="py-note">ℹ️ ' + loc('பணம் செலுத்தியதும் இந்த பட்டனை அழுத்துங்கள் — SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க.', 'చెల్లించిన తర్వాత ఈ బటన్ నొక్కండి — SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు.', 'ಪಾವತಿಸಿದ ನಂತರ ಈ ಬಟನ್ ಒತ್ತಿ — SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ.', 'After paying, tap this button — SK Sarees will verify and confirm on WhatsApp.', 'പേയ്ച്ചശേഷം ഈ ബട്ടൺ അമർത്തൂ — SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും.') + '</p>' +
-          '</div>') +
+  let body = '';
 
-    /* 🚫 V57: the big trust block + WhatsApp banner were removed — the pay page
-       is meant to be short and calm. One small line says what matters. */
-    '<p class="py-safe">🔐 ' + loc('SK SAREES UPI-க்கு மட்டும் — PIN / OTP யாருக்கும் சொல்லாதீங்க.', 'SK SAREES UPI కి మాత్రమే — PIN / OTP ఎవరికీ చెప్పకండి.', 'SK SAREES UPI ಗೆ ಮಾತ್ರ — PIN / OTP ಯಾರಿಗೂ ಹೇಳಬೇಡಿ.', 'Paid to SK SAREES UPI only — never share your PIN or OTP.', 'SK SAREES UPI-ക്ക് മാത്രം — PIN / OTP ആരോടും പറയരുത്.') + '</p>' +
+  if (paid){
+    /* ── 1. PAID ── one green tick, the amount, and what happens next ── */
+    body = '<div class="pyv-state">' +
+      '<div class="pyv-tick"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="#0e7d46" stroke-width="3"/><path d="M14 27l8 8 16-17" fill="none" stroke="#0e7d46" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<h2>' + loc('பணம் வந்துடுச்சு ✅', 'చెల్లింపు అందింది ✅', 'ಪಾವತಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ ✅', 'Payment received ✅', 'പേയ്മെന്റ് ലഭിച്ചു ✅') + '</h2>' +
+      '<p class="pyv-amt">' + amt(due) + '</p>' +
+      '<div class="pyv-stamp">✅ ' + loc('ஆர்டர் confirm ஆகிடுச்சு', 'ఆర్డర్ నిర్ధారించబడింది', 'ಆರ್ಡರ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ', 'Order confirmed', 'ഓർഡർ സ്ഥിരീകരിച്ചു') + ' · #' + esc(o.id) + '</div>' +
+      '<p style="margin-top:12px">' + loc('டிஸ்பேட்ச் ஆனதும் tracking விவரம் WhatsApp-ல் அனுப்புவோம்.', 'డిస్పాచ్ అయిన తర్వాత ట్రాకింగ్ WhatsApp లో పంపుతాము.', 'ಡಿಸ್ಪಾಚ್ ಆದ ನಂತರ ಟ್ರಾಕಿಂಗ್ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸುತ್ತೇವೆ.', 'We will send the tracking details on WhatsApp after dispatch.', 'ഡിസ്പാച്ച് ആയശേഷം ട്രാക്കിംഗ് WhatsApp-ൽ അയയ്ക്കും.') + '</p>' +
+      waBtn(payWaMessage()) +
+    '</div>';
+
+  }else if (rejected){
+    /* ── 2. NOT RECEIVED ── calm, two ways out ── */
+    body = '<div class="pyv-state pyv-bad">' +
+      '<div class="pyv-tick"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="#b3261e" stroke-width="3"/><path d="M17 17l18 18M35 17L17 35" fill="none" stroke="#b3261e" stroke-width="4.5" stroke-linecap="round"/></svg></div>' +
+      '<h2>' + loc('பணம் எங்களுக்கு வரல', 'చెల్లింపు మాకు చేరలేదు', 'ಪಾವತಿ ನಮಗೆ ತಲುಪಿಲ್ಲ', 'Payment not received', 'പേയ്മെന്റ് ഞങ്ങൾക്ക് ലഭിച്ചില്ല') + '</h2>' +
+      '<p>' + loc('உங்க account-ல இருந்து பணம் போயிருந்தா கவலைப்படாதீங்க — WhatsApp-ல சொல்லுங்க, உடனே பாத்து தர்றோம்.', 'మీ ఖాతా నుండి డబ్బు పోయిందా? కంగారు పడకండి — WhatsApp లో చెప్పండి, వెంటనే చూస్తాము.', 'ನಿಮ್ಮ ಖಾತೆಯಿಂದ ಹಣ ಹೋಗಿದೆಯಾ? ಚಿಂತಿಸಬೇಡಿ — WhatsApp ನಲ್ಲಿ ಹೇಳಿ, ತಕ್ಷಣ ನೋಡುತ್ತೇವೆ.', "If money left your account, don't worry — tell us on WhatsApp and we will check right away.", 'നിങ്ങളുടെ അക്കൗണ്ടിൽ നിന്ന് പണം പോയിട്ടുണ്ടോ? വിഷമിക്കേണ്ട — WhatsApp-ൽ പറയൂ, ഉടൻ നോക്കാം.') + '</p>' +
+      '<button type="button" class="pyv-ghost" id="payRetry" style="margin-top:14px">\uD83D\uDD04 ' + loc('மறுபடியும் pay பண்ணு', 'మళ్ళీ చెల్లించండి', 'ಮತ್ತೆ ಪಾವತಿಸಿ', 'Try payment again', 'വീണ്ടും അടയ്ക്കൂ') + '</button>' +
+      waBtn(payFailMessage()) +
+    '</div>';
+
+  }else if (claimed){
+    /* ── 3. CUSTOMER SAID "I PAID" ── we are checking, nothing to do ── */
+    body = '<div class="pyv-state">' +
+      '<div class="pyv-tick" style="background:#fff8e8"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="#b7791f" stroke-width="3"/><path d="M26 14v14l9 5" fill="none" stroke="#b7791f" stroke-width="4" stroke-linecap="round"/></svg></div>' +
+      '<h2>' + loc('நாங்க check பண்றோம் ⏳', 'మేము తనిఖీ చేస్తున్నాము ⏳', 'ನಾವು ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ ⏳', 'We are checking ⏳', 'ഞങ്ങൾ പരിശോധിക്കുന്നു ⏳') + '</h2>' +
+      '<p>' + loc('SK Sarees verify பண்ணி WhatsApp-ல் confirm பண்ணுவாங்க (9 AM – 9 PM, பொதுவா 1 மணி நேரத்துல).', 'SK Sarees ధృవీకరించి WhatsApp లో నిర్ధారిస్తారు (9 AM – 9 PM, సాధారణంగా 1 గంటలో).', 'SK Sarees ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ದೃಢೀಕರಿಸುತ್ತಾರೆ (9 AM – 9 PM, ಸಾಮಾನ್ಯವಾಗಿ 1 ಗಂಟೆಯಲ್ಲಿ).', 'SK Sarees will verify and confirm on WhatsApp (9 AM – 9 PM, usually within 1 hour).', 'SK Sarees പരിശോധിച്ച് WhatsApp-ൽ സ്ഥിരീകരിക്കും (9 AM – 9 PM, സാധാരണ 1 മണിക്കൂറിൽ).') + '</p>' +
+      '<div class="pyv-live"><span class="pyv-spin"></span><span id="payPollLbl">' + loc('தானா check பண்ணிட்டே இருக்கோம்…', 'స్వయంగా తనిఖీ చేస్తున్నాము…', 'ಸ್ವಯಂ ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ…', 'Checking automatically…', 'സ്വയം പരിശോധിക്കുന്നു…') + '</span></div>' +
+      '<button type="button" class="pyv-ghost" id="payCheck">\uD83D\uDD04 ' + loc('இப்போவே check பண்ணு', 'ఇప్పుడే తనిఖీ చేయి', 'ಈಗಲೇ ಪರಿಶೀಲಿಸಿ', 'Check status now', 'ഇപ്പോൾ പരിശോധിക്കൂ') + '</button>' +
+      waBtn(payWaMessage()) +
+      '<p class="pyv-note">✅ ' + loc('SK Sarees confirm பண்ணதும் இந்த பேஜ் தானா மாறும் — நீங்க எதுவும் பண்ண வேண்டாம்.', 'SK Sarees నిర్ధారించిన వెంటనే ఈ పేజీ స్వయంగా మారుతుంది — మీరు ఏమీ చేయాల్సిన అవసరం లేదు.', 'SK Sarees ದೃಢೀಕರಿಸಿದ ಕೂಡಲೇ ಈ ಪುಟ ತಾನಾಗಿಯೇ ಬದಲಾಗುತ್ತದೆ — ನೀವು ಏನೂ ಮಾಡಬೇಕಿಲ್ಲ.', 'The moment SK Sarees confirms, this page changes by itself — you do not have to do anything.', 'SK Sarees സ്ഥിരീകരിച്ച ഉടൻ ഈ പേജ് സ്വയം മാറും — നിങ്ങൾ ഒന്നും ചെയ്യേണ്ടതില്ല.') + '</p>' +
+    '</div>';
+
+  }else{
+    /* ── 4. TO PAY ── amount, one big button, QR, UPI id. Nothing else. ── */
+    body = '<div class="pyv-hero">' +
+      (__payForce ? '<p class="pyv-retryn">\uD83D\uDD01 ' + loc('மறுபடியும் try பண்றீங்க — முந்தைய பணம் போனதா? WhatsApp-ல சொல்லுங்க, நாங்க பாத்து refund / adjust பண்றோம்.', 'మళ్ళీ ప్రయత్నిస్తున్నారు — ముందు డబ్బు పోయిందా? WhatsApp లో చెప్పండి, చూసి సరిచేస్తాము.', 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುತ್ತಿದ್ದೀರಿ — ಹಿಂದೆ ಹಣ ಹೋಗಿದೆಯಾ? WhatsApp ನಲ್ಲಿ ಹೇಳಿ, ನೋಡಿ ಸರಿಪಡಿಸುತ್ತೇವೆ.', 'Trying again — did the earlier payment leave your account? Tell us on WhatsApp and we will fix it.', 'വീണ്ടും ശ്രമിക്കുന്നു — മുൻപ് പണം പോയിട്ടുണ്ടോ? WhatsApp-ൽ പറയൂ, ഞങ്ങൾ നോക്കി ശരിയാക്കാം.') + '</p>' : '') +
+      '<span class="pyv-shop">\uD83E\uDE77 SK Sarees</span>' +
+      '<p class="pyv-amt" id="payAmt">' + amt(due) + '</p>' +
+      '<p class="pyv-lab">' + (isCod
+        ? loc('இப்போ கூரியர் சார்ஜ் மட்டும்', 'ఇప్పుడు కొరియర్ ఛార్జ్ మాత్రమే', 'ಈಗ ಕೊರಿಯರ್ ಶುಲ್ಕ ಮಾತ್ರ', 'Courier charge only, right now', 'ഇപ്പോൾ കൊറിയർ ചാർജ് മാത്രം')
+        : loc('செலுத்த வேண்டிய தொகை', 'చెల్లించవలసిన మొత్తಂ', 'ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ', 'Amount to pay', 'അടയ്ക്കേണ്ട തുക')) + '</p>' +
+      '<div class="pyv-oid">#<b>' + esc(o.id) + '</b>' + (qty ? ' · ' + qty + ' ' + loc('சேலை', 'చీర', 'ಸೀರೆ', 'saree', 'സാരി') + (qty > 1 ? 's' : '') : '') + '</div>' +
+      (isCod && balance > 0 ? '<p class="pyv-note">\uD83D\uDCB5 ' + loc('சேலை தொகை', 'చీర మొత్తం', 'ಸೀರೆ ಮೊತ್ತ', 'Saree amount', 'സാരി തുക') + ' <b>' + money(balance) + '</b> — ' + loc('டெலிவரி சமயத்துல பணமா கொடுக்கணும்.', 'డెలివరీ సమయంలో నగదుగా ఇవ్వాలి.', 'ಡೆಲಿವರಿ ಸಮಯದಲ್ಲಿ ನಗದಾಗಿ ನೀಡಬೇಕು.', 'pay cash at delivery.', 'ഡെലിവറി സമയത്ത് പണമായി നൽകണം.') + '</p>' : '') +
+
+      '<a class="pyv-cta" href="' + upiLink(due, note) + '"><span>\uD83D\uDCF2</span> ' +
+        loc('UPI-ல pay பண்ணு', 'UPI లో చెల్లించండి', 'UPI ನಲ್ಲಿ ಪಾವತಿಸಿ', 'PAY BY UPI', 'UPI-ൽ അടയ്ക്കൂ') + '</a>' +
+
+      /* QR stays behind a tap so the page opens fast and calm */
+      '<div class="pyv-qr">' +
+        '<div class="pyv-qrblur" id="payQrBlur"><div class="pyv-qrfake" aria-hidden="true"></div>' +
+          '<button type="button" class="pyv-reveal" id="payQrToggle">\uD83D\uDC41 ' + loc('QR பார்க்க தட்டுங்கள்', 'QR చూడటానికి నొక్కండి', 'QR ನೋಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ', 'Tap to show QR code', 'QR കാണാൻ ടാപ്പ് ചെയ്യൂ') + '</button></div>' +
+        '<div class="pyv-qrbox" id="payQrBox" style="display:none"><div id="payQr"></div></div>' +
+      '</div>' +
+
+      '<div class="pyv-upi"><span>UPI ID</span><b>' + esc(CONFIG.upiId) + '</b>' +
+        '<button type="button" class="pyv-copy" data-copy="' + esc(CONFIG.upiId) + '">COPY</button></div>' +
+
+      '<button type="button" class="pyv-ghost" id="payPaidBtn">✅ ' + loc('நான் pay பண்ணிட்டேன்', 'నేను చెల్లించాను', 'ನಾನು ಪಾವತಿಸಿದ್ದೇನೆ', "I've paid", 'ഞാൻ പേയ്ച്ചു') + '</button>' +
+
+      (itemRows ? '<details class="pyv-items"><summary>' + loc('ஆர்டர் விவரம்', 'ఆర్డర్ వివరాలు', 'ಆರ್ಡರ್ ವಿವರಗಳು', 'Order details', 'ഓർഡർ വിവരങ്ങൾ') + '<span class="pyv-muted">' + money(grand) + '</span></summary>' + itemRows + '</details>' : '') +
+
+      '<p class="pyv-note">' + loc('GPay · PhonePe · Paytm எதுவும் திறக்கும். திறக்கலையா? QR ஸ்கேன் பண்ணுங்க. Pay பண்ணதும் மேலே இருக்கற button-ஐ அழுத்துங்க.', 'GPay · PhonePe · Paytm ఏదైనా తెరుచుకుంటుంది. తెరవలేదా? QR స్కాన్ చేయండి.', 'GPay · PhonePe · Paytm ಯಾವುದಾದರೂ ತೆರೆಯುತ್ತದೆ. ತೆರೆಯಲಿಲ್ಲವೇ? QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.', 'Opens any UPI app. Not opening? Scan the QR. After paying, tap the button above.', 'GPay · PhonePe · Paytm ഏതും തുറക്കും. തുറന്നില്ലേ? QR സ്കാൻ ചെയ്യൂ.') + '</p>' +
+    '</div>';
+  }
+
+  app.innerHTML = '<div class="wrap pyv-wrap">' + body +
+    '<p class="pyv-safe">\uD83D\uDD10 ' + loc('SK SAREES UPI-க்கு மட்டும் — PIN / OTP யாருக்கும் சொல்லாதீங்க.', 'SK SAREES UPI కి మాత్రమే — PIN / OTP ఎవరికీ చెప్పకండి.', 'SK SAREES UPI ಗೆ ಮಾತ್ರ — PIN / OTP ಯಾರಿಗೂ ಹೇಳಬೇಡಿ.', 'Pay to the SK SAREES UPI ID only — never share your PIN or OTP.', 'SK SAREES UPI-ക്ക് മാത്രം — PIN / OTP ആരോടും പറയരുത്.') + '</p>' +
   '</div>';
 
   bindPayPage(o, due, note);
 }
+
 function payWaMessage(){
   try{
     const o = __payOrder || {};
