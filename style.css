@@ -5468,3 +5468,162 @@ a.msc-brand:hover{ color:var(--mc-mag) }
 .pms-cust{display:block;font-size:.6rem;font-weight:700;color:#8B7C8F;margin-top:1px}
 .pms-baked{display:inline-block;margin-left:5px;font-size:.56rem;font-weight:900;color:#8a5b00;background:#fff3d6;border-radius:6px;padding:1px 5px;vertical-align:middle}
 .pms-hint{display:block;font-size:.66rem;font-weight:700;color:#0B6E62;margin-top:4px;line-height:1.35}
+
+/* ==========================================================================
+   🖥️ V63 — ADMIN PANEL REDESIGN  ·  "Teal Console"
+   Scoped to body[data-page="admin"] ONLY — the storefront CSS is untouched.
+   Pure CSS: no id/class/JS change, so every admin feature keeps working.
+   ========================================================================== */
+body[data-page="admin"]{
+  --a-bg:#F1F6F5; --a-card:#FFFFFF; --a-card2:#F7FAF9; --a-ink:#10221F; --a-mut:#6C807C;
+  --a-line:#E2ECE9; --a-acc:#0B6E62; --a-acc2:#0D7A6C; --a-acc-d:#074C44; --a-acc-ink:#FFFFFF;
+  --a-gold:#C9A227; --a-gold-soft:#FBF3DC; --a-ok:#0E7D46; --a-warn:#B7791F; --a-bad:#C1191F;
+  --a-r:16px; --a-r-sm:11px; --a-sh:0 2px 10px rgba(16,34,31,.06); --a-sh-lg:0 10px 30px rgba(16,34,31,.10);
+  background:var(--a-bg)!important; color:var(--a-ink);
+}
+body[data-page="admin"] .admin-wrap{max-width:1120px;margin:0 auto;padding:0 12px 60px}
+
+/* ── 1. console header ─────────────────────────────────────────────────── */
+body[data-page="admin"] .admin-top{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:0 0 14px;padding:18px 16px;border-radius:0 0 22px 22px;
+  background:linear-gradient(135deg,var(--a-acc2) 0%,var(--a-acc) 48%,var(--a-acc-d) 100%);
+  color:#fff;box-shadow:var(--a-sh-lg);border-bottom:2px solid var(--a-gold);
+  position:relative;overflow:hidden;
+}
+body[data-page="admin"] .admin-top::after{content:'';position:absolute;right:-40px;top:-60px;width:190px;height:190px;
+  border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.16),transparent 70%)}
+body[data-page="admin"] .admin-top>div{position:relative;z-index:1}
+body[data-page="admin"] .admin-eyebrow{display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:1.6px;
+  text-transform:uppercase;color:var(--a-gold-soft);background:rgba(0,0,0,.18);
+  padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.22)}
+body[data-page="admin"] .admin-top h1{margin:8px 0 2px;font-size:1.42rem;font-weight:800;letter-spacing:-.3px;color:#fff}
+body[data-page="admin"] .admin-sub{margin:0;font-size:.78rem;font-weight:600;color:rgba(255,255,255,.84);max-width:46ch}
+body[data-page="admin"] .sync-pill{background:rgba(255,255,255,.16)!important;color:#fff!important;
+  border:1px solid rgba(255,255,255,.34)!important;font-weight:800}
+body[data-page="admin"] .sync-pill.online{background:rgba(20,180,110,.26)!important;
+  border-color:rgba(140,240,190,.5)!important;color:#EFFFF6!important}
+body[data-page="admin"] .admin-top .btn-outline,
+body[data-page="admin"] #btnAlerts{
+  background:rgba(255,255,255,.16)!important;color:#fff!important;
+  border:1px solid rgba(255,255,255,.34)!important;border-radius:999px!important;font-weight:800}
+
+/* ── 2. sticky tab rail ────────────────────────────────────────────────── */
+body[data-page="admin"] .admin-tabs{
+  position:sticky;top:0;z-index:40;display:flex;gap:7px;margin:0 0 14px;padding:9px 2px;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  background:var(--a-bg);background:rgba(241,246,245,.92);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--a-line);
+}
+body[data-page="admin"] .admin-tabs::-webkit-scrollbar{display:none}
+body[data-page="admin"] .admin-tab{
+  flex:0 0 auto;min-height:42px;padding:0 15px;border-radius:999px;white-space:nowrap;
+  background:var(--a-card);border:1.5px solid var(--a-line);color:var(--a-ink);
+  font-size:.82rem;font-weight:800;box-shadow:var(--a-sh);transition:.16s;cursor:pointer;
+  font-family:inherit;
+}
+body[data-page="admin"] .admin-tab:active{transform:scale(.97)}
+body[data-page="admin"] .admin-tab.on{
+  background:linear-gradient(135deg,var(--a-acc2),var(--a-acc-d));border-color:transparent;color:#fff;
+  box-shadow:0 6px 18px rgba(11,110,98,.34)}
+body[data-page="admin"] .admin-tab:not(.on):hover{border-color:var(--a-acc);color:var(--a-acc)}
+
+/* ── 3. filter chips + stat cards ──────────────────────────────────────── */
+body[data-page="admin"] .filter-chips{padding:2px 0 12px}
+body[data-page="admin"] .filter-chip{background:var(--a-card);border:1.5px solid var(--a-line);border-radius:999px;
+  font-weight:800;font-size:.76rem;padding:9px 15px;box-shadow:var(--a-sh);color:var(--a-ink)}
+body[data-page="admin"] .filter-chip.on{background:var(--a-acc);border-color:var(--a-acc);color:#fff}
+body[data-page="admin"] .stat-row{gap:10px}
+body[data-page="admin"] .stat-chip{
+  background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--a-r);
+  padding:13px 10px;box-shadow:var(--a-sh);position:relative;overflow:hidden;text-align:center}
+body[data-page="admin"] .stat-chip::before{content:'';position:absolute;left:0;top:0;height:3px;width:100%;
+  background:linear-gradient(90deg,var(--a-acc2),var(--a-gold))}
+body[data-page="admin"] .stat-chip b{font-size:1.24rem;color:var(--a-acc);font-weight:800}
+body[data-page="admin"] .stat-chip small{color:var(--a-mut);font-size:.62rem;letter-spacing:.6px}
+
+/* ── 4. cards / forms / tables ─────────────────────────────────────────── */
+body[data-page="admin"] .order-card,
+body[data-page="admin"] .form-card,
+body[data-page="admin"] .adm-pw{
+  background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--a-r);
+  box-shadow:var(--a-sh);padding:15px}
+body[data-page="admin"] .order-card{border-left:4px solid var(--a-acc)}
+body[data-page="admin"] .order-card .oc-top b{font-size:.95rem}
+body[data-page="admin"] .order-card select,
+body[data-page="admin"] .form-card input,
+body[data-page="admin"] .form-card select,
+body[data-page="admin"] .form-card textarea,
+body[data-page="admin"] .adm-pw input,
+body[data-page="admin"] #orderSearch{
+  border:1.5px solid var(--a-line)!important;border-radius:var(--a-r-sm)!important;
+  background:var(--a-card2)!important;color:var(--a-ink)!important;font-weight:700;outline:none}
+body[data-page="admin"] .order-card select:focus,
+body[data-page="admin"] .form-card input:focus,
+body[data-page="admin"] .form-card select:focus,
+body[data-page="admin"] .form-card textarea:focus,
+body[data-page="admin"] .adm-pw input:focus,
+body[data-page="admin"] #orderSearch:focus{
+  border-color:var(--a-acc)!important;background:#fff!important;
+  box-shadow:0 0 0 3px rgba(11,110,98,.16)!important}
+body[data-page="admin"] .tpl-card{border:1px dashed var(--a-gold)!important;background:var(--a-gold-soft);
+  border-radius:var(--a-r)}
+body[data-page="admin"] .prod-table-wrap,
+body[data-page="admin"] .pms-table-wrap{
+  background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--a-r);
+  box-shadow:var(--a-sh);overflow:hidden}
+body[data-page="admin"] .prod-table th,
+body[data-page="admin"] .pms-table th{
+  background:var(--a-card2);color:var(--a-mut);font-size:.66rem;letter-spacing:.7px;
+  text-transform:uppercase;border-bottom:1px solid var(--a-line)}
+body[data-page="admin"] .prod-table td,
+body[data-page="admin"] .pms-table td{border-bottom:1px solid var(--a-line)}
+body[data-page="admin"] .pms-row:nth-child(even) td,
+body[data-page="admin"] .prod-table tbody tr:nth-child(even) td{background:rgba(247,250,249,.6)}
+body[data-page="admin"] .pms-row:hover td,
+body[data-page="admin"] .prod-table tbody tr:hover td{background:rgba(11,110,98,.07)}
+
+/* ── 5. product manager ────────────────────────────────────────────────── */
+body[data-page="admin"] .pms-h{font-size:1.2rem}
+body[data-page="admin"] .pms-stat{background:var(--a-card);border:1px solid var(--a-line);
+  border-radius:14px;box-shadow:var(--a-sh)}
+body[data-page="admin"] .pms-stat b{color:var(--a-acc)}
+body[data-page="admin"] .pms-stat.ok b{color:var(--a-ok)}
+body[data-page="admin"] .pms-stat.warn b{color:var(--a-warn)}
+body[data-page="admin"] .pms-stat.bad b{color:var(--a-bad)}
+body[data-page="admin"] .pms-stat:hover{border-color:var(--a-acc);box-shadow:0 6px 18px rgba(11,110,98,.18)}
+body[data-page="admin"] .pms-tools input,
+body[data-page="admin"] .pms-tools select{
+  border:1.5px solid var(--a-line);border-radius:var(--a-r-sm);background:var(--a-card2);color:var(--a-ink)}
+body[data-page="admin"] .pms-tools input:focus,
+body[data-page="admin"] .pms-tools select:focus{
+  border-color:var(--a-acc);background:#fff;box-shadow:0 0 0 3px rgba(11,110,98,.16)}
+body[data-page="admin"] .pms-rc{background:var(--a-card);border:1px solid var(--a-line);box-shadow:var(--a-sh)}
+body[data-page="admin"] .pms-banner{border-radius:12px}
+body[data-page="admin"] .btn-maroon,
+body[data-page="admin"] .pms-add{
+  background:linear-gradient(135deg,var(--a-acc2),var(--a-acc-d))!important;
+  border-color:transparent!important;color:#fff!important;
+  box-shadow:0 5px 16px rgba(11,110,98,.30)!important}
+body[data-page="admin"] .btn-outline{border:1.5px solid var(--a-line)!important;
+  background:var(--a-card)!important;color:var(--a-ink)!important}
+body[data-page="admin"] .btn-ghost{color:var(--a-mut)!important}
+
+/* ── 6. PIN lock screen card (progressive: needs :has) ─────────────────── */
+body[data-page="admin"] #adminApp>div:has(#admPin){
+  max-width:340px!important;margin:44px auto!important;background:var(--a-card);
+  border:1px solid var(--a-line);border-radius:20px;padding:26px 20px;box-shadow:var(--a-sh-lg)}
+body[data-page="admin"] #admPin{border:1.5px solid var(--a-line)!important;border-radius:12px!important;
+  background:var(--a-card2)!important;color:var(--a-ink)!important}
+body[data-page="admin"] #admPin:focus{border-color:var(--a-acc)!important;background:#fff!important;
+  box-shadow:0 0 0 3px rgba(11,110,98,.16)!important}
+
+/* ── 7. small screens ──────────────────────────────────────────────────── */
+@media (max-width:600px){
+  body[data-page="admin"] .admin-top{padding:15px 13px;border-radius:0 0 18px 18px}
+  body[data-page="admin"] .admin-top h1{font-size:1.22rem}
+  body[data-page="admin"] .admin-tab{min-height:40px;font-size:.78rem;padding:0 13px}
+  body[data-page="admin"] .pms-stats{grid-template-columns:repeat(3,1fr)}
+  body[data-page="admin"] .stat-chip{min-width:88px}
+}
