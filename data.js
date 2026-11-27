@@ -314,6 +314,15 @@ function convertMarginToPoints(code){
 function isAdminDevice(){
   try{ return String(LS.get('sk_admin', '0')) === '1'; }catch(e){ return false; }
 }
+/* 🙈 V64 — locally hidden products.
+   The admin "Hide" button writes hidden:true to Firestore when it can, but the
+   owner may not have Firebase write permission yet — so the id is also stored
+   here. The storefront then skips it on this device straight away. */
+function localHiddenIds(){
+  try{ return JSON.parse(localStorage.getItem('sk_hidden_products') || '[]').map(String); }catch(e){ return []; }
+}
+function isLocallyHidden(id){ return localHiddenIds().indexOf(String(id)) !== -1; }
+
 /* customer-visible products (hidden ones stay in Admin but never on the store) */
 let PRODUCTS = (() => {
   /* 📦 CATALOG SOURCE: real products come from the ADMIN (sk_products) and
@@ -331,7 +340,10 @@ let PRODUCTS = (() => {
   })();
   const notSample = p => p && p.id && !SAMPLE_IDS[p.id];
   const notDeleted = p => { try{ return !JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p && p.id)); }catch(e){ return true; } };
-  const notHidden = p => isAdminDevice() || !(p && p.hidden);   /* customers never see hidden products */
+  /* 🙈 a locally hidden product disappears on EVERY device (including the admin
+     phone) so the owner can verify it at once; a Firestore `hidden` flag only
+     hides it from customers — the admin device still sees it. */
+  const notHidden = p => !isLocallyHidden(p && p.id) && (isAdminDevice() || !(p && p.hidden));
   let built = [];
   if (window.__KEEP_BASE){
     built = BASE.map(b => Object.assign({}, b));
@@ -364,7 +376,9 @@ let PRODUCTS = (() => {
           cached.filter(notSample).filter(notDeleted).filter(notHidden).forEach(cp => { const np = normalizeProduct(cp); if (!custom.some(x => x.id === np.id)) custom.unshift(np); });
         }
       }catch(e){}
-      return custom.filter(notSample).filter(notDeleted);
+      /* 🙈 V64 — the admin-edits cache must honour hidden products too,
+         otherwise a saree hidden from the panel would still show on the site. */
+      return custom.filter(notSample).filter(notDeleted).filter(notHidden);
     }
   }catch(e){}
   /* 2. Cached Firestore products merge silently — so cloud-only products
@@ -576,7 +590,7 @@ async function preloadCatalog(wantId){
   try{
     const raw = JSON.parse(localStorage.getItem('sk_products_cloud') || '[]');
     if (Array.isArray(raw) && raw.length){
-      raw.filter(p => p && p.id && !isSampleId(p.id) && !(function(){ try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p.id)); }catch(e){ return false; } })() && (isAdminDevice() || !p.hidden)).forEach(cp => {
+      raw.filter(p => p && p.id && !isSampleId(p.id) && !(function(){ try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p.id)); }catch(e){ return false; } })() && !isLocallyHidden(p.id) && (isAdminDevice() || !p.hidden)).forEach(cp => {
         try{
           const np = normalizeProduct(cp);
           if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
@@ -597,7 +611,7 @@ async function preloadCatalog(wantId){
         const data = await r.json();
         const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
         if (Array.isArray(list) && list.length){
-          list.filter(p => p && p.id && !isSampleId(p.id) && !(function(){ try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p.id)); }catch(e){ return false; } })() && (isAdminDevice() || !p.hidden)).forEach(cp => {
+          list.filter(p => p && p.id && !isSampleId(p.id) && !(function(){ try{ return JSON.parse(localStorage.getItem('sk_deleted_products') || '[]').map(String).includes(String(p.id)); }catch(e){ return false; } })() && !isLocallyHidden(p.id) && (isAdminDevice() || !p.hidden)).forEach(cp => {
             try{
               const np = normalizeProduct(cp);
               if (!PRODUCTS.some(x => x.id === np.id)) PRODUCTS.push(np);
@@ -2928,6 +2942,7 @@ const Sync = {
           d.id = d.id || d.sku || x.id;
           if (d.status && String(d.status).toLowerCase() !== 'active') return;
           if (isSampleId(d.id)) return;   /* never re-add demo products */
+          if (isLocallyHidden(d.id)) return;                 /* 🙈 hidden from the admin = hidden everywhere */
           if (d.hidden && !isAdminDevice()) return;   /* 🚫 hidden products never re-appear for customers */
           cloud.push(d);
         });

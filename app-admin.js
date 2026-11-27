@@ -423,27 +423,22 @@ function renderAdmin(){
   app.innerHTML =
     '<div class="admin-top"><div><span class="admin-eyebrow">SK SAREES • STORE CONTROL</span><h1>Store Admin</h1><p class="admin-sub">Orders, products and customer tools — all in one place.</p></div>' +
     '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-outline btn-sm" id="btnAlerts" style="width:auto;min-width:0;padding:5px 10px;font-size:.72rem">🔔 Order Alerts</button><span class="sync-pill online" id="cloudPill">💾 Saved on device</span></div></div>' +
+    /* 📱 V64 — icon + short label so the tabs fit a 3-column mobile grid.
+       ids are unchanged, so every switchTab() binding still works. */
     '<div class="admin-tabs">' +
-      '<button type="button" class="admin-tab on" id="tabOrders">📋 Orders</button>' +
-      '<button type="button" class="admin-tab" id="tabManual">📝 Manual Order</button>' +
-      '<button type="button" class="admin-tab" id="tabProducts">🛍️ Products</button>' +
-      '<button type="button" class="admin-tab" id="tabBulk">📥 Bulk Upload & Edit</button>' +
-      '<button type="button" class="admin-tab" id="tabReviews">⭐ Reviews</button>' +
-      '<button type="button" class="admin-tab" id="tabCoupons">🎟️ Coupons</button>' +
-      '<button type="button" class="admin-tab" id="tabFeed">📦 Catalog Download</button>' +
-      '<button type="button" class="admin-tab" id="tabResellers">💰 Resellers</button>' +
-      '<button type="button" class="admin-tab" id="tabDashboard">📊 Dashboard</button>' +
+      '<button type="button" class="admin-tab on" id="tabOrders"><span class="at-ic">📋</span><span class="at-tx">Orders</span></button>' +
+      '<button type="button" class="admin-tab" id="tabProducts"><span class="at-ic">🛍️</span><span class="at-tx">Products</span></button>' +
+      '<button type="button" class="admin-tab" id="tabDashboard"><span class="at-ic">📊</span><span class="at-tx">Dashboard</span></button>' +
+      '<button type="button" class="admin-tab" id="tabManual"><span class="at-ic">📝</span><span class="at-tx">Manual Order</span></button>' +
+      '<button type="button" class="admin-tab" id="tabBulk"><span class="at-ic">📥</span><span class="at-tx">Bulk Edit</span></button>' +
+      '<button type="button" class="admin-tab" id="tabReviews"><span class="at-ic">⭐</span><span class="at-tx">Reviews</span></button>' +
+      '<button type="button" class="admin-tab" id="tabCoupons"><span class="at-ic">🎟️</span><span class="at-tx">Coupons</span></button>' +
+      '<button type="button" class="admin-tab" id="tabFeed"><span class="at-ic">📦</span><span class="at-tx">Catalog</span></button>' +
+      '<button type="button" class="admin-tab" id="tabResellers"><span class="at-ic">💰</span><span class="at-tx">Resellers</span></button>' +
     '</div>' +
     '<div id="tabBody"></div>' +
-    '<div class="adm-pw">' +
-      '<b>🔑 Change admin PIN</b>' +
-      '<p class="muted small" style="margin:4px 0 8px">இப்போ 4-இலக்க PIN போதும். Firebase login தேவை இல்ல.</p>' +
-      '<input id="pwCur" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="பழைய PIN" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
-      '<input id="pwNew" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="புது PIN (4 இலக்கம்)" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:6px;outline:none;background:#fff">' +
-      '<input id="pwNew2" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="புது PIN மறுபடி" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:.92rem;margin-bottom:8px;outline:none;background:#fff">' +
-      '<button type="button" class="btn btn-maroon btn-sm" id="pwSave" style="width:100%">Save new PIN</button>' +
-      '<p class="muted small" id="pwMsg" style="margin:8px 0 0"></p>' +
-    '</div>' +
+    /* 🔑 V64 — the Change-PIN card is removed (owner request). The 4-digit PIN
+       lock stays; to change it, edit PIN_HASH at the top of this file. */
     '<button type="button" class="btn btn-ghost btn-sm" id="logoutBtn" style="margin-top:14px;width:auto;border:1.5px solid var(--line)">Logout</button>';
   /* Pull custom Firestore categories once for admin category manager. */
   try{ if(FS.enabled()) FS._getDb().then(db=>{ if(!db)return; db.collection('categories').get().then(q=>{ q.forEach(d=>{const c=d.data()||{}; if(c.slug && !CATEGORIES.some(x=>x.slug===c.slug)) CATEGORIES.push({slug:c.slug,name:c.name||c.slug,emoji:c.emoji||'🪡',cls:'c-daily',blurb:c.name||c.slug});}); }); }); }catch(e){}
@@ -458,24 +453,7 @@ function renderAdmin(){
   document.getElementById('tabResellers').addEventListener('click', () => switchTab('resellers'));
   document.getElementById('tabFeed').addEventListener('click', () => switchTab('feed'));
   document.getElementById('logoutBtn').addEventListener('click', () => { PIN_GATE.close(); location.reload(); });
-  /* 🔑 change-PIN wiring (V60 — local hash, no Firebase) */
-  const pwBtn = document.getElementById('pwSave');
-  if (pwBtn) pwBtn.addEventListener('click', () => {
-    const msg = document.getElementById('pwMsg');
-    const say = (t, ok) => { if (msg){ msg.textContent = t; msg.style.color = ok ? 'var(--green)' : '#b3261e'; } };
-    const cur = String((document.getElementById('pwCur') || {}).value || '').trim();
-    const a   = String((document.getElementById('pwNew') || {}).value || '').trim();
-    const b   = String((document.getElementById('pwNew2') || {}).value || '').trim();
-    if (!PIN_GATE.check(cur)) return say('❌ பழைய PIN தவறு.');
-    if (!/^[0-9]{4}$/.test(a))  return say('❌ புது PIN 4 இலக்க number ஆகணும்.');
-    if (a !== b)                return say('❌ ரெண்டு புது PIN-ம் ஒண்ணா இல்ல.');
-    if (a === cur)              return say('❌ புது PIN பழையதை விட வேறா இருக்கணும்.');
-    PIN_HASH = pinHash(a);                    /* this browser: instant */
-    PIN_GATE.open();                          /* stay signed in */
-    say('✅ PIN மாறிடுச்சு. இந்த phone-ல மட்டும் — மற்ற device-ல புது PIN தான் வேலை செய்யும். \n' +
-        '⚠️ Permanent ஆகணும்னா: PIN_HASH = \'' + pinHash(a) + '\' — இதை app-admin.js-ல முதல் வரி-பகுதியில மாத்தி upload பண்ணுங்க.', true);
-    try{ navigator.clipboard.writeText("PIN_HASH = '" + pinHash(a) + "'"); }catch(e){}
-  });
+  /* 🔑 V64 — change-PIN wiring removed together with the card above. */
 
   const ab = document.getElementById('btnAlerts');
   if (ab) ab.addEventListener('click', () => enableAdminAlerts());

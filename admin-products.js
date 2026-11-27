@@ -89,7 +89,7 @@ const STATUSES = [
   { v:'active',   n:'Active',   e:'\uD83D\uDFE2' },
   { v:'draft',    n:'Draft',    e:'\uD83D\uDCDD' },
   { v:'inactive', n:'Inactive', e:'\u23F8' },
-  { v:'archived', n:'Archived', e:'\uD83D\uDDC4' },
+  { v:'archived', n:'Hidden', e:'\uD83D\uDE48' },
 ];
 const stName = v => (STATUSES.find(x => x.v === v) || { n: v || 'Active', e:'' }).n;
 const stEmoji = v => (STATUSES.find(x => x.v === v) || { e:'' }).e;
@@ -183,10 +183,7 @@ async function fixBaked(){
       T('\u26A0\uFE0F Fix failed: ' + String((err && err.message) || err).slice(0, 60));
   }
 }
-/* what the customer will see for this row (real × display markup) */
-function custPrice(p){
-  try{ return (typeof displayPriceOf === 'function') ? displayPriceOf({ price: p.price }) : Math.round(p.price * 1.1); }catch(e){ return p.price; }
-}
+/* V64 — the customer-price helper is gone: the admin never shows the +10% rate. */
 
 /* --------------------------------------------------------------- loading */
 function salesFromOrders(){
@@ -261,8 +258,10 @@ function filtered(){
   const mn = num(S.min, NaN), mx = num(S.max, NaN);
   let out = S.list.filter(p => {
     if (S.cat !== 'all' && p.cat !== S.cat) return false;
-    /* "All statuses" = everything EXCEPT the archive (it has its own filter) */
-    if (S.status === 'all' ? p.status === 'archived' : p.status !== S.status) return false;
+    /* 🙈 V64 — "All" now INCLUDES hidden products, so a hidden saree never
+       disappears from the admin list and can always be brought back with one
+       tap. The "Hidden" filter still isolates them. */
+    if (S.status !== 'all' && p.status !== S.status) return false;
     if (S.stock === 'out' && p.stock > 0) return false;
     if (S.stock === 'low' && !(p.stock > 0 && p.stock <= 5)) return false;
     if (S.stock === 'in' && !(p.stock > 0)) return false;
@@ -762,7 +761,7 @@ function paintStats(){
     card(st.inactive, 'Inactive', '', 'inactive') +
     card(st.out, 'Out of stock', 'bad', 'out') +
     card(st.low, 'Low stock', 'warn', 'low') +
-    card(st.archived, 'Archived', '', 'archived');
+    card(st.archived, 'Hidden', '', 'archived');
   const sub = $('pmsSub');
   if (sub) sub.textContent = S.loaded
     ? (currentUser() ? '\u2601\uFE0F Firestore connected' : '\uD83D\uDCF1 Device mode \u2014 connect to save to cloud') +
@@ -802,8 +801,9 @@ function paintList(){
             '<small class="pms-muted">SKU ' + E(p.sku || p.id) + ' · ' + E(p.cat) + (p.sub ? ' / ' + E(p.sub) : '') +
               (p.images.length > 1 ? ' · 🖼 ' + p.images.length : '') + (p.sales ? ' · 🛒 ' + p.sales + ' sold' : '') + '</small></div>' +
           '</div></td>' +
+        /* 💯 V64 — the admin cell shows ONLY the rate that is stored in
+           Firestore. The customer-side +10% is never displayed here. */
         '<td data-label="Price"><button type="button" class="pms-quick" data-pmsq="price" data-pmsid="' + E(p.id) + '">' + M(p.price) +
-            '<small class="pms-cust">site ' + M(custPrice(p)) + '</small>' +
             (disc ? '<small class="pms-off">' + disc + '% off</small>' : '') +
             (p.baked ? '<small class="pms-baked" title="+10% already baked into this doc — open Edit → Save to repair">\u26A0 baked</small>' : '') + '</button></td>' +
         '<td data-label="Stock"><button type="button" class="pms-quick' + (p.stock <= 0 ? ' pms-q-bad' : p.stock <= 5 ? ' pms-q-low' : '') + '" data-pmsq="stock" data-pmsid="' + E(p.id) + '">' +
@@ -813,11 +813,10 @@ function paintList(){
         '<td class="pms-c-act" data-label="">' +
           '<div class="pms-acts">' +
             '<button type="button" class="btn btn-outline btn-sm" data-pmsedit="' + E(p.id) + '">✏️ Edit</button>' +
-            (p.status === 'archived'
-              ? '<button type="button" class="btn btn-outline btn-sm" data-pmsrestore="' + E(p.id) + '" title="Restore">♻️</button>'
-              : '') +
-            '<button type="button" class="btn btn-ghost btn-sm" data-pmsdel="' + E(p.id) + '" title="Delete / archive">🗑</button>' +
-            '<a class="btn btn-ghost btn-sm" href="' + E((typeof productUrl === 'function') ? productUrl(p) : 'product.html?id=' + encodeURIComponent(p.id)) + '" target="_blank" rel="noopener" title="View on site">👁</a>' +
+            (isHiddenRow(p)
+              ? '<button type="button" class="btn btn-outline btn-sm" data-pmsunhide="' + E(p.id) + '" title="Show on site">👁 Show</button>'
+              : '<button type="button" class="btn btn-outline btn-sm pms-hidebtn" data-pmshide="' + E(p.id) + '" title="Hide from site">🙈 Hide</button>') +
+            '<a class="btn btn-ghost btn-sm" href="' + E((typeof productUrl === 'function') ? productUrl(p) : 'product.html?id=' + encodeURIComponent(p.id)) + '" target="_blank" rel="noopener" title="View on site">🔗</a>' +
           '</div></td>' +
       '</tr>';
     }).join('');
@@ -851,13 +850,13 @@ function paintBulk(){
     '<button type="button" class="pms-b" data-pmsbulk="activate">🟢 Activate</button>' +
     '<button type="button" class="pms-b" data-pmsbulk="deactivate">⏸ Deactivate</button>' +
     '<button type="button" class="pms-b" data-pmsbulk="draft">📝 Draft</button>' +
-    (selIds().some(id => { const p = S.list.find(x => x.id === id); return p && p.status === 'archived'; })
-      ? '<button type="button" class="pms-b" data-pmsbulk="restore">♻️ Restore</button>' : '') +
+    (selIds().some(id => { const p = S.list.find(x => x.id === id); return p && isHiddenRow(p); })
+      ? '<button type="button" class="pms-b" data-pmsbulk="unhide">👁 Show</button>' : '') +
     '<button type="button" class="pms-b" data-pmsbulk="category">🗂 Category</button>' +
     '<button type="button" class="pms-b" data-pmsbulk="price">₹ Price</button>' +
     '<button type="button" class="pms-b" data-pmsbulk="stock">📦 Stock</button>' +
     '<button type="button" class="pms-b" data-pmsbulk="csv">⬇️ Export CSV</button>' +
-    '<button type="button" class="pms-b pms-b-del" data-pmsbulk="delete">🗑 Delete</button>' +
+    '<button type="button" class="pms-b pms-b-del" data-pmsbulk="hide">🙈 Hide</button>' +
     '<button type="button" class="pms-b" data-pmsbulk="clear">✕ Clear</button>' +
     '<span class="pms-bulk-cats" id="pmsBulkCats" style="display:none">' +
       '<select id="pmsBulkCatSel"><option value="">Choose category…</option>' + cats.map(c => '<option value="' + E(c.slug) + '">' + E(c.name) + '</option>').join('') + '</select>' +
@@ -917,8 +916,8 @@ function wireList(){
     if (cnt){ const n = selCount(); cnt.textContent = cnt.textContent.replace(/· \d+ selected/, '') + (n ? ' · ' + n + ' selected' : ''); }
   }));
   QA('[data-pmsedit]').forEach(b => b.addEventListener('click', () => openForm(b.dataset.pmsedit)));
-  QA('[data-pmsdel]').forEach(b => b.addEventListener('click', () => askDelete(b.dataset.pmsdel)));
-  QA('[data-pmsrestore]').forEach(b => b.addEventListener('click', () => runRestore([b.dataset.pmsrestore])));
+  QA('[data-pmshide]').forEach(b => b.addEventListener('click', () => askHide(b.dataset.pmshide)));
+  QA('[data-pmsunhide]').forEach(b => b.addEventListener('click', () => runUnhide([b.dataset.pmsunhide])));
   QA('[data-pmsq]').forEach(b => b.addEventListener('click', () => quickEdit(b.dataset.pmsid, b.dataset.pmsq, b)));
 }
 
@@ -1093,8 +1092,9 @@ function openForm(id){
       /* ---- pricing ---- */
       '<div class="pms-sec"><b>💰 Pricing & Stock</b>' +
         '<div class="pms-grid">' +
-          '<div class="pms-f"><label>Selling Price (₹) * <span class="pms-muted">— உங்க real rate</span></label><input id="pmsPrice" type="number" inputmode="numeric" min="1" value="' + (base.price || '') + '">' +
-            '<small class="pms-hint" id="pmsCustHint"></small></div>' +
+          /* 💯 V64 — only the real (Firestore) rate is shown here; the +10%
+             customer markup is never displayed inside the admin panel. */
+          '<div class="pms-f"><label>Selling Price (₹) * <span class="pms-muted">— Firestore-ல இதுதான் save ஆகும்</span></label><input id="pmsPrice" type="number" inputmode="numeric" min="1" value="' + (base.price || '') + '"></div>' +
           '<div class="pms-f"><label>MRP / Original Price (₹)</label><input id="pmsMrp" type="number" inputmode="numeric" min="0" value="' + (base.mrp || '') + '"></div>' +
           '<div class="pms-f"><label>Discount % <span class="pms-muted">(auto)</span></label><input id="pmsDisc" type="number" inputmode="numeric" min="0" max="90" value=""></div>' +
           '<div class="pms-f"><label>Stock Quantity</label><input id="pmsStockQty" type="number" inputmode="numeric" min="0" value="' + int(base.stock, 10) + '"></div>' +
@@ -1105,7 +1105,7 @@ function openForm(id){
           '<div class="pms-f"><label>Shipping Charge (₹)</label><input id="pmsShip" type="number" inputmode="numeric" min="0" value="' + int(base.shipping, 0) + '"></div>' +
           '<div class="pms-f"><label>Weight (g)</label><input id="pmsWeight" type="number" inputmode="numeric" min="50" value="' + int(base.weight, 800) + '"></div>' +
         '</div>' +
-        '<p class="pms-small pms-muted">💯 இங்க போடுறது <b>உங்க real rate</b>. Customer-க்கு site-ல அது + <b>' + Math.round(markupPct() * 100) + '%</b> markup-ஆ தானா காட்டும். Admin-ல எப்பவும் real rate தான் தெரியும்.</p>' +
+        '<p class="pms-small pms-muted">💯 இங்க போடுற rate-ஐயே Firestore-ல save ஆகும், admin-ல அதுதான் தெரியும்.</p>' +
       '</div>' +
 
       /* ---- saree details + variants ---- */
@@ -1175,14 +1175,6 @@ function openForm(id){
     const syncDisc = () => {
       const a = num(pr.value, 0), b = num(mr.value, 0);
       if (dc && a > 0 && b > a) dc.value = Math.round((1 - a / b) * 100);
-      const hint = $('pmsCustHint', root);
-      if (hint){
-        const pc = Math.round(markupPct() * 100);
-        hint.textContent = a > 0
-          ? ('\uD83D\uDC41 Customer-க்கு site-ல \u20B9' + Math.round(a * (1 + markupPct())).toLocaleString('en-IN') +
-             ' தெரியும்  (real \u20B9' + Math.round(a).toLocaleString('en-IN') + ' + ' + pc + '%)')
-          : '';
-      }
     };
     if (pr) pr.addEventListener('input', syncDisc);
     if (mr) mr.addEventListener('input', syncDisc);
@@ -1352,92 +1344,115 @@ function previewForm(){
 }
 
 /* ------------------------------------------------------- 4. safe deletion */
-async function askDelete(id){
+/* ============================================================ 🙈 HIDE / SHOW
+   V64 — the owner asked for HIDE instead of DELETE.
+
+   Why delete did nothing before: a Firestore delete needs `isAdmin()` in the
+   security rules, and until the owner connects once (☁️ Connect) and pastes the
+   printed uid into the rules, every product write is rejected. The old code
+   swallowed that rejection, so the button looked dead. (Review delete *seemed*
+   to work only because it removes the row from the screen and fires the cloud
+   call with `.catch(()=>{})`.)
+
+   Hide now works in two layers:
+     1. ALWAYS local — the id goes into `localStorage.sk_hidden_products`, which
+        data.js filters out of the storefront on this device immediately.
+     2. THEN cloud — `hidden:true, status:'archived'` is written to Firestore so
+        every customer sees it gone. If that write is refused the toast says so
+        plainly and tells the owner the one-tap way to fix it.
+   Nothing is ever destroyed: Show puts the product back exactly as it was.
+   ============================================================ */
+function isHiddenRow(p){
+  if (!p) return false;
+  if (p.hidden === true) return true;
+  if (String(p.status || '').toLowerCase() === 'archived') return true;
+  try{ return localHiddenIds().indexOf(String(p.id)) !== -1; }catch(e){ return false; }
+}
+function hiddenListAdd(ids){
+  try{
+    const t = localHiddenIds();
+    ids.forEach(id => { if (t.indexOf(String(id)) === -1) t.push(String(id)); });
+    localStorage.setItem('sk_hidden_products', JSON.stringify(t.slice(-2000)));
+  }catch(e){}
+}
+function hiddenListRemove(ids){
+  try{
+    const drop = {}; ids.forEach(id => { drop[String(id)] = 1; });
+    localStorage.setItem('sk_hidden_products', JSON.stringify(localHiddenIds().filter(x => !drop[x])));
+  }catch(e){}
+}
+async function askHide(id){
   const p = S.list.find(x => x.id === id);
   if (!p){ T('⚠️ Product not found'); return; }
   const r = await confirmBox({
-    title: 'Are you sure you want to delete this product?',
+    title: '🙈 Hide this product?',
     img: p.img, name: p.name,
     meta: 'SKU ' + (p.sku || p.id) + ' · ' + M(p.price) + ' · ' + p.cat,
-    text: 'Default = <b>Archive</b> (site-ல இருந்து மறையும், data safe). வேணும்னா permanent-ஆ delete பண்ணலாம்.',
-    okText: '🗄 Archive', danger2: '🗑 Delete forever', cancelText: 'Cancel',
+    text: 'Site-ல இருந்து மறையும். Data Firestore-ல அப்படியே இருக்கும் — <b>Show</b> அழுத்தி எப்போ வேணும்னாலும் திரும்ப கொண்டு வரலாம்.',
+    okText: '🙈 Hide', cancelText: 'Cancel',
     note: '🔒 இது <b>' + E(p.id) + '</b>-ஐ மட்டும் தான் தொடும்.',
   });
-  if (r === 'no') return;
-  if (r === 'yes2'){
-    const r2 = await confirmBox({
-      title: 'Permanent delete — முழுசா போயிடும்',
-      img: p.img, name: p.name, meta: 'SKU ' + (p.sku || p.id),
-      text: 'Firestore document-ம் delete ஆகும். <b>Undo கிடையாது.</b><br>Confirm பண்ண product name-ஐ type பண்ணுங்க:',
-      okText: '🗑 Confirm Delete', cancelText: 'Cancel',
-    });
-    if (r2 !== 'yes') return;
-    const typed = window.prompt('Type the product name exactly to delete:  ' + p.name);
-    if (String(typed || '').trim().toLowerCase() !== String(p.name).trim().toLowerCase()){
-      T('⚠️ Name match ஆகல — delete ஆகல');
-      return;
-    }
-    await runDelete([p.id], true);
-  }else{
-    await runArchive([p.id]);
-  }
+  if (r !== 'yes') return;
+  await runHide([p.id]);
 }
-async function runArchive(ids){
+async function runHide(ids){
   const rows = ids.map(id => S.list.find(x => x.id === id)).filter(Boolean);
   if (!rows.length) return;
+  /* 1) local first — this never fails */
+  hiddenListAdd(rows.map(p => p.id));
+  rows.forEach(p => {
+    p.status = 'archived'; p.hidden = true; p.archivedAt = nowMs();
+    const i = S.list.findIndex(x => x.id === p.id); if (i >= 0) S.list[i] = Object.assign({}, p);
+    applyLocal(p, false);
+  });
+  ids.forEach(id => delete S.sel[id]);
+  paint();
+  /* 2) cloud — best effort, reported honestly */
+  let okCloud = false, refused = false;
   try{
     await cloud(() => writeBatch(rows.map(p => ({
-      id: p.id,
-      doc: { status: 'archived', hidden: true, archivedAt: nowMs() },
+      id: p.id, doc: { status: 'archived', hidden: true, archivedAt: nowMs() },
     }))));
-    rows.forEach(p => {
-      p.status = 'archived'; p.hidden = true;
-      const i = S.list.findIndex(x => x.id === p.id); if (i >= 0) S.list[i] = Object.assign({}, p);
-      applyLocal(p, false);
-    });
-    ids.forEach(id => delete S.sel[id]);
-    paint();
-    T('🗄 ' + rows.length + ' product(s) archived — site-ல இருந்து மறைஞ்சிடுச்சு');
+    okCloud = true;
   }catch(err){
-    if (String(err && err.message) !== 'not-connected' && !isDenied(err))
-      T('⚠️ Archive failed: ' + String((err && err.message) || err).slice(0, 60));
+    const m = String((err && err.message) || err || '');
+    refused = isDenied(err) || m === 'not-connected' || m === 'busy';
+    if (!refused) T('⚠️ Firestore write failed: ' + m.slice(0, 60));
+  }
+  try{ if (typeof refreshFeedCache === 'function') refreshFeedCache(); }catch(e){}
+  const n = rows.length;
+  if (okCloud){
+    T('🙈 ' + n + ' product' + (n > 1 ? 's' : '') + ' hidden — site-ல இருந்து மறைஞ்சிடுச்சு (Firestore update ஆச்சு)');
+  }else{
+    T('🙈 ' + n + ' product' + (n > 1 ? 's' : '') + ' இந்த device-ல hide ஆச்சு. ⚠️ Firestore permission இல்ல — எல்லா customer-க்கும் மறைய மேல ☁️ Connect அழுத்துங்க, இல்லனா Catalog Download → catalog.json upload பண்ணுங்க');
   }
 }
-async function runRestore(ids){
+async function runUnhide(ids){
   const rows = ids.map(id => S.list.find(x => x.id === id)).filter(Boolean);
   if (!rows.length) return;
+  hiddenListRemove(rows.map(p => p.id));
+  rows.forEach(p => {
+    p.status = 'active'; p.hidden = false; p.archivedAt = null;
+    const i = S.list.findIndex(x => x.id === p.id); if (i >= 0) S.list[i] = Object.assign({}, p);
+    applyLocal(p, false);
+  });
+  ids.forEach(id => delete S.sel[id]);
+  paint();
+  let okCloud = false, refused = false;
   try{
     await cloud(() => writeBatch(rows.map(p => ({
       id: p.id, doc: { status: 'active', hidden: false, archivedAt: null },
     }))));
-    rows.forEach(p => { p.status = 'active'; p.hidden = false; applyLocal(p, false); });
-    ids.forEach(id => delete S.sel[id]);
-    paint();
-    T('✅ ' + rows.length + ' product(s) restored → Active');
+    okCloud = true;
   }catch(err){
-    if (String(err && err.message) !== 'not-connected' && !isDenied(err))
-      T('⚠️ Restore failed: ' + String((err && err.message) || err).slice(0, 60));
+    const m = String((err && err.message) || err || '');
+    refused = isDenied(err) || m === 'not-connected' || m === 'busy';
+    if (!refused) T('⚠️ Firestore write failed: ' + m.slice(0, 60));
   }
-}
-async function runDelete(ids, permanent){
-  const rows = ids.map(id => S.list.find(x => x.id === id)).filter(Boolean);
-  if (!rows.length) return;
-  try{
-    const paths = [];
-    rows.forEach(p => (p.images || []).forEach(u => { const r = S.raw[p.id] || {}; if (r._imgPaths && r._imgPaths[u]) paths.push(r._imgPaths[u]); }));
-    await cloud(async () => {
-      await writeBatch(rows.map(p => ({ id: p.id, delete: true })));
-      return true;
-    });
-    rows.forEach(p => { tombstone(p.id); applyLocal(p, true); delete S.sel[p.id]; });
-    paths.forEach(pt => storageDelete(pt));      /* only files WE uploaded */
-    try{ if (typeof refreshFeedCache === 'function') refreshFeedCache(); }catch(e){}
-    paint();
-    T('🗑 ' + rows.length + ' product(s) permanently deleted');
-  }catch(err){
-    if (String(err && err.message) !== 'not-connected' && !isDenied(err))
-      T('⚠️ Delete failed: ' + String((err && err.message) || err).slice(0, 60));
-  }
+  try{ if (typeof refreshFeedCache === 'function') refreshFeedCache(); }catch(e){}
+  T(okCloud
+    ? '👁 ' + rows.length + ' product(s) back on the site'
+    : '👁 இந்த device-ல show ஆகுது. ⚠️ Firestore permission இல்ல — site-ல எல்லாருக்கும் ☁️ Connect தேவை');
 }
 
 /* ---------------------------------------------------------- 5. bulk stuff */
@@ -1481,26 +1496,21 @@ async function bulkAction(act){
       return { stock: clamp(Math.round(v), 0, 999999) };
     }, 'stock (' + mode + ' ' + n + ')');
   }
-  if (act === 'restore') return runRestore(ids);
+  if (act === 'unhide' || act === 'restore') return runUnhide(ids);
   if (act === 'activate' || act === 'deactivate' || act === 'draft'){
     const st = act === 'activate' ? 'active' : act === 'deactivate' ? 'inactive' : 'draft';
     const ok = await confirmBox({ title: 'Bulk status change', text: ids.length + ' products → <b>' + stName(st) + '</b>', okText: 'Apply', cancelText: 'Cancel' });
     if (ok !== 'yes') return;
     return bulkPatch(ids, () => ({ status: st, hidden: st !== 'active' }), 'status → ' + st);
   }
-  if (act === 'delete'){
+  if (act === 'hide' || act === 'delete'){
     const ok = await confirmBox({
-      title: 'Bulk delete — ' + ids.length + ' products',
-      text: 'Default = <b>Archive</b> (data safe, site-ல மறையும்).',
-      okText: '🗄 Archive all', danger2: '🗑 Delete forever', cancelText: 'Cancel',
+      title: '🙈 Hide ' + ids.length + ' products?',
+      text: 'Site-ல இருந்து மறையும் — product data Firestore-ல அப்படியே இருக்கும். எப்போ வேணும்னாலும் <b>Show</b> அழுத்தி திரும்ப கொண்டு வரலாம்.',
+      okText: '🙈 Hide all', cancelText: 'Cancel',
     });
-    if (ok === 'no') return;
-    if (ok === 'yes2'){
-      const ok2 = await confirmBox({ title: 'Permanent bulk delete', text: ids.length + ' Firestore documents delete ஆகும். <b>Undo கிடையாது.</b>', okText: 'Yes, delete forever', cancelText: 'Cancel' });
-      if (ok2 !== 'yes') return;
-      return runDelete(ids, true);
-    }
-    return runArchive(ids);
+    if (ok !== 'yes') return;
+    return runHide(ids);
   }
 }
 async function bulkPatch(ids, fn, label){

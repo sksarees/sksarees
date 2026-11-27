@@ -5627,3 +5627,60 @@ body[data-page="admin"] #admPin:focus{border-color:var(--a-acc)!important;backgr
   body[data-page="admin"] .pms-stats{grid-template-columns:repeat(3,1fr)}
   body[data-page="admin"] .stat-chip{min-width:88px}
 }
+
+/* ==========================================================================
+   📱 V64 — ADMIN: simple mobile tab grid · compact modern order buttons
+   Scoped to body[data-page="admin"] only. CSS-only, no markup/JS dependency
+   except the new .at-ic/.at-tx spans inside the tab buttons.
+   ========================================================================== */
+
+/* ── 1. tabs: 3-column icon grid on mobile (no sideways scrolling) ─────── */
+body[data-page="admin"] .admin-tabs{
+  position:static;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;
+  overflow:visible;padding:10px 0 12px;background:transparent;
+  backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:1px solid var(--a-line,#E2ECE9)}
+body[data-page="admin"] .admin-tab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:58px;padding:8px 4px;border-radius:14px;white-space:normal;line-height:1.15}
+body[data-page="admin"] .at-ic{font-size:1.16rem;line-height:1}
+body[data-page="admin"] .at-tx{font-size:.66rem;font-weight:800;text-align:center;letter-spacing:.1px}
+@media (min-width:760px){
+  body[data-page="admin"] .admin-tabs{
+    position:sticky;top:0;display:flex;gap:7px;overflow-x:auto;padding:9px 2px;
+    background:rgba(241,246,245,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  body[data-page="admin"] .admin-tab{
+    flex:0 0 auto;flex-direction:row;gap:7px;min-height:42px;padding:0 15px;
+    border-radius:999px;white-space:nowrap}
+  body[data-page="admin"] .at-ic{font-size:.98rem}
+  body[data-page="admin"] .at-tx{font-size:.82rem}
+}
+
+/* ── 2. order-card buttons: small, tidy, modern (2 up on mobile) ───────── */
+body[data-page="admin"] .oc-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+body[data-page="admin"] .oc-btns .btn{
+  width:100%!important;min-width:0!important;min-height:40px;padding:7px 9px;
+  border-radius:11px;font-size:.755rem;font-weight:800;line-height:1.15;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;text-align:center}
+body[data-page="admin"] .oc-btns .btn svg{flex:0 0 auto;width:15px;height:15px}
+body[data-page="admin"] .oc-btns .btn-wa{grid-column:1/-1;min-height:44px;font-size:.82rem}
+body[data-page="admin"] .oc-btns .btn-outline{background:#fff!important;border:1.5px solid var(--a-line,#E2ECE9)!important;color:var(--a-ink,#10221F)!important}
+body[data-page="admin"] .oc-btns .btn-buy,
+body[data-page="admin"] .oc-btns [data-markpaid]{
+  background:#E8F7EE!important;border:1.5px solid #BFE6CF!important;color:#0E7D46!important}
+body[data-page="admin"] .oc-btns .btn-ghost,
+body[data-page="admin"] .oc-btns [data-markunpaid]{
+  background:#FFF7E8!important;border:1.5px solid #F0DDB8!important;color:#96601A!important}
+body[data-page="admin"] .oc-btns [data-delorder]{
+  grid-column:1/-1;background:#FDECEC!important;border:1.5px solid #F3C9C9!important;color:#B3261E!important}
+body[data-page="admin"] .oc-btns .btn:active{transform:scale(.98)}
+@media (min-width:700px){
+  body[data-page="admin"] .oc-btns{grid-template-columns:repeat(3,1fr)}
+  body[data-page="admin"] .oc-btns .btn-wa{grid-column:span 3}
+  body[data-page="admin"] .oc-btns [data-delorder]{grid-column:span 3}
+}
+/* the status dropdown sits right above the buttons — same compact language */
+body[data-page="admin"] .order-card>select{min-height:42px;font-size:.8rem}
+
+/* ── 3. hide / show product buttons ────────────────────────────────────── */
+body[data-page="admin"] .pms-hidebtn{color:#96601A!important;border-color:#EBD9AE!important;background:#FFFBF2!important}
+body[data-page="admin"] .pms-b-del{color:#96601A}
